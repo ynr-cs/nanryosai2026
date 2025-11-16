@@ -2,128 +2,214 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>Nanryosai 2026 - 開発テストページ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文化祭モバイルオーダー ログイン</title>
+
+    <!-- スタイルシート(CSS)を記述 -->
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f4f4f9;
+      }
+      .container {
+        text-align: center;
+        background-color: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+      }
+      button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #357ae8;
+      }
+      #user-info {
+        margin-top: 20px;
+        font-size: 18px;
+        color: #555;
+      }
+      /* 最初は非表示にしておくためのクラス */
+      .hidden {
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <h1>南陵祭2026 POS・ウェブサイト</h1>
-    <p>こんにちは!</p>
-    <p>これはテストです。</p>
-    <p>
-      Firebaseとの接続を確認し、ログインとデータベース書き込みをテストします。
-    </p>
+    <!-- 画面に表示する要素(HTML) -->
+    <div class="container">
+      <h1>文化祭モバイルオーダー</h1>
+      <button id="login-button">Googleでログイン</button>
 
-    <button id="loginButton">Googleでログイン</button>
-    <button id="logoutButton" style="display: none">ログアウト</button>
-    <div id="userInfo"></div>
+      <!-- ログイン後にユーザー情報を表示するエリア -->
+      <!-- 最初は hidden クラスで非表示にしておく -->
+      <div id="user-info" class="hidden">
+        <p id="user-name"></p>
+        <button id="logout-button">ログアウト</button>
+      </div>
+    </div>
 
-    <!-- Firebase SDK の読み込み (バージョンはv8系列の例) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- JavaScriptの処理を記述 -->
+    <script type="module">
+      // Firebase v9のモジュラースタイルで各機能をインポートする
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-    <script>
       // =================================================================
-      // Firebase Configuration
-      // ▼▼▼▼▼ ここにあなたのFirebase設定を貼り付けてください ▼▼▼▼▼
-      // (注意: この情報は絶対に公開しないでください)
-      // =================================================================const firebaseConfig = {
-      //
+      // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここに自分のfirebaseConfigを貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+      // =================================================================
       const firebaseConfig = {
-        apiKey: "AIzaSyCPbfvQFZiNqKFOL4IIgOYpyhw-1fGXF8M",
-        authDomain: "nanryousai-2026.firebaseapp.com",
-        projectId: "nanryousai-2026",
-        storageBucket: "nanryousai-2026.appspot.com",
-        messagingSenderId: "152456819011",
-        appId: "1:152456819011:web:55edecc0ac0aa7c63bfff6",
-        measurementId: "G-EL9TPFGSJF",
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+        measurementId: "G-1M5G95EXF0",
       };
+      // =================================================================
+      // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+      // =================================================================
 
-      // ▲▲▲▲▲ ここまで ▲▲▲▲▲
+      // ■ 1. Firebaseの初期化
+      // -----------------------------------------------------------------
+      // firebaseConfigの情報を使ってFirebaseのサービスを使えるように準備する
+      const app = initializeApp(firebaseConfig);
+      // Authenticationの機能を使うためのインスタンスを取得
+      const auth = getAuth(app);
+      // Firestoreの機能を使うためのインスタンスを取得
+      const db = getFirestore(app);
+      // Googleログイン機能を提供するためのプロバイダーインスタンスを作成
+      const provider = new GoogleAuthProvider();
 
-      // =================================================================
-      // Firebase の初期化とサービス準備
-      // =================================================================
-      firebase.initializeApp(firebaseConfig);
-      console.log("Firebase 接続成功！");
+      // ■ 2. HTML要素の取得
+      // -----------------------------------------------------------------
+      // これから操作するHTML要素を、IDを使って取得しておく
+      const loginButton = document.getElementById("login-button");
+      const logoutButton = document.getElementById("logout-button");
+      const userInfoDiv = document.getElementById("user-info");
+      const userNameP = document.getElementById("user-name");
 
-      const auth = firebase.auth();
-      const db = firebase.firestore();
-
-      // =================================================================
-      // HTML要素の取得
-      // =================================================================
-      const loginButton = document.getElementById("loginButton");
-      const logoutButton = document.getElementById("logoutButton");
-      const userInfoDiv = document.getElementById("userInfo");
-
-      // =================================================================
-      // ログイン処理
-      // =================================================================
-      loginButton.onclick = () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth
-          .signInWithPopup(provider)
+      // ■ 3. ログイン処理
+      // -----------------------------------------------------------------
+      // login-buttonがクリックされたときの処理を設定
+      loginButton.addEventListener("click", () => {
+        // Googleの認証ポップアップを表示してログインを行う
+        signInWithPopup(auth, provider)
           .then((result) => {
-            const user = result.user;
-            console.log("ログイン成功:", user.displayName);
-            alert(`ようこそ、${user.displayName}さん！`);
-
-            // Firestoreの'users'コレクションにユーザー情報を書き込む
-            // .doc(user.uid)で、ユーザー固有のIDをドキュメント名に設定
-            return db.collection("users").doc(user.uid).set({
-              name: user.displayName,
-              email: user.email,
-              photoURL: user.photoURL,
-              lastLogin: new Date(), // 現在の日時を記録
-            });
-          })
-          .then(() => {
-            console.log("Firestoreへの書き込み成功！");
-            alert("ユーザー情報をデータベースに保存しました。");
+            // ログイン成功時の処理
+            console.log("ログイン成功！", result.user);
+            // ★★★ここが重要★★★
+            // ログインしたユーザーの情報をFirestoreに保存する
+            saveUserToFirestore(result.user);
           })
           .catch((error) => {
-            // エラー処理
-            console.error("処理中にエラーが発生しました:", error);
-            alert("エラーが発生しました。コンソールを確認してください。");
+            // ログイン失敗時の処理
+            console.error("ログインエラー:", error);
+            // エラーコードやメッセージをコンソールに表示
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error(
+              `エラーコード: ${errorCode}, エラーメッセージ: ${errorMessage}`
+            );
           });
-      };
+      });
 
-      // =================================================================
-      // ログアウト処理
-      // =================================================================
-      logoutButton.onclick = () => {
-        auth
-          .signOut()
+      // ■ 4. ログアウト処理
+      // -----------------------------------------------------------------
+      // logout-buttonがクリックされたときの処理を設定
+      logoutButton.addEventListener("click", () => {
+        signOut(auth)
           .then(() => {
-            console.log("ログアウト成功");
-            alert("ログアウトしました。");
+            console.log("ログアウトしました。");
+            // 画面の状態は onAuthStateChanged が自動で更新してくれる
           })
           .catch((error) => {
             console.error("ログアウトエラー:", error);
           });
-      };
+      });
 
-      // =================================================================
-      // ログイン状態の監視
-      // =================================================================
-      auth.onAuthStateChanged((user) => {
+      // ■ 5. ユーザー情報をFirestoreに保存する関数
+      // -----------------------------------------------------------------
+      // userオブジェクトを受け取り、Firestoreにデータを保存する
+      async function saveUserToFirestore(user) {
+        // 保存するユーザー情報のオブジェクトを作成
+        const userData = {
+          uid: user.uid, // ユーザーの一意なID
+          displayName: user.displayName, // Googleアカウントの表示名
+          email: user.email, // Googleアカウントのメールアドレス
+          photoURL: user.photoURL, // Googleアカウントのプロフィール写真URL
+          lastLogin: new Date(), // 最終ログイン日時（例として追加）
+        };
+
+        try {
+          // Firestoreの'users'コレクションに、ユーザーのuidをドキュメントIDとしてデータを保存
+          // doc(db, 'コレクション名', 'ドキュメントID') で保存場所を指定
+          await setDoc(doc(db, "users", user.uid), userData);
+          console.log("Firestoreにユーザー情報を保存しました。");
+
+          /*
+                 【解説】setDocの良いところ
+                 setDocは、指定したドキュメントID（今回はuser.uid）のドキュメントが
+                 存在しない場合は「新規作成」し、
+                 すでに存在する場合は「上書き保存」してくれます。
+                 これにより、ユーザーが何回ログインしてもデータベースに同じユーザーが
+                 重複して作られることがなく、常に最新の情報に更新できます。
+                 モバイルオーダーシステムでは非常に都合の良い機能です。
+                */
+        } catch (error) {
+          console.error("Firestoreへの保存エラー:", error);
+        }
+      }
+
+      // ■ 6. ユーザーのログイン状態を監視する
+      // -----------------------------------------------------------------
+      // onAuthStateChangedは、ログイン、ログアウト、ページ読み込み時など
+      // ユーザーの認証状態が変化したときに自動的に呼び出される便利な関数
+      onAuthStateChanged(auth, (user) => {
         if (user) {
-          // ログインしている場合
-          console.log("ログイン状態:", user.displayName);
-          loginButton.style.display = "none";
-          logoutButton.style.display = "block";
-          userInfoDiv.innerHTML = `
-                    <h3>ログイン中</h3>
-                    <p>名前: ${user.displayName}</p>
-                    <p>メール: ${user.email}</p>
-                    <img src="${user.photoURL}" alt="プロフィール画像" width="50">
-                `;
+          // --- ログインしている場合の処理 ---
+          console.log("ログイン状態です:", user);
+
+          // UI（画面表示）をログイン後の状態に更新
+          userNameP.textContent = `ようこそ、${user.displayName}さん`;
+          userInfoDiv.classList.remove("hidden"); // ユーザー情報エリアを表示
+          loginButton.classList.add("hidden"); // ログインボタンを非表示
         } else {
-          // ログアウトしている場合
-          console.log("ログアウト状態");
-          loginButton.style.display = "block";
-          logoutButton.style.display = "none";
-          userInfoDiv.innerHTML = "";
+          // --- ログアウトしている場合の処理 ---
+          console.log("ログアウト状態です。");
+
+          // UIをログアウト後の状態（初期状態）に更新
+          userNameP.textContent = "";
+          userInfoDiv.classList.add("hidden"); // ユーザー情報エリアを非表示
+          loginButton.classList.remove("hidden"); // ログインボタンを表示
         }
       });
     </script>
