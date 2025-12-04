@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KVS | History Full</title>
+    <title>KVS | Zoom & Sound</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
       rel="stylesheet"
@@ -16,6 +16,8 @@
         color: #e0e0e0;
         margin: 0;
         padding: 15px;
+        /* ズーム機能のためのトランジション */
+        transition: zoom 0.2s ease;
       }
 
       /* --- ヘッダー --- */
@@ -46,6 +48,7 @@
         color: #aaa;
       }
 
+      /* ボタン共通 */
       .btn-header {
         background-color: #333;
         color: #fff;
@@ -56,6 +59,7 @@
         font-size: 0.9rem;
         font-weight: bold;
         transition: background 0.2s;
+        user-select: none;
       }
       .btn-header:hover {
         background-color: #444;
@@ -63,6 +67,23 @@
       .btn-history {
         border-color: #888;
         background-color: #2c2c2c;
+      }
+      
+      /* ズームボタン */
+      .zoom-controls {
+        display: flex;
+        gap: 5px;
+        margin-right: 15px;
+      }
+      .btn-zoom {
+        font-size: 1.2rem;
+        width: 40px;
+        padding: 5px 0;
+        text-align: center;
+        background-color: #444;
+      }
+      .btn-zoom:active {
+        background-color: #666;
       }
 
       /* --- ログイン画面 --- */
@@ -104,14 +125,8 @@
       }
 
       @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .card-body {
@@ -140,11 +155,7 @@
         color: #d32f2f;
         animation: flash 2s infinite;
       }
-      @keyframes flash {
-        50% {
-          opacity: 0.5;
-        }
-      }
+      @keyframes flash { 50% { opacity: 0.5; } }
 
       .card-meta-row {
         display: flex;
@@ -233,15 +244,9 @@
         font-weight: 700;
         color: #333;
       }
-      .bg-red {
-        background-color: #d32f2f;
-      }
-      .bg-green {
-        background-color: #2e7d32;
-      }
-      .bg-gray {
-        background-color: #757575;
-      }
+      .bg-red { background-color: #d32f2f; }
+      .bg-green { background-color: #2e7d32; }
+      .bg-gray { background-color: #757575; }
 
       .btn-complete {
         width: 100%;
@@ -258,7 +263,7 @@
         background-color: #2563eb;
       }
 
-      /* --- 履歴モーダル (全件スクロール対応) --- */
+      /* --- 履歴モーダル --- */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -275,7 +280,7 @@
         background-color: #fff;
         width: 90%;
         max-width: 700px;
-        height: 85vh; /* 高さ固定 */
+        height: 85vh;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         display: flex;
@@ -302,14 +307,11 @@
         color: #aaa;
         padding: 0 10px;
       }
-
-      /* リスト部分のみスクロールさせる */
       .history-list {
         overflow-y: auto;
         padding: 0;
         flex-grow: 1;
       }
-
       .history-item {
         border-bottom: 1px solid #eee;
         padding: 15px 20px;
@@ -320,7 +322,6 @@
       .history-item:nth-child(even) {
         background-color: #fafafa;
       }
-
       .h-info {
         flex-grow: 1;
         padding-right: 15px;
@@ -345,7 +346,6 @@
         margin-top: 6px;
         line-height: 1.4;
       }
-
       .btn-revert {
         background-color: #f59e0b;
         color: #fff;
@@ -360,7 +360,6 @@
       .btn-revert:hover {
         background-color: #fbbf24;
       }
-
       .modal-footer {
         padding: 15px;
         border-top: 1px solid #eee;
@@ -408,17 +407,23 @@
     <div id="main-content" style="display: none">
       <header>
         <div>
-          <h1>KVS Monitor</h1>
+          <h1>キッチンモニター</h1>
           <span style="font-size: 0.8rem; color: #888"
             >Store ID: <span id="display-store-id">--</span></span
           >
         </div>
         <div class="header-right">
+          <!-- ズーム操作 -->
+          <div class="zoom-controls">
+            <button class="btn-header btn-zoom" onclick="adjustZoom(-0.1)">-</button>
+            <button class="btn-header btn-zoom" onclick="adjustZoom(0.1)">+</button>
+          </div>
+          
           <button class="btn-header btn-history" onclick="openHistory()">
-            最近の完了リスト
+            履歴
           </button>
           <span class="user-info" id="user-name"></span>
-          <button class="btn-header" onclick="logout()">Logout</button>
+          <button class="btn-header" onclick="logout()">ログアウト</button>
         </div>
       </header>
 
@@ -473,6 +478,45 @@
       const historyModal = document.getElementById("history-modal");
       const historyListEl = document.getElementById("history-list-container");
 
+      // --- 音声生成 (Beep) ---
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // 高音のピーッ！を生成する関数
+      function playNotificationSound() {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); // 2000Hz (高音)
+        
+        // 音量のエンベロープ（徐々に消える）
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+      }
+
+      // --- ズーム機能 ---
+      let currentZoom = 1.0;
+      function adjustZoom(delta) {
+        currentZoom = Math.round((currentZoom + delta) * 10) / 10;
+        // 制限
+        if (currentZoom < 0.5) currentZoom = 0.5;
+        if (currentZoom > 2.0) currentZoom = 2.0;
+        
+        // CSS Zoomプロパティを使用 (iPad/Chrome対応)
+        document.body.style.zoom = currentZoom;
+      }
+
+
       function showError(html, isPermanent = false) {
         errorMsgEl.innerHTML = html;
         errorMsgEl.style.display = "block";
@@ -505,6 +549,8 @@
       });
 
       function googleLogin() {
+        // ログイン操作時にAudioContextをアンロックする
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         auth.signInWithPopup(provider).catch((e) => alert(e.message));
       }
       function logout() {
@@ -514,6 +560,9 @@
 
       // --- Firestore Listener (調理中) ---
       function startOrderListener() {
+        // 初回読み込み時は音を鳴らさないためのフラグ
+        let isInitialLoad = true;
+
         unsubscribe = db
           .collection("orders")
           .where("storeId", "==", storeId)
@@ -522,17 +571,32 @@
           .onSnapshot(
             (snapshot) => {
               snapshot.docChanges().forEach((change) => {
-                // addedでもmodifiedでも、DOM上の位置を正しく判定して挿入・移動する
-                if (change.type === "added" || change.type === "modified") {
-                  // 既存があれば削除（位置移動のため）
-                  removeCard(change.doc.id);
-                  // 正しい位置に挿入
-                  renderCardSorted(change.doc);
+                
+                if (change.type === "added") {
+                    // 既存があれば削除
+                    removeCard(change.doc.id);
+                    // 描画
+                    renderCardSorted(change.doc);
+
+                    // 初回ロードでなければ音を鳴らす
+                    if (!isInitialLoad) {
+                        playNotificationSound();
+                    }
                 }
+                
+                if (change.type === "modified") {
+                    removeCard(change.doc.id);
+                    renderCardSorted(change.doc);
+                    // 修正の場合も鳴らしたいならここで playNotificationSound();
+                }
+
                 if (change.type === "removed") {
                   removeCard(change.doc.id);
                 }
               });
+
+              // 最初のバッチ処理が終わったらフラグを解除
+              isInitialLoad = false;
             },
             (error) => {
               console.error("Firestore Error:", error);
@@ -551,16 +615,13 @@
           : new Date();
         const createdTimeMs = createdDate.getTime();
 
-        // HTML生成
         const cardEl = createCardElement(doc, createdDate);
 
-        // 挿入位置を探す（日付順）
         const children = ordersContainer.children;
         let inserted = false;
 
         for (let i = 0; i < children.length; i++) {
           const childTime = parseInt(children[i].dataset.createdAt);
-          // もし新しいカードの方が古い(小さい)時間なら、この要素の前に挿入
           if (createdTimeMs < childTime) {
             ordersContainer.insertBefore(cardEl, children[i]);
             inserted = true;
@@ -568,16 +629,13 @@
           }
         }
 
-        // 最後までループしても挿入されなかったら（一番新しい場合）、末尾に追加
         if (!inserted) {
           ordersContainer.appendChild(cardEl);
         }
 
-        // タイマー更新
         updateSingleTimer(cardEl, Date.now());
       }
 
-      // カード要素作成関数
       function createCardElement(doc, createdDate) {
         const data = doc.data();
         const orderId = doc.id;
@@ -661,7 +719,6 @@
         if (el) el.remove();
       }
 
-      // --- タイマー ---
       function startTimerLoop() {
         setInterval(() => {
           const now = Date.now();
@@ -683,7 +740,6 @@
         else timerSpan.classList.remove("timer-alert");
       }
 
-      // --- 完了処理 ---
       window.completeOrder = function (orderId) {
         const card = document.getElementById(`card-${orderId}`);
         const currentStatus = card
@@ -699,12 +755,11 @@
           .catch((e) => alert("更新失敗: " + e.message));
       };
 
-      // --- 履歴機能 (全件) ---
+      // --- 履歴機能 ---
       window.openHistory = function () {
         historyModal.style.display = "flex";
         loadHistory();
       };
-
       window.closeHistory = function () {
         historyModal.style.display = "none";
       };
@@ -712,8 +767,6 @@
       function loadHistory() {
         historyListEl.innerHTML =
           '<p style="text-align:center; color:#999; margin-top:20px;">読み込み中...</p>';
-
-        // limitなしで取得
         db.collection("orders")
           .where("storeId", "==", storeId)
           .where("status", "==", "ready_to_serve")
@@ -725,7 +778,6 @@
                 '<p style="text-align:center; color:#333; margin-top:20px;">完了した注文はありません。</p>';
               return;
             }
-
             let html = "";
             querySnapshot.forEach((doc) => {
               const data = doc.data();
@@ -733,7 +785,6 @@
               const displayId = data.receiptNumber
                 ? `#${data.receiptNumber}`
                 : `#${orderId.slice(-4).toUpperCase()}`;
-
               let completedTimeStr = "不明";
               if (data.completedAt)
                 completedTimeStr = data.completedAt
@@ -743,24 +794,20 @@
                 completedTimeStr = data.updatedAt
                   .toDate()
                   .toLocaleString("ja-JP");
-
               let itemsSummary = "";
               if (data.items)
                 itemsSummary = data.items
                   .map((i) => `${i.quantity} ${i.name}`)
                   .join(", ");
-
               const prevStatus = data.previousStatus || "unpaid_at_pos";
-
               html += `
-                            <div class="history-item">
-                                <div class="h-info">
-                                    <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span></div>
-                                    <div class="h-details">${itemsSummary}</div>
-                                </div>
-                                <button class="btn-revert" onclick="revertOrder('${orderId}', '${prevStatus}')">元に戻す</button>
-                            </div>
-                        `;
+                <div class="history-item">
+                    <div class="h-info">
+                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span></div>
+                        <div class="h-details">${itemsSummary}</div>
+                    </div>
+                    <button class="btn-revert" onclick="revertOrder('${orderId}', '${prevStatus}')">元に戻す</button>
+                </div>`;
             });
             historyListEl.innerHTML = html;
           })
