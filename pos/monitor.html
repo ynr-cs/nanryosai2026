@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitor | 南陵祭2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #000000;
+        --text-color: #ffffff;
+        --accent-color: #00e676;
+        --error-color: #ff5252;
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --font-main: "Inter", "Noto Sans JP", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-main);
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* --- Common Utilities --- */
+      .hidden {
+        display: none !important;
+      }
+
+      .full-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease;
+      }
+
+      .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .btn {
+        border: none;
+        border-radius: 12px;
+        padding: 16px 32px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+        font-family: var(--font-main);
+      }
+      .btn:active {
+        transform: scale(0.95);
+      }
+      .btn-primary {
+        background: var(--accent-color);
+        color: #000;
+      }
+      .btn-secondary {
+        background: #555;
+        color: #fff;
+      }
+      .btn-danger {
+        background: var(--error-color);
+        color: #fff;
+      }
+
+      /* --- View A: Idle (Information Board) --- */
+      #view-idle {
+        background: radial-gradient(circle at center, #222, #000);
+        z-index: 10;
+        cursor: pointer;
+      }
+
+      .idle-header {
+        padding: 20px;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #aaa;
+        letter-spacing: 2px;
+      }
+
+      .status-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .status-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .section-title {
+        font-size: 1.2rem;
+        color: #888;
+        border-bottom: 1px solid #444;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+      }
+
+      .pickup-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+      }
+
+      .pickup-card {
+        background: rgba(0, 230, 118, 0.2);
+        border: 2px solid var(--accent-color);
+        color: var(--accent-color);
+        border-radius: 12px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        font-weight: 900;
+        box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(0, 230, 118, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
+        }
+      }
+
+      .cooking-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .cooking-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #666;
+        color: #ddd;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .tap-hint {
+        text-align: center;
+        padding: 20px;
+        font-size: 1.2rem;
+        color: #666;
+        animation: blink 3s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* --- View B: Keypad --- */
+      #view-keypad {
+        background: #111;
+        z-index: 20;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .keypad-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .keypad-display {
+        background: #222;
+        border: 2px solid #444;
+        border-radius: 12px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: 5px;
+      }
+
+      .keypad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+      }
+
+      .key-btn {
+        background: #333;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        aspect-ratio: 1;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+        box-shadow: 0 4px 0 #000;
+      }
+      .key-btn:active {
+        background: #555;
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+
+      .key-btn.action {
+        border-radius: 12px;
+        aspect-ratio: auto;
+        height: 80px;
+      }
+      .key-btn.clear {
+        background: #d32f2f;
+      }
+      .key-btn.enter {
+        background: #2e7d32;
+      }
+
+      .keypad-msg {
+        text-align: center;
+        color: #aaa;
+        margin-bottom: 10px;
+      }
+
+      /* --- View C: Confirm --- */
+      #view-confirm {
+        background: #1a1a1a;
+        z-index: 30;
+        padding: 20px;
+      }
+
+      .order-summary {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        border-bottom: 1px solid #444;
+        font-size: 1.1rem;
+      }
+      .summary-item-name {
+        font-weight: bold;
+      }
+      .summary-total {
+        font-size: 2rem;
+        font-weight: 900;
+        text-align: right;
+        padding: 20px;
+        color: var(--accent-color);
+      }
+
+      .payment-area {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        text-align: center;
+      }
+
+      .qr-placeholder {
+        width: 200px;
+        height: 200px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        font-weight: bold;
+        border-radius: 12px;
+      }
+
+      /* --- View D: Result --- */
+      #view-result {
+        z-index: 40;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      #view-result.success {
+        background: #1b5e20;
+      }
+      #view-result.error {
+        background: #b71c1c;
+      }
+
+      .result-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .result-msg {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .result-sub {
+        font-size: 1.2rem;
+        opacity: 0.8;
+      }
+
+      /* --- Loader & Error --- */
+      #global-loader {
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+      }
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #333;
+        border-top: 5px solid var(--accent-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      #error-screen {
+        background: #000;
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        color: var(--error-color);
+        text-align: center;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error Screen -->
+    <div id="error-screen" class="full-screen hidden">
+      <h1>Configuration Error</h1>
+      <p>Store ID is missing. Please access via Portal.</p>
+    </div>
+
+    <!-- Loader -->
+    <div id="global-loader" class="full-screen hidden">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- View A: Idle -->
+    <div id="view-idle" class="full-screen">
+      <div class="idle-header">ORDER MONITOR</div>
+
+      <div class="status-container">
+        <div class="status-section" style="flex: 2">
+          <div class="section-title">READY FOR PICKUP (お呼出中)</div>
+          <div id="pickup-grid" class="pickup-grid">
+            <!-- Dynamic Content -->
+          </div>
+        </div>
+
+        <div class="status-section" style="flex: 1">
+          <div class="section-title">PREPARING (調理中)</div>
+          <div id="cooking-grid" class="cooking-grid">
+            <!-- Dynamic Content -->
+          </div>
+        </div>
+      </div>
+
+      <div class="tap-hint">画面をタッチして受付 / Touch to Start</div>
+    </div>
+
+    <!-- View B: Keypad -->
+    <div id="view-keypad" class="full-screen hidden">
+      <div class="keypad-container glass-panel">
+        <div class="keypad-msg">受付番号を入力してください</div>
+        <div id="keypad-display" class="keypad-display"></div>
+        <div class="keypad-grid">
+          <button class="key-btn" onclick="inputKey(7)">7</button>
+          <button class="key-btn" onclick="inputKey(8)">8</button>
+          <button class="key-btn" onclick="inputKey(9)">9</button>
+          <button class="key-btn" onclick="inputKey(4)">4</button>
+          <button class="key-btn" onclick="inputKey(5)">5</button>
+          <button class="key-btn" onclick="inputKey(6)">6</button>
+          <button class="key-btn" onclick="inputKey(1)">1</button>
+          <button class="key-btn" onclick="inputKey(2)">2</button>
+          <button class="key-btn" onclick="inputKey(3)">3</button>
+          <button class="key-btn action clear" onclick="clearKey()">C</button>
+          <button class="key-btn" onclick="inputKey(0)">0</button>
+          <button class="key-btn action enter" onclick="submitKey()">OK</button>
+        </div>
+        <button
+          class="btn btn-secondary"
+          onclick="switchView('view-idle')"
+          style="margin-top: 10px"
+        >
+          キャンセル
+        </button>
+      </div>
+    </div>
+
+    <!-- View C: Confirm -->
+    <div id="view-confirm" class="full-screen hidden">
+      <h2 style="text-align: center; margin-top: 0">注文内容の確認</h2>
+      <div id="order-summary" class="order-summary glass-panel">
+        <!-- Order Items -->
+      </div>
+      <div id="order-total" class="summary-total">¥0</div>
+
+      <div id="payment-area-online" class="payment-area hidden">
+        <p>オンライン決済を確定しますか？</p>
+        <button
+          class="btn btn-primary"
+          style="width: 100%"
+          onclick="confirmOnlinePayment()"
+        >
+          お支払いを確定する
+        </button>
+      </div>
+
+      <div id="payment-area-pos" class="payment-area hidden">
+        <p>現金またはQRコードでお支払いください</p>
+        <div class="qr-placeholder">
+          <img
+            src="qr_placeholder.png"
+            alt="QR Code"
+            style="max-width: 100%; max-height: 100%; display: none"
+            onerror="this.style.display='none'; this.parentElement.innerText='QR CODE'"
+          />
+          QR CODE
+        </div>
+        <p style="font-size: 0.9rem; color: #aaa">スタッフにお声がけください</p>
+      </div>
+
+      <button
+        class="btn btn-secondary"
+        onclick="switchView('view-idle')"
+        style="margin-top: 20px; width: 100%"
+      >
+        戻る
+      </button>
+    </div>
+
+    <!-- View D: Result -->
+    <div id="view-result" class="full-screen hidden">
+      <div class="result-icon" id="result-icon">✅</div>
+      <div class="result-msg" id="result-msg">お支払いが完了しました</div>
+      <div class="result-sub" id="result-sub">
+        スタッフにこの画面をお見せください
+      </div>
+    </div>
+
+    <!-- Audio for Notification -->
+    <audio
+      id="notification-sound"
+      src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+      preload="auto"
+    ></audio>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        onSnapshot,
+        getDocs,
+        doc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // State
+      let storeId = null;
+      let currentInput = "";
+      let idleTimeout = null;
+      let currentOrder = null;
+      let previousPickupCount = 0;
+
+      // Elements
+      const views = {
+        idle: document.getElementById("view-idle"),
+        keypad: document.getElementById("view-keypad"),
+        confirm: document.getElementById("view-confirm"),
+        result: document.getElementById("view-result"),
+      };
+      const keypadDisplay = document.getElementById("keypad-display");
+      const pickupGrid = document.getElementById("pickup-grid");
+      const cookingGrid = document.getElementById("cooking-grid");
+      const notificationSound = document.getElementById("notification-sound");
+
+      // Init
+      const urlParams = new URLSearchParams(window.location.search);
+      storeId = urlParams.get("storeId");
+
+      if (!storeId) {
+        document.getElementById("error-screen").classList.remove("hidden");
+      } else {
+        initAuth();
+      }
+
+      function initAuth() {
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            startIdleMonitor();
+          } else {
+            signInAnonymously(auth).catch((error) => {
+              console.error("Auth Error", error);
+            });
+          }
+        });
+      }
+
+      // --- View Navigation ---
+      window.switchView = (viewName) => {
+        Object.values(views).forEach((el) => el.classList.add("hidden"));
+        views[viewName.replace("view-", "")].classList.remove("hidden");
+
+        // Reset state based on view
+        if (viewName === "view-idle") {
+          currentInput = "";
+          updateKeypadDisplay();
+          clearIdleTimeout();
+        } else if (viewName === "view-keypad") {
+          resetIdleTimeout();
+        }
+      };
+
+      // --- Idle Mode Logic ---
+      function startIdleMonitor() {
+        const q = query(
+          collection(db, "orders"),
+          where("storeId", "==", storeId),
+          where("status", "in", ["ready_for_pickup", "ready_to_serve"])
+        );
+
+        onSnapshot(q, (snapshot) => {
+          const pickupOrders = [];
+          const cookingOrders = [];
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.status === "ready_for_pickup")
+              pickupOrders.push(data.receiptNumber);
+            else cookingOrders.push(data.receiptNumber);
+          });
+
+          // Sort
+          pickupOrders.sort((a, b) => a - b);
+          cookingOrders.sort((a, b) => a - b);
+
+          // Render
+          pickupGrid.innerHTML = pickupOrders
+            .map((num) => `<div class="pickup-card">${num}</div>`)
+            .join("");
+          cookingGrid.innerHTML = cookingOrders
+            .map((num) => `<div class="cooking-card">${num}</div>`)
+            .join("");
+
+          // Sound Notification
+          if (pickupOrders.length > previousPickupCount) {
+            notificationSound
+              .play()
+              .catch((e) => console.log("Audio play blocked", e));
+          }
+          previousPickupCount = pickupOrders.length;
+        });
+
+        // Tap to start
+        views.idle.addEventListener("click", () => switchView("view-keypad"));
+      }
+
+      // --- Keypad Logic ---
+      window.inputKey = (num) => {
+        if (currentInput.length < 4) {
+          currentInput += num;
+          updateKeypadDisplay();
+          resetIdleTimeout();
+        }
+      };
+
+      window.clearKey = () => {
+        currentInput = "";
+        updateKeypadDisplay();
+        resetIdleTimeout();
+      };
+
+      window.submitKey = async () => {
+        if (!currentInput) return;
+
+        document.getElementById("global-loader").classList.remove("hidden");
+
+        try {
+          const num = parseInt(currentInput);
+          // Query for active order
+          // Note: We can't easily query "not completed" with other filters efficiently without composite index.
+          // Instead, we'll query by receiptNumber and storeId, then filter in client.
+          const q = query(
+            collection(db, "orders"),
+            where("storeId", "==", storeId),
+            where("receiptNumber", "==", num)
+          );
+
+          const snapshot = await getDocs(q);
+          let foundOrder = null;
+          let foundDocId = null;
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            // Filter out completed/cancelled orders
+            if (
+              !["completed", "cancelled", "completed_online"].includes(
+                data.status
+              )
+            ) {
+              foundOrder = data;
+              foundDocId = doc.id;
+            }
+          });
+
+          if (foundOrder) {
+            currentOrder = { ...foundOrder, id: foundDocId };
+            setupConfirmView();
+            switchView("view-confirm");
+          } else {
+            alert("該当する注文が見つかりません");
+            currentInput = "";
+            updateKeypadDisplay();
+          }
+        } catch (e) {
+          console.error(e);
+          alert("エラーが発生しました");
+        } finally {
+          document.getElementById("global-loader").classList.add("hidden");
+        }
+      };
+
+      function updateKeypadDisplay() {
+        keypadDisplay.innerText = currentInput;
+      }
+
+      // --- Timeout Logic ---
+      function resetIdleTimeout() {
+        clearIdleTimeout();
+        idleTimeout = setTimeout(() => {
+          switchView("view-idle");
+        }, 30000); // 30 sec
+      }
+
+      function clearIdleTimeout() {
+        if (idleTimeout) clearTimeout(idleTimeout);
+      }
+
+      // --- Confirm View Logic ---
+      function setupConfirmView() {
+        const summaryEl = document.getElementById("order-summary");
+        const totalEl = document.getElementById("order-total");
+        const payOnline = document.getElementById("payment-area-online");
+        const payPos = document.getElementById("payment-area-pos");
+
+        summaryEl.innerHTML = currentOrder.items
+          .map(
+            (item) => `
+          <div class="summary-item">
+            <span class="summary-item-name">${item.name} x${
+              item.quantity
+            }</span>
+            <span>¥${item.price * item.quantity}</span>
+          </div>
+        `
+          )
+          .join("");
+
+        totalEl.innerText = `¥${currentOrder.totalPrice.toLocaleString()}`;
+
+        // Determine Payment Pattern
+        // Logic: If status is 'pending_payment' (hypothetical) or if we decide based on some other flag.
+        // For now, let's assume if it's NOT 'unpaid_at_pos', it might be an online order waiting for confirmation.
+        // However, based on user request "Pattern 1 (Online Order / Not yet finalized)", let's assume we check a field.
+        // Since we don't have a clear field, I'll use a heuristic:
+        // If status is 'unpaid_at_pos', show POS instructions.
+        // If status is something else (e.g. 'placed_online'), show Confirm Button.
+        // Defaulting to POS pattern if status is 'unpaid_at_pos'.
+
+        if (currentOrder.status === "unpaid_at_pos") {
+          payOnline.classList.add("hidden");
+          payPos.classList.remove("hidden");
+        } else {
+          // Assume online order flow
+          payOnline.classList.remove("hidden");
+          payPos.classList.add("hidden");
+        }
+      }
+
+      window.confirmOnlinePayment = async () => {
+        document.getElementById("global-loader").classList.remove("hidden");
+        try {
+          const orderRef = doc(db, "orders", currentOrder.id);
+          await updateDoc(orderRef, {
+            status: "completed_online",
+            paidAt: new Date(),
+          });
+          showResult(true);
+        } catch (e) {
+          console.error(e);
+          showResult(false);
+        } finally {
+          document.getElementById("global-loader").classList.add("hidden");
+        }
+      };
+
+      // --- Result View Logic ---
+      function showResult(success) {
+        const resultEl = document.getElementById("view-result");
+        const iconEl = document.getElementById("result-icon");
+        const msgEl = document.getElementById("result-msg");
+        const subEl = document.getElementById("result-sub");
+
+        if (success) {
+          resultEl.className = "full-screen success";
+          iconEl.innerText = "✅";
+          msgEl.innerText = "お支払いが完了しました";
+          subEl.innerText = "スタッフにこの画面をお見せください";
+        } else {
+          resultEl.className = "full-screen error";
+          iconEl.innerText = "⚠️";
+          msgEl.innerText = "決済に失敗しました";
+          subEl.innerText = "現金またはQRコードでお支払いください";
+        }
+
+        switchView("view-result");
+        setTimeout(() => {
+          switchView("view-idle");
+        }, 15000);
+      }
+    </script>
+  </body>
+</html>
