@@ -118,91 +118,166 @@
       /* --- View 1: IDLE (Monitor) --- */
       #view-idle {
         padding: 0;
-        /* 画面全体を使う */
-      }
-
-      .monitor-header {
-        height: 100px;
-        background-color: var(--accent-color); /* ヘッダーを緑に */
-        color: #fff;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 40px;
-        font-size: 2.5rem;
-        font-weight: 900;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        z-index: 100;
+        flex-direction: column;
+        background-color: #222;
+        transition: zoom 0.2s ease;
       }
 
-      .monitor-content {
+      .monitor-split {
+        display: flex;
         flex: 1;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+      }
+
+      /* Panel Layout */
+      .panel-column {
+        display: flex;
+        flex-direction: column;
+        border-right: 4px solid #333;
+        position: relative;
+      }
+      .panel-column:last-child {
+        border-right: none;
+      }
+      
+      .col-ready { flex: 2; }
+      .col-preparing { flex: 1; background-color: #f0f0f0; }
+
+      .panel-header {
         padding: 20px;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+        letter-spacing: 2px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        z-index: 10;
+      }
+
+      .header-preparing { background-color: #546e7a; }
+      .header-ready { background-color: var(--accent-color); }
+
+      .panel-content {
+        flex: 1;
+        padding: 30px;
         overflow-y: auto;
-        background-color: #fff;
+        position: relative;
       }
 
-      /* Grid for Huge Numbers */
-      .pickup-grid {
-        display: grid;
-        /* 画面幅に合わせて自動調整、最低幅を大きく取る */
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      /* Preparing List (Vertical) */
+      .preparing-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center; 
+      }
+      .item-preparing {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #555;
+        width: 100%;
+        text-align: center;
+        border-bottom: 2px dashed #ccc;
+        padding-bottom: 5px;
+      }
+
+      /* Ready Grid */
+      .ready-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
         gap: 20px;
-        align-content: start;
+        justify-content: center;
       }
-
-      .ticket-card {
+      .item-ready {
+        flex: 1 0 280px; 
+        max-width: 400px;
+        height: 160px;
+        border: 5px solid var(--accent-color);
         background-color: #fff;
         color: #000;
-        border: 4px solid #000; /* くっきりした黒枠 */
-        border-radius: 12px;
-        height: 200px; /* カードの高さ */
+        font-size: 6rem;
+        font-weight: 900;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 16px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      
+      /* --- Employee Menu --- */
+      .menu-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        background: #333;
+        color: #fff;
+        border: 2px solid #555;
+        border-radius: 8px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 8rem; /* 超巨大フォント */
-        font-weight: 900;
-        line-height: 1;
-        letter-spacing: -2px;
-        box-shadow: 4px 4px 0px rgba(0, 0, 0, 1); /* ポップな影 */
-        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0.3;
+        transition: opacity 0.3s;
       }
+      .menu-btn:hover { opacity: 1; }
 
-      .user-controls {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        font-size: 1rem;
-        font-weight: normal;
-      }
-      .logout-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.5);
+      .side-menu {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 300px;
+        height: 100%;
+        background: #222;
         color: #fff;
-        padding: 5px 15px;
-        border-radius: 4px;
+        z-index: 2001;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+        transition: right 0.3s ease;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .side-menu.open { right: 0; }
+      .menu-header {
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-bottom: 1px solid #555;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .menu-close { cursor: pointer; font-size: 1.5rem; }
+      .menu-item { margin-bottom: 10px; }
+      .zoom-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+      }
+      .btn-zoom {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        border-radius: 50%;
+        border: none;
+        background: #444;
+        color: #fff;
         cursor: pointer;
       }
+      .btn-zoom:active { background: #666; }
 
-      .tap-overlay {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        background: linear-gradient(
-          to top,
-          rgba(255, 255, 255, 1),
-          rgba(255, 255, 255, 0)
-        );
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        padding-bottom: 10px;
-        color: #999;
-        font-weight: bold;
-        pointer-events: none; /* 下の要素をクリック可能に */
-      }
 
       /* --- View 2: Input (Keypad) --- */
       #view-input {
@@ -419,21 +494,58 @@
     </div>
 
     <!-- View 1: IDLE (Monitor Mode) -->
+    <!-- View 1: IDLE (Monitor Mode) -->
+    <!-- View 1: IDLE (Monitor Mode) -->
     <div id="view-idle" class="view">
-      <div class="monitor-header">
-        <div>READY TO PICKUP</div>
-        <div class="user-controls">
-          <span id="display-user"></span>
-          <button onclick="app.logout()" class="logout-btn">Logout</button>
+      <!-- Employee Menu Trigger -->
+      <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
+      
+      <!-- Employee Side Menu -->
+      <div id="side-menu" class="side-menu">
+        <div class="menu-header">
+           <span>従業員メニュー</span>
+           <span class="menu-close" onclick="app.toggleMenu()">×</span>
+        </div>
+        <div class="menu-item">
+            Store ID: <span id="menu-store-id" style="font-weight:bold">--</span>
+        </div>
+        <div class="menu-item">
+            User: <span id="menu-user" style="font-weight:bold">--</span>
+        </div>
+        
+        <div class="zoom-controls">
+           <button class="btn-zoom" onclick="app.adjustZoom(-0.1)">-</button>
+           <button class="btn-zoom" onclick="app.adjustZoom(0.1)">+</button>
+        </div>
+
+        <button onclick="app.logout()" class="logout-btn" style="width:100%; margin-top:auto;">ログアウト</button>
+      </div>
+
+      <div class="monitor-split">
+        <!-- Ready Column (Left, Wide) -->
+        <div class="panel-column col-ready">
+          <div class="panel-header header-ready">
+            お呼出中の番号 / Ready
+          </div>
+          <div class="panel-content" style="background:#fff;">
+            <div id="grid-ready" class="ready-grid"></div>
+          </div>
+        </div>
+
+        <!-- Preparing Column (Right, Narrow) -->
+        <div class="panel-column col-preparing">
+          <div class="panel-header header-preparing">
+            準備中 / Preparing
+          </div>
+          <div class="panel-content" style="background:#f9f9f9;">
+            <div id="list-preparing" class="preparing-list"></div>
+          </div>
         </div>
       </div>
 
-      <div class="monitor-content">
-        <!-- 番号のみを巨大表示 -->
-        <div id="grid-pickup" class="pickup-grid"></div>
+      <div class="monitor-footer">
+        お手元のレシート番号をご参照ください / Please check your receipt number
       </div>
-
-      <div class="tap-overlay">画面をタッチして受付 / Touch to Start</div>
     </div>
 
     <!-- View 2: INPUT_MODE -->
@@ -569,7 +681,8 @@
           this.currentInput = "";
           this.currentOrder = null;
           this.timerId = null;
-          this.unsubOrderListener = null; // Listener for the specific order in Confirm view
+          this.unsubOrderListener = null; 
+          this.currentZoom = 1.0;
 
           // ... (existing code)
 
@@ -582,6 +695,7 @@
           };
 
           document.getElementById("auth-store-id").innerText = STORE_ID;
+          document.getElementById("menu-store-id").innerText = STORE_ID;
           this.init();
         }
 
@@ -598,8 +712,10 @@
 
           onAuthStateChanged(this.auth, (user) => {
             if (user) {
-              document.getElementById("display-user").innerText =
-                user.email.split("@")[0];
+              const uName = user.email.split("@")[0];
+              // document.getElementById("display-user") was removed in favor of menu-user
+              const menuUser = document.getElementById("menu-user");
+              if (menuUser) menuUser.innerText = uName;
               this.checkStoreLogin();
             } else {
               this.stopApp();
@@ -608,9 +724,10 @@
             }
           });
 
-          // モニター画面全体のどこをタップしても入力画面へ
+          // モニター画面全体のどこをタップしても入力画面へ (メニューなどを除く)
           this.views.idle.addEventListener("click", (e) => {
-            if (e.target.closest(".logout-btn")) return;
+            // メニューやボタンクリック時は遷移しない
+            if (e.target.closest(".menu-btn") || e.target.closest(".side-menu") || e.target.closest("button")) return;
             this.transitionTo("input");
           });
 
@@ -676,33 +793,87 @@
             console.error("Sign out error", error);
           });
         }
+        
+        toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            menu.classList.toggle("open");
+        }
+        
+        adjustZoom(delta) {
+            this.currentZoom = Math.round((this.currentZoom + delta) * 10) / 10;
+            if (this.currentZoom < 0.5) this.currentZoom = 0.5;
+            if (this.currentZoom > 2.0) this.currentZoom = 2.0;
+            document.body.style.zoom = this.currentZoom;
+        }
 
         startApp() {
-          if (this.unsubMonitor) return;
-          const q = query(
+          if (this.unsubReady || this.unsubPreparing) return;
+
+          // 1. Ready (Call) Orders
+          const qReady = query(
             collection(this.db, "orders"),
             where("storeId", "==", STORE_ID),
             where("status", "==", "ready_for_pickup")
+            // Firestore doesn't support multiple properties orderBy easily with where clause without index
+            // But we can sort on client side.
           );
           
-          this.unsubMonitor = onSnapshot(q, (snapshot) => {
-            const container = document.getElementById("grid-pickup");
-            container.innerHTML = ""; // Clear existing
-            
-            snapshot.forEach((docSnapshot) => {
-              const data = docSnapshot.data();
-              const div = document.createElement("div");
-              div.className = "ticket-card";
-              div.innerText = data.receiptNumber;
-              container.appendChild(div);
-            });
+          this.unsubReady = onSnapshot(qReady, (snapshot) => {
+            const container = document.getElementById("grid-ready");
+            if(container) {
+                // Get data and sort by createdAt asc (unpaid/pending -> cooking -> ready)
+                // Actually user said: "order number... pushed down".
+                // If "pushed down", it means NEWEST at BOTTOM?
+                // "1, 2, 3..." -> 1 is top, 3 is bottom.
+                // So createdAt Ascending.
+                const docs = [];
+                snapshot.forEach(d => docs.push(d.data()));
+                docs.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+                container.innerHTML = ""; 
+                docs.forEach((data) => {
+                  const div = document.createElement("div");
+                  div.className = "item-ready";
+                  div.innerText = data.receiptNumber;
+                  container.appendChild(div);
+                });
+            }
+          });
+
+          // 2. Preparing Orders
+          const qPreparing = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "in", ["unpaid_at_pos", "authorized", "cooking", "pending"]) 
+          );
+
+          this.unsubPreparing = onSnapshot(qPreparing, (snapshot) => {
+            const container = document.getElementById("list-preparing");
+            if(container) {
+                const docs = [];
+                snapshot.forEach(d => docs.push(d.data()));
+                // Sort by createdAt ASC
+                docs.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+                container.innerHTML = "";
+                docs.forEach((data) => {
+                  const div = document.createElement("div");
+                  div.className = "item-preparing";
+                  div.innerText = data.receiptNumber;
+                  container.appendChild(div);
+                });
+            }
           });
         }
 
         stopApp() {
-          if (this.unsubMonitor) {
-            this.unsubMonitor();
-            this.unsubMonitor = null;
+          if (this.unsubReady) {
+            this.unsubReady();
+            this.unsubReady = null;
+          }
+          if (this.unsubPreparing) {
+            this.unsubPreparing();
+            this.unsubPreparing = null;
           }
         }
 
