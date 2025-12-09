@@ -512,7 +512,9 @@
           this.currentInput = "";
           this.currentOrder = null;
           this.timerId = null;
-          this.unsubIdleListener = null;
+          this.unsubOrderListener = null; // Listener for the specific order in Confirm view
+
+          // ... (existing code)
 
           this.views = {
             auth: document.getElementById("view-auth"),
@@ -527,6 +529,8 @@
         }
 
         init() {
+          // ... (existing init code)
+          
           document
             .getElementById("btn-google-login")
             .addEventListener("click", () => {
@@ -553,60 +557,51 @@
             this.transitionTo("input");
           });
         }
-
+        
         logout() {
-          if (confirm("ログアウトしますか？")) signOut(this.auth);
+          signOut(this.auth).catch((error) => {
+            console.error("Sign out error", error);
+          });
         }
 
         startApp() {
-          if (!this.unsubIdleListener) {
-            // "ready_to_serve"（準備中）は検索対象から除外。
-            // "ready_for_pickup"（呼出中）のみを表示
-            const q = query(
-              collection(this.db, "orders"),
-              where("storeId", "==", STORE_ID),
-              where("status", "==", "ready_for_pickup")
-            );
-
-            this.unsubIdleListener = onSnapshot(
-              q,
-              (snapshot) => {
-                const container = document.getElementById("grid-pickup");
-                let html = "";
-                // 番号順にソート
-                const orders = [];
-                snapshot.forEach((doc) =>
-                  orders.push(doc.data().receiptNumber)
-                );
-                orders.sort((a, b) => a - b);
-
-                orders.forEach((num) => {
-                  html += `<div class="ticket-card">${num}</div>`;
-                });
-
-                // 0件の時の表示（オプション）
-                if (orders.length === 0) {
-                  html = `<div style="grid-column: 1/-1; text-align:center; color:#ccc; font-size:2rem; margin-top:100px;">現在呼び出し中の番号はありません</div>`;
-                }
-
-                container.innerHTML = html;
-              },
-              (error) => {
-                console.error("Firestore Error:", error);
-              }
-            );
-          }
+          if (this.unsubMonitor) return;
+          const q = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "==", "ready_for_pickup")
+          );
+          
+          this.unsubMonitor = onSnapshot(q, (snapshot) => {
+            const container = document.getElementById("grid-pickup");
+            container.innerHTML = ""; // Clear existing
+            
+            snapshot.forEach((docSnapshot) => {
+              const data = docSnapshot.data();
+              const div = document.createElement("div");
+              div.className = "ticket-card";
+              div.innerText = data.receiptNumber;
+              container.appendChild(div);
+            });
+          });
         }
 
         stopApp() {
-          if (this.unsubIdleListener) {
-            this.unsubIdleListener();
-            this.unsubIdleListener = null;
+          if (this.unsubMonitor) {
+            this.unsubMonitor();
+            this.unsubMonitor = null;
           }
         }
 
         transitionTo(stateName) {
           if (this.timerId) clearTimeout(this.timerId);
+          
+          // Clean up order listener if leaving confirm/input flow
+          if (stateName !== "confirm" && this.unsubOrderListener) {
+              this.unsubOrderListener();
+              this.unsubOrderListener = null;
+          }
+
           Object.values(this.views).forEach((el) =>
             el.classList.remove("active")
           );
@@ -620,34 +615,39 @@
             this.resetTimer("idle", 30000);
           } else if (stateName === "confirm") {
             this.renderConfirmView();
-            this.resetTimer("idle", 60000);
+            // confirm view updates are handled by the listener
           } else if (stateName === "complete") {
             this.resetTimer("idle", 8000);
           }
         }
 
-        resetTimer(target, ms) {
+        resetTimer(targetState, ms) {
           if (this.timerId) clearTimeout(this.timerId);
-          this.timerId = setTimeout(() => this.transitionTo(target), ms);
+          this.timerId = setTimeout(() => {
+            this.transitionTo(targetState);
+          }, ms);
         }
 
-        // --- Input Logic ---
-        keyPress(n) {
-          if (this.currentInput.length < 4) {
-            this.currentInput += n;
+        keyPress(char) {
+          if (this.currentInput.length < 5) {
+            this.currentInput += char;
             this.updateInputDisplay();
-            this.resetTimer("idle", 30000);
+            this.resetTimer("idle", 30000); // Reset idle timer on interaction
           }
         }
+
         keyClear() {
           this.currentInput = "";
           this.updateInputDisplay();
           this.resetTimer("idle", 30000);
         }
+
         updateInputDisplay() {
-          document.getElementById("input-display").innerText =
-            this.currentInput;
-          document.getElementById("input-msg").innerText = "";
+          document.getElementById("input-display").innerText = this.currentInput;
+          // Clear error message when typing
+          if (this.currentInput.length > 0) {
+             document.getElementById("input-msg").innerText = "";
+          }
         }
 
         async keyEnter() {
@@ -655,18 +655,64 @@
           const num = parseInt(this.currentInput, 10);
           const msg = document.getElementById("input-msg");
 
+          // Clean up any previous listener
+          if (this.unsubOrderListener) {
+            this.unsubOrderListener();
+            this.unsubOrderListener = null;
+          }
+
           try {
             const q = query(
               collection(this.db, "orders"),
               where("storeId", "==", STORE_ID),
               where("receiptNumber", "==", num),
+              // We want to find the order even if it's already completed? 
+              // Usually the user enters the number for a 'ready_for_pickup' order.
+              // We'll search for 'ready_for_pickup' initially.
               where("status", "==", "ready_for_pickup")
             );
+            
+            // First, get the doc ID to set up a specific listener
             const snap = await getDocs(q);
             if (!snap.empty) {
-              const doc = snap.docs[0];
-              this.currentOrder = { id: doc.id, ...doc.data() };
-              this.transitionTo("confirm");
+                const docSnap = snap.docs[0];
+                const orderId = docSnap.id;
+
+                // Subscribe to this specific order
+                this.unsubOrderListener = onSnapshot(doc(this.db, "orders", orderId), (docSnapshot) => {
+                    if (!docSnapshot.exists()) {
+                        // Document deleted?
+                        msg.innerText = "注文が見つかりません";
+                        this.transitionTo("input");
+                        return;
+                    }
+                    
+                    const data = docSnapshot.data();
+                    this.currentOrder = { id: docSnapshot.id, ...data };
+
+                    // Check status for auto-complete
+                    if (data.status === "completed_at_store" || data.status === "completed_online") {
+                        // Presenter or user completed it
+                        
+                        // Only transition if we are currently in confirm view or trying to get there
+                        if (this.views.confirm.classList.contains("active") || this.views.input.classList.contains("active")) {
+                             this.transitionTo("complete");
+                        }
+                    } else if (data.status === "ready_for_pickup") {
+                        // If we are in input view, go to confirm
+                         if (this.views.input.classList.contains("active")) {
+                            this.transitionTo("confirm");
+                         } else if (this.views.confirm.classList.contains("active")) {
+                             // Re-render in case items changed
+                             this.renderConfirmView();
+                         }
+                    } else {
+                        // Other status? e.g. cancelled
+                         msg.innerText = "ステータスが変更されました: " + data.status;
+                         // Maybe go back to idle?
+                    }
+                });
+
             } else {
               msg.innerText = "番号が見つかりません";
               this.currentInput = "";
