@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Order | 南陵祭2026</title>
+    <style>
+        :root {
+            --primary-color: #ff9800;
+            --primary-dark: #f57c00;
+            --accent-color: #2196f3;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Views Management --- */
+        .view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 10;
+        }
+
+        .view.active {
+            display: flex;
+            z-index: 20;
+        }
+
+        /* --- Components --- */
+        header {
+            background: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            font-weight: bold;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-secondary { background: #eee; color: #333; }
+        .btn-google { background: #4285f4; color: white; }
+
+        /* Store List */
+        .store-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+        .store-card h3 { margin: 0 0 5px 0; }
+        .store-card p { margin: 0; color: #666; font-size: 0.9em; }
+
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 15px;
+            padding-bottom: 80px; /* Space for bottom bar */
+        }
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        .item-img {
+            width: 100%;
+            height: 120px;
+            background: #ddd;
+            object-fit: cover;
+        }
+        .item-info {
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .item-name { font-weight: bold; text-align: center; font-size: 0.95em; margin-bottom: 5px; }
+        .item-price { color: var(--primary-dark); font-weight: bold; text-align: center; }
+        .item-add {
+            margin-top: auto;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 20px;
+            width: 80%;
+            align-self: center;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .item-card.disabled { opacity: 0.6; pointer-events: none; }
+        .item-card.disabled .item-img { filter: grayscale(100%); }
+
+        /* Bottom Cart Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 99;
+        }
+        .cart-info { font-weight: bold; font-size: 1.1em; }
+        .cart-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .cart-btn:disabled { background: #ccc; }
+
+        /* Cart View */
+        .cart-list { list-style: none; padding: 0; margin: 0; }
+        .cart-item {
+            background: white;
+            border-bottom: 1px solid #eee;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-item-details { flex: 1; }
+        .cart-item-name { font-weight: bold; display: block; }
+        .cart-item-price { color: #666; font-size: 0.9em; }
+        .cart-item-stepper { display: flex; align-items: center; gap: 10px; }
+        .stepper-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 50%;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Status View */
+        .status-card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .receipt-big {
+            font-size: 4em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top:15px; font-weight:bold;">処理中...</p>
+    </div>
+
+    <!-- Login View -->
+    <div id="login-view" class="view active">
+        <div class="container" style="text-align: center; padding-top: 100px;">
+            <h1 style="color: var(--primary-color);">南陵祭 2026</h1>
+            <p>モバイルオーダー</p>
+            <div style="margin-top: 50px;">
+                <button id="google-login-btn" class="btn btn-google">
+                     Googleでログイン
+                </button>
+            </div>
+            <p style="font-size: 0.8em; color: #888; margin-top: 20px;">
+                注文・決済にはGoogleアカウントでのログインが必要です。
+            </p>
+        </div>
+    </div>
+
+    <!-- Store Select View -->
+    <div id="store-select-view" class="view">
+        <header>店舗を選択</header>
+        <div class="container" id="store-list-container">
+            <!-- Stores will be injected here -->
+        </div>
+    </div>
+
+    <!-- Menu View -->
+    <div id="menu-view" class="view">
+        <header>
+            <button class="back-btn" onclick="showView('store-select-view')">←</button>
+            <span id="menu-title">店舗メニュー</span>
+        </header>
+        <div class="menu-grid" id="menu-container">
+            <!-- Items will be injected here -->
+        </div>
+        <div class="bottom-bar">
+            <div class="cart-info">合計: <span id="menu-total">¥0</span></div>
+            <button class="cart-btn" onclick="showView('cart-view')">カートを見る</button>
+        </div>
+    </div>
+
+    <!-- Cart View -->
+    <div id="cart-view" class="view">
+        <header>
+            <button class="back-btn" onclick="showView('menu-view')">←</button>
+            カート
+        </header>
+        <div class="container">
+            <ul class="cart-list" id="cart-list-container">
+                <!-- Cart items -->
+            </ul>
+        </div>
+        <div class="bottom-bar" style="flex-direction: column; gap: 10px; height: auto;">
+            <div style="display: flex; justify-content: space-between; width: 100%; font-size: 1.2em; font-weight: bold;">
+                <span>合計</span>
+                <span id="cart-total">¥0</span>
+            </div>
+            <button class="btn btn-primary" onclick="processOrder()">注文を確定する</button>
+        </div>
+    </div>
+
+    <!-- Status View -->
+    <div id="status-view" class="view">
+        <div class="container">
+            <div class="status-card">
+                <h2 style="margin:0;">注文完了</h2>
+                <p>ご注文ありがとうございます。<br>以下の番号でお待ちください。</p>
+                <div class="receipt-big" id="status-receipt-number">---</div>
+                <p style="color:#d32f2f; font-weight:bold;">
+                    ※ スクリーンショットを保存してください
+                </p>
+                <button class="btn btn-secondary" onclick="resetApp()">トップへ戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+            authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+            projectId: "nanryosai-2026-a4091",
+            storageBucket: "nanryosai-2026-a4091.appspot.com",
+            messagingSenderId: "93228414556",
+            appId: "1:93228414556:web:f64f90c13849fae9049899"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const functions = getFunctions(app);
+
+        // State
+        let currentUser = null;
+        let selectedStore = null;
+        let cart = []; // { product, quantity }
+        let products = [];
+
+        // DOM Elements
+        const views = document.querySelectorAll('.view');
+        const loginBtn = document.getElementById('google-login-btn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        function showLoader(show) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+        }
+
+        window.showView = (viewId) => {
+            views.forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        };
+
+        // --- Auth ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                if (!selectedStore) {
+                    loadStores();
+                }
+            } else {
+                currentUser = null;
+                showView('login-view');
+            }
+        });
+
+        loginBtn.addEventListener('click', () => {
+             const provider = new GoogleAuthProvider();
+             signInWithPopup(auth, provider).catch(error => {
+                 alert("ログインに失敗しました: " + error.message);
+             });
+        });
+
+        // --- Store selection ---
+        async function loadStores() {
+            showLoader(true);
+            try {
+                const querySnapshot = await getDocs(collection(db, "stores"));
+                const container = document.getElementById('store-list-container');
+                container.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = "<p>店舗が見つかりません。</p>";
+                    showView('store-select-view');
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const store = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'store-card';
+                    div.innerHTML = `<h3>${store.name}</h3><p>${store.teamName || ''}</p>`;
+                    div.onclick = () => selectStore(doc.id, store);
+                    container.appendChild(div);
+                });
+                showView('store-select-view');
+            } catch (e) {
+                console.error(e);
+                alert("店舗情報の取得に失敗しました");
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function selectStore(id, storeData) {
+            selectedStore = { id, ...storeData };
+            document.getElementById('menu-title').innerText = storeData.name;
+            await loadProducts(id);
+            cart = [];
+            updateCartUI();
+            showView('menu-view');
+        }
+
+        // --- Products ---
+        async function loadProducts(storeId) {
+            showLoader(true);
+            try {
+                const querySnapshot = await getDocs(collection(db, "items")); // Reading all items then filtering might be heavy, but strictly speaking fetching by storeId is better. 
+                // However, the structure in POS_SYSTEM_ANALYSIS says `items` has `storeId`.
+                // Let's filter client side or preferably server side if index exists.
+                // For simplicity and guaranteed success without index setup:
+                
+                products = [];
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    if (item.storeId === storeId) {
+                        products.push({ id: doc.id, ...item });
+                    }
+                });
+
+                renderMenu();
+            } catch (e) {
+                console.error(e);
+                alert("メニューの読み込みに失敗しました");
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = "";
+            products.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `item-card ${!p.isAvailable ? 'disabled' : ''}`;
+                div.innerHTML = `
+                    <div class="item-img" style="${p.imageUrl ? `background-image: url('${p.imageUrl}')` : ''}"></div>
+                    <div class="item-info">
+                        <div class="item-name">${p.name}</div>
+                        <div class="item-price">¥${p.price}</div>
+                        ${p.isAvailable ? 
+                            `<button class="item-add" onclick="window.addToCart('${p.id}')">追加</button>` : 
+                            `<div class="item-add" style="background:#ccc; cursor:not-allowed;">売り切れ</div>`
+                        }
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- Cart Logic ---
+        window.addToCart = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = cart.find(i => i.product.id === productId);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ product, quantity: 1 });
+            }
+            updateCartUI();
+        };
+
+        window.updateQuantity = (productId, delta) => {
+            console.log("updateQuantity", productId, delta);
+            const idx = cart.findIndex(i => i.product.id === productId);
+            if (idx === -1) return;
+
+            cart[idx].quantity += delta;
+            if (cart[idx].quantity <= 0) {
+                cart.splice(idx, 1);
+            }
+            updateCartUI();
+        };
+
+        function updateCartUI() {
+            const total = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+            document.getElementById('menu-total').innerText = `¥${total.toLocaleString()}`;
+            document.getElementById('cart-total').innerText = `¥${total.toLocaleString()}`;
+
+            const listContainer = document.getElementById('cart-list-container');
+            listContainer.innerHTML = "";
+            
+            if (cart.length === 0) {
+                listContainer.innerHTML = "<li style='text-align:center; padding:20px; color:#888;'>カートは空です</li>";
+            } else {
+                cart.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'cart-item';
+                    li.innerHTML = `
+                        <div class="cart-item-details">
+                            <span class="cart-item-name">${item.product.name}</span>
+                            <span class="cart-item-price">¥${item.product.price}</span>
+                        </div>
+                        <div class="cart-item-stepper">
+                            <button class="stepper-btn" onclick="window.updateQuantity('${item.product.id}', -1)">−</button>
+                            <span>${item.quantity}</span>
+                            <button class="stepper-btn" onclick="window.updateQuantity('${item.product.id}', 1)">＋</button>
+                        </div>
+                    `;
+                    listContainer.appendChild(li);
+                });
+            }
+
+            // Enable/disable checkout
+            document.querySelector('.btn-primary').disabled = cart.length === 0;
+            document.querySelector('.cart-btn').disabled = cart.length === 0;
+        }
+
+        // --- Checkout ---
+        window.processOrder = async () => {
+            if (cart.length === 0) return;
+            if (!confirm("注文を確定してもよろしいですか？\n(デモ: 支払いは発生しません)")) return;
+
+            showLoader(true);
+            try {
+                // 1. Get Receipt Number (Mobile Range)
+                const getNextReceiptNumber = httpsCallable(functions, "getNextReceiptNumber");
+                const result = await getNextReceiptNumber({ orderType: 'MOBILE' });
+                const receiptNumber = result.data.receiptNumber;
+
+                // 2. Create Order
+                const total = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+                const orderData = {
+                    storeId: selectedStore.id,
+                    receiptNumber: receiptNumber,
+                    items: cart.map(i => ({
+                        productId: i.product.id,
+                        name: i.product.name,
+                        price: i.product.price,
+                        quantity: i.quantity,
+                        customizations: [] // Mobile app simple version: no customizations for now
+                    })),
+                    totalPrice: total,
+                    status: "authorized", // Simulate payment success
+                    paymentMethod: "online",
+                    isPrepaid: true,
+                    userId: currentUser.uid, // Record who ordered
+                    userEmail: currentUser.email,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+
+                await addDoc(collection(db, "orders"), orderData);
+
+                // 3. Show Success
+                document.getElementById('status-receipt-number').innerText = `No. ${receiptNumber}`;
+                showView('status-view');
+                cart = [];
+                updateCartUI();
+
+            } catch (e) {
+                console.error(e);
+                alert("注文処理中にエラーが発生しました: " + e.message);
+            } finally {
+                showLoader(false);
+            }
+        };
+
+        window.resetApp = () => {
+            showView('store-select-view');
+        };
+
+    </script>
+</body>
+</html>

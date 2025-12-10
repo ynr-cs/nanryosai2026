@@ -236,11 +236,27 @@
             "getNextReceiptNumber"
           );
           const orderTypeParam = type === "mobile" ? "MOBILE" : "SOK";
+          
+          log(`送信パラメータ: storeId=${storeId}, orderType=${orderTypeParam}`, "text-info");
+
           const result = await getNextReceiptNumber({ 
             storeId: storeId, 
             orderType: orderTypeParam 
           });
+
+          // デバッグ用: サーバーからの生の結果を確認
+          console.log("Server Result:", result);
+          
+          if (result.data.success === false) {
+             const errMsg = result.data.error || "Unknown Error";
+             log(`❌ Server Error: ${errMsg}`, "text-danger fw-bold");
+             console.error("Function Stack:", result.data.stack);
+             return;
+          }
+
           const receiptNumber = result.data.receiptNumber;
+          const debugType = result.data._debug_orderType;
+          log(`受信: No.${receiptNumber} (Server認識: ${debugType})`, "text-info");
 
           const orderData = createOrderData(type, storeId, receiptNumber);
 

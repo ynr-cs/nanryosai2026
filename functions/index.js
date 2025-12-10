@@ -1,3 +1,4 @@
+// Last updated: 2025-12-10 22:08
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
@@ -11,45 +12,50 @@ const db = admin.firestore();
  */
 exports.getNextReceiptNumber = functions
   .https.onCall(async (data, context) => {
-
-    const counterRef = db.collection('counters').doc('receipt');
-    const ordersRef = db.collection('orders');
-
-    // 注文タイプごとの設定
-    // POS: 100-999 (デフォルト)
-    // SOK: 2000-2999
-    // Mobile: 7000-7999
-    const orderType = data.orderType || 'POS';
-    
-    let minNum, maxNum, fieldName;
-
-    switch (orderType) {
-      case 'SOK':
-        minNum = 2000;
-        maxNum = 2999;
-        fieldName = 'currentNumber_SOK';
-        break;
-      case 'MOBILE':
-        minNum = 7000;
-        maxNum = 7999;
-        fieldName = 'currentNumber_MOBILE';
-        break;
-      case 'POS':
-      default:
-        minNum = 100;
-        maxNum = 999;
-        fieldName = 'currentNumber'; // 既存互換のため POS は currentNumber を使用
-        break;
-    }
-
     try {
+      console.log("getNextReceiptNumber called with:", data);
+
+      const counterRef = db.collection('counters').doc('receipt');
+      const ordersRef = db.collection('orders');
+
+      // 注文タイプごとの設定
+      // POS: 100-999 (デフォルト)
+      // SOK: 2000-2999
+      // Mobile: 7000-7999
+      // Gen 2 (CallableRequest) か Gen 1 かを判定してデータを取得
+      const requestData = (data.data && typeof data.data === 'object') ? data.data : data;
+      
+      const orderType = requestData.orderType || 'POS';
+      
+      let minNum, maxNum, fieldName;
+
+      switch (orderType) {
+        case 'SOK':
+          minNum = 2000;
+          maxNum = 2999;
+          fieldName = 'currentNumber_SOK';
+          break;
+        case 'MOBILE':
+          minNum = 7000;
+          maxNum = 7999;
+          fieldName = 'currentNumber_MOBILE';
+          break;
+        case 'POS':
+        default:
+          minNum = 100;
+          maxNum = 999;
+          fieldName = 'currentNumber'; // 既存互換のため POS は currentNumber を使用
+          break;
+      }
+
       const newNumber = await db.runTransaction(async (transaction) => {
         const counterDoc = await transaction.get(counterRef);
         if (!counterDoc.exists) {
-          throw new Error("カウンタードキュメントが存在しません！");
+          throw new Error("counters/receipt ドキュメントが存在しません。Firestoreを確認してください。");
         }
 
-        let nextNumber = counterDoc.data()[fieldName];
+        const docData = counterDoc.data();
+        let nextNumber = docData[fieldName];
         
         // 初回などでフィールドがない、または範囲外の場合は初期値をセット
         if (!nextNumber || nextNumber < minNum || nextNumber > maxNum) {
@@ -89,10 +95,20 @@ exports.getNextReceiptNumber = functions
         throw new Error(`利用可能な受付番号がありません (${orderType})。`);
       });
 
-      return { receiptNumber: newNumber };
+      return { 
+        receiptNumber: newNumber,
+        _debug_orderType: orderType,
+        success: true
+      };
 
     } catch (error) {
-      console.error("採番中にエラーが発生しました:", error);
-      throw new functions.https.HttpsError('internal', '受付番号の採番に失敗しました。');
+      console.error("Function Error:", error);
+      // クライアントでエラー内容を確認できるように詳細を返す
+      return {
+        success: false,
+        error: error.toString(),
+        stack: error.stack,
+        code: 500
+      };
     }
   });
