@@ -163,8 +163,8 @@
     <!-- Auth Overlay -->
     <div id="auth-overlay" class="auth-overlay">
         <div id="step-google" class="auth-card">
-            <h1 style="font-size:1.5rem; font-weight:800; margin-bottom:8px;">Nanryosai Portal</h1>
-            <p style="color:#6b7280; margin-bottom:24px;">管理者・スタッフ専用ポータル</p>
+            <h1 style="font-size:1.5rem; font-weight:800; margin-bottom:8px;">ポータル</h1>
+            <p style="color:#6b7280; margin-bottom:24px;">スタッフ専用ポータル</p>
             <button id="btn-google-login" class="btn-primary" style="width:100%; background:white; color:#374151; border:1px solid #d1d5db; display:flex; justify-content:center; align-items:center; gap:10px;">
                 <span style="font-weight:bold;">G</span> Googleでログイン
             </button>
@@ -189,7 +189,7 @@
     <div id="app" style="display:none; flex-direction:column; height:100%;">
         <div class="top-bar">
             <div class="brand">
-                <span>Nanryosai Portal</span>
+                <span>店舗管理ポータル</span>
                 <span id="header-store-name" class="store-badge">---</span>
             </div>
             <div class="user-info">
@@ -222,7 +222,7 @@
                 
                 <!-- 1. Top View -->
                 <div id="view-top" class="view-section active">
-                    <h2 style="margin:0;">アプリ連携</h2>
+                    <h2 style="margin:0;">ページ</h2>
                     <div class="app-grid">
                         <a href="#" id="link-pos" class="app-link-card">
                             <span class="app-icon">📱</span>
@@ -231,17 +231,17 @@
                         </a>
                         <a href="#" id="link-kitchen" class="app-link-card">
                             <span class="app-icon">👨‍🍳</span>
-                            <span class="app-title">Kitchen</span>
-                            <span class="app-desc">厨房・調理指示</span>
+                            <span class="app-title">キッチンモニター</span>
+                            <span class="app-desc">厨房モニター</span>
                         </a>
                         <a href="#" id="link-monitor" class="app-link-card">
                             <span class="app-icon">📺</span>
-                            <span class="app-title">Monitor</span>
+                            <span class="app-title">呼び出しモニター</span>
                             <span class="app-desc">呼び出しモニター</span>
                         </a>
                         <a href="#" id="link-presenter" class="app-link-card">
                             <span class="app-icon">🎁</span>
-                            <span class="app-title">Presenter</span>
+                            <span class="app-title">プレゼンターモニター</span>
                             <span class="app-desc">商品提供口</span>
                         </a>
                     </div>
@@ -332,9 +332,9 @@
                 <div id="view-training" class="view-section">
                     <div class="card" style="text-align:center; padding:60px;">
                         <h2 style="font-size:2rem; margin-bottom:20px;">🎓 トレーニングモード</h2>
-                        <p style="color:#6b7280; margin-bottom:40px;">ここでは従業員・生徒が模擬注文を作成して練習することができます。<br>（作成された注文は売上に計上されません ※実装予定）</p>
-                        <button class="btn-primary" style="font-size:1.2rem; padding:16px 32px;" onclick="window.open('pos.html?training=true')">
-                            練習用POSを開く
+                        <p style="color:#6b7280; margin-bottom:40px;">ここでは従業員・生徒が模擬注文を作成して練習することができます。<br>（作成された注文は売上に計上されません）</p>
+                        <button class="btn-primary" style="font-size:1.2rem; padding:16px 32px;" onclick="openTraining()">
+                            トレーニングポータルへ移動
                         </button>
                     </div>
                 </div>
@@ -457,16 +457,18 @@
                 
                 // Check Cached Login
                 const cachedId = localStorage.getItem('nanryosai_store_id');
+                // AUTO LOGIN IMPROVEMENT: If we have a cached ID, verify it exists (mentally) and just GO.
+                // We trust the local storage for friction reduction.
                 if(cachedId) {
                     currentStoreId = cachedId;
-                    await loadStoreData(cachedId); // Load name/pass details
-                    if(storeData) {
-                        startApp();
-                        return;
-                    }
+                    // We can skip the "step-store" screen entirely
+                    // But we might want to fetch store name for the header.
+                    // For now, let's just startApp and let listeners fetch data.
+                    startApp(); 
+                    return; 
                 }
 
-                // Show Store Login
+                // Show Store Login only if no cache
                 document.getElementById('step-store').style.display = 'block';
                 loadStoreOptions();
                 document.getElementById('user-email').innerText = user.email;
@@ -884,6 +886,12 @@
             }
         };
         
+        window.openTraining = () => {
+             if(!currentStoreId) return alert("店舗IDが読み込まれていません");
+             // Open in new tab or same? Use new window to keep portal open.
+             window.open(`training/index.html?storeId=${currentStoreId}`, '_blank');
+        };
+
         // Global Assign (Modules scope)
         window.switchView = switchView; 
         

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>責任者/マネージャー (トレーニング) | 南陵祭2026</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <style>
+      /* --- ベース設定 --- */
+      body {
+        font-family: "Noto Sans JP", "Roboto", sans-serif;
+        background-color: #f8f9fa; /* Light Mode for Manual */
+        color: #333;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .training-banner {
+        background: #2e7d32;
+        color: white;
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+        z-index: 9999;
+      }
+
+      /* --- マニュアル画面 (Light Mode) --- */
+      #manual-section {
+        flex: 1;
+        background-color: #f8f9fa;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        padding: 60px 30px; 
+      }
+      .manual-container {
+        max-width: 800px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+      }
+      .video-placeholder {
+        width: 100%;
+        height: 300px;
+        background: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 2px dashed #999;
+        color: #666;
+        font-size: 1.2em;
+      }
+      .manual-text {
+        line-height: 1.6;
+        font-size: 1.1em;
+        margin-bottom: 30px;
+        color: #333;
+      }
+      .start-training-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.5em;
+        font-weight: bold;
+        background: #0d47a1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+
+      /* --- シミュレーター画面 (Mock Portal Style) --- */
+      #simulator-section {
+        display: none; /* Initially hidden */
+        flex: 1;
+        background-color: #f0f2f5;
+        color: #1f2937;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      
+      .sim-top-bar {
+        height: 56px; background: #111827; color: #fff;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 20px; flex-shrink: 0;
+      }
+      .sim-brand { font-weight: 800; font-size: 1.1rem; gap: 10px; display:flex; align-items:center;}
+      .sim-user-info { display:flex; gap:15px; align-items:center; font-size:0.9rem; color:#ccc; }
+      .store-badge { background: rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px; font-size:0.75rem; }
+      
+      .logout-btn { background:transparent; border:1px solid #555; color: #ccc; padding:4px 10px; border-radius:4px; cursor:pointer;}
+      .logout-btn:hover { background: #333; }
+
+      .sim-app-container { display:flex; flex:1; overflow:hidden; }
+      
+      .sidebar {
+        width: 220px; background:white; border-right:1px solid #e5e7eb;
+        display:flex; flex-direction:column; padding:10px; gap:5px;
+      }
+      .nav-item {
+        padding:12px; cursor:pointer; font-weight:600; color:#4b5563;
+        border-radius:6px; display:flex; align-items:center; gap:10px;
+      }
+      .nav-item:hover { background:#f3f4f6; }
+      .nav-item.active { background:#ecfdf5; color:#10b981; }
+      .nav-icon { font-size:1.2rem; }
+
+      .sim-main-content {
+        flex:1; padding:20px; overflow-y:auto;
+        display:flex; flex-direction:column;
+      }
+      
+      .view-section { display:none; flex-direction:column; gap:20px; height:100%; }
+      .view-section.active { display:flex; }
+
+      /* Mock UI Components */
+      .app-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; }
+      .app-link-card { background:white; padding:20px; border-radius:10px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
+      .app-icon { font-size:2.5rem; display:block; margin-bottom:10px; }
+      .app-title { font-weight:bold; color:#333; }
+
+      .items-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:15px; }
+      .item-card { background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+      .btn-toggle { width:100%; border:none; padding:8px; font-weight:bold; cursor:pointer; margin-top:5px; border-radius:4px; }
+      .is-active { background:#d1fae5; color:#065f46; }
+      .is-inactive { background:#fee2e2; color:#991b1b; }
+
+      .summary-row { display:flex; gap:15px; margin-bottom:15px; }
+      .summary-card { flex:1; background:white; padding:15px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+      .summary-title { font-size:0.8rem; color:#6b7280; text-transform:uppercase; }
+      .summary-value { font-size:1.5rem; font-weight:800; color:#111827; }
+      .val-money { color:#10b981; }
+
+      .table-wrapper { background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+      table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+      th { background:#f9fafb; padding:10px; text-align:left; color:#6b7280; }
+      td { padding:10px; border-bottom:1px solid #f3f4f6; }
+      .btn-cancel { background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+      
+      .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; display:none; justify-content:center; align-items:center; }
+      .modal-content { background:white; padding:20px; border-radius:10px; width:90%; max-width:500px; }
+    </style>
+  </head>
+  <body>
+    <!-- Banner -->
+    <div class="training-banner">⚠️ トレーニングモード (操作は保存されません)</div>
+
+    <div id="manual-section">
+      <div class="manual-container">
+        <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; color:#222;">
+          責任者/マネージャー トレーニング
+        </h2>
+
+        <div class="video-placeholder">
+          <div>
+            <span style="font-size: 3em; display:block; margin-bottom: 10px;">🎥</span>
+            <span>システム全体像 & ポータル操作解説 (準備中)</span>
+          </div>
+        </div>
+
+        <div class="manual-text">
+          <h4><i class="bi bi-diagram-3 text-primary"></i> システムの全体像 (Knowledge)</h4>
+          <p>
+            南陵祭POSシステムは、以下の3つの画面が連携して動作します。
+            責任者はこの全体の流れを理解し、トラブル発生時にどこを確認すべきか判断する必要があります。
+          </p>
+          <ul>
+            <li><strong>POS (販売)</strong>: 注文を受け付け、データを送信します。</li>
+            <li><strong>Kitchen (調理)</strong>: 注文データを受け取り、調理完了を通知します。</li>
+            <li><strong>Presenter (受渡)</strong>: 呼び出しを行い、提供完了ステータスに変更します。</li>
+          </ul>
+
+          <h4><i class="bi bi-pc-display text-primary"></i> 店舗管理ポータル (Portal)</h4>
+          <p>
+            責任者だけがログインできる管理画面です。以下の重要な操作を行えます。
+          </p>
+          <ol>
+            <li><strong>売上の確認</strong>: リアルタイムの売上状況を把握できます。</li>
+            <li><strong>商品管理</strong>: 売り切れ商品の設定 (Sold Out) や、価格の修正ができます。</li>
+            <li><strong>注文の修正・キャンセル</strong>: 間違った注文を取り消すことができます。</li>
+          </ol>
+        </div>
+
+        <button class="start-training-btn" onclick="startTraining()">
+          ポータル・シミュレーターを起動
+        </button>
+      </div>
+    </div>
+
+    <!-- Simulator Section (Mock Portal) -->
+    <div id="simulator-section">
+      <!-- Top Bar -->
+      <div class="sim-top-bar">
+          <div class="sim-brand">
+              <span>店舗管理ポータル (Sim)</span>
+              <span class="store-badge">ID: TRAINING</span>
+          </div>
+          <div class="sim-user-info">
+              <span>manager@nanryo.ed.jp</span>
+              <button class="logout-btn" onclick="location.href='./index.html'">終了</button>
+          </div>
+      </div>
+
+      <div class="sim-app-container">
+          <!-- Sidebar -->
+          <div class="sidebar">
+              <div class="nav-item active" onclick="switchView('top')">
+                  <i class="bi bi-house-door nav-icon"></i> トップ
+              </div>
+              <div class="nav-item" onclick="switchView('items')">
+                  <i class="bi bi-card-list nav-icon"></i> 商品管理
+              </div>
+              <div class="nav-item" onclick="switchView('sales')">
+                  <i class="bi bi-graph-up nav-icon"></i> 売上
+              </div>
+              <div class="nav-item" onclick="switchView('search')">
+                  <i class="bi bi-search nav-icon"></i> 注文検索
+              </div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="sim-main-content">
+              
+              <!-- Top View -->
+              <div id="view-top" class="view-section active">
+                  <h2>ページ (シミュレーション不可)</h2>
+                  <div class="app-grid">
+                      <div class="app-link-card">
+                          <span class="app-icon">📱</span>
+                          <span class="app-title">POSレジ</span>
+                      </div>
+                      <div class="app-link-card">
+                          <span class="app-icon">👨‍🍳</span>
+                          <span class="app-title">キッチン</span>
+                      </div>
+                      <div class="app-link-card">
+                          <span class="app-icon">🎁</span>
+                          <span class="app-title">プレゼンター</span>
+                      </div>
+                  </div>
+                  <div class="alert alert-info mt-4">
+                      ※ 実際のリンク機能はこの画面では動作しません。左のメニューから管理機能を試してください。
+                  </div>
+              </div>
+
+              <!-- Items View -->
+              <div id="view-items" class="view-section">
+                  <h2>商品管理 (Sold Out 練習)</h2>
+                  <p>「販売中」ボタンを押して「売切」に切り替える練習ができます。</p>
+                  <div id="items-grid" class="items-grid"></div>
+              </div>
+
+              <!-- Sales View -->
+              <div id="view-sales" class="view-section">
+                  <h2>売上 (ダッシュボード)</h2>
+                  <div class="summary-row">
+                      <div class="summary-card">
+                          <div class="summary-title">本日の売上</div>
+                          <div class="summary-value val-money">¥128,500</div>
+                      </div>
+                      <div class="summary-card">
+                          <div class="summary-title">総注文数</div>
+                          <div class="summary-value">342</div>
+                      </div>
+                  </div>
+                  <div style="background:#333; height:200px; display:flex; align-items:center; justify-content:center; border-radius:8px; color:#aaa;">
+                      [グラフ表示エリア (Mock)]
+                  </div>
+              </div>
+
+              <!-- Search View -->
+              <div id="view-search" class="view-section">
+                  <h2>注文検索 (キャンセル練習)</h2>
+                  <div class="card p-3 mb-3">
+                      <label>キーワード検索</label>
+                      <input type="text" class="input-field" placeholder="レシート番号など" oninput="filterOrders(this.value)">
+                  </div>
+                  <div class="table-wrapper">
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Receipt #</th>
+                                  <th>商品</th>
+                                  <th>ステータス</th>
+                                  <th>操作</th>
+                              </tr>
+                          </thead>
+                          <tbody id="order-table-body"></tbody>
+                      </table>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title">注文詳細</h3>
+            <div id="modal-body"></div>
+            <div style="margin-top:20px; text-align:right;">
+                <button onclick="closeModal()" style="padding:8px 16px;">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      let mockItems = [
+          { id: "i1", name: "焼きそば", price: 400, isAvailable: true },
+          { id: "i2", name: "フランクフルト", price: 250, isAvailable: true },
+          { id: "i3", name: "おにぎり", price: 150, isAvailable: false },
+          { id: "i4", name: "ジュース", price: 100, isAvailable: true }
+      ];
+
+      let mockOrders = [
+          { id: "9876", items: "焼きそばx2", status: "completed", total: 800 },
+          { id: "9877", items: "フランクフルトx1", status: "ready", total: 250 },
+          { id: "9878", items: "ジュースx2", status: "preparing", total: 200 }
+      ];
+
+      function startTraining() {
+        document.getElementById('manual-section').style.display = 'none';
+        document.getElementById('simulator-section').style.display = 'flex';
+        renderItems();
+        renderOrders();
+      }
+
+      function switchView(view) {
+          document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+          document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+          
+          document.getElementById(`view-${view}`).classList.add('active');
+          // Update nav active state (simplified)
+          const index = ['top','items','sales','search'].indexOf(view);
+          if(index >=0) document.querySelectorAll('.nav-item')[index].classList.add('active');
+      }
+
+      function renderItems() {
+          const grid = document.getElementById('items-grid');
+          grid.innerHTML = "";
+          mockItems.forEach(item => {
+              const div = document.createElement('div');
+              div.className = 'item-card';
+              const btnClass = item.isAvailable ? 'is-active' : 'is-inactive';
+              const btnText = item.isAvailable ? '販売中' : '売切';
+              
+              div.innerHTML = `
+                  <div style="background:#eee; height:100px; width:100%;"></div>
+                  <div style="padding:10px;">
+                      <div style="font-weight:bold;">${item.name}</div>
+                      <div>¥${item.price}</div>
+                      <button class="btn-toggle ${btnClass}" onclick="toggleData('${item.id}')">${btnText}</button>
+                  </div>
+              `;
+              grid.appendChild(div);
+          });
+      }
+
+      function toggleData(id) {
+          const item = mockItems.find(i=>i.id===id);
+          if(item) {
+              item.isAvailable = !item.isAvailable;
+              renderItems();
+          }
+      }
+
+      function renderOrders(filter="") {
+          const tbody = document.getElementById('order-table-body');
+          tbody.innerHTML = "";
+          mockOrders.forEach(o => {
+              if(filter && !o.id.includes(filter)) return;
+              
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                  <td>${o.id}</td>
+                  <td>${o.items}</td>
+                  <td>${o.status}</td>
+                  <td>
+                      <button class="btn-cancel" onclick="cancelOrder('${o.id}')">Cancel</button>
+                  </td>
+              `;
+              tbody.appendChild(tr);
+          });
+      }
+
+      function filterOrders(val) {
+          renderOrders(val);
+      }
+
+      function cancelOrder(id) {
+          if(confirm(`注文 #${id} をキャンセルしますか？`)) {
+              mockOrders = mockOrders.filter(o => o.id !== id);
+              renderOrders();
+              alert("キャンセルしました (Mock)");
+          }
+      }
+      
+      function closeModal() {
+          document.getElementById('order-modal').style.display = 'none';
+      }
+    </script>
+  </body>
+</html>

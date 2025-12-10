@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>プレゼンター (トレーニング) | 南陵祭2026</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <style>
+      /* --- ベース設定 --- */
+      body {
+        font-family: "Noto Sans JP", "Roboto", sans-serif;
+        background-color: #000000;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 15px;
+        transition: zoom 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .training-banner {
+        background: #2e7d32;
+        color: white;
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+      }
+
+      /* --- マニュアル画面 --- */
+      #manual-section {
+        flex: 1;
+        background-color: #f8f9fa; /* Light Mode */
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        padding: 60px 30px; 
+      }
+      .manual-container {
+        max-width: 800px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+      }
+      .video-placeholder {
+        width: 100%;
+        height: 400px;
+        background: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 2px dashed #999;
+        color: #666;
+        font-size: 1.2em;
+      }
+      .manual-text {
+        line-height: 1.6;
+        font-size: 1.1em;
+        margin-bottom: 30px;
+        color: #333;
+      }
+      .start-training-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.5em;
+        font-weight: bold;
+        background: #0d47a1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+
+      /* --- アプリメイン画面 --- */
+      #main-content {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        padding-top: 30px;
+      }
+
+      /* --- ヘッダー --- */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 12px 20px;
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #333;
+        border-radius: 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #fff;
+        font-weight: 900;
+      }
+
+      /* --- グリッドレイアウト --- */
+      .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        overflow-y: auto;
+        padding-bottom: 20px;
+      }
+
+      /* --- 注文カードデザイン --- */
+      .order-card {
+        background-color: #ffffff;
+        color: #111;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+        border: 1px solid #444;
+        min-height: 300px;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .card-body {
+        padding: 12px 15px;
+        flex-grow: 1;
+      }
+
+      .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+      }
+      .order-id {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #000;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .source-badge {
+        font-size: 0.75rem;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-top: 4px;
+      }
+      .badge-pos {
+        background-color: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #bbdefb;
+      }
+      .badge-mobile {
+        background-color: #fce4ec;
+        color: #c2185b;
+        border: 1px solid #f8bbd0;
+      }
+
+      .item-row {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #ddd;
+      }
+      .item-qty {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #000;
+        width: 35px;
+        text-align: right;
+        margin-right: 12px;
+      }
+      .item-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.2;
+      }
+
+      .card-footer {
+        padding: 0;
+        margin-top: auto;
+      }
+      .btn-action {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.3rem;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        color: white;
+      }
+
+      /* フェーズ1 */
+      .btn-call {
+        background-color: #1565c0;
+        border-radius: 0 0 6px 6px;
+      }
+      .btn-call:hover { background-color: #0d47a1; }
+
+      /* フェーズ2: 支払いボタン */
+      .payment-actions {
+        display: flex;
+      }
+      .btn-half {
+        width: 50%;
+        padding: 16px;
+        font-size: 1.1rem;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        color: white;
+      }
+      .btn-half:first-child {
+        border-bottom-left-radius: 6px;
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .btn-half:last-child {
+        border-bottom-right-radius: 6px;
+      }
+      .btn-cash { background-color: #2e7d32; }
+      .btn-qr { background-color: #ef6c00; }
+
+      .sim-controls {
+        background: #333;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .btn-sim {
+        background: #555;
+        color: white;
+        border: 1px solid #777;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-sim:hover { background: #666; }
+    </style>
+  </head>
+  <body>
+    <!-- Banner -->
+    <div class="training-banner">⚠️ トレーニングモード (注文は保存されません)</div>
+
+    <!-- Manual Section -->
+    <div id="manual-section">
+      <div class="manual-container">
+        <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; color:#222;">
+          プレゼンター/呼出 トレーニング
+        </h2>
+
+        <div class="video-placeholder">
+          <div>
+            <span style="font-size: 3em; display:block; margin-bottom: 10px;">🎥</span>
+            <span>操作説明動画 (準備中)</span>
+          </div>
+        </div>
+
+        <div class="manual-text">
+          <h4><i class="bi bi-check-circle-fill text-success"></i> 役割と目的</h4>
+          <p>
+            キッチンから調理完了の通知が来たら、お客様の番号を呼び出します（モニターに表示＋音声）。
+            お客様が来られたら商品を確認して渡し、会計（未払いの場合）を行ってください。
+          </p>
+
+          <h4><i class="bi bi-list-ol"></i> 手順</h4>
+          <ol>
+            <li><strong>青いボタン「呼び出し」</strong>: これを押すと番号が全体モニターに表示され、音が鳴ります。</li>
+            <li>お客様が商品を取りに来ます。</li>
+            <li><strong>緑/オレンジのボタン「完了」</strong>: 商品を渡し、代金を受け取ったら押して完了します。</li>
+          </ol>
+        </div>
+
+        <button class="start-training-btn" onclick="startTraining()">
+          トレーニングを開始する
+        </button>
+      </div>
+    </div>
+
+    <!-- Simulator Section -->
+    <div id="main-content">
+      <header>
+        <div>
+          <h1>Presenter Simulator</h1>
+          <span style="font-size: 0.8rem; color: #888">練習モード</span>
+        </div>
+      </header>
+
+      <div class="sim-controls">
+         <span style="align-self:center; margin-right:auto; color:#aaa;">練習用コントロール</span>
+         <button class="btn-sim" onclick="simulateNewOrder()">+ 調理完了通知(Mock)</button>
+         <button class="btn-sim" onclick="clearAllOrders()">全てクリア</button>
+         <!-- ログイン関連要素除去 -->
+         <a href="./index.html" class="btn-sim" style="text-decoration:none; display:inline-flex; align-items:center;">終了</a>
+      </div>
+
+      <div id="orders-container" class="orders-grid"></div>
+    </div>
+
+    <script>
+      let orders = [];
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      function playPingSound() {
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      }
+
+      // Auth removed
+      // Immediately show manual
+      document.getElementById("manual-section").style.display = "flex";
+      document.getElementById("main-content").style.display = "none"; // Wait for start btn
+
+      // Dummy user
+      // document.getElementById("user-name").textContent = "Training User";
+      // document.getElementById("display-store-id").textContent = storeId || "TEST";
+
+      function startTraining() {
+        document.getElementById('manual-section').style.display = 'none';
+        document.getElementById('main-content').style.display = 'flex';
+        // 初期注文
+        simulateNewOrder();
+      }
+
+      function simulateNewOrder() {
+        // キッチンが完了して「呼び出し待ち（ready_to_serve）」状態のオーダーを作成
+        const id = Math.floor(Math.random() * 9000) + 1000;
+        const now = new Date();
+        const isPrepaid = Math.random() > 0.5;
+
+        const order = {
+            id: String(id),
+            receiptNumber: id,
+            createdAt: now,
+            items: [
+                { name: "テスト商品", quantity: 1, customizations: [] }
+            ],
+            status: 'ready_to_serve',
+            isPrepaid: isPrepaid,
+            paymentMethod: isPrepaid ? 'pos' : 'cash'
+        };
+        
+        orders.push(order);
+        renderCard(order);
+        playPingSound(); // 通知音
+      }
+
+      function updateStatus(id, newStatus) {
+        const order = orders.find(o => o.id === id);
+        if(order) {
+            order.status = newStatus;
+            // 再描画
+            document.getElementById(`card-${id}`).remove();
+            renderCard(order);
+        }
+      }
+
+      function completeOrder(id, paymentType) {
+        // 本来はDB書き込みだが、ここではアニメーションして削除
+        const card = document.getElementById(`card-${id}`);
+        if(card) {
+            card.style.transform = "scale(0.9)";
+            card.style.opacity = "0";
+            setTimeout(() => card.remove(), 300);
+            orders = orders.filter(o => o.id !== id);
+        }
+      }
+
+      function renderCard(data) {
+        const container = document.getElementById("orders-container");
+        const orderId = data.id;
+        
+        let sourceLabel = "POS";
+        let sourceClass = "badge-pos";
+        if (data.isPrepaid) {
+             sourceLabel = "Prepaid (済)";
+        } else {
+             sourceLabel = "Unpaid (未払)";
+             sourceClass = "badge-mobile"; // Color distinct
+        }
+
+        let itemsHtml = data.items.map(i => 
+            `<div class="item-row">
+                <span class="item-qty">${i.quantity}</span>
+                <span class="item-name">${i.name}</span>
+            </div>`
+        ).join("");
+
+        let footerHtml = "";
+        
+        // --- 状態分岐 ---
+        if (data.status === "ready_to_serve") {
+             // 呼び出しボタン
+             footerHtml = `
+                <button class="btn-action btn-call" onclick="updateStatus('${orderId}', 'ready_for_pickup')">
+                    呼び出し (準備完了)
+                </button>
+             `;
+        } else if (data.status === "ready_for_pickup") {
+             // 支払い/受け渡しボタン
+             if (data.isPrepaid) {
+                 footerHtml = `
+                    <button class="btn-action btn-cash" onclick="completeOrder('${orderId}', 'done')">
+                        受渡完了 (支払済)
+                    </button>
+                 `;
+             } else {
+                 footerHtml = `
+                    <div class="payment-actions">
+                        <button class="btn-half btn-cash" onclick="completeOrder('${orderId}', 'cash')">現金 完了</button>
+                        <button class="btn-half btn-qr" onclick="completeOrder('${orderId}', 'qr')">QR 完了</button>
+                    </div>
+                 `;
+             }
+        }
+
+        const div = document.createElement("div");
+        div.className = "order-card";
+        div.id = `card-${orderId}`;
+        
+        div.innerHTML = `
+            <div class="card-body">
+                <div class="card-header-row">
+                    <span class="order-id">${orderId}</span>
+                    <span class="source-badge ${sourceClass}">${sourceLabel}</span>
+                </div>
+                <div>${itemsHtml}</div>
+            </div>
+            <div class="card-footer">
+                ${footerHtml}
+            </div>
+        `;
+        container.appendChild(div);
+      }
+
+      function clearAllOrders() {
+        document.getElementById("orders-container").innerHTML = "";
+        orders = [];
+      }
+    </script>
+  </body>
+</html>

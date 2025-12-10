@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>キッチン (トレーニング) | 南陵祭2026</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <style>
+      /* --- ベース設定 --- */
+      body {
+        font-family: "Noto Sans JP", "Roboto", sans-serif;
+        background-color: #000000;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 15px;
+        transition: zoom 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      /* Training Banner */
+      .training-banner {
+        background: #ff9800;
+        color: white;
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+      }
+
+      /* --- マニュアル画面 --- */
+      #manual-section {
+        flex: 1;
+        background-color: #f8f9fa; /* Light Mode */
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        padding: 60px 30px; 
+      }
+      .manual-container {
+        max-width: 800px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+      }
+      .video-placeholder {
+        width: 100%;
+        height: 400px;
+        background: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 2px dashed #999;
+        color: #666;
+        font-size: 1.2em;
+      }
+      .manual-text {
+        line-height: 1.6;
+        font-size: 1.1em;
+        margin-bottom: 30px;
+        color: #333;
+      }
+      .start-training-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.5em;
+        font-weight: bold;
+        background: #0d47a1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+      .start-training-btn:hover {
+        background: #1565c0;
+      }
+
+      /* --- アプリメイン画面 --- */
+      #main-content {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        padding-top: 60px; /* Banner space increased */
+        overflow: hidden; /* Fix layout overflow */
+      }
+
+      /* --- ヘッダー --- */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 12px 20px;
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #333;
+        border-radius: 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #fff;
+        font-weight: 900;
+      }
+
+      /* --- グリッドレイアウト --- */
+      .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 15px;
+        overflow-y: auto;
+        padding-bottom: 20px;
+        min-height: 0; /* Important for flex child scroll */
+        flex: 1;
+      }
+
+      /* --- 注文カードデザイン --- */
+      .order-card {
+        background-color: #ffffff;
+        color: #111;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: fadeIn 0.3s ease-out;
+        border: 1px solid #444;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .card-body {
+        padding: 12px 15px;
+        flex-grow: 1;
+      }
+
+      .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .order-id {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #000;
+      }
+      .order-timer {
+        font-family: "Roboto", monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #333;
+      }
+      .timer-alert {
+        color: #d32f2f;
+        animation: flash 2s infinite;
+      }
+      @keyframes flash { 50% { opacity: 0.5; } }
+
+      .card-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+      }
+      .order-time {
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: bold;
+      }
+
+      .source-badge {
+        font-size: 0.8rem;
+        font-weight: 900;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+      .badge-pos {
+        background-color: #e3f2fd;
+        color: #1565c0;
+      }
+
+      .item-row {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #ddd;
+      }
+      .item-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .item-main {
+        display: flex;
+        align-items: baseline;
+      }
+      .item-qty {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #000;
+        width: 35px;
+        text-align: right;
+        margin-right: 12px;
+      }
+      .item-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.2;
+      }
+
+      .item-customizations {
+        margin-top: 8px;
+        padding-left: 50px;
+      }
+      .customization-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .cust-badge {
+        font-size: 0.9rem;
+        font-weight: 900;
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-right: 10px;
+        min-width: 40px;
+        text-align: center;
+      }
+      .cust-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333;
+      }
+      .bg-red { background-color: #d32f2f; }
+      .bg-green { background-color: #2e7d32; }
+
+      .btn-complete {
+        width: 100%;
+        padding: 15px;
+        background-color: #3b82f6;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        margin-top: auto;
+      }
+      .btn-complete:hover {
+        background-color: #2563eb;
+      }
+
+      .sim-controls {
+        background: #333;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .btn-sim {
+        background: #555;
+        color: white;
+        border: 1px solid #777;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-sim:hover { background: #666; }
+      .btn-sim.primary { background: #2e7d32; border-color: #1b5e20; }
+    </style>
+  </head>
+  <body>
+    <div class="training-banner">⚠️ トレーニングモード (注文は保存されません)</div>
+
+    <!-- マニュアルセクション -->
+    <div id="manual-section">
+      <div class="manual-container">
+        <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; color:#222;">
+          キッチン担当トレーニング
+        </h2>
+
+        <!-- 動画プレースホルダー -->
+        <div class="video-placeholder">
+          <div>
+            <span style="font-size: 3em; display:block; margin-bottom: 10px;">🎥</span>
+            <span>操作説明動画 (準備中)</span>
+          </div>
+        </div>
+
+        <div class="manual-text">
+          <h4><i class="bi bi-check-circle-fill text-success"></i> トレーニングの目的</h4>
+          <p>
+            注文が入ってから調理完了操作を行うまでの流れを練習します。
+            擬似的にランダムな注文が入ってくるので、素早く内容を確認して完了ボタンを押しましょう。
+          </p>
+
+          <h4><i class="bi bi-list-ol"></i> 手順</h4>
+          <ol>
+            <li>新しい注文が入ると通知音(Beep)とともにカードが表示されます。</li>
+            <li>「No(抜き)」などのカスタマイズ情報に注意して調理します。</li>
+            <li>調理が終わったら、当該カードの「完了」ボタンを押して消去してください。</li>
+          </ol>
+        </div>
+
+        <button class="start-training-btn" onclick="startTraining()">
+          トレーニングを開始する
+        </button>
+      </div>
+    </div>
+
+    <!-- シミュレーター画面 -->
+    <div id="main-content">
+      <header>
+        <div>
+          <h1>Kitchen Simulator</h1>
+          <span style="font-size: 0.8rem; color: #888">練習モード</span>
+        </div>
+      </header>
+      
+      <div class="sim-controls">
+         <span style="align-self:center; margin-right:auto; color:#aaa;">練習用コントロール</span>
+         <button class="btn-sim primary" onclick="simulateNewOrder()">+ 注文を追加</button>
+         <button class="btn-sim" onclick="clearAllOrders()">全てクリア</button>
+         <a href="./index.html" class="btn-sim" style="text-decoration:none; display:inline-flex; align-items:center;">終了</a>
+      </div>
+
+      <div id="orders-container" class="orders-grid"></div>
+    </div>
+
+    <script>
+      let orders = [];
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      function playNotificationSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+      }
+
+      function startTraining() {
+        document.getElementById('manual-section').style.display = 'none';
+        document.getElementById('main-content').style.display = 'flex';
+        // 初期注文をいくつか追加
+        simulateNewOrder();
+        simulateNewOrder();
+        
+        // Timer Loop
+        setInterval(updateTimers, 1000);
+      }
+
+      function simulateNewOrder() {
+        const id = Math.floor(Math.random() * 9000) + 1000;
+        const now = new Date();
+        const order = {
+            id: String(id),
+            receiptNumber: id,
+            createdAt: now,
+            items: generateRandomItems(),
+            status: 'authorized'
+        };
+        
+        orders.push(order);
+        renderCard(order);
+        playNotificationSound();
+      }
+
+      function generateRandomItems() {
+        const menu = [
+            { name: "ソース焼きそば", price: 400 },
+            { name: "チーズバーガー", price: 450 },
+            { name: "ポテトセット", price: 200 },
+            { name: "フランクフルト", price: 250 },
+            { name: "コーラ", price: 150 }
+        ];
+        
+        const count = Math.floor(Math.random() * 3) + 1;
+        const items = [];
+        for(let i=0; i<count; i++) {
+            const item = menu[Math.floor(Math.random() * menu.length)];
+            const qty = Math.floor(Math.random() * 2) + 1;
+            const customizations = [];
+            
+            if(Math.random() > 0.7) {
+                customizations.push({ mode: "NO", target: "マヨネーズ" });
+            }
+            if(Math.random() > 0.8) {
+                customizations.push({ mode: "ADD", target: "チーズ" });
+            }
+
+            items.push({
+                name: item.name,
+                quantity: qty,
+                customizations: customizations
+            });
+        }
+        return items;
+      }
+
+      function renderCard(data) {
+        const container = document.getElementById("orders-container");
+        const orderId = data.id;
+        const displayId = `#${data.receiptNumber}`;
+        const dateStr = data.createdAt.toLocaleString("ja-JP", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        let itemsHtml = data.items.map(item => {
+             let metaHtml = "";
+             if(item.customizations && item.customizations.length > 0) {
+                 metaHtml = item.customizations.map(c => {
+                     const bg = c.mode === "NO" ? "bg-red" : "bg-green";
+                     return `<div class="customization-row">
+                        <span class="cust-badge ${bg}">${c.mode}</span>
+                        <span class="cust-text">${c.target}</span>
+                     </div>`;
+                 }).join("");
+                 metaHtml = `<div class="item-customizations">${metaHtml}</div>`;
+             }
+             
+             return `<div class="item-row">
+                <div class="item-main">
+                    <span class="item-qty">${item.quantity}</span>
+                    <span class="item-name">${item.name}</span>
+                </div>
+                ${metaHtml}
+             </div>`;
+        }).join("");
+
+        const div = document.createElement("div");
+        div.className = "order-card";
+        div.id = `card-${orderId}`;
+        div.dataset.createdAt = data.createdAt.getTime();
+        
+        div.innerHTML = `
+                <div class="card-body">
+                    <div class="card-header-row">
+                        <span class="order-id">注文 ${displayId}</span>
+                        <span class="order-timer" id="timer-${orderId}">00:00</span>
+                    </div>
+                    <div class="card-meta-row">
+                        <span class="order-time">${dateStr}</span>
+                        <span class="source-badge badge-pos">POS</span>
+                    </div>
+                    <div>${itemsHtml}</div>
+                </div>
+                <button class="btn-complete" onclick="completeOrder('${orderId}')">完了</button>
+            `;
+        container.appendChild(div);
+      }
+
+      function completeOrder(id) {
+        const card = document.getElementById(`card-${id}`);
+        if(card) {
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 300);
+            orders = orders.filter(o => o.id !== id);
+        }
+      }
+
+      function clearAllOrders() {
+        document.getElementById("orders-container").innerHTML = "";
+        orders = [];
+      }
+
+      function updateTimers() {
+        const now = Date.now();
+        orders.forEach(order => {
+            const el = document.getElementById(`timer-${order.id}`);
+            if(!el) return;
+            
+            const diff = Math.floor((now - order.createdAt.getTime()) / 1000);
+            const mm = String(Math.floor(diff / 60)).padStart(2, '0');
+            const ss = String(diff % 60).padStart(2, '0');
+            el.textContent = `${mm}:${ss}`;
+            
+            if(diff > 300) el.classList.add('timer-alert'); // 5分以上で警告
+        });
+      }
+    </script>
+  </body>
+</html>
