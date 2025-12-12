@@ -156,6 +156,62 @@
       .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; }
       .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
 
+
+      /* --- Mobile Responsive Overrides --- */
+      @media (max-width: 768px) {
+        .sidebar { display: none !important; }
+        .bottom-nav { display: flex !important; }
+        
+        .main-content { 
+            padding: 16px;
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+        
+        /* Layout Adjustments */
+        .top-bar { padding: 0 12px; }
+        
+        /* Grid Adjustments */
+        .app-grid { grid-template-columns: 1fr; gap: 12px; }
+        
+        /* Items Grid: Allow 2 columns on mobile if space permits */
+        .items-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+        
+        /* Sales Dashboard Stacking */
+        #view-sales .summary-row { flex-wrap: wrap; }
+        #view-sales .summary-card { flex: 1 1 45%; min-width: 140px; }
+        #view-sales div[style*="display:flex"] { flex-direction: column; }
+        #view-sales .card { min-height: fit-content; margin-bottom: 12px; }
+        #view-sales .card canvas { min-height: 250px; }
+
+        /* Search View Stacking */
+        #view-search .card { flex-direction: column !important; align-items: stretch !important; }
+        #view-search .card > div { width: 100% !important; margin-bottom: 10px; min-width: 0 !important; }
+        
+        /* Table Scroll */
+        .table-wrapper { overflow-x: auto; }
+        table { min-width: 600px; }
+        
+        /* Modal Adjustments */
+        .modal-content { width: 95%; max-height: 85vh; padding: 16px; margin-bottom: 60px; }
+      }
+
+      /* Bottom Navigation (Mobile Only) */
+      .bottom-nav {
+        display: none;
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        height: 60px; background: white; border-top: 1px solid #e5e7eb;
+        z-index: 1000; justify-content: space-around; align-items: center;
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      }
+      .bottom-nav-item {
+        flex: 1; height: 100%; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; gap: 4px;
+        color: #9ca3af; font-size: 0.65rem; font-weight: 600;
+        cursor: pointer; -webkit-tap-highlight-color: transparent;
+      }
+      .bottom-nav-item.active { color: var(--accent-color); background: #f0fdf4; }
+      .bottom-nav-icon { font-size: 1.4rem; line-height: 1; }
     </style>
   </head>
   <body>
@@ -325,7 +381,7 @@
                             </thead>
                             <tbody></tbody>
                         </table>
-                    </div>
+                   overflow-y</div>
                 </div>
 
                 <!-- 5. Training View -->
@@ -339,6 +395,25 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+        <!-- Bottom Nav (Mobile) -->
+        <div class="bottom-nav">
+            <div class="bottom-nav-item active" onclick="switchView('top')">
+                <span class="bottom-nav-icon">🏠</span> <span>トップ</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchView('items')">
+                <span class="bottom-nav-icon">🍔</span> <span>商品</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchView('sales')">
+                <span class="bottom-nav-icon">📊</span> <span>売上</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchView('search')">
+                <span class="bottom-nav-icon">🔍</span> <span>検索</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchView('training')">
+                <span class="bottom-nav-icon">🎓</span> <span>練習</span>
             </div>
         </div>
     </div>
@@ -440,6 +515,17 @@
             if(viewName==='sales') navs[2].classList.add('active');
             if(viewName==='search') navs[3].classList.add('active');
             if(viewName==='training') navs[4].classList.add('active');
+
+            // Update Bottom Nav
+            document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+            const bottoms = document.querySelectorAll('.bottom-nav-item');
+            if(bottoms.length > 0) {
+                if(viewName==='top') bottoms[0].classList.add('active');
+                if(viewName==='items') bottoms[1].classList.add('active');
+                if(viewName==='sales') bottoms[2].classList.add('active');
+                if(viewName==='search') bottoms[3].classList.add('active');
+                if(viewName==='training') bottoms[4].classList.add('active');
+            }
 
             // Update Views
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
