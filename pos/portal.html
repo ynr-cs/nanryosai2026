@@ -159,40 +159,57 @@
 
       /* --- Mobile Responsive Overrides --- */
       @media (max-width: 768px) {
+        body { font-size: 13px; }
         .sidebar { display: none !important; }
         .bottom-nav { display: flex !important; }
         
         .main-content { 
-            padding: 16px;
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding: 12px;
+            padding-bottom: calc(60px + env(safe-area-inset-bottom)); /* Add extra padding for bottom nav */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         
         /* Layout Adjustments */
-        .top-bar { padding: 0 12px; }
+        .top-bar { padding: 0 12px; height: 50px; }
+        .brand { font-size: 1rem; }
         
-        /* Grid Adjustments */
-        .app-grid { grid-template-columns: 1fr; gap: 12px; }
+        /* App Grid (Top Page) */
+        .app-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } /* 2 cols for apps */
+        .app-link-card { padding: 16px; }
+        .app-icon { font-size: 2rem; margin-bottom: 8px; }
+        .app-title { font-size: 1rem; }
         
-        /* Items Grid: Allow 2 columns on mobile if space permits */
-        .items-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+        /* Items Grid */
+        .items-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        .item-img { height: 100px; } /* Compact images */
+        .item-body { padding: 8px; }
+        .item-name { font-size: 0.9rem; }
         
-        /* Sales Dashboard Stacking */
-        #view-sales .summary-row { flex-wrap: wrap; }
-        #view-sales .summary-card { flex: 1 1 45%; min-width: 140px; }
-        #view-sales div[style*="display:flex"] { flex-direction: column; }
-        #view-sales .card { min-height: fit-content; margin-bottom: 12px; }
-        #view-sales .card canvas { min-height: 250px; }
+        /* Sales Dashboard Compact */
+        #view-sales .summary-row { gap: 8px; margin-bottom: 12px; }
+        #view-sales .summary-card { padding: 12px; min-width: 100px; }
+        #view-sales .summary-value { font-size: 1.2rem; }
+        #view-sales .card { padding: 12px; margin-bottom: 10px; min-height: fit-content; }
+        #view-sales .card canvas { min-height: 200px; max-height: 250px; }
 
-        /* Search View Stacking */
-        #view-search .card { flex-direction: column !important; align-items: stretch !important; }
-        #view-search .card > div { width: 100% !important; margin-bottom: 10px; min-width: 0 !important; }
+        /* Search View Compact */
+        #view-search .card { padding: 12px; gap: 8px !important; }
+        #view-search .input-field, #view-search select { font-size: 16px; /* prevent zoom on focus */ padding: 8px; }
         
-        /* Table Scroll */
-        .table-wrapper { overflow-x: auto; }
-        table { min-width: 600px; }
+        /* Table Compact */
+        .table-wrapper { border-radius: 8px; }
+        th, td { padding: 8px; font-size: 0.8rem; }
+        table { min-width: 500px; }
         
         /* Modal Adjustments */
-        .modal-content { width: 95%; max-height: 85vh; padding: 16px; margin-bottom: 60px; }
+        .modal-content { 
+             width: 95%; max-height: 80vh; padding: 16px; 
+             margin-bottom: 80px; /* clear bottom nav */
+        }
+        
+        /* Buttons */
+        .btn-primary { padding: 8px 12px; font-size: 0.85rem; }
       }
 
       /* Bottom Navigation (Mobile Only) */
@@ -206,12 +223,12 @@
       }
       .bottom-nav-item {
         flex: 1; height: 100%; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; gap: 4px;
+        justify-content: center; align-items: center; gap: 2px;
         color: #9ca3af; font-size: 0.65rem; font-weight: 600;
         cursor: pointer; -webkit-tap-highlight-color: transparent;
       }
-      .bottom-nav-item.active { color: var(--accent-color); background: #f0fdf4; }
-      .bottom-nav-icon { font-size: 1.4rem; line-height: 1; }
+      .bottom-nav-item.active { color: var(--accent-color); background: #ecfdf5; }
+      .bottom-nav-icon { font-size: 1.3rem; margin-bottom: 2px; }
     </style>
   </head>
   <body>
