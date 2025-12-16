@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Order Status | 南陵祭2026</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link 
+      rel="stylesheet" 
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    >
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #333;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        text-align: center;
+        transition: background-color 0.5s;
+      }
+
+      /* Status Themes */
+      body[data-status="waiting"] .status-container {
+        background-color: #f5f5f5; /* Grey */
+        color: #555;
+      }
+      body[data-status="cooking"] .status-container {
+        background-color: #fffde7; /* Yellow tint */
+        color: #fbc02d;
+      }
+      body[data-status="ready"] .status-container {
+        background-color: #ffebee; /* Red tint */
+        color: #d32f2f;
+      }
+      body[data-status="completed"] .status-container {
+        background-color: #e8f5e9; /* Green tint */
+        color: #2e7d32;
+      }
+
+      .receipt-number {
+        font-size: 5rem;
+        font-weight: 900;
+        line-height: 1;
+        margin: 20px 0;
+      }
+      .status-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+      }
+      .status-text {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .status-sub {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      /* Animations */
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+      .animate-pulse {
+        animation: pulse 2s infinite;
+      }
+      @keyframes blink {
+        50% { opacity: 0.6; }
+      }
+      .animate-blink {
+        animation: blink 1s infinite;
+      }
+
+      /* Order Details */
+      .order-details {
+        width: 100%;
+        max-width: 400px;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin-top: 40px;
+        text-align: left;
+      }
+      .order-details h6 {
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+      }
+      .item-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+      }
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px 20px;
+        font-weight: bold;
+        color: #888;
+        font-size: 0.9rem;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body data-status="waiting">
+
+    <header id="store-header">
+      Store ID: <span id="store-id-display">--</span>
+    </header>
+
+    <div class="status-container">
+      <div id="status-icon" class="status-icon">
+        <div class="spinner-border" role="status"></div>
+      </div>
+      
+      <div id="status-text" class="status-text">読み込み中...</div>
+      
+      <div class="receipt-number" id="receipt-number">---</div>
+      
+      <div id="status-message" class="status-sub">
+        注文情報を取得しています
+      </div>
+
+      <!-- Detail Card -->
+      <div class="order-details">
+        <h6>注文内容</h6>
+        <div id="items-list">
+          <!-- Items -->
+        </div>
+        <div class="total-row">
+          <span>合計</span>
+          <span id="total-price">¥0</span>
+        </div>
+      </div>
+      
+      <div class="mt-4 text-center">
+        <a href="mobile-order.html" class="btn btn-outline-secondary btn-sm rounded-pill px-4">トップへ戻る</a>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        onSnapshot,
+        getDoc
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithPopup,
+        GoogleAuthProvider
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // --- Logic ---
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+
+      if (!orderId) {
+        document.getElementById('status-text').textContent = "Order ID Missing";
+        document.getElementById('status-message').textContent = "正しいURLでアクセスしてください";
+        document.querySelector('.spinner-border').style.display = 'none';
+      } else {
+        // PERMISSION FIX: Wait for Auth
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                startListener();
+            } else {
+                // Not logged in.
+                document.getElementById('status-text').textContent = "認証が必要です";
+                document.getElementById('status-message').innerHTML = '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-primary mt-2">ログインする</button>';
+                document.querySelector('.spinner-border').style.display = 'none';
+                
+                document.getElementById('btn-login-status').onclick = () => {
+                     signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert(e.message));
+                };
+            }
+        });
+      }
+
+      function startListener() {
+        onSnapshot(doc(db, "orders", orderId), (docSnap) => {
+            if (!docSnap.exists()) {
+                document.getElementById('status-text').textContent = "Order Not Found";
+                return;
+            }
+            const data = docSnap.data();
+            updateUI(data);
+            fetchStoreName(data.storeId);
+        }, (error) => {
+            console.error(error);
+            document.getElementById('status-text').textContent = "Error";
+            document.getElementById('status-message').textContent = error.message;
+        });
+      }
+
+      function updateUI(data) {
+        // Receipt Number
+        document.getElementById('receipt-number').textContent = `No. ${data.receiptNumber}`;
+        document.getElementById('store-id-display').textContent = data.storeId;
+        
+        // Items
+        const list = document.getElementById('items-list');
+        list.innerHTML = '';
+        if (data.items) {
+            data.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.innerHTML = `<span>${item.name} x${item.quantity}</span><span>¥${item.price * item.quantity}</span>`;
+                list.appendChild(row);
+            });
+        }
+        document.getElementById('total-price').textContent = `¥${data.totalPrice}`;
+
+        // Status Logic
+        const status = data.status;
+        const body = document.body;
+        const iconEl = document.getElementById('status-icon');
+        const textEl = document.getElementById('status-text');
+        const msgEl = document.getElementById('status-message');
+
+        // Reset classes
+        iconEl.className = 'status-icon';
+
+        if (status === 'authorized' || status === 'unpaid_at_pos') {
+            // Waiting
+            body.setAttribute('data-status', 'waiting');
+            iconEl.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            textEl.textContent = "調理待ち";
+            msgEl.textContent = "ご注文を受け付けました。\n調理開始までしばらくお待ちください。";
+        } 
+        else if (status === 'ready_to_serve') {
+            // Cooking
+            body.setAttribute('data-status', 'cooking');
+            iconEl.innerHTML = '<i class="bi bi-fire animate-pulse text-warning"></i>';
+            textEl.textContent = "調理中";
+            msgEl.textContent = "ただいま心を込めて作っています！";
+        }
+        else if (status === 'ready_for_pickup') {
+            // Ready
+            body.setAttribute('data-status', 'ready');
+            iconEl.innerHTML = '<i class="bi bi-megaphone-fill animate-blink"></i>';
+            textEl.textContent = "お呼出中！";
+            msgEl.textContent = "商品が出来上がりました。\n提供口へお越しください！";
+        }
+        else if (status.startsWith('completed')) {
+            // Completed
+            body.setAttribute('data-status', 'completed');
+            iconEl.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+            textEl.textContent = "受渡完了";
+            msgEl.textContent = "ご利用ありがとうございました。\nまたのご来店をお待ちしています！";
+        }
+        else {
+             // Other
+            body.removeAttribute('data-status');
+            iconEl.innerHTML = '<i class="bi bi-question-circle"></i>';
+            textEl.textContent = status;
+        }
+      }
+
+      async function fetchStoreName(storeId) {
+         try {
+             // Optional: Fetch store Name
+             const storeDoc = await getDoc(doc(db, 'stores', storeId));
+             if (storeDoc.exists()) {
+                 document.getElementById('store-header').textContent = storeDoc.data().name;
+             }
+         } catch(e) {}
+      }
+
+    </script>
+  </body>
+</html>
