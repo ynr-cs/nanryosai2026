@@ -155,6 +155,10 @@
       // --- Firebase Import ---
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
         getAuth,
         GoogleAuthProvider,
         signInWithPopup,
@@ -182,6 +186,14 @@
       };
 
       const app = initializeApp(firebaseConfig);
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+
       const auth = getAuth(app);
       const db = getFirestore(app);
       const functions = getFunctions(app);
@@ -236,27 +248,33 @@
             "getNextReceiptNumber"
           );
           const orderTypeParam = type === "mobile" ? "MOBILE" : "SOK";
-          
-          log(`送信パラメータ: storeId=${storeId}, orderType=${orderTypeParam}`, "text-info");
 
-          const result = await getNextReceiptNumber({ 
-            storeId: storeId, 
-            orderType: orderTypeParam 
+          log(
+            `送信パラメータ: storeId=${storeId}, orderType=${orderTypeParam}`,
+            "text-info"
+          );
+
+          const result = await getNextReceiptNumber({
+            storeId: storeId,
+            orderType: orderTypeParam,
           });
 
           // デバッグ用: サーバーからの生の結果を確認
           console.log("Server Result:", result);
-          
+
           if (result.data.success === false) {
-             const errMsg = result.data.error || "Unknown Error";
-             log(`❌ Server Error: ${errMsg}`, "text-danger fw-bold");
-             console.error("Function Stack:", result.data.stack);
-             return;
+            const errMsg = result.data.error || "Unknown Error";
+            log(`❌ Server Error: ${errMsg}`, "text-danger fw-bold");
+            console.error("Function Stack:", result.data.stack);
+            return;
           }
 
           const receiptNumber = result.data.receiptNumber;
           const debugType = result.data._debug_orderType;
-          log(`受信: No.${receiptNumber} (Server認識: ${debugType})`, "text-info");
+          log(
+            `受信: No.${receiptNumber} (Server認識: ${debugType})`,
+            "text-info"
+          );
 
           const orderData = createOrderData(type, storeId, receiptNumber);
 

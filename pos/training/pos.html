@@ -30,10 +30,6 @@
         overflow: hidden;
       }
 
-
-
-
-
       /* --- ローダー --- */
       #global-loader {
         position: fixed;
@@ -530,8 +526,6 @@
         background: #d32f2f;
         color: white;
       }
-      
-
 
       /* --- マニュアル画面 --- */
       #manual-section {
@@ -550,7 +544,7 @@
         background: #ffffff;
         border-radius: 12px;
         padding: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         border: 1px solid #ddd;
       }
       .video-placeholder {
@@ -582,7 +576,7 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       }
       .start-training-btn:hover {
         background: #1565c0;
@@ -595,14 +589,19 @@
       <div class="loading-text" id="loader-text">読み込み中...</div>
     </div>
 
-    <div id="error-screen" style="display:none;"></div>
+    <div id="error-screen" style="display: none"></div>
 
-    <div id="login-screen" style="display:none;"></div>
+    <div id="login-screen" style="display: none"></div>
 
     <div class="top-bar">
-      <div style="display:flex; align-items:center; gap:15px;">
-          <a href="./index.html" class="btn btn-sm btn-secondary" style="text-decoration:none; font-weight:bold;">終了</a>
-          <div id="clock-display">00:00:00</div>
+      <div style="display: flex; align-items: center; gap: 15px">
+        <a
+          href="./index.html"
+          class="btn btn-sm btn-secondary"
+          style="text-decoration: none; font-weight: bold"
+          >終了</a
+        >
+        <div id="clock-display">00:00:00</div>
       </div>
       <div>
         経過時間: <span id="timer-display" class="timer-display">00:00</span>
@@ -612,29 +611,40 @@
     <!-- マニュアルセクション -->
     <div id="manual-section">
       <div class="manual-container">
-        <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; color:#222;">
+        <h2
+          style="
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #222;
+          "
+        >
           レジ打ちトレーニング (POS)
         </h2>
 
         <!-- 動画プレースホルダー -->
         <div class="video-placeholder">
           <div>
-            <span style="font-size: 3em; display:block; margin-bottom: 10px;">🎥</span>
+            <span style="font-size: 3em; display: block; margin-bottom: 10px"
+              >🎥</span
+            >
             <span>操作説明動画 (準備中)</span>
           </div>
         </div>
 
         <div class="manual-text">
-          <h4><span style="color:#4caf50">●</span> トレーニングの目的</h4>
+          <h4><span style="color: #4caf50">●</span> トレーニングの目的</h4>
           <p>
             POSレジの基本操作（注文入力、カスタム変更、会計処理）をマスターします。
             このモードでの操作は<strong>実際の売上には記録されません</strong>ので、安心して練習してください。
           </p>
 
-          <h4><span style="color:#2196f3">●</span> 手順</h4>
+          <h4><span style="color: #2196f3">●</span> 手順</h4>
           <ol>
             <li>商品ボタンをタップしてカートに追加します。</li>
-            <li>商品を選択した状態で「No(抜き)」や「Add(追加)」を設定できます。</li>
+            <li>
+              商品を選択した状態で「No(抜き)」や「Add(追加)」を設定できます。
+            </li>
             <li>「お会計」ボタンを押し、内容を確認して確定します。</li>
           </ol>
         </div>
@@ -729,9 +739,12 @@
       </div>
     </div>
 
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
       // Removed: getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged
       // MOD: onSnapshot をインポート
       import {
@@ -743,7 +756,7 @@
         serverTimestamp,
         onSnapshot,
         doc,
-        getDoc
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         getFunctions,
@@ -760,6 +773,14 @@
       };
 
       const app = initializeApp(firebaseConfig);
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+
       // const auth = getAuth(app); // Removed: Auth initialization
       const db = getFirestore(app);
       const functions = getFunctions(app);
@@ -778,7 +799,8 @@
       // Training Visuals
       document.body.style.border = "8px solid #ff9800";
       const banner = document.createElement("div");
-      banner.innerHTML = "⚠️ トレーニングモード (注文は保存されますが売上には計上されません)";
+      banner.innerHTML =
+        "⚠️ トレーニングモード (注文は保存されますが売上には計上されません)";
       banner.style.background = "#ff9800";
       banner.style.color = "white";
       banner.style.textAlign = "center";
@@ -865,16 +887,33 @@
 
         // Firestoreの代わりにハードコードされたダミーデータを使用
         products = [
-            { id: "mock1", name: "ポテト", price: 100, allowedToppings: ["トマト", "ピクルス", "オニオン", "ソース多め"], isAvailable: true },
-            { id: "mock2", name: "フランクフルト", price: 100, allowedToppings: ["トマト", "ピクルス", "オニオン", "ケチャップ"], isAvailable: true },
-            { id: "mock3", name: "チーズフランク", price: 150, allowedToppings: ["マヨネーズ", "レタス"], isAvailable: true },
-
+          {
+            id: "mock1",
+            name: "ポテト",
+            price: 100,
+            allowedToppings: ["トマト", "ピクルス", "オニオン", "ソース多め"],
+            isAvailable: true,
+          },
+          {
+            id: "mock2",
+            name: "フランクフルト",
+            price: 100,
+            allowedToppings: ["トマト", "ピクルス", "オニオン", "ケチャップ"],
+            isAvailable: true,
+          },
+          {
+            id: "mock3",
+            name: "チーズフランク",
+            price: 150,
+            allowedToppings: ["マヨネーズ", "レタス"],
+            isAvailable: true,
+          },
         ];
 
         // 読み込み演出
         setTimeout(() => {
-            renderProductGrid();
-            hideLoader();
+          renderProductGrid();
+          hideLoader();
         }, 500);
       }
 
@@ -1114,20 +1153,22 @@
 
         // MOCK SIMULATION
         setTimeout(() => {
-            const mockReceiptNumber = Math.floor(Math.random() * 900) + 100;
-            
-            closeAllModals();
-            document.getElementById("receipt-display").innerText = `No. ${mockReceiptNumber} (練習)`;
-            successModal.classList.add("active");
+          const mockReceiptNumber = Math.floor(Math.random() * 900) + 100;
 
-            cart = [];
-            selectedUniqueId = null;
-            renderCart();
-            renderDynamicToppingButtons();
-            updateQtyDisplay();
-            resetOrderTimer();
-            
-            hideLoader();
+          closeAllModals();
+          document.getElementById(
+            "receipt-display"
+          ).innerText = `No. ${mockReceiptNumber} (練習)`;
+          successModal.classList.add("active");
+
+          cart = [];
+          selectedUniqueId = null;
+          renderCart();
+          renderDynamicToppingButtons();
+          updateQtyDisplay();
+          resetOrderTimer();
+
+          hideLoader();
         }, 1500); // 1.5秒のディレイで処理感を出す
       };
 

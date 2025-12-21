@@ -758,6 +758,10 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
         getAuth,
         GoogleAuthProvider,
         signInWithPopup,
@@ -790,6 +794,14 @@
       };
 
       const app = initializeApp(firebaseConfig);
+
+      // App Check の初期化
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
       const auth = getAuth(app);
       const db = getFirestore(app);
       const functions = getFunctions(app, "asia-northeast1");
@@ -1024,7 +1036,16 @@
           else if (p.name.match(/ポテト|ナゲット/)) type = "side";
           btn.setAttribute("data-type", type);
 
-          btn.innerHTML = `<span class="prod-name">${p.name}</span><span class="prod-price">¥${p.price}</span>`;
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "prod-name";
+          nameSpan.textContent = p.name;
+
+          const priceSpan = document.createElement("span");
+          priceSpan.className = "prod-price";
+          priceSpan.textContent = `¥${p.price}`;
+
+          btn.appendChild(nameSpan);
+          btn.appendChild(priceSpan);
           productGrid.appendChild(btn);
         });
       }
@@ -1182,21 +1203,38 @@
           }`;
           li.onclick = () => selectItem(item.uniqueId);
 
-          const modsHtml = item.customizations
-            .map((c) => {
-              const cls = c.mode === "NO" ? "mod-no" : "mod-add";
-              return `<span class="mod-line ${cls}">${c.mode} ${c.target}</span>`;
-            })
-            .join("");
+          const rowDiv = document.createElement("div");
+          rowDiv.className = "item-row";
 
-          li.innerHTML = `
-                    <div class="item-row">
-                        <span class="item-qty">${item.quantity}</span>
-                        <span class="item-name">${item.name}</span>
-                        <span class="item-price">¥${item.price}</span>
-                    </div>
-                    <div class="item-mods">${modsHtml}</div>
-                `;
+          const qtySpan = document.createElement("span");
+          qtySpan.className = "item-qty";
+          qtySpan.textContent = item.quantity;
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "item-name";
+          nameSpan.textContent = item.name;
+
+          const priceSpan = document.createElement("span");
+          priceSpan.className = "item-price";
+          priceSpan.textContent = `¥${item.price}`;
+
+          rowDiv.appendChild(qtySpan);
+          rowDiv.appendChild(nameSpan);
+          rowDiv.appendChild(priceSpan);
+
+          const modsDiv = document.createElement("div");
+          modsDiv.className = "item-mods";
+          item.customizations.forEach((c) => {
+            const modSpan = document.createElement("span");
+            modSpan.className = `mod-line ${
+              c.mode === "NO" ? "mod-no" : "mod-add"
+            }`;
+            modSpan.textContent = `${c.mode} ${c.target}`;
+            modsDiv.appendChild(modSpan);
+          });
+
+          li.appendChild(rowDiv);
+          li.appendChild(modsDiv);
           orderListEl.appendChild(li);
         });
         totalEl.innerText = `¥${total.toLocaleString()}`;
@@ -1225,37 +1263,36 @@
 
       window.processCheckout = async () => {
         if (isProcessing) return;
-        showLoader("注文を送信中...\n(少々お待ちください)");
+        showLoader("注文を送信中...");
 
         try {
-          const getNextReceiptNumber = httpsCallable(
-            functions,
-            "getNextReceiptNumber"
-          );
-          const result = await getNextReceiptNumber({ orderType: "POS" });
+          // Use Secure Cloud Function
+          const createPOSOrder = httpsCallable(functions, "createPOSOrder");
+
+          // Only send essential data: Product IDs, Quantities, Customizations
+          // Price will be calculated on server.
+          const itemsPayload = cart.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            customizations: i.customizations,
+          }));
+
+          const result = await createPOSOrder({
+            items: itemsPayload,
+          });
+
+          if (!result.data.success) {
+            throw new Error(
+              "Server Error: " + (result.data.error || "Unknown")
+            );
+          }
+
           const receiptNumber = result.data.receiptNumber;
-
-          const orderData = {
-            items: cart.map((i) => ({
-              productId: i.productId,
-              name: i.name,
-              price: i.price,
-              quantity: i.quantity,
-              customizations: i.customizations,
-            })),
-            totalPrice: cart.reduce((s, i) => s + i.price * i.quantity, 0),
-            status: "unpaid_at_pos",
-            createdAt: serverTimestamp(),
-            receiptNumber: receiptNumber,
-            storeId: storeId,
-          };
-
-          await addDoc(collection(db, "orders"), orderData);
 
           closeAllModals();
           document.getElementById(
             "receipt-display"
-          ).innerText = `No. ${orderData.receiptNumber}`;
+          ).innerText = `No. ${receiptNumber}`;
           successModal.classList.add("active");
 
           cart = [];
@@ -1266,7 +1303,7 @@
           resetOrderTimer();
         } catch (e) {
           console.error("Error:", e);
-          alert("エラーが発生しました。\n" + e.message);
+          alert("注文エラーが発生しました。\\n" + e.message);
           closeAllModals();
         } finally {
           hideLoader();

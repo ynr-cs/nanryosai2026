@@ -26,8 +26,9 @@ service firebase.storage {
     match /products/{storeId}/{fileName} {
       // 誰でも画像は見れる
       allow read: if true;
-      // アップロード・削除はその店舗の管理者のみ
-      allow write: if isStoreAdmin(storeId) || isSuperAdmin();
+      // アップロード: 店舗管理者かつ画像ファイルのみ許可
+      allow write: if (isStoreAdmin(storeId) || isSuperAdmin())
+                   && request.resource.contentType.matches('image/.*');
     }
   }
 }

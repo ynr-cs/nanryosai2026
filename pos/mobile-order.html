@@ -691,6 +691,10 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
         getAuth,
         GoogleAuthProvider,
         signInWithPopup,
@@ -731,6 +735,14 @@
       };
 
       const app = initializeApp(firebaseConfig);
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+
       const auth = getAuth(app);
       const db = getFirestore(app);
       const functions = getFunctions(app);
@@ -1186,6 +1198,8 @@
             const docRef = doc(userCartCollection, c.product.id);
             batch.set(docRef, {
               quantity: c.quantity,
+              // サーバー関数修正に合わせて、customizations (options) も保存
+              customizations: c.customizations || [],
               updatedAt: serverTimestamp(),
             });
           });

@@ -109,8 +109,8 @@ exports.getNextReceiptNumber = functions
       // クライアントでエラー内容を確認できるように詳細を返す
       return {
         success: false,
-        error: error.toString(),
-        stack: error.stack,
+        error: error.message || "Internal Server Error",
+        // stack: error.stack, // Removed for security (Information Leak)
         code: 500,
       };
     }
@@ -166,7 +166,11 @@ exports.createOnlineOrder = functions
         const d = doc.data();
         if (d.quantity > 0) {
           itemRefs.push(db.collection("items").doc(doc.id));
-          cartItemsMap[doc.id] = d.quantity;
+          // fix: Store customizations as well
+          cartItemsMap[doc.id] = {
+            quantity: d.quantity,
+            customizations: d.customizations || [],
+          };
         }
       });
 
@@ -186,7 +190,24 @@ exports.createOnlineOrder = functions
         // バリデーション: 店舗一致チェックなど
         if (pData.storeId !== storeId) return;
 
-        const qty = cartItemsMap[pDoc.id];
+        const cartInfo = cartItemsMap[pDoc.id];
+        const qty = cartInfo.quantity;
+
+        // [Critical] 数量バリデーション
+        if (!Number.isInteger(qty) || qty <= 0) {
+          // Skip invalid quantity items or throw error. Here we skip.
+          console.warn(`Invalid quantity for item ${pDoc.id}: ${qty}`);
+          return;
+        }
+
+        // [Medium] 売り切れチェック
+        if (!pData.isAvailable) {
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            `商品「${pData.name}」は売り切れのため注文できません。`
+          );
+        }
+
         const subTotal = pData.price * qty;
 
         orderItems.push({
@@ -194,7 +215,8 @@ exports.createOnlineOrder = functions
           name: pData.name,
           price: pData.price,
           quantity: qty,
-          options: [],
+          options: pData.options || [], // 商品マスタのオプション定義（もしあれば）
+          customizations: cartInfo.customizations,
         });
 
         totalPrice += subTotal;
@@ -394,48 +416,185 @@ exports.loginStore = functions
   });
 
 /**
- * @name migratePasswords
- * @description 【管理用】パスワードを stores から store_secrets に移行し、削除する。
- *              セキュリティのため、URLを知っている人のみ実行可能な簡易的な実装。
- *              移行完了後はこの関数を削除することを推奨。
+ * @name createPOSOrder
+ * @description POSレジからの注文を作成する（サーバーサイド価格計算）
+ *              receiptNumberの発行と注文作成をトランザクションで実行
  */
-exports.migratePasswords = functions
+exports.createPOSOrder = functions
   .region("asia-northeast1")
-  .https.onRequest(async (req, res) => {
+  .https.onCall(async (data, context) => {
+    // 1. 認証チェック
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "ログインが必要です。"
+      );
+    }
+
+    // 店舗管理者権限チェック
+    const token = context.auth.token;
+    if (token.role !== "store_admin" || !token.storeId) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "店舗管理者権限が必要です。"
+      );
+    }
+
+    const storeId = token.storeId;
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const items = requestData.items || [];
+
+    if (items.length === 0) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "商品が含まれていません。"
+      );
+    }
+
     try {
-      const storesSnapshot = await db.collection("stores").get();
-      let migratedCount = 0;
-      const batch = db.batch();
+      // 2. 商品情報の取得と合計金額計算
+      const itemRefs = items.map((i) =>
+        db.collection("items").doc(i.productId)
+      );
+      if (itemRefs.length === 0) throw new Error("Item refs empty");
 
-      // Firestore Batch limit is 500
-      let counter = 0;
-
-      storesSnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.password) {
-          // 1. Secretにコピー
-          const secretRef = db.collection("store_secrets").doc(doc.id);
-          batch.set(secretRef, { password: data.password }, { merge: true });
-
-          // 2. Originalから削除
-          const storeRef = db.collection("stores").doc(doc.id);
-          batch.update(storeRef, {
-            password: admin.firestore.FieldValue.delete(),
-          });
-
-          migratedCount++;
-        }
+      const productDocs = await db.getAll(...itemRefs);
+      const productMap = new Map();
+      productDocs.forEach((d) => {
+        if (d.exists) productMap.set(d.id, d.data());
       });
 
-      if (migratedCount > 0) {
-        await batch.commit();
+      let totalPrice = 0;
+      const orderItems = [];
+
+      for (const item of items) {
+        const product = productMap.get(item.productId);
+        if (!product) continue; // 商品が存在しない場合はスキップまたはエラー
+
+        // [Critical] 数量バリデーション
+        if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+          throw new functions.https.HttpsError(
+            "invalid-argument",
+            "数量が不正です (1以上の整数である必要があります)。"
+          );
+        }
+
+        // 店舗IDの一致確認
+        if (product.storeId !== storeId) {
+          throw new functions.https.HttpsError(
+            "permission-denied",
+            "他店舗の商品は注文できません。"
+          );
+        }
+
+        // [Medium] 売り切れチェック
+        if (!product.isAvailable) {
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            `商品「${product.name}」は売り切れのため注文できません。`
+          );
+        }
+
+        const subTotal = product.price * item.quantity;
+        totalPrice += subTotal;
+
+        orderItems.push({
+          productId: item.productId,
+          name: product.name,
+          price: product.price,
+          quantity: item.quantity,
+          customizations: item.customizations || [], // トッピング情報などはそのまま保存（価格変動なし前提）
+        });
       }
 
-      res
-        .status(200)
-        .send(`Migration Complete. Migrated ${migratedCount} stores.`);
+      // 3. トランザクション：受付番号発行 -> 注文作成
+      const result = await db.runTransaction(async (transaction) => {
+        // 受付番号発行 (POS: 100-999)
+        const counterRef = db.collection("counters").doc("receipt");
+        const counterDoc = await transaction.get(counterRef);
+
+        let nextNumber = 99;
+        // 既存互換：POSは currentNumber を使用
+        if (counterDoc.exists && counterDoc.data().currentNumber) {
+          nextNumber = counterDoc.data().currentNumber;
+        }
+
+        const minNum = 100;
+        const maxNum = 999;
+        const maxNumLoop = 999;
+
+        if (nextNumber < minNum || nextNumber >= maxNum) {
+          nextNumber = minNum - 1;
+        }
+
+        let determinedNumber = null;
+        const loopLimit = 50;
+
+        for (let i = 0; i < loopLimit; i++) {
+          nextNumber++;
+          if (nextNumber > maxNumLoop) nextNumber = minNum;
+
+          const ordersRef = db.collection("orders");
+          // POS注文でレシート被りを防ぐためにstatusチェック
+          const completedStatuses = [
+            "completed_at_store",
+            "cancelled",
+            "abandoned_and_paid",
+          ];
+
+          const dupQuery = ordersRef
+            .where("receiptNumber", "==", nextNumber)
+            .where("status", "not-in", completedStatuses); // 終わってない注文と被らないように
+
+          const dupSnap = await transaction.get(dupQuery);
+
+          if (dupSnap.empty) {
+            determinedNumber = nextNumber;
+            break;
+          }
+        }
+
+        if (!determinedNumber) {
+          throw new functions.https.HttpsError(
+            "resource-exhausted",
+            "受付番号の空きがありません"
+          );
+        }
+
+        // カウンター更新
+        transaction.set(
+          counterRef,
+          { currentNumber: determinedNumber },
+          { merge: true }
+        );
+
+        // 注文作成
+        const newOrderRef = db.collection("orders").doc();
+        const orderData = {
+          storeId: storeId,
+          receiptNumber: determinedNumber,
+          items: orderItems,
+          totalPrice: totalPrice,
+          status: "unpaid_at_pos", // POSからの注文は未払い開始
+          paymentMethod: "cash", // 仮でcash。実運用に合わせて
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          // userId は POS操作者（店員）のIDになるが、注文者としては記録しない、あるいは店員IDとして記録
+          createdBy: context.auth.uid,
+        };
+
+        transaction.set(newOrderRef, orderData);
+        return { orderId: newOrderRef.id, receiptNumber: determinedNumber };
+      });
+
+      return {
+        success: true,
+        orderId: result.orderId,
+        receiptNumber: result.receiptNumber,
+      };
     } catch (error) {
-      console.error(error);
-      res.status(500).send("Migration Failed: " + error.toString());
+      console.error("POS Order Error:", error);
+      if (error.code && error.details) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
     }
   });

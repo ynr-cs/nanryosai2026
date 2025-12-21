@@ -53,17 +53,17 @@ service cloud.firestore {
     // 3. Orders (注文)
     match /orders/{orderId} {
       // 読み取り: 認証済みユーザーなら許可 (Kitchen/Monitorの現在の仕様上)
-      // 本来は isStoreAdmin 等で絞るべきだが、現状アプリが壊れるのを防ぐため緩める
-      allow read: if isAuthenticated();
+      // 読み取り: 店舗管理者(自店のみ)、注文者本人、SuperAdminのみ
+      allow read: if isStoreAdmin(resource.data.storeId) 
+                  || (request.auth.uid == resource.data.userId)
+                  || isSuperAdmin();
       
-      // 作成: 認証済みなら許可
-      // バリデーション: 合計金額が0以上であること
-      allow create: if isAuthenticated() 
-                    && request.resource.data.totalPrice >= 0; 
+      // 作成: 禁止 (クライアントSDKからは作成不可。Cloud Functions経由のみ)
+      // Phase 3 セキュリティ強化: これにより不正なパラメータでの注文を完全ブロック
+      allow create: if false; 
       
-      // 更新: 店舗管理者、注文した本人、SuperAdmin
+      // 更新: 店舗管理者、SuperAdminのみ許可 (ユーザーによる変更・キャンセルは禁止)
       allow update: if isStoreAdmin(resource.data.storeId) 
-                    || (request.auth.uid == resource.data.userId)
                     || isSuperAdmin();
                     
       // 削除: 禁止 (SuperAdminのみ)
@@ -76,9 +76,9 @@ service cloud.firestore {
     }
 
     // 5. Counters (採番)
-    // Cloud FunctionsがAdmin権限で操作するので、クライアントからの書き込みは禁止
+    // 読み取り: 店舗管理者、SuperAdminのみ (売上推測防止)
     match /counters/{document=**} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (request.auth.token.role == 'store_admin' || request.auth.token.email == 'ynrcs1000@gmail.com');
       allow write: if false; 
     }
     
