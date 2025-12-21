@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Auth Check Helper
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isStoreAdmin(targetStoreId) {
+      return isAuthenticated() 
+             && request.auth.token.role == 'store_admin' 
+             && request.auth.token.storeId == targetStoreId;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.email == 'ynrcs1000@gmail.com';
+    }
+
+    // Match all paths (Default Deny)
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    // Product Images: products/{storeId}/{fileName}
+    match /products/{storeId}/{fileName} {
+      // 誰でも画像は見れる
+      allow read: if true;
+      // アップロード・削除はその店舗の管理者のみ
+      allow write: if isStoreAdmin(storeId) || isSuperAdmin();
+    }
+  }
+}

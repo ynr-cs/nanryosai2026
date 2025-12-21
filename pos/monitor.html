@@ -655,8 +655,13 @@
         getDocs,
         doc,
         updateDoc,
+
         getDoc
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
 
       // Firebase設定
       const firebaseConfig = {
@@ -676,7 +681,9 @@
         constructor() {
           this.app = initializeApp(firebaseConfig);
           this.db = getFirestore(this.app);
+
           this.auth = getAuth(this.app);
+          this.functions = getFunctions(this.app, 'asia-northeast1');
 
           this.currentInput = "";
           this.currentOrder = null;
@@ -760,31 +767,29 @@
                  error.textContent = "パスワードを入力してください";
                  return;
              }
-
-             error.textContent = "確認中...";
+             
+             const btn = document.getElementById("store-login-btn");
+             btn.disabled = true;
+             error.textContent = "認証中...";
 
              try {
-                 const docRef = doc(this.db, "stores", STORE_ID);
-                 const docSnap = await getDoc(docRef);
+                 const loginStore = httpsCallable(this.functions, 'loginStore');
+                 const result = await loginStore({ storeId: STORE_ID, password: pass });
 
-                 if (!docSnap.exists()) {
-                     error.textContent = "店舗IDが存在しません";
-                     return;
-                 }
-
-                 const data = docSnap.data();
-                 if (String(data.password) === String(pass)) {
+                 if (result.data.success) {
                      // 認証成功
                      localStorage.setItem("nanryosai_store_id", STORE_ID);
+                     // Token Refresh
+                     if(this.auth.currentUser) await this.auth.currentUser.getIdToken(true);
+
                      document.getElementById("store-login-modal").style.display = "none";
                      this.startApp();
                      this.transitionTo("idle");
-                 } else {
-                     error.textContent = "パスワードが違います";
                  }
              } catch (e) {
                  console.error(e);
-                 error.textContent = "エラー: " + e.message;
+                 error.textContent = "エラー: " + (e.message || "認証失敗");
+                 btn.disabled = false;
              }
         }
         

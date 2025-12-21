@@ -576,7 +576,7 @@
         background: #d32f2f;
         color: white;
       }
-      
+
       /* --- 店舗ログインモーダル --- */
       #store-login-modal {
         position: fixed;
@@ -739,11 +739,19 @@
     <div id="store-login-modal">
       <div class="store-login-card">
         <h2>店舗認証</h2>
-        <p>セキュリティのため<br>店舗パスワードを入力してください</p>
-        <p id="target-store-id-display" style="font-weight:bold; color:#555;"></p>
-        <input type="password" id="store-password-input" class="store-login-input" placeholder="パスワード">
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <input
+          type="password"
+          id="store-password-input"
+          class="store-login-input"
+          placeholder="パスワード"
+        />
         <button class="store-login-btn" id="store-login-btn">認証する</button>
-        <p id="store-login-error" style="color:red; margin-top:15px;"></p>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
       </div>
     </div>
 
@@ -765,7 +773,7 @@
         serverTimestamp,
         onSnapshot,
         doc,
-        getDoc
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         getFunctions,
@@ -784,7 +792,7 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
-      const functions = getFunctions(app);
+      const functions = getFunctions(app, "asia-northeast1");
 
       // State
       let products = [];
@@ -871,56 +879,63 @@
         const cachedId = localStorage.getItem(LS_KEY);
 
         if (cachedId === storeId) {
-            // 認証済み
-            document.getElementById("app-container").style.display = "flex";
-            subscribeToProducts();
-            startClock();
+          // 認証済み
+          document.getElementById("app-container").style.display = "flex";
+          subscribeToProducts();
+          startClock();
         } else {
-            // 未認証 -> モーダル表示
-            const modal = document.getElementById("store-login-modal");
-            document.getElementById("target-store-id-display").textContent = `Store ID: ${storeId}`;
-            modal.style.display = "flex";
+          // 未認証 -> モーダル表示
+          const modal = document.getElementById("store-login-modal");
+          document.getElementById(
+            "target-store-id-display"
+          ).textContent = `Store ID: ${storeId}`;
+          modal.style.display = "flex";
         }
       }
 
       // 店舗認証ボタン処理
-      document.getElementById("store-login-btn").addEventListener("click", async () => {
+      document
+        .getElementById("store-login-btn")
+        .addEventListener("click", async () => {
           const input = document.getElementById("store-password-input");
           const error = document.getElementById("store-login-error");
           const pass = input.value.trim();
-          
+
           if (!pass) {
-              error.textContent = "パスワードを入力してください";
-              return;
+            error.textContent = "パスワードを入力してください";
+            return;
           }
 
-          error.textContent = "確認中...";
-          
+          const btn = document.getElementById("store-login-btn");
+          btn.disabled = true;
+          error.textContent = "認証中...";
+
           try {
-              const docRef = doc(db, "stores", storeId);
-              const docSnap = await getDoc(docRef);
-              
-              if (!docSnap.exists()) {
-                  error.textContent = "店舗IDが存在しません";
-                  return;
-              }
+            const loginStore = httpsCallable(functions, "loginStore");
+            const result = await loginStore({
+              storeId: storeId,
+              password: pass,
+            });
 
-              const data = docSnap.data();
-              if (String(data.password) === String(pass)) {
-                  // 認証成功
-                  localStorage.setItem("nanryosai_store_id", storeId);
-                  document.getElementById("store-login-modal").style.display = "none";
-                  document.getElementById("app-container").style.display = "flex";
-                  subscribeToProducts();
-                  startClock();
-              } else {
-                  error.textContent = "パスワードが違います";
-              }
+            if (result.data.success) {
+              // 認証成功
+              localStorage.setItem("nanryosai_store_id", storeId);
+              // Token Refresh for Claims
+              await auth.currentUser.getIdToken(true);
+
+              document.getElementById("store-login-modal").style.display =
+                "none";
+              document.getElementById("app-container").style.display = "flex";
+              subscribeToProducts();
+              startClock();
+            }
           } catch (e) {
-              console.error(e);
-              error.textContent = "エラー: " + e.message;
+            console.error(e);
+            error.textContent =
+              "エラー: " + (e.message || "認証に失敗しました");
+            btn.disabled = false;
           }
-      });
+        });
 
       // Clock
       function startClock() {
@@ -1217,7 +1232,7 @@
             functions,
             "getNextReceiptNumber"
           );
-          const result = await getNextReceiptNumber({ orderType: 'POS' });
+          const result = await getNextReceiptNumber({ orderType: "POS" });
           const receiptNumber = result.data.receiptNumber;
 
           const orderData = {

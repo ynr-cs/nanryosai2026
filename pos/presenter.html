@@ -393,7 +393,7 @@
         border-radius: 4px;
         font-weight: bold;
       }
-      
+
       /* --- 店舗ログインモーダル --- */
       #store-login-modal {
         position: fixed;
@@ -445,11 +445,19 @@
     <div id="store-login-modal">
       <div class="store-login-card">
         <h2>店舗認証</h2>
-        <p>セキュリティのため<br>店舗パスワードを入力してください</p>
-        <p id="target-store-id-display" style="font-weight:bold; color:#555;"></p>
-        <input type="password" id="store-password-input" class="store-login-input" placeholder="パスワード">
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <input
+          type="password"
+          id="store-password-input"
+          class="store-login-input"
+          placeholder="パスワード"
+        />
         <button class="store-login-btn" id="store-login-btn">認証する</button>
-        <p id="store-login-error" style="color:red; margin-top:15px;"></p>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
       </div>
     </div>
 
@@ -491,6 +499,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <script>
       // --- Firebase Config ---
@@ -570,47 +579,63 @@
       });
 
       function checkStoreLogin() {
-          const LS_KEY = "nanryosai_store_id";
-          const cachedId = localStorage.getItem(LS_KEY);
+        const LS_KEY = "nanryosai_store_id";
+        const cachedId = localStorage.getItem(LS_KEY);
 
-          if (cachedId === storeId) {
-              document.getElementById("main-content").style.display = "block";
-              startOrderListener();
-              startTimerLoop();
-          } else {
-              const modal = document.getElementById("store-login-modal");
-              document.getElementById("target-store-id-display").textContent = `Store ID: ${storeId}`;
-              modal.style.display = "flex";
-          }
+        if (cachedId === storeId) {
+          document.getElementById("main-content").style.display = "block";
+          startOrderListener();
+          startTimerLoop();
+        } else {
+          const modal = document.getElementById("store-login-modal");
+          document.getElementById(
+            "target-store-id-display"
+          ).textContent = `Store ID: ${storeId}`;
+          modal.style.display = "flex";
+        }
       }
 
-      document.getElementById("store-login-btn").addEventListener("click", () => {
+      document
+        .getElementById("store-login-btn")
+        .addEventListener("click", () => {
           const input = document.getElementById("store-password-input");
           const error = document.getElementById("store-login-error");
           const pass = input.value.trim();
 
-          if(!pass) { error.textContent = "パスワードを入力してください"; return; }
-          error.textContent = "確認中...";
+          if (!pass) {
+            error.textContent = "パスワードを入力してください";
+            return;
+          }
 
-          db.collection("stores").doc(storeId).get().then(doc => {
-              if(!doc.exists) {
-                  error.textContent = "店舗IDが存在しません";
-                  return;
+          const btn = document.getElementById("store-login-btn");
+          btn.disabled = true;
+          error.textContent = "認証中...";
+
+          const functions = firebase.app().functions("asia-northeast1");
+          const loginStore = functions.httpsCallable("loginStore");
+
+          loginStore({ storeId: storeId, password: pass })
+            .then(async (result) => {
+              if (result.data.success) {
+                localStorage.setItem("nanryosai_store_id", storeId);
+                // Force Token Refresh
+                if (firebase.auth().currentUser) {
+                  await firebase.auth().currentUser.getIdToken(true);
+                }
+
+                document.getElementById("store-login-modal").style.display =
+                  "none";
+                document.getElementById("main-content").style.display = "block";
+                startOrderListener();
+                startTimerLoop();
               }
-              const data = doc.data();
-              if(String(data.password) === String(pass)) {
-                  localStorage.setItem("nanryosai_store_id", storeId);
-                  document.getElementById("store-login-modal").style.display = "none";
-                  document.getElementById("main-content").style.display = "block";
-                  startOrderListener();
-                  startTimerLoop();
-              } else {
-                  error.textContent = "パスワードが違います";
-              }
-          }).catch(e => {
-              error.textContent = "エラー: " + e.message;
-          });
-      });
+            })
+            .catch((e) => {
+              console.error(e);
+              error.textContent = "エラー: " + (e.message || "認証失敗");
+              btn.disabled = false;
+            });
+        });
 
       function googleLogin() {
         if (audioCtx.state === "suspended") audioCtx.resume();

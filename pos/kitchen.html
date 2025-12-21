@@ -68,7 +68,7 @@
         border-color: #888;
         background-color: #2c2c2c;
       }
-      
+
       /* ズームボタン */
       .zoom-controls {
         display: flex;
@@ -125,8 +125,14 @@
       }
 
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .card-body {
@@ -155,7 +161,11 @@
         color: #d32f2f;
         animation: flash 2s infinite;
       }
-      @keyframes flash { 50% { opacity: 0.5; } }
+      @keyframes flash {
+        50% {
+          opacity: 0.5;
+        }
+      }
 
       .card-meta-row {
         display: flex;
@@ -244,9 +254,15 @@
         font-weight: 700;
         color: #333;
       }
-      .bg-red { background-color: #d32f2f; }
-      .bg-green { background-color: #2e7d32; }
-      .bg-gray { background-color: #757575; }
+      .bg-red {
+        background-color: #d32f2f;
+      }
+      .bg-green {
+        background-color: #2e7d32;
+      }
+      .bg-gray {
+        background-color: #757575;
+      }
 
       .btn-complete {
         width: 100%;
@@ -392,7 +408,7 @@
       #error-message a {
         color: #ffd700;
       }
-      
+
       /* --- 店舗ログインモーダル --- */
       #store-login-modal {
         position: fixed;
@@ -442,11 +458,19 @@
     <div id="store-login-modal">
       <div class="store-login-card">
         <h2>店舗認証</h2>
-        <p>セキュリティのため<br>店舗パスワードを入力してください</p>
-        <p id="target-store-id-display" style="font-weight:bold; color:#555;"></p>
-        <input type="password" id="store-password-input" class="store-login-input" placeholder="パスワード">
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <input
+          type="password"
+          id="store-password-input"
+          class="store-login-input"
+          placeholder="パスワード"
+        />
         <button class="store-login-btn" id="store-login-btn">認証する</button>
-        <p id="store-login-error" style="color:red; margin-top:15px;"></p>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
       </div>
     </div>
 
@@ -470,10 +494,14 @@
         <div class="header-right">
           <!-- ズーム操作 -->
           <div class="zoom-controls">
-            <button class="btn-header btn-zoom" onclick="adjustZoom(-0.1)">-</button>
-            <button class="btn-header btn-zoom" onclick="adjustZoom(0.1)">+</button>
+            <button class="btn-header btn-zoom" onclick="adjustZoom(-0.1)">
+              -
+            </button>
+            <button class="btn-header btn-zoom" onclick="adjustZoom(0.1)">
+              +
+            </button>
           </div>
-          
+
           <button class="btn-header btn-history" onclick="openHistory()">
             履歴
           </button>
@@ -507,6 +535,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <script>
       // --- Firebase Config ---
@@ -535,22 +564,25 @@
 
       // --- 音声生成 (Beep) ---
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
+
       // 高音のピーッ！を生成する関数
       function playNotificationSound() {
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
         }
-        
+
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
 
-        oscillator.type = 'sine';
+        oscillator.type = "sine";
         oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); // 2000Hz (高音)
-        
+
         // 音量のエンベロープ（徐々に消える）
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + 0.3
+        );
 
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
@@ -566,11 +598,10 @@
         // 制限
         if (currentZoom < 0.5) currentZoom = 0.5;
         if (currentZoom > 2.0) currentZoom = 2.0;
-        
+
         // CSS Zoomプロパティを使用 (iPad/Chrome対応)
         document.body.style.zoom = currentZoom;
       }
-
 
       function showError(html, isPermanent = false) {
         errorMsgEl.innerHTML = html;
@@ -604,51 +635,68 @@
       });
 
       function checkStoreLogin() {
-          const LS_KEY = "nanryosai_store_id";
-          const cachedId = localStorage.getItem(LS_KEY);
+        const LS_KEY = "nanryosai_store_id";
+        const cachedId = localStorage.getItem(LS_KEY);
 
-          if (cachedId === storeId) {
-              document.getElementById("main-content").style.display = "block";
-              startOrderListener();
-              startTimerLoop();
-          } else {
-              const modal = document.getElementById("store-login-modal");
-              document.getElementById("target-store-id-display").textContent = `Store ID: ${storeId}`;
-              modal.style.display = "flex";
-          }
+        if (cachedId === storeId) {
+          document.getElementById("main-content").style.display = "block";
+          startOrderListener();
+          startTimerLoop();
+        } else {
+          const modal = document.getElementById("store-login-modal");
+          document.getElementById(
+            "target-store-id-display"
+          ).textContent = `Store ID: ${storeId}`;
+          modal.style.display = "flex";
+        }
       }
 
-      document.getElementById("store-login-btn").addEventListener("click", () => {
+      document
+        .getElementById("store-login-btn")
+        .addEventListener("click", () => {
           const input = document.getElementById("store-password-input");
           const error = document.getElementById("store-login-error");
           const pass = input.value.trim();
 
-          if(!pass) { error.textContent = "パスワードを入力してください"; return; }
-          error.textContent = "確認中...";
+          if (!pass) {
+            error.textContent = "パスワードを入力してください";
+            return;
+          }
 
-          db.collection("stores").doc(storeId).get().then(doc => {
-              if(!doc.exists) {
-                  error.textContent = "店舗IDが存在しません";
-                  return;
+          const btn = document.getElementById("store-login-btn");
+          btn.disabled = true;
+          error.textContent = "認証中...";
+
+          const functions = firebase.app().functions("asia-northeast1");
+          const loginStore = functions.httpsCallable("loginStore");
+
+          loginStore({ storeId: storeId, password: pass })
+            .then(async (result) => {
+              if (result.data.success) {
+                localStorage.setItem("nanryosai_store_id", storeId);
+                // Force Token Refresh for Custom Claims
+                const currentUser = firebase.auth().currentUser;
+                if (currentUser) {
+                  await currentUser.getIdToken(true);
+                }
+
+                document.getElementById("store-login-modal").style.display =
+                  "none";
+                document.getElementById("main-content").style.display = "block";
+                startOrderListener();
+                startTimerLoop();
               }
-              const data = doc.data();
-              if(String(data.password) === String(pass)) {
-                  localStorage.setItem("nanryosai_store_id", storeId);
-                  document.getElementById("store-login-modal").style.display = "none";
-                  document.getElementById("main-content").style.display = "block";
-                  startOrderListener();
-                  startTimerLoop();
-              } else {
-                  error.textContent = "パスワードが違います";
-              }
-          }).catch(e => {
-              error.textContent = "エラー: " + e.message;
-          });
-      });
+            })
+            .catch((e) => {
+              console.error(e);
+              error.textContent = "エラー: " + (e.message || "認証失敗");
+              btn.disabled = false;
+            });
+        });
 
       function googleLogin() {
         // ログイン操作時にAudioContextをアンロックする
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (audioCtx.state === "suspended") audioCtx.resume();
         auth.signInWithPopup(provider).catch((e) => alert(e.message));
       }
       function logout() {
@@ -669,23 +717,22 @@
           .onSnapshot(
             (snapshot) => {
               snapshot.docChanges().forEach((change) => {
-                
                 if (change.type === "added") {
-                    // 既存があれば削除
-                    removeCard(change.doc.id);
-                    // 描画
-                    renderCardSorted(change.doc);
+                  // 既存があれば削除
+                  removeCard(change.doc.id);
+                  // 描画
+                  renderCardSorted(change.doc);
 
-                    // 初回ロードでなければ音を鳴らす
-                    if (!isInitialLoad) {
-                        playNotificationSound();
-                    }
+                  // 初回ロードでなければ音を鳴らす
+                  if (!isInitialLoad) {
+                    playNotificationSound();
+                  }
                 }
-                
+
                 if (change.type === "modified") {
-                    removeCard(change.doc.id);
-                    renderCardSorted(change.doc);
-                    // 修正の場合も鳴らしたいならここで playNotificationSound();
+                  removeCard(change.doc.id);
+                  renderCardSorted(change.doc);
+                  // 修正の場合も鳴らしたいならここで playNotificationSound();
                 }
 
                 if (change.type === "removed") {

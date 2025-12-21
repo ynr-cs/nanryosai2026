@@ -2,7 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Mobile Order | 南陵祭2026</title>
     <!-- Bootstrap 5 CSS -->
     <link
@@ -10,10 +13,10 @@
       rel="stylesheet"
     />
     <!-- Bootstrap Icons -->
-    <link 
-      rel="stylesheet" 
+    <link
+      rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-    >
+    />
     <style>
       :root {
         --primary-color: #d32f2f; /* McDonald's Red-ish */
@@ -26,7 +29,8 @@
       body {
         background-color: var(--bg-color);
         color: var(--text-color);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
         padding-bottom: 80px; /* Space for bottom bar */
         user-select: none; /* Prevent selection like an app */
       }
@@ -40,7 +44,7 @@
       .screen.active {
         display: block;
       }
-      
+
       /* Center Content Screens (Login, Store Select) */
       .center-screen {
         display: none;
@@ -63,7 +67,7 @@
       .store-card {
         background: white;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         border: none;
         margin-bottom: 15px;
         overflow: hidden;
@@ -127,7 +131,7 @@
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
         padding: 10px 0;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         margin: -20px -20px 20px -20px;
         padding: 15px 20px;
       }
@@ -167,7 +171,7 @@
         background: var(--card-bg);
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         display: flex;
         flex-direction: column;
         transition: transform 0.1s;
@@ -192,9 +196,15 @@
         color: #ccc;
       }
       /* Mock Images by Category */
-      .prod-card[data-type="burger"] .prod-img-placeholder { background: #ffe0b2; } /* Orange-ish */
-      .prod-card[data-type="drink"] .prod-img-placeholder { background: #b3e5fc; } /* Blue-ish */
-      .prod-card[data-type="side"] .prod-img-placeholder { background: #c8e6c9; } /* Green-ish */
+      .prod-card[data-type="burger"] .prod-img-placeholder {
+        background: #ffe0b2;
+      } /* Orange-ish */
+      .prod-card[data-type="drink"] .prod-img-placeholder {
+        background: #b3e5fc;
+      } /* Blue-ish */
+      .prod-card[data-type="side"] .prod-img-placeholder {
+        background: #c8e6c9;
+      } /* Green-ish */
 
       .prod-info {
         padding: 12px;
@@ -241,7 +251,7 @@
         left: 0;
         width: 100%;
         background: white;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
         padding: 15px 20px;
         display: flex;
         gap: 15px;
@@ -334,14 +344,24 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
     </style>
   </head>
   <body>
-
     <!-- Loading Overlay -->
-    <div id="loader" class="center-screen active" style="background: white; z-index: 9999; position: fixed; top: 0; left: 0; width: 100%;">
+    <div
+      id="loader"
+      class="center-screen active"
+      style="
+        background: white;
+        z-index: 9999;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+      "
+    >
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
@@ -358,69 +378,141 @@
 
     <!-- Step 1: Login -->
     <div id="step-login" class="center-screen">
-      <div class="card p-4 shadow-sm border-0" style="max-width: 350px;">
+      <div class="card p-4 shadow-sm border-0" style="max-width: 350px">
         <h2 class="fw-bold mb-3">Login</h2>
         <p class="text-muted mb-4">注文するにはログインが必要です</p>
-        <button id="btn-google-login" class="btn btn-primary w-100 py-2 fw-bold">
+        <button
+          id="btn-google-login"
+          class="btn btn-primary w-100 py-2 fw-bold"
+        >
           <i class="bi bi-google me-2"></i> Googleでログイン
         </button>
       </div>
     </div>
 
     <!-- Step 2: Onboarding (Mock) -->
-    <div id="step-onboarding" class="center-screen" style="padding: 0;">
+    <div id="step-onboarding" class="center-screen" style="padding: 0">
       <!-- Notification Mock -->
-      <div id="onboard-notify" style="display:block; padding: 20px;">
-        <i class="bi bi-bell-fill text-warning" style="font-size: 4rem;"></i>
+      <div id="onboard-notify" style="display: block; padding: 20px">
+        <i class="bi bi-bell-fill text-warning" style="font-size: 4rem"></i>
         <h3 class="fw-bold mt-3">通知を許可</h3>
         <p class="text-muted">注文の調理状況をプッシュ通知でお知らせします</p>
-        <button class="btn btn-dark w-100 mt-4 py-3 fw-bold rounded-pill" onclick="handleNotificationPermission()">
+        <button
+          class="btn btn-dark w-100 mt-4 py-3 fw-bold rounded-pill"
+          onclick="handleNotificationPermission()"
+        >
           通知を許可する
         </button>
-        <button class="btn btn-link text-muted mt-2" onclick="nextOnboarding()">あとで</button>
+        <button class="btn btn-link text-muted mt-2" onclick="nextOnboarding()">
+          あとで
+        </button>
       </div>
 
       <!-- Terms Mock (Fullscreen Warning) -->
-      <div id="onboard-terms" style="display:none; width: 100%; min-height: 100vh; background: #b71c1c; color: white; padding: 20px; text-align: left;">
+      <div
+        id="onboard-terms"
+        style="
+          display: none;
+          width: 100%;
+          min-height: 100vh;
+          background: #b71c1c;
+          color: white;
+          padding: 20px;
+          text-align: left;
+        "
+      >
         <div class="container d-flex flex-column h-100 justify-content-center">
-            <div class="text-center mb-4">
-                <i class="bi bi-exclamation-octagon-fill text-warning" style="font-size: 5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5);"></i>
-                <h2 class="fw-900 mt-2" style="font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">警告</h2>
-            </div>
-            
-            <div class="bg-white text-dark p-4 rounded-3 shadow-lg mb-4" style="max-height: 50vh; overflow-y: auto;">
-                <h5 class="text-danger fw-bold border-bottom border-danger pb-2 mb-3">
-                    <i class="bi bi-shield-exclamation me-2"></i>重要事項（必ずお読みください）
-                </h5>
-                <p class="fw-bold">お呼び出し後、15分を経過しても商品をお受け取りいただけない場合、お客様が注文を放棄したものとみなします。</p>
-                <p>その場合、以下の措置が<strong>自動的に</strong>適用されます：</p>
-                
-                <ul class="list-group list-group-flush mb-3 rounded">
-                    <li class="list-group-item list-group-item-danger">
-                        <strong><i class="bi bi-currency-yen me-2"></i>決済の確定（返金不可）</strong><br>
-                        <small>商品は提供されませんが、代金は全額請求されます。</small>
-                    </li>
-                    <li class="list-group-item list-group-item-danger">
-                        <strong><i class="bi bi-trash3-fill me-2"></i>商品の即時廃棄</strong><br>
-                        <small>衛生管理のため、商品は直ちに処分されます。</small>
-                    </li>
-                    <li class="list-group-item list-group-item-dark text-danger fw-bold">
-                        <strong><i class="bi bi-person-x-fill me-2"></i>アカウントの永久BAN</strong><br>
-                        <small style="color:red;">今後、本校Webサービスの一切が利用できなくなります。</small>
-                    </li>
-                </ul>
-            </div>
+          <div class="text-center mb-4">
+            <i
+              class="bi bi-exclamation-octagon-fill text-warning"
+              style="
+                font-size: 5rem;
+                text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+              "
+            ></i>
+            <h2
+              class="fw-900 mt-2"
+              style="
+                font-weight: 900;
+                letter-spacing: 2px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+              "
+            >
+              警告
+            </h2>
+          </div>
 
-            <div class="form-check mb-4 bg-white p-3 rounded d-flex align-items-center justify-content-center">
-                <input class="form-check-input me-2" type="checkbox" id="terms-agree-check" style="transform: scale(1.5); border-color: #d32f2f;" onchange="toggleTermsButton()">
-                <label class="form-check-label fw-bold text-dark user-select-none" for="terms-agree-check" style="cursor: pointer;">
-                    上記の内容を理解し、同意します
-                </label>
-            </div>
+          <div
+            class="bg-white text-dark p-4 rounded-3 shadow-lg mb-4"
+            style="max-height: 50vh; overflow-y: auto"
+          >
+            <h5
+              class="text-danger fw-bold border-bottom border-danger pb-2 mb-3"
+            >
+              <i class="bi bi-shield-exclamation me-2"></i
+              >重要事項（必ずお読みください）
+            </h5>
+            <p class="fw-bold">
+              お呼び出し後、15分を経過しても商品をお受け取りいただけない場合、お客様が注文を放棄したものとみなします。
+            </p>
+            <p>その場合、以下の措置が<strong>自動的に</strong>適用されます：</p>
 
-            <button id="btn-terms-submit" class="btn btn-warning w-100 py-3 fw-bold rounded-pill text-dark shadow-lg" onclick="finishOnboarding()" disabled style="opacity: 0.5;">
-                同意して注文を始める
-            </button>
+            <ul class="list-group list-group-flush mb-3 rounded">
+              <li class="list-group-item list-group-item-danger">
+                <strong
+                  ><i class="bi bi-currency-yen me-2"></i
+                  >決済の確定（返金不可）</strong
+                ><br />
+                <small>商品は提供されませんが、代金は全額請求されます。</small>
+              </li>
+              <li class="list-group-item list-group-item-danger">
+                <strong
+                  ><i class="bi bi-trash3-fill me-2"></i>商品の即時廃棄</strong
+                ><br />
+                <small>衛生管理のため、商品は直ちに処分されます。</small>
+              </li>
+              <li
+                class="list-group-item list-group-item-dark text-danger fw-bold"
+              >
+                <strong
+                  ><i class="bi bi-person-x-fill me-2"></i
+                  >アカウントの永久BAN</strong
+                ><br />
+                <small style="color: red"
+                  >今後、本校Webサービスの一切が利用できなくなります。</small
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div
+            class="form-check mb-4 bg-white p-3 rounded d-flex align-items-center justify-content-center"
+          >
+            <input
+              class="form-check-input me-2"
+              type="checkbox"
+              id="terms-agree-check"
+              style="transform: scale(1.5); border-color: #d32f2f"
+              onchange="toggleTermsButton()"
+            />
+            <label
+              class="form-check-label fw-bold text-dark user-select-none"
+              for="terms-agree-check"
+              style="cursor: pointer"
+            >
+              上記の内容を理解し、同意します
+            </label>
+          </div>
+
+          <button
+            id="btn-terms-submit"
+            class="btn btn-warning w-100 py-3 fw-bold rounded-pill text-dark shadow-lg"
+            onclick="finishOnboarding()"
+            disabled
+            style="opacity: 0.5"
+          >
+            同意して注文を始める
+          </button>
         </div>
       </div>
     </div>
@@ -430,10 +522,18 @@
       <div class="menu-header">
         <h5 id="store-name-display" class="fw-bold mb-3">Store Name</h5>
         <div class="category-nav">
-          <button class="cat-pill active" onclick="filterCategory('burger')">バーガー</button>
-          <button class="cat-pill" onclick="filterCategory('side')">サイド</button>
-          <button class="cat-pill" onclick="filterCategory('drink')">ドリンク</button>
-          <button class="cat-pill" onclick="filterCategory('other')">その他</button>
+          <button class="cat-pill active" onclick="filterCategory('burger')">
+            バーガー
+          </button>
+          <button class="cat-pill" onclick="filterCategory('side')">
+            サイド
+          </button>
+          <button class="cat-pill" onclick="filterCategory('drink')">
+            ドリンク
+          </button>
+          <button class="cat-pill" onclick="filterCategory('other')">
+            その他
+          </button>
         </div>
       </div>
 
@@ -443,11 +543,16 @@
     </div>
 
     <!-- Bottom Bar -->
-    <div id="bottom-bar" class="bottom-bar" style="display: none;">
+    <div id="bottom-bar" class="bottom-bar" style="display: none">
       <button class="btn-cart" onclick="openCartModal()">
         カート <span class="cart-badge" id="cart-badge-count">0</span>
       </button>
-      <button id="btn-goto-checkout" class="btn-checkout" onclick="openCheckoutModal()" disabled>
+      <button
+        id="btn-goto-checkout"
+        class="btn-checkout"
+        onclick="openCheckoutModal()"
+        disabled
+      >
         決済へ進む
       </button>
     </div>
@@ -458,22 +563,44 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title fw-bold" id="detail-name">商品名</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <p class="fs-4 fw-bold text-end" id="detail-price">¥0</p>
             <div class="mb-4">
               <label class="form-label fw-bold">数量</label>
               <div class="qty-control justify-content-center p-3">
-                <button class="qty-btn" onclick="adjustDetailQty(-1)" style="width:40px; height:40px; font-size:1.2rem;">-</button>
+                <button
+                  class="qty-btn"
+                  onclick="adjustDetailQty(-1)"
+                  style="width: 40px; height: 40px; font-size: 1.2rem"
+                >
+                  -
+                </button>
                 <span id="detail-qty" class="mx-4 fs-4 fw-bold">1</span>
-                <button class="qty-btn" onclick="adjustDetailQty(1)" style="width:40px; height:40px; font-size:1.2rem;">+</button>
+                <button
+                  class="qty-btn"
+                  onclick="adjustDetailQty(1)"
+                  style="width: 40px; height: 40px; font-size: 1.2rem"
+                >
+                  +
+                </button>
               </div>
             </div>
             <!-- Toppings could go here -->
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary w-100 py-3 fw-bold" onclick="commitAddToCart()">カートに追加</button>
+            <button
+              type="button"
+              class="btn btn-primary w-100 py-3 fw-bold"
+              onclick="commitAddToCart()"
+            >
+              カートに追加
+            </button>
           </div>
         </div>
       </div>
@@ -485,18 +612,40 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title fw-bold">カート</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <div id="cart-items-container"></div>
             <div class="mt-4 text-end">
               <small class="text-muted">合計</small>
-              <div class="display-6 fw-bold text-danger" id="cart-total-display">¥0</div>
+              <div
+                class="display-6 fw-bold text-danger"
+                id="cart-total-display"
+              >
+                ¥0
+              </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="clearCart()">カートを空にする</button>
-            <button type="button" class="btn btn-success fw-bold flex-grow-1" data-bs-dismiss="modal" onclick="openCheckoutModal()">購入手続きへ</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="clearCart()"
+            >
+              カートを空にする
+            </button>
+            <button
+              type="button"
+              class="btn btn-success fw-bold flex-grow-1"
+              data-bs-dismiss="modal"
+              onclick="openCheckoutModal()"
+            >
+              購入手続きへ
+            </button>
           </div>
         </div>
       </div>
@@ -508,18 +657,27 @@
         <div class="modal-content">
           <div class="modal-header bg-success text-white">
             <h5 class="modal-title fw-bold">注文の確定</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body text-center p-4">
             <p class="mb-2">以下の内容で注文を確定します。</p>
             <h1 class="fw-bold my-4" id="checkout-total">¥0</h1>
             <p class="text-muted small">
-              ※これはデモです。実際の決済は発生しませんが、<br>
+              ※これはデモです。実際の決済は発生しませんが、<br />
               注文データはサーバーに送信されます。
             </p>
           </div>
           <div class="modal-footer justify-content-center">
-            <button type="button" class="btn btn-lg btn-success w-100 fw-bold py-3" onclick="processOrder()" id="btn-final-order">
+            <button
+              type="button"
+              class="btn btn-lg btn-success w-100 fw-bold py-3"
+              onclick="processOrder()"
+              id="btn-final-order"
+            >
               注文を確定する
             </button>
           </div>
@@ -529,7 +687,7 @@
 
     <!-- Firebase & Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
@@ -549,16 +707,17 @@
         doc,
         getDoc,
         updateDoc,
-        setDoc
+        setDoc,
+        writeBatch,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import { 
-        getMessaging, 
-        getToken, 
-        onMessage 
+      import {
+        getMessaging,
+        getToken,
+        onMessage,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
 
       // --- Firebase Configuration ---
@@ -578,7 +737,8 @@
       const messaging = getMessaging(app);
 
       // VAPID Key
-      const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+      const VAPID_KEY =
+        "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
 
       // --- State ---
       let currentStoreId = null;
@@ -598,63 +758,73 @@
         currentStoreId = params.get("storeId");
 
         // UI instances
-        itemModalInstance = new bootstrap.Modal(document.getElementById('itemModal'));
-        cartModalInstance = new bootstrap.Modal(document.getElementById('cartModal'));
-        checkoutModalInstance = new bootstrap.Modal(document.getElementById('checkoutModal'));
+        itemModalInstance = new bootstrap.Modal(
+          document.getElementById("itemModal")
+        );
+        cartModalInstance = new bootstrap.Modal(
+          document.getElementById("cartModal")
+        );
+        checkoutModalInstance = new bootstrap.Modal(
+          document.getElementById("checkoutModal")
+        );
 
         if (!currentStoreId) {
-            await renderStoreSelector();
-            showScreen('step-stores');
-            hideLoader();
+          await renderStoreSelector();
+          showScreen("step-stores");
+          hideLoader();
         } else {
-            // Already have store ID, check existance (optional) and move to login
-            checkLoginStatus();
+          // Already have store ID, check existance (optional) and move to login
+          checkLoginStatus();
         }
       }
 
       function hideLoader() {
-        document.getElementById('loader').classList.remove('active');
+        document.getElementById("loader").classList.remove("active");
       }
       function showScreen(id) {
-        document.querySelectorAll('.screen, .center-screen').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        
+        document
+          .querySelectorAll(".screen, .center-screen")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+
         // Show/Hide Bottom Bar
-        if (id === 'step-menu') {
-            document.getElementById('bottom-bar').style.display = 'flex';
+        if (id === "step-menu") {
+          document.getElementById("bottom-bar").style.display = "flex";
         } else {
-            document.getElementById('bottom-bar').style.display = 'none';
+          document.getElementById("bottom-bar").style.display = "none";
         }
       }
 
       // --- Step 0: Stores ---
       async function renderStoreSelector() {
-        const list = document.getElementById('store-list-container');
+        const list = document.getElementById("store-list-container");
         list.innerHTML = '<div class="spinner-border" role="status"></div>';
-        
-        try {
-            const snap = await getDocs(collection(db, 'stores'));
-            list.innerHTML = '';
-            snap.forEach(doc => {
-                const data = doc.data();
-                
-                // User requirement: Image filename = password + ".png"
-                // Fallback to noimage.png
-                const imgName = data.password ? `${data.password}.png` : 'noimage.png';
-                const imgPath = `../images/${imgName}`;
 
-                const card = document.createElement('div');
-                card.className = 'store-card';
-                card.onclick = () => {
-                    currentStoreId = doc.id;
-                    // Update URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.set('storeId', currentStoreId);
-                    window.history.pushState({}, '', newUrl);
-                    checkLoginStatus();
-                };
-                
-                card.innerHTML = `
+        try {
+          const snap = await getDocs(collection(db, "stores"));
+          list.innerHTML = "";
+          snap.forEach((doc) => {
+            const data = doc.data();
+
+            // User requirement: Image filename = password + ".png"
+            // Fallback to noimage.png
+            const imgName = data.password
+              ? `${data.password}.png`
+              : "noimage.png";
+            const imgPath = `../images/${imgName}`;
+
+            const card = document.createElement("div");
+            card.className = "store-card";
+            card.onclick = () => {
+              currentStoreId = doc.id;
+              // Update URL
+              const newUrl = new URL(window.location);
+              newUrl.searchParams.set("storeId", currentStoreId);
+              window.history.pushState({}, "", newUrl);
+              checkLoginStatus();
+            };
+
+            card.innerHTML = `
                     <div class="store-img-box">
                          <img 
                            src="${imgPath}" 
@@ -664,234 +834,252 @@
                          >
                     </div>
                     <div class="store-info">
-                        <div class="store-name">${data.name || '店舗 ' + doc.id}</div>
-                        <div class="store-team">${data.teamName || ''}</div>
-                        <div class="store-desc">${data.description || ''}</div>
+                        <div class="store-name">${
+                          data.name || "店舗 " + doc.id
+                        }</div>
+                        <div class="store-team">${data.teamName || ""}</div>
+                        <div class="store-desc">${data.description || ""}</div>
                     </div>
                 `;
-                list.appendChild(card);
-            });
+            list.appendChild(card);
+          });
         } catch (e) {
-            console.error(e);
-            list.innerHTML = `<p class="text-danger">店舗リストの取得に失敗しました<br>${e.message}</p>`;
+          console.error(e);
+          list.innerHTML = `<p class="text-danger">店舗リストの取得に失敗しました<br>${e.message}</p>`;
         }
       }
 
       // --- Step 1: Auth ---
       function checkLoginStatus() {
         onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            hideLoader();
-            if (user) {
-                // Determine next step
-                // Ideally check if we've seen onboarding, but for now just show it every time or skip
-                // For this request: Always show onboarding
-                showScreen('step-onboarding');
-            } else {
-                showScreen('step-login');
-            }
+          currentUser = user;
+          hideLoader();
+          if (user) {
+            // Determine next step
+            // Ideally check if we've seen onboarding, but for now just show it every time or skip
+            // For this request: Always show onboarding
+            showScreen("step-onboarding");
+          } else {
+            showScreen("step-login");
+          }
         });
       }
 
-      document.getElementById('btn-google-login').onclick = async () => {
+      document.getElementById("btn-google-login").onclick = async () => {
         try {
-            await signInWithPopup(auth, new GoogleAuthProvider());
+          await signInWithPopup(auth, new GoogleAuthProvider());
         } catch (e) {
-            alert("ログイン失敗: " + e.message);
+          alert("ログイン失敗: " + e.message);
         }
       };
 
       // --- Step 2: Onboarding ---
       window.handleNotificationPermission = async () => {
-         const btn = event.target; // Simple way to get button
-         btn.disabled = true;
-         btn.textContent = '設定中...';
-         
-         await requestNotificationPermission();
-         
-         nextOnboarding();
+        const btn = event.target; // Simple way to get button
+        btn.disabled = true;
+        btn.textContent = "設定中...";
+
+        await requestNotificationPermission();
+
+        nextOnboarding();
       };
 
       async function requestNotificationPermission() {
         try {
-            // 1. Request Permission
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                console.log('通知が拒否されました');
-                return false;
-            }
-
-            // 2. Get Token
-            const token = await getToken(messaging, { 
-                vapidKey: VAPID_KEY,
-                serviceWorkerRegistration: await navigator.serviceWorker.register('./firebase-messaging-sw.js')
-            });
-
-            if (token && currentUser) {
-                console.log('FCM Token:', token);
-                // 3. Save to Firestore
-                const userRef = doc(db, "users", currentUser.uid);
-                
-                // Try update first
-                try {
-                    await updateDoc(userRef, {
-                        fcmToken: token,
-                        notificationEnabled: true
-                    });
-                } catch (e) {
-                    // If not found, set
-                    if (e.code === 'not-found') {
-                        await setDoc(userRef, {
-                            fcmToken: token,
-                            notificationEnabled: true
-                        }, { merge: true });
-                    } else {
-                        throw e;
-                    }
-                }
-                return true;
-            } else {
-                console.log('トークンが取得できませんでした');
-                return false;
-            }
-        } catch (error) {
-            console.error('通知設定エラー:', error);
+          // 1. Request Permission
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            console.log("通知が拒否されました");
             return false;
+          }
+
+          // 2. Get Token
+          const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: await navigator.serviceWorker.register(
+              "./firebase-messaging-sw.js"
+            ),
+          });
+
+          if (token && currentUser) {
+            console.log("FCM Token:", token);
+            // 3. Save to Firestore
+            const userRef = doc(db, "users", currentUser.uid);
+
+            // Try update first
+            try {
+              await updateDoc(userRef, {
+                fcmToken: token,
+                notificationEnabled: true,
+              });
+            } catch (e) {
+              // If not found, set
+              if (e.code === "not-found") {
+                await setDoc(
+                  userRef,
+                  {
+                    fcmToken: token,
+                    notificationEnabled: true,
+                  },
+                  { merge: true }
+                );
+              } else {
+                throw e;
+              }
+            }
+            return true;
+          } else {
+            console.log("トークンが取得できませんでした");
+            return false;
+          }
+        } catch (error) {
+          console.error("通知設定エラー:", error);
+          return false;
         }
       }
 
       // Foreground Message Handler
       onMessage(messaging, (payload) => {
-        console.log('フォアグラウンド通知受信:', payload);
+        console.log("フォアグラウンド通知受信:", payload);
         alert(`${payload.notification.title}\n${payload.notification.body}`);
       });
 
       window.nextOnboarding = () => {
-        document.getElementById('onboard-notify').style.display = 'none';
-        document.getElementById('onboard-terms').style.display = 'block';
+        document.getElementById("onboard-notify").style.display = "none";
+        document.getElementById("onboard-terms").style.display = "block";
       };
-      
+
       window.finishOnboarding = async () => {
-        showScreen('step-menu');
+        showScreen("step-menu");
         await loadMenu();
       };
 
       window.toggleTermsButton = () => {
-         const chk = document.getElementById('terms-agree-check');
-         const btn = document.getElementById('btn-terms-submit');
-         if (chk.checked) {
-             btn.disabled = false;
-             btn.style.opacity = '1';
-         } else {
-             btn.disabled = true;
-             btn.style.opacity = '0.5';
-         }
+        const chk = document.getElementById("terms-agree-check");
+        const btn = document.getElementById("btn-terms-submit");
+        if (chk.checked) {
+          btn.disabled = false;
+          btn.style.opacity = "1";
+        } else {
+          btn.disabled = true;
+          btn.style.opacity = "0.5";
+        }
       };
 
       // --- Step 3: Menu ---
       async function loadMenu() {
         // Set Store Name Header
         try {
-            const storeDoc = await getDoc(doc(db, 'stores', currentStoreId));
-            if (storeDoc.exists()) {
-                document.getElementById('store-name-display').textContent = storeDoc.data().name;
-            }
-        } catch (e) { console.error(e); }
+          const storeDoc = await getDoc(doc(db, "stores", currentStoreId));
+          if (storeDoc.exists()) {
+            document.getElementById("store-name-display").textContent =
+              storeDoc.data().name;
+          }
+        } catch (e) {
+          console.error(e);
+        }
 
         // Fetch Items
-        const q = query(collection(db, 'items'), where('storeId', '==', currentStoreId));
+        const q = query(
+          collection(db, "items"),
+          where("storeId", "==", currentStoreId)
+        );
         const snap = await getDocs(q);
         products = [];
-        snap.forEach(d => {
-            const data = d.data();
-            // Assign type based on regex
-            let type = 'other';
-            if (/バーガー|マック|牛|サンド/.test(data.name)) type = 'burger';
-            else if (/ドリンク|コーラ|茶|水/.test(data.name)) type = 'drink';
-            else if (/ポテト|ナゲット/.test(data.name)) type = 'side';
-            
-            products.push({
-                id: d.id,
-                ...data,
-                type: type
-            });
+        snap.forEach((d) => {
+          const data = d.data();
+          // Assign type based on regex
+          let type = "other";
+          if (/バーガー|マック|牛|サンド/.test(data.name)) type = "burger";
+          else if (/ドリンク|コーラ|茶|水/.test(data.name)) type = "drink";
+          else if (/ポテト|ナゲット/.test(data.name)) type = "side";
+
+          products.push({
+            id: d.id,
+            ...data,
+            type: type,
+          });
         });
-        
-        filterCategory('burger'); // Default
+
+        filterCategory("burger"); // Default
       }
 
       window.filterCategory = (cat) => {
         // Update pills
-        document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
+        document
+          .querySelectorAll(".cat-pill")
+          .forEach((el) => el.classList.remove("active"));
         // Find button with onclick containing this cat
-        const btns = Array.from(document.querySelectorAll('.cat-pill'));
-        const activeBtn = btns.find(b => b.getAttribute('onclick').includes(cat));
-        if (activeBtn) activeBtn.classList.add('active');
+        const btns = Array.from(document.querySelectorAll(".cat-pill"));
+        const activeBtn = btns.find((b) =>
+          b.getAttribute("onclick").includes(cat)
+        );
+        if (activeBtn) activeBtn.classList.add("active");
 
-        const grid = document.getElementById('product-grid');
-        grid.innerHTML = '';
-        
-        const filtered = products.filter(p => p.type === cat); // Simple filter
-        // If 'other', maybe show items that didn't match any? 
+        const grid = document.getElementById("product-grid");
+        grid.innerHTML = "";
+
+        const filtered = products.filter((p) => p.type === cat); // Simple filter
+        // If 'other', maybe show items that didn't match any?
         // For simplicity, strictly follow the regex assignment above.
-        
-        // If "other" category selected, show everything else OR all? 
+
+        // If "other" category selected, show everything else OR all?
         // Let's make "other" show anything that is 'other' type.
-        
+
         if (filtered.length === 0) {
-            grid.innerHTML = `<div class="col-12 text-center text-muted py-5">このカテゴリの商品はありません</div>`;
-            return;
+          grid.innerHTML = `<div class="col-12 text-center text-muted py-5">このカテゴリの商品はありません</div>`;
+          return;
         }
 
-        filtered.forEach(p => {
-            const el = document.createElement('button');
-            el.className = `prod-card ${(!p.isAvailable) ? 'disabled' : ''}`;
-            el.setAttribute('data-type', p.type);
-            el.onclick = () => openItemModal(p.id);
-            
-            el.innerHTML = `
+        filtered.forEach((p) => {
+          const el = document.createElement("button");
+          el.className = `prod-card ${!p.isAvailable ? "disabled" : ""}`;
+          el.setAttribute("data-type", p.type);
+          el.onclick = () => openItemModal(p.id);
+
+          el.innerHTML = `
                 <div class="prod-img-placeholder"></div>
                 <div class="prod-info">
                     <div class="prod-name">${p.name}</div>
                     <div class="prod-price">¥${p.price}</div>
                 </div>
             `;
-            grid.appendChild(el);
+          grid.appendChild(el);
         });
       };
 
       // --- Cart Logic ---
       function openItemModal(prodId) {
-        const p = products.find(x => x.id === prodId);
+        const p = products.find((x) => x.id === prodId);
         if (!p) return;
-        
+
         selectingProduct = p;
         selectingQty = 1;
-        
-        document.getElementById('detail-name').textContent = p.name;
-        document.getElementById('detail-price').textContent = `¥${p.price}`;
-        document.getElementById('detail-qty').textContent = selectingQty;
-        
+
+        document.getElementById("detail-name").textContent = p.name;
+        document.getElementById("detail-price").textContent = `¥${p.price}`;
+        document.getElementById("detail-qty").textContent = selectingQty;
+
         itemModalInstance.show();
       }
 
       window.adjustDetailQty = (delta) => {
         selectingQty += delta;
         if (selectingQty < 1) selectingQty = 1;
-        document.getElementById('detail-qty').textContent = selectingQty;
+        document.getElementById("detail-qty").textContent = selectingQty;
       };
 
       window.commitAddToCart = () => {
         // Check if exists
-        const existing = cart.find(c => c.product.id === selectingProduct.id);
+        const existing = cart.find((c) => c.product.id === selectingProduct.id);
         if (existing) {
-            existing.quantity += selectingQty;
+          existing.quantity += selectingQty;
         } else {
-            cart.push({
-                product: selectingProduct,
-                quantity: selectingQty,
-                itemTotal: selectingProduct.price * selectingQty
-            });
+          cart.push({
+            product: selectingProduct,
+            quantity: selectingQty,
+            itemTotal: selectingProduct.price * selectingQty,
+          });
         }
         updateCartUI();
         itemModalInstance.hide();
@@ -899,17 +1087,21 @@
 
       function updateCartUI() {
         const totalQty = cart.reduce((acc, c) => acc + c.quantity, 0);
-        const totalPrice = cart.reduce((acc, c) => acc + (c.product.price * c.quantity), 0);
-        
-        document.getElementById('cart-badge-count').textContent = totalQty;
-        document.getElementById('btn-goto-checkout').disabled = (cart.length === 0);
-        
-        const cartList = document.getElementById('cart-items-container');
-        cartList.innerHTML = '';
+        const totalPrice = cart.reduce(
+          (acc, c) => acc + c.product.price * c.quantity,
+          0
+        );
+
+        document.getElementById("cart-badge-count").textContent = totalQty;
+        document.getElementById("btn-goto-checkout").disabled =
+          cart.length === 0;
+
+        const cartList = document.getElementById("cart-items-container");
+        cartList.innerHTML = "";
         cart.forEach((c, idx) => {
-           const row = document.createElement('div');
-           row.className = 'cart-item';
-           row.innerHTML = `
+          const row = document.createElement("div");
+          row.className = "cart-item";
+          row.innerHTML = `
              <div class="cart-item-info">
                <h6>${c.product.name}</h6>
                <span class="cart-item-price">¥${c.product.price}</span>
@@ -920,11 +1112,15 @@
                <button class="qty-btn" onclick="updateCartItem(${idx}, 1)">+</button>
              </div>
            `;
-           cartList.appendChild(row);
+          cartList.appendChild(row);
         });
-        
-        document.getElementById('cart-total-display').textContent = `¥${totalPrice}`;
-        document.getElementById('checkout-total').textContent = `¥${totalPrice}`;
+
+        document.getElementById(
+          "cart-total-display"
+        ).textContent = `¥${totalPrice}`;
+        document.getElementById(
+          "checkout-total"
+        ).textContent = `¥${totalPrice}`;
       }
 
       window.openCartModal = () => {
@@ -935,16 +1131,16 @@
       window.updateCartItem = (idx, delta) => {
         cart[idx].quantity += delta;
         if (cart[idx].quantity <= 0) {
-            cart.splice(idx, 1);
+          cart.splice(idx, 1);
         }
         updateCartUI();
       };
 
       window.clearCart = () => {
-        if(confirm('カートを空にしますか？')) {
-            cart = [];
-            updateCartUI();
-            cartModalInstance.hide();
+        if (confirm("カートを空にしますか？")) {
+          cart = [];
+          updateCartUI();
+          cartModalInstance.hide();
         }
       };
 
@@ -957,59 +1153,62 @@
 
       // --- Checkout ---
       window.processOrder = async () => {
-        const btn = document.getElementById('btn-final-order');
+        const btn = document.getElementById("btn-final-order");
         btn.disabled = true;
-        btn.textContent = '処理中...';
+        btn.textContent = "処理中...";
 
         try {
-            // 1. Get Receipt Number
-            const getNextReceiptNumber = httpsCallable(functions, 'getNextReceiptNumber');
-            const result = await getNextReceiptNumber({ 
-                storeId: currentStoreId, 
-                orderType: 'MOBILE' 
+          // Use server-side function to create order securely
+          const createOnlineOrder = httpsCallable(
+            functions,
+            "createOnlineOrder"
+          );
+
+          // Note: We only send storeId. The server will fetch cart items from 'users/{uid}/cart'.
+          // However, our current logic uses a local 'cart' variable, not Firestore-based cart.
+          // We need to implement syncing cart to Firestore or modify the function.
+          // Given the existing function code (lines 145-167 of index.js), it expects a Firestore-based cart at `users/${uid}/cart`.
+
+          // STEP 0: Sync local cart to Firestore 'users/{uid}/cart'
+          // This is necessary because the secure function expects data there.
+          const userCartCollection = collection(
+            db,
+            `users/${currentUser.uid}/cart`
+          );
+
+          // clear existing server cart first (optional but safer)
+          // Ideally we would sync continuously, but for now we sync before checkout.
+          const existingCartSnap = await getDocs(userCartCollection);
+          const batch = writeBatch(db);
+          existingCartSnap.forEach((doc) => batch.delete(doc.ref));
+
+          cart.forEach((c) => {
+            const docRef = doc(userCartCollection, c.product.id);
+            batch.set(docRef, {
+              quantity: c.quantity,
+              updatedAt: serverTimestamp(),
             });
-            
-            if (!result.data.success) {
-                throw new Error(result.data.error || '受付番号の取得に失敗しました');
-            }
-            
-            const receiptNumber = result.data.receiptNumber;
-            const totalPrice = cart.reduce((acc, c) => acc + (c.product.price * c.quantity), 0);
-            
-            // 2. Build Order Data
-            const itemsData = cart.map(c => ({
-                name: c.product.name,
-                price: c.product.price,
-                quantity: c.quantity,
-                customizations: [] // Simplified for now
-            }));
-            
-            const orderData = {
-                storeId: currentStoreId,
-                receiptNumber: receiptNumber,
-                createdAt: serverTimestamp(),
-                items: itemsData,
-                totalPrice: totalPrice,
-                
-                // Fields for Monitor/Status
-                userId: currentUser.uid,
-                status: 'authorized',
-                paymentMethod: 'online',
-                isPrepaid: true,
-                isOnlineOrder: true // Helper flag
-            };
-            
-            // 3. Save to Firestore
-            const docRef = await addDoc(collection(db, 'orders'), orderData);
-            
-            // 4. Redirect
-            window.location.href = `status.html?orderId=${docRef.id}`;
-            
+          });
+          await batch.commit();
+
+          // STEP 1: Call Secure Function
+          const result = await createOnlineOrder({
+            storeId: currentStoreId,
+          });
+
+          if (!result.data.success) {
+            throw new Error(result.data.error || "注文作成に失敗しました");
+          }
+
+          const orderId = result.data.orderId;
+
+          // 4. Redirect
+          window.location.href = `status.html?orderId=${orderId}`;
         } catch (e) {
-            console.error(e);
-            alert(`注文エラー: ${e.message}`);
-            btn.disabled = false;
-            btn.textContent = '注文を確定する';
+          console.error(e);
+          alert(`注文エラー: ${e.message}`);
+          btn.disabled = false;
+          btn.textContent = "注文を確定する";
         }
       };
 

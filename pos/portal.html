@@ -495,6 +495,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, query, where, orderBy, onSnapshot, getDocs, doc, updateDoc, addDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
@@ -509,6 +510,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
+        const functions = getFunctions(app, 'asia-northeast1');
 
         // State
         let currentStoreId = null;
@@ -588,19 +590,7 @@
             catch(e) { document.getElementById('google-error').innerText = e.message; }
         };
 
-        document.getElementById('btn-store-login').onclick = async () => {
-             const select = document.getElementById('store-select');
-             const pass = document.getElementById('store-pass').value;
-             const storeId = select.value;
-             
-             if(!storeId || !pass) return alert("店舗を選択しパスワードを入力してください");
-             
-             // Verify Password (client-side simple check as strictly requested by architecture)
-             // Fetch real data
-             const docSnap = await getDoc(doc(db, "stores", storeId)); // Need getDoc import if not verified
-             // Actually loadStoreOptions gets data, let's use that if possible.
-             // But let's just re-fetch to be safe.
-        };
+
 
         async function loadStoreOptions() {
             const q = query(collection(db, "stores"), orderBy("teamName"));
@@ -612,24 +602,41 @@
                 const op = document.createElement('option');
                 op.value = d.id;
                 op.textContent = `${data.teamName} - ${data.name}`;
-                op.dataset.password = data.password; // Store pass in dataset for easy check
+                // op.dataset.password = data.password; // SECURITY FIX: Do not expose password in DOM
                 select.appendChild(op);
             });
         }
         
-        document.getElementById('btn-store-login').onclick = () => {
+        document.getElementById('btn-store-login').onclick = async () => {
             const select = document.getElementById('store-select');
             const pass = document.getElementById('store-pass').value;
-            const op = select.selectedOptions[0];
+            const storeId = select.value;
             
-            if(!op || !pass) return;
-            
-            if(String(op.dataset.password) === String(pass)) {
-                currentStoreId = select.value;
-                localStorage.setItem('nanryosai_store_id', currentStoreId);
-                loadStoreData(currentStoreId).then(() => startApp());
-            } else {
-                document.getElementById('store-error').innerText = "パスワードが違います";
+            if(!storeId || !pass) return;
+
+            const btn = document.getElementById('btn-store-login');
+            btn.disabled = true;
+            btn.innerText = "認証中...";
+            document.getElementById('store-error').innerText = "";
+
+            try {
+                const loginStore = httpsCallable(functions, 'loginStore');
+                const result = await loginStore({ storeId: storeId, password: pass });
+                
+                if (result.data.success) {
+                    currentStoreId = storeId;
+                    localStorage.setItem('nanryosai_store_id', currentStoreId);
+                    
+                    // Custom Claimsを反映させるためにトークンを強制リフレッシュ
+                    await auth.currentUser.getIdToken(true);
+                    
+                    loadStoreData(currentStoreId).then(() => startApp());
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('store-error').innerText = "パスワードが違います(サーバー認証)";
+                btn.disabled = false;
+                btn.innerText = "ポータルへ移動";
             }
         };
 
