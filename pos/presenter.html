@@ -721,17 +721,18 @@
           ? `${data.receiptNumber}`
           : `${orderId.slice(-4).toUpperCase()}`;
 
-        // ★ ソース判定ロジック
+        // ★ ソース判定ロジック (受付番号範囲で判定)
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
-        // モバイル判定: オンラインフラグ、支払い方法、プリペイドなどを確認
-        if (
-          data.isOnlineOrder ||
-          data.paymentMethod === "online" ||
-          data.isPrepaid === true
-        ) {
+        
+        // Mobile range: 7000-7999
+        if (data.receiptNumber >= 7000 && data.receiptNumber <= 7999) {
           sourceLabel = "Mobile";
           sourceClass = "badge-mobile";
+        } else if (data.status === "authorized" || data.paymentMethod === "ONLINE") {
+           // Fallback for legacy/other cases
+           sourceLabel = "Mobile";
+           sourceClass = "badge-mobile";
         }
 
         let itemsHtml = buildItemsHtml(data.items);
@@ -745,10 +746,15 @@
                 </button>
             `;
         } else if (data.status === "ready_for_pickup") {
+          // ★ 修正: 受付番号範囲(7000系)も含めて判定する
+          const isMobileRange = data.receiptNumber >= 7000 && data.receiptNumber <= 7999;
           const isOnline =
+            isMobileRange ||
             data.isPrepaid === true ||
+            data.paymentMethod === "ONLINE" || // Server sets "ONLINE"
             data.paymentMethod === "online" ||
             data.isOnlineOrder === true;
+
           if (isOnline) {
             footerHtml = `
                     <div class="status-monitor-wait">

@@ -173,14 +173,18 @@
         </div>
       </div>
 
-      <div class="mt-4 text-center">
-        <a
-          href="mobile-order.html"
-          class="btn btn-outline-secondary btn-sm rounded-pill px-4"
-          >トップへ戻る</a
-        >
+        <div class="mt-4 text-center">
+          <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">
+             最終更新: <span id="last-updated">--:--:--</span>
+          </div>
+          <a
+            href="mobile-order.html"
+            class="btn btn-outline-secondary btn-sm rounded-pill px-4"
+            >トップへ戻る</a
+          >
+          <button onclick="location.reload()" class="btn btn-link btn-sm" style="display:block; margin: 10px auto;">手動更新</button>
+        </div>
       </div>
-    </div>
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -273,25 +277,29 @@
       }
 
       function startListener() {
+        console.log("Starting Firestore Listener for:", orderId);
         onSnapshot(
           doc(db, "orders", orderId),
           (docSnap) => {
             if (!docSnap.exists()) {
-              document.getElementById("status-text").textContent =
-                "Order Not Found";
+              console.log("Doc does not exist");
+              document.getElementById("status-text").textContent = "Order Not Found";
               return;
             }
             const data = docSnap.data();
-            console.log("Order Data Update:", data); // Debug log
+            console.log("Order Data Update:", data); 
             updateUI(data);
             fetchStoreName(data.storeId);
+            
+            // Update Timestamp
+            const now = new Date();
+            document.getElementById("last-updated").innerText = now.toLocaleTimeString();
           },
           (error) => {
-            console.error(error);
-            // Ignore permission error if it's transient, but show if persistent
+            console.error("Snapshot Error:", error);
             if (error.code === 'permission-denied') {
                  document.getElementById("status-text").textContent = "Access Denied";
-                 document.getElementById("status-message").textContent = "注文情報を閲覧する権限がありません。";
+                 document.getElementById("status-message").textContent = "注文情報を閲覧する権限がありません。(再読み込みをお試しください)";
             } else {
                 document.getElementById("status-text").textContent = "Error";
                 document.getElementById("status-message").textContent = error.message;
@@ -302,10 +310,12 @@
 
       function updateUI(data) {
         // Receipt Number
-        document.getElementById(
-          "receipt-number"
-        ).textContent = `No. ${data.receiptNumber}`; // Check this value! 
-        document.getElementById("store-id-display").textContent = data.storeId;
+        const receiptEl = document.getElementById("receipt-number");
+        if (receiptEl) receiptEl.textContent = `No. ${data.receiptNumber}`;
+        
+        const storeIdEl = document.getElementById("store-id-display");
+        if (storeIdEl) storeIdEl.textContent = data.storeId;
+        else console.warn("Element #store-id-display not found");
 
         // Items
         const list = document.getElementById("items-list");
@@ -330,6 +340,25 @@
         const iconEl = document.getElementById("status-icon");
         const textEl = document.getElementById("status-text");
         const msgEl = document.getElementById("status-message");
+
+        // ★ Debug Info (Temporary)
+        const debugInfo = `Status: ${status} | User: ${auth.currentUser ? auth.currentUser.uid.slice(0,5)+'...' : 'None'}`;
+        // Create or update debug element
+        let debugEl = document.getElementById("debug-status-info");
+        if(!debugEl) {
+             debugEl = document.createElement("div");
+             debugEl.id = "debug-status-info";
+             debugEl.style.fontSize = "0.7rem";
+             debugEl.style.color = "#aaa";
+             debugEl.style.marginTop = "5px";
+             document.querySelector(".mt-4.text-center").appendChild(debugEl);
+        }
+        debugEl.textContent = debugInfo;
+
+        // Visual Flash
+        const container = document.querySelector(".status-container");
+        container.style.opacity = "0.5";
+        setTimeout(() => container.style.opacity = "1", 100);
 
         // Reset classes
         iconEl.className = "status-icon";
