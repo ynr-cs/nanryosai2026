@@ -713,10 +713,15 @@
         apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
         authDomain: "nanryosai-2026-a4091.firebaseapp.com",
         projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        storageBucket: "nanryosai-2026-a4091.firebasestorage.app", // Corrected
         messagingSenderId: "93228414556",
         appId: "1:93228414556:web:f64f90c13849fae9049899",
       };
+
+      // Enable App Check Debug Token for Localhost
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      }
 
       const app = initializeApp(firebaseConfig);
 
@@ -739,7 +744,12 @@
 
       // --- Helper: Async Image Resolver ---
       async function setElementImage(imgElement, storeId, fileName) {
-           if(!fileName) return;
+           if(!fileName || fileName === "noimage.png") {
+               imgElement.src = "../images/noimage.png";
+               imgElement.style.opacity = "1";
+               return;
+           }
+           
            // Try Firebase Storage: products/{storeId}/{fileName}
            // Note: The rule says /products/{storeId}/{fileName}
            // Let's assume user uploads there.
@@ -748,9 +758,10 @@
                const url = await getDownloadURL(sRef(storage, path));
                imgElement.src = url;
            } catch(e) {
-               // Fallback or keep default
+               // Fallback: Try local image with same name
                console.log("Storage image not found, using local fallback:", fileName);
                imgElement.src = `../images/${fileName}`;
+               // If this also fails, the img.onerror in HTML will catch it and show noimage.png
            }
       }
 
@@ -855,11 +866,8 @@
             const storeId = doc.id;
             const items = itemsByStore[storeId] || [];
 
-            // User requirement: Image filename = password + ".png"
-            const imgName = data.password
-              ? `${data.password}.png`
-              : "noimage.png";
-            // const imgPath = `../images/${imgName}`; // OLD
+            // User requirement: Image filename = storeId + ".png" in ../images/
+            const imgSrc = `../images/${storeId}.png`;
 
             // Create Card
             const card = document.createElement("div");
@@ -873,7 +881,7 @@
             };
             
             // Build Preview Tags (Top 3 items)
-            // Build Preview Tags (Top 3 items)
+            // ... (keep existing tag logic) ...
             // const items = itemsByStore[storeId] || []; // Already declared above
             const topItems = items.slice(0, 4);
             let tagsHtml = "";
@@ -892,7 +900,7 @@
                 <div class="store-card-header">
                     <img 
                        id="store-img-${storeId}"
-                       src="../images/noimage.png" 
+                       src="${imgSrc}"
                        class="store-img-circle" 
                        onerror="this.onerror=null; this.src='../images/noimage.png';" 
                     >
@@ -910,19 +918,7 @@
             `;
             list.appendChild(card);
             
-            // Async Load Image
-            const imgEl = card.querySelector(`#store-img-${storeId}`);
-            setElementImage(imgEl, storeId, imgName); // storeId as 'folder' name in storage?
-            // Wait, storage rule says: /products/{storeId}/{fileName}
-            // But store avatar might be at /stores/{storeId}/{fileName}? or /products?
-            // User said: "Firebase Storage Image logic... probably rule is bad".
-            // Rule: match /products/{storeId}/{fileName}
-            // It seems only products are there. 
-            // If store avatar is also in 'products' bucket with storeId? or maybe user assumes store images are there?
-            // Let's assume store avatars are stored in `products/${storeId}/store.png` or something?
-            // Actually, the previous code used `password.png`. 
-            // Let's try to load from `products/${storeId}/${imgName}` using the helper.
-            // If the user organized folders differently, this might fail, but it will fallback to local.
+            // Removed async loader call here
             
           });
         } catch (e) {
@@ -1031,7 +1027,7 @@
              const d = storeDoc.data();
              const headerHtml = `
                 <div class="d-flex align-items-center gap-2">
-                    <img src="../images/${d.password ? d.password+'.png' : 'noimage.png'}" 
+                    <img src="../images/${storeDoc.id}.png" 
                          class="store-avatar-sm" onerror="this.onerror=null;this.src='../images/noimage.png'">
                     <h5 class="menu-title">${d.name}</h5>
                 </div>
@@ -1086,37 +1082,32 @@
             };
             
             // Image Logic
-            // Try to use 'p.image' or fallback to 'p.name.png' or just generic.
-            // Assuming storage path: products/{storeId}/{p.name}.png (standard convention if not specified)
-            // If p.image property exists, use that filename.
-            const imgFileName = p.image || `${p.name}.png`; 
-            
+            // 1. Use 'imageUrl' from Firestore if available (Best)
+            // 2. Fallback to local image based on name
+            let imgSrc = "../images/noimage.png";
+            if (p.imageUrl) {
+                imgSrc = p.imageUrl;
+            } else if (p.image) {
+                 // Legacy/Manual path support if strictly needed, but let's rely on imageUrl or noimage for now as per user hint.
+                 imgSrc = `../images/${p.image}`;
+            } else {
+                 // Try local check
+                 imgSrc = `../images/${p.name}.png`;
+            }
+
             const soldOutHtml = isSoldOut ? 
                `<div class="sold-out-badge"><span class="sold-out-text">SOLD OUT</span></div>` : "";
 
-            // We use an <img> tag now. default to placeholder/icon if loading fails or while loading.
-            // To do this nicely, we background the box with the icon, and overlay the img.
-            // If img loads, it covers icon. If fails (display:none), icon shows.
-            
-            let iconClass = "bi-bag-heart";
-            if(/バーガー|牛|サンド/.test(p.name)) iconClass = "bi-egg-fried";
-            if(/ドリンク|茶|水|ジュース/.test(p.name)) iconClass = "bi-cup-straw";
-            if(/ポテト/.test(p.name)) iconClass = "bi-box2-heart";
-
             card.innerHTML = `
-                <div class="menu-img-box" style="position:relative; overflow:hidden; background:#fff2e0;">
+                <div class="menu-img-box" style="position:relative; overflow:hidden;">
                     ${soldOutHtml}
-                    <!-- Placeholder Icon -->
-                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:#ff9800;">
-                         <i class="bi ${iconClass}" style="font-size:3rem;"></i>
-                    </div>
-                    <!-- Actual Image (Async) -->
+                    <!-- Actual Image -->
                     <img 
                       id="menu-img-${p.id}"
                       alt="${p.name}" 
-                      style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 0.3s;"
-                      onerror="this.onerror=null; this.src='../images/noimage.png'; this.style.opacity='1';"
-                      onload="this.style.opacity='1';"
+                      src="${imgSrc}"
+                      onerror="this.onerror=null; this.src='../images/noimage.png';"
+                      style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;"
                     >
                 </div>
                 <div class="menu-info">
@@ -1125,10 +1116,6 @@
                 </div>
             `;
             grid.appendChild(card);
-            
-            // Trigger Load
-            const imgEl = card.querySelector(`#menu-img-${p.id}`);
-            setElementImage(imgEl, currentStoreId, imgFileName);
         });
       }
 
