@@ -12,179 +12,363 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap Icons -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
     />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
+      /* =========================================
+         1. Variables & Base (Copied from mobile-order.html)
+         ========================================= */
+      :root {
+        /* Colors */
+        --primary-color: #1a1a1a;   /* Deep Premium Black */
+        --accent-color: #e53935;    /* Vibrant Red */
+        --brand-color: #ff9800;     /* Warm Orange */
+        --bg-color: #f0f2f5;        /* Modern App Background */
+        --card-bg: #ffffff;
+        
+        /* Text */
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+        /* Dimensions */
+        --radius-lg: 20px;
+        --radius-md: 16px;
+      }
+
       body {
-        background-color: #f8f9fa;
+        background-color: #e2e8f0; /* Desktop bg color */
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
         color: #333;
-        min-height: 100vh;
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden; /* Prevent body scroll */
         display: flex;
         flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 0;
       }
+
+      /* =========================================
+         2. App Layout Container
+         ========================================= */
+      #app-container {
+        width: 100%;
+        max-width: 500px;
+        height: 100%;
+        flex: 1 1 auto;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg-color, #f8f9fa);
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        /* Subtle device boundary on PC */
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+        border-right: 1px solid rgba(0,0,0,0.05); 
+        border-left: 1px solid rgba(0,0,0,0.05);
+        /* Default origin for scaling */
+        transform-origin: top center;
+      }
+
+      @media (max-width: 500px) {
+          #app-container {
+              max-width: 100%;
+              box-shadow: none;
+          }
+      }
+
+      /* =========================================
+         3. Status Page Specific Styles (McDonald's Style)
+         ========================================= */
+      /* Status Container acts as the 'screen' */
       .status-container {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 20px;
+        justify-content: flex-start; /* Start from top */
+        padding: 0;
+        /* Padding bottom to clear bottom nav */
+        padding-bottom: 160px; 
         text-align: center;
-        transition: background-color 0.5s;
-      }
-
-      /* Status Themes */
-      body[data-status="waiting"] .status-container {
-        background-color: #f5f5f5; /* Grey */
-        color: #555;
-      }
-      body[data-status="cooking"] .status-container {
-        background-color: #fffde7; /* Yellow tint */
-        color: #fbc02d;
-      }
-      body[data-status="ready"] .status-container {
-        background-color: #ffebee; /* Red tint */
-        color: #d32f2f;
-      }
-      body[data-status="completed"] .status-container {
-        background-color: #e8f5e9; /* Green tint */
-        color: #2e7d32;
-      }
-
-      .receipt-number {
-        font-size: 5rem;
-        font-weight: 900;
-        line-height: 1;
-        margin: 20px 0;
-      }
-      .status-icon {
-        font-size: 4rem;
-        margin-bottom: 20px;
-      }
-      .status-text {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 10px;
-      }
-      .status-sub {
-        font-size: 1.1rem;
-        opacity: 0.8;
-      }
-
-      /* Animations */
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-      .animate-pulse {
-        animation: pulse 2s infinite;
-      }
-      @keyframes blink {
-        50% {
-          opacity: 0.6;
-        }
-      }
-      .animate-blink {
-        animation: blink 1s infinite;
-      }
-
-      /* Order Details */
-      .order-details {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         width: 100%;
-        max-width: 400px;
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-top: 40px;
-        text-align: left;
-      }
-      .order-details h6 {
-        font-weight: bold;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-        margin-bottom: 15px;
-      }
-      .item-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-      }
-      .total-row {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        font-weight: bold;
-        font-size: 1.1rem;
+        background-color: #f8f9fa;
       }
 
-      header {
-        position: fixed;
+      /* Main Header Message */
+      .status-header-message {
+        width: 100%;
+        padding: 24px 20px 10px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+      }
+
+      /* White Card Container for Status */
+      .status-card {
+        background: white;
+        width: 90%;
+        border-radius: 20px;
+        padding: 30px 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        /* overflow: hidden; Removed to prevent clipping of large fonts */
+      }
+
+      /* Colored Top Border */
+      .status-card::before {
+        content: '';
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
-        padding: 10px 20px;
-        font-weight: bold;
-        color: #888;
-        font-size: 0.9rem;
-        z-index: 10;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 20px 20px 0 0; /* Match rounded corners */
       }
+      .status-card.cooking::before { background: #E53935; }
+      .status-card.prep::before { background: #3b82f6; }
+      .status-card.done::before { background: #10b981; }
+
+      /* Side-by-Side Layout */
+      .status-main-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      .anim-col {
+        flex: 0 0 120px; /* Fixed width for animation */
+        display: flex;
+        justify-content: center;
+      }
+      .num-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center align for the number column */
+        justify-content: center;
+      }
+
+      /* Adjusted SVG Size for side layout */
+      .stick-svg {
+        width: 110px;
+        height: 110px;
+        margin: 0; /* Remove bottom margin */
+      }
+      
+      .stick-stroke {
+        stroke: #374151; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none;
+      }
+      .stick-head {
+        fill: #374151; stroke: none;
+      }
+      .item-stroke {
+        stroke: #3b82f6; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none;
+      }
+      .item-fill {
+        fill: #eff6ff; stroke: #3b82f6; stroke-width: 2px;
+      }
+
+      /* Animations Keyframes */
+      @keyframes cookArm { from { transform: rotate(0deg); } to { transform: rotate(-15deg); } }
+      .arm-cooking { transform-origin: 50px 45px; animation: cookArm 0.6s ease-in-out infinite alternate; }
+      @keyframes cookFood { 0% { transform: translate(0, 0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(5px, -15px) rotate(10deg); opacity: 0; } }
+      .pan-content { opacity: 0; animation: cookFood 0.6s ease-in-out infinite; }
+
+      @keyframes packArm { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(20deg); } }
+      .arm-packing { transform-origin: 50px 45px; animation: packArm 1.5s ease-in-out infinite; }
+      @keyframes packItem { 0%, 20% { transform: translate(0, -20px); opacity: 0; } 40%, 60% { transform: translate(0, 0); opacity: 1; } 80%, 100% { transform: translate(0, 10px); opacity: 0; } }
+      .item-packing { animation: packItem 1.5s ease-in-out infinite; }
+
+      @keyframes wave { from { transform: rotate(-160deg); } to { transform: rotate(-130deg); } }
+      .arm-wave { transform-origin: 50px 45px; animation: wave 1s ease-in-out infinite alternate; }
+      @keyframes bagSway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+      .bag-hold { transform-origin: 70px 60px; animation: bagSway 2s ease-in-out infinite alternate; }
+      @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+      .stick-man-done { animation: bounce 2s ease-in-out infinite; transform-origin: bottom center; }
+
+      @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
+      
+      /* Order Number Adjustments */
+      .big-number {
+        font-size: 3.5rem; 
+        margin-bottom: 0; /* Remove bottom margin */
+        line-height: 1;
+      }
+      .label-order-num {
+        margin-bottom: 5px;
+        text-align: center;
+      }
+
+      /* Progress Bar (Stepper) */
+      .progress-stepper {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin: 0 0 20px;
+        position: relative;
+      }
+      /* Line behind steps */
+      .progress-stepper::before {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: #e5e7eb;
+        z-index: 0;
+      }
+      .step-item {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 33%;
+      }
+      .step-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      .step-label {
+        margin-top: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #9ca3af;
+      }
+      
+      /* Active State Styles */
+      .step-item.active .step-circle { background: #1a1a1a; }
+      .step-item.active .step-label { color: #1a1a1a; }
+      .step-item.completed .step-circle { background: #10b981; }
+
+      /* Dynamic Card Border Colors override active step color if needed */
+      .status-card.cooking .step-item.active .step-circle { background: #E53935; }
+      .status-card.prep .step-item.active .step-circle { background: #3b82f6; }
+      .status-card.done .step-item.active .step-circle { background: #10b981; }
     </style>
   </head>
   <body data-status="waiting">
-    <header id="store-header">
-      Store ID: <span id="store-id-display">--</span>
-    </header>
-
-    <div class="status-container">
-      <div id="status-icon" class="status-icon">
-        <div class="spinner-border" role="status"></div>
-      </div>
-
-      <div id="status-text" class="status-text">読み込み中...</div>
-
-      <div class="receipt-number" id="receipt-number">---</div>
-
-      <div id="status-message" class="status-sub">注文情報を取得しています</div>
-
-      <!-- Detail Card -->
-      <div class="order-details">
-        <h6>注文内容</h6>
-        <div id="items-list">
-          <!-- Items -->
+    <!-- App Container -->
+    <div id="app-container">
+      
+      <!-- Sub Element that acts as the scrollable screen with themes -->
+      <div class="status-container">
+        
+        <div class="status-header-message">
+           ご注文ありがとうございます
         </div>
-        <div class="total-row">
-          <span>合計</span>
-          <span id="total-price">¥0</span>
-        </div>
-      </div>
 
-        <div class="mt-4 text-center">
-          <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">
-             最終更新: <span id="last-updated">--:--:--</span>
-          </div>
-          <a
-            href="mobile-order.html"
-            class="btn btn-outline-secondary btn-sm rounded-pill px-4"
-            >トップへ戻る</a
-          >
-          <button onclick="location.reload()" class="btn btn-link btn-sm" style="display:block; margin: 10px auto;">手動更新</button>
+        <!-- Dynamic Status Card -->
+        <div id="status-card" class="status-card cooking">
+            
+            <!-- Row: Animation (Left) + Number (Right) -->
+            <div class="status-main-row">
+                <div class="anim-col" id="anim-container">
+                     <!-- Animation Injected Here -->
+                     <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div class="num-col">
+                    <div class="label-order-num">ご注文番号</div>
+                    <div id="display-number" class="big-number">----</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-stepper" id="progress-stepper">
+                <div class="step-item" id="step-cooking">
+                    <div class="step-circle"><i class="bi bi-fire"></i></div>
+                    <div class="step-label">調理中</div>
+                </div>
+                <div class="step-item" id="step-prep">
+                    <div class="step-circle"><i class="bi bi-box-seam"></i></div>
+                    <div class="step-label">準備中</div>
+                </div>
+                <div class="step-item" id="step-done">
+                    <div class="step-circle"><i class="bi bi-megaphone"></i></div>
+                    <div class="step-label">お呼出</div>
+                </div>
+            </div>
+
+            <div id="status-title" class="status-title">読み込み中...</div>
+            <div id="status-desc" class="status-desc">
+                注文情報を取得しています
+            </div>
         </div>
+
+        <!-- Store Info -->
+        <div class="info-section">
+            <div class="info-label">受け取り店舗</div>
+            <div class="info-card-row">
+                <!-- Simple generic store icon or emoji -->
+                <div class="store-icon-box" style="font-size: 2rem;">🏪</div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #10b981; font-weight: bold; margin-bottom: 2px;">営業中</div>
+                    <div id="store-name-display" style="font-weight: 800; color: #1f2937;">---</div>
+                    <div style="font-size: 0.75rem; color: #9ca3af;">Store ID: <span id="store-id-raw">--</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item List -->
+        <div class="item-list-container">
+             <div class="info-label">注文内容</div>
+             <div style="background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                 <div id="items-list"></div>
+                 <div class="total-price-row">
+                     <span>合計</span>
+                     <span id="total-price">¥0</span>
+                 </div>
+             </div>
+        </div>
+
+        <div class="mt-5 text-center mb-4">
+             <div style="font-size:0.7rem; color:#9ca3af; margin-bottom:15px;">
+                 最終更新: <span id="last-updated">--:--:--</span>
+             </div>
+             <button onclick="location.reload()" class="btn btn-outline-secondary btn-sm rounded-pill px-4">
+                 再読み込み
+             </button>
+        </div>
+
       </div>
+    
+    </div><!-- End App Container -->
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -214,17 +398,11 @@
         GoogleAuthProvider,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.appspot.com",
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
+      /* Import Shared Instance from auth.js to prevent "App already exists" error */
+      import { app, auth, db } from "../main/auth.js";
 
-      const app = initializeApp(firebaseConfig);
-
+      // AppCheck (Debug Token handled by devtools or console)
+      // Note: Reusing same key as mobile-order
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
           "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
@@ -232,27 +410,18 @@
         isTokenAutoRefreshEnabled: true,
       });
 
-      const db = getFirestore(app);
-      const auth = getAuth(app);
-      const functions = getFunctions(app, "asia-northeast1"); // Explicit execution region
+      // const db = getFirestore(app); // Imported from auth.js
+      // const auth = getAuth(app);    // Imported from auth.js
+      const functions = getFunctions(app, "asia-northeast1"); 
       const messaging = getMessaging(app);
-
-      // Start Message Listener (Foreground)
-      onMessage(messaging, (payload) => {
-        console.log("Foreground notification:", payload);
-        const title = payload.notification?.title || "通知";
-        const body = payload.notification?.body || "";
-        alert(`${title}\n${body}`);
-      });
 
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);
       const orderId = params.get("orderId");
 
       if (!orderId) {
-        document.getElementById("status-text").textContent = "Order ID Missing";
-        document.getElementById("status-message").textContent =
-          "正しいURLでアクセスしてください";
+        document.getElementById("status-title").textContent = "Order ID Missing";
+        document.getElementById("status-desc").textContent = "正しいURLでアクセスしてください";
         document.querySelector(".spinner-border").style.display = "none";
       } else {
         // PERMISSION FIX: Wait for Auth
@@ -261,10 +430,9 @@
             startListener();
           } else {
             // Not logged in.
-            document.getElementById("status-text").textContent =
-              "認証が必要です";
-            document.getElementById("status-message").innerHTML =
-              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-primary mt-2">ログインする</button>';
+            document.getElementById("status-title").textContent = "認証が必要です";
+            document.getElementById("status-desc").innerHTML =
+              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-dark mt-3 rounded-pill px-4">ログインする</button>';
             document.querySelector(".spinner-border").style.display = "none";
 
             document.getElementById("btn-login-status").onclick = () => {
@@ -283,7 +451,7 @@
           (docSnap) => {
             if (!docSnap.exists()) {
               console.log("Doc does not exist");
-              document.getElementById("status-text").textContent = "Order Not Found";
+              document.getElementById("status-title").textContent = "Order Not Found";
               return;
             }
             const data = docSnap.data();
@@ -298,118 +466,238 @@
           (error) => {
             console.error("Snapshot Error:", error);
             if (error.code === 'permission-denied') {
-                 document.getElementById("status-text").textContent = "Access Denied";
-                 document.getElementById("status-message").textContent = "注文情報を閲覧する権限がありません。(再読み込みをお試しください)";
+                 document.getElementById("status-title").textContent = "アクセス権限がありません";
+                 document.getElementById("status-desc").textContent = "再読み込みをお試しください";
             } else {
-                document.getElementById("status-text").textContent = "Error";
-                document.getElementById("status-message").textContent = error.message;
+                document.getElementById("status-title").textContent = "Error";
+                document.getElementById("status-desc").textContent = error.message;
             }
           }
         );
       }
 
       function updateUI(data) {
-        // Receipt Number
-        const receiptEl = document.getElementById("receipt-number");
-        if (receiptEl) receiptEl.textContent = `No. ${data.receiptNumber}`;
-        
-        const storeIdEl = document.getElementById("store-id-display");
-        if (storeIdEl) storeIdEl.textContent = data.storeId;
-        else console.warn("Element #store-id-display not found");
+        // 1. Order Number
+        // Remove "No." prefix if present in the data (though data.receiptNumber is usually just the num)
+        const numEl = document.getElementById("display-number");
+        if (numEl) numEl.textContent = `${data.receiptNumber}`;
 
-        // Items
+        // Store ID Raw
+        const storeIdEl = document.getElementById("store-id-raw");
+        if (storeIdEl) storeIdEl.textContent = data.storeId;
+
+        // 2. Items List
         const list = document.getElementById("items-list");
         list.innerHTML = "";
         if (data.items) {
           data.items.forEach((item) => {
             const row = document.createElement("div");
-            row.className = "item-row";
-            const itemPrice = item.price || 0; // fallback
+            row.className = "order-item-row";
+            const itemPrice = item.price || 0; 
             const itemQty = item.quantity || 0;
-            row.innerHTML = `<span>${item.name} x${itemQty}</span><span>¥${itemPrice * itemQty}</span>`;
+            // Simplified item display
+            row.innerHTML = `
+                <div style="flex:1;">
+                    <div style="font-weight:700;">${item.name}</div>
+                    <div style="font-size:0.8rem; color:#9ca3af;">数量: ${itemQty}</div>
+                </div>
+                <div>¥${itemPrice * itemQty}</div>
+            `;
             list.appendChild(row);
           });
         }
-        document.getElementById(
-          "total-price"
-        ).textContent = `¥${data.totalPrice}`;
+        document.getElementById("total-price").textContent = `¥${data.totalPrice}`;
 
-        // Status Logic
+        // 3. Status Transformation logic
         const status = data.status;
-        const body = document.body;
-        const iconEl = document.getElementById("status-icon");
-        const textEl = document.getElementById("status-text");
-        const msgEl = document.getElementById("status-message");
+        const animContainer = document.getElementById("anim-container");
+        const card = document.getElementById("status-card");
+        const titleEl = document.getElementById("status-title");
+        const descEl = document.getElementById("status-desc");
 
-        // ★ Debug Info (Temporary)
-        const debugInfo = `Status: ${status} | User: ${auth.currentUser ? auth.currentUser.uid.slice(0,5)+'...' : 'None'}`;
-        // Create or update debug element
-        let debugEl = document.getElementById("debug-status-info");
-        if(!debugEl) {
-             debugEl = document.createElement("div");
-             debugEl.id = "debug-status-info";
-             debugEl.style.fontSize = "0.7rem";
-             debugEl.style.color = "#aaa";
-             debugEl.style.marginTop = "5px";
-             document.querySelector(".mt-4.text-center").appendChild(debugEl);
+        // Status Mappings matches Implementation Plan
+        let visualState = "cooking"; // default
+        
+        // "Ready to serve" aka Kitchen Done -> PREP (Bagging)
+        if (status === "ready_to_serve") {
+             visualState = "prep";
+        } 
+        // "Ready for pickup" aka Presenter Called -> CALLING (Wave)
+        else if (status === "ready_for_pickup") {
+             visualState = "calling";
         }
-        debugEl.textContent = debugInfo;
+        // Completed -> DONE
+        else if (status.startsWith("completed")) {
+             visualState = "done";
+        }
+        else {
+             // waiting, cooking, authorized, unpaid -> COOKING
+             visualState = "cooking";
+        }
 
-        // Visual Flash
-        const container = document.querySelector(".status-container");
-        container.style.opacity = "0.5";
-        setTimeout(() => container.style.opacity = "1", 100);
+        // --- Render SVG & Text & Progress Bar ---
+        // Reset card classes
+        card.className = "status-card"; 
+        
+        // Helper to set progress bar
+        const setProgress = (activeId) => {
+            const steps = ["step-cooking", "step-prep", "step-done"];
+            let foundActive = false;
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove("active", "completed");
+                if (id === activeId) {
+                    el.classList.add("active");
+                    foundActive = true;
+                } else if (!foundActive) {
+                    el.classList.add("completed");
+                }
+            });
+        };
 
-        // Reset classes
-        iconEl.className = "status-icon";
+        if (visualState === "cooking") {
+            card.classList.add("cooking");
+            setProgress("step-cooking");
+            titleEl.textContent = "ただいまお作りしています！";
+            descEl.textContent = "モニターに番号が表示されたら\nお受け取りください";
+            
+            // SVG: Cooking
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="30" r="8" class="stick-head"/>
+                    <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                    <path d="M50 45 L30 55" class="stick-stroke"/>
+                    <g class="arm-cooking">
+                        <path d="M50 45 L70 55" class="stick-stroke"/>
+                        <line x1="70" y1="55" x2="80" y2="55" class="stick-stroke"/>
+                        <path d="M80 55 A10 10 0 0 0 95 55 Z" class="stick-stroke" fill="#e5e7eb"/>
+                        <circle cx="87" cy="50" r="2" class="stick-head pan-content" fill="#ef4444"/>
+                        <rect x="85" y="48" width="4" height="4" class="stick-head pan-content" style="animation-delay: 0.1s" fill="#f59e0b"/>
+                    </g>
+                </svg>
+            `;
 
-        if (status === "authorized" || status === "unpaid_at_pos") {
-          // Waiting
-          body.setAttribute("data-status", "waiting");
-          iconEl.innerHTML = '<i class="bi bi-hourglass-split"></i>';
-          textEl.textContent = "調理待ち";
-          msgEl.textContent =
-            "ご注文を受け付けました。\n調理開始までしばらくお待ちください。";
-        } else if (status === "ready_to_serve") {
-          // Cooking
-          body.setAttribute("data-status", "cooking");
-          iconEl.innerHTML =
-            '<i class="bi bi-fire animate-pulse text-warning"></i>';
-          textEl.textContent = "調理中";
-          msgEl.textContent = "ただいま心を込めて作っています！";
-        } else if (status === "ready_for_pickup") {
-          // Ready
-          body.setAttribute("data-status", "ready");
-          iconEl.innerHTML =
-            '<i class="bi bi-megaphone-fill animate-blink"></i>';
-          textEl.textContent = "お呼出中！";
-          msgEl.textContent =
-            "商品が出来上がりました。\n提供口へお越しください！";
-        } else if (status.startsWith("completed")) {
-          // Completed
-          body.setAttribute("data-status", "completed");
-          iconEl.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
-          textEl.textContent = "受渡完了";
-          msgEl.textContent =
-            "ご利用ありがとうございました。\nまたのご来店をお待ちしています！";
-        } else {
-          // Other
-          body.removeAttribute("data-status");
-          iconEl.innerHTML = '<i class="bi bi-question-circle"></i>';
-          textEl.textContent = status;
+        } else if (visualState === "prep") { // Packing
+            card.classList.add("prep");
+            setProgress("step-prep");
+            titleEl.textContent = "まもなくお呼び出し";
+            descEl.textContent = "商品を準備しています\nもう少々お待ちください";
+
+            // SVG: Packing
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <line x1="60" y1="80" x2="100" y2="80" class="stick-stroke" style="stroke-width: 2; stroke: #9ca3af;"/>
+                    <circle cx="40" cy="30" r="8" class="stick-head"/>
+                    <line x1="40" y1="38" x2="40" y2="70" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="25" y2="95" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="55" y2="95" class="stick-stroke"/>
+                    <path d="M75 80 L75 65 L90 65 L90 80 Z" class="item-fill"/>
+                    <circle cx="82" cy="60" r="4" class="item-stroke item-packing" style="stroke: #ef4444; fill: #ef4444; border:none;"/>
+                    <g class="arm-packing">
+                        <path d="M40 45 L60 45 L75 55" class="stick-stroke" fill="none"/>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "calling") { // Ready
+            card.classList.add("done"); 
+            setProgress("step-done");
+            titleEl.textContent = "商品完成！";
+            descEl.textContent = "カウンターへお越しください！\nおいしく召し上がれ！";
+
+            // SVG: Waving
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <g class="stick-man-done">
+                        <circle cx="50" cy="30" r="8" class="stick-head"/>
+                        <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                        <path d="M50 45 L70 60" class="stick-stroke"/>
+                        <g class="bag-hold">
+                            <path d="M70 60 L70 75 L85 75 L85 60 Z" class="item-fill"/>
+                            <path d="M70 60 Q77 50 85 60" class="item-stroke" style="fill:none; stroke-width:2;"/>
+                        </g>
+                        <g class="arm-wave">
+                            <path d="M50 45 L80 45" class="stick-stroke"/> 
+                        </g>
+                    </g>
+                    <g>
+                        <text x="20" y="30" font-size="20" fill="#fbbf24" style="animation: pulse 1s infinite;">✨</text>
+                        <text x="80" y="20" font-size="15" fill="#fbbf24" style="animation: pulse 1s infinite 0.5s;">✨</text>
+                    </g>
+                </svg>
+            `;
+        }
+        else if (visualState === "done") {
+             card.classList.add("done");
+             setProgress("step-done"); // Stay on done
+             titleEl.textContent = "受渡完了";
+             descEl.textContent = "ご利用ありがとうございました！\n素敵な文化祭を！";
+             animContainer.innerHTML = `
+                <div style="font-size: 5rem; color: #10b981;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+             `;
         }
       }
 
       async function fetchStoreName(storeId) {
         try {
-          // Optional: Fetch store Name
           const storeDoc = await getDoc(doc(db, "stores", storeId));
           if (storeDoc.exists()) {
-            document.getElementById("store-header").textContent =
-              storeDoc.data().name;
+             console.log("Store:", storeDoc.data().name);
+             const name = storeDoc.data().name;
+             const el = document.getElementById("store-name-display");
+             if(el) el.textContent = name;
           }
         } catch (e) {}
       }
+
     </script>
+    
+    <!-- App Layout Scripts -->
+    <script>
+       // Scaling Logic (Copied from mobile-order.html)
+       function adjustScale() {
+          const app = document.getElementById("app-container");
+          const isMobile = window.innerWidth <= 480;
+
+          if (isMobile) {
+             app.style.height = "100%";
+             app.style.flex = "1";
+             app.style.transform = "none";
+             app.style.zoom = "1";
+             app.style.marginTop = "0";
+          } else {
+             // PC/Tablet: Simulating a phone device
+             // Available Height Calculation (Window - Header/Nav/Margins)
+             const availableHeight = window.innerHeight - 180; 
+             
+             // Base Height (matching mobile-order)
+             const baseHeight = 840;
+             
+             let scale = Math.min(1, availableHeight / baseHeight);
+            
+             // Fix dimensions to the base phone size, then scale it
+             app.style.flex = "none";
+             app.style.height = `${baseHeight}px`;
+             
+             app.style.transform = `scale(${scale})`;
+             
+             // Reset zoom if needed
+             app.style.zoom = "1";
+          }
+       }
+       
+       window.addEventListener("resize", adjustScale);
+       window.addEventListener("load", adjustScale);
+       
+       // App Shell Config
+       window.CURRENT_PAGE = 'home'; // Default highlighting
+    </script>
+    <script type="module" src="../main/app-shell.js"></script>
   </body>
 </html>

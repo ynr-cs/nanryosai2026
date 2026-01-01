@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホーム | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Page Specific Style (Optional) -->
+    <style>
+        .hero {
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.1) 100%);
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dummy-content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Header is injected here by JS -->
+
+    <main>
+        <section class="hero">
+            <h1>Nanryosai '26</h1>
+            <p>The Future is Now.</p>
+        </section>
+
+        <section class="dummy-content">
+            <div class="card">
+                <h3>企画</h3>
+                <p>32 Projects</p>
+            </div>
+            <div class="card">
+                <h3>ステージ</h3>
+                <p>15 Events</p>
+            </div>
+            <div class="card" style="grid-column: span 2; background: #e0e7ff">
+                <h3>Mobile Order</h3>
+                <p>待ち時間ゼロへ。</p>
+            </div>
+        </section>
+
+        <div style="height: 1000px; padding: 20px; text-align: center; color: #999;">
+            Scroll Test Area<br>
+            ↓
+        </div>
+    </main>
+
+    <!-- Footer is injected here by JS -->
+
+    <script>
+        // Define current page for the shell
+        window.CURRENT_PAGE = 'home';
+    </script>
+    <!-- App Shell Logic -->
+    <script type="module" src="app-shell.js"></script>
+</body>
+</html>

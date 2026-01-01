@@ -56,17 +56,21 @@
       }
 
       body {
-        background-color: #e9ecef; /* Browser bg outside app */
+        background-color: #e2e8f0;
         color: var(--text-main);
         font-family: var(--font-main);
         margin: 0;
-        height: 100vh;
+        height: 100dvh;
         width: 100vw;
         overflow: hidden;
-        -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        
         display: flex;
-        justify-content: center;
-        align-items: center;
+        flex-direction: column;
+        justify-content: flex-start; /* Ensure start from top */
+        align-items: center; /* Center horizontally */
+        
+        /* Padding is handled by style.css */
+        box-sizing: border-box;
       }
 
       /* =========================================
@@ -74,20 +78,32 @@
          ========================================= */
       #app-container {
         width: 100%;
-        max-width: 480px;
-        height: 100vh;
-        overflow: hidden;
+        max-width: 500px; /* Max width for PC */
+        height: 100%; /* Force full height usage of flex space */
+        flex: 1 1 auto; /* Grow to fill space */
+        margin: 0 auto; /* Horizontal centering */
+        
+        overflow: hidden; /* Internal scrolling */
         background: var(--bg-color);
         position: relative;
-        z-index: 2000;
-        box-shadow: var(--shadow-soft);
+        z-index: 1;
         display: flex;
         flex-direction: column;
+        
+        /* Subtle device boundary on PC */
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+      }
+
+      @media (max-width: 500px) {
+          #app-container {
+              max-width: 100%;
+              box-shadow: none;
+          }
       }
 
       /* Loading Overlay */
       #global-loader {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
@@ -104,16 +120,18 @@
          ========================================= */
       .screen {
         display: none;
-        flex: 1;
+        flex: 1; /* Take all available space */
         flex-direction: column;
         padding: 24px;
-        animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        overflow-y: auto;
+        padding-bottom: 80px; /* Extra space for bottom nav clearance inside scrolling area */
+        overflow-y: auto; /* Internal scroll */
         -webkit-overflow-scrolling: touch;
       }
+      
       .screen.active {
         display: flex;
       }
+
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -538,6 +556,75 @@
       }
       .modal-backdrop.show { opacity: 0.2; }
 
+      /* =========================================
+         8. Layout Overrides for App Shell Integration
+         ========================================= */
+      
+      /* 
+         The App Shell (style.css) adds padding-top and padding-bottom to BODY.
+         So normally content sits strictly between Header and Bottom Nav.
+         
+         However, for the immersive Mobile Order UI, we want:
+         1. The "App Container" to fill that exact available space.
+         2. Internal scrolling within the container, not the body.
+      */
+
+      /* Ensure body doesn't scroll, only the container */
+      body {
+        overflow: hidden; 
+      }
+
+      #app-container {
+        /* This will naturally fill the flex space provided by body (which has padding) */
+        flex: 1; /* Grow to fill the vertical space between header and footer */
+        height: auto; /* Let flex handle the height */
+        width: 100%;
+        max-width: 500px; /* Width increased to 500px as requested */
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Ensure inner content doesn't spill out and cause body scroll */
+        
+        /* Reset any transforms from previous scripts if they interfere */
+        transform-origin: top center;
+        background: var(--bg-color); /* Ensure background is solid */
+        border-right: 1px solid rgba(0,0,0,0.05); /* Subtle border for desktop view */
+        border-left: 1px solid rgba(0,0,0,0.05);
+      }
+
+      /* Screens take full available height of the container */
+      .screen {
+        padding: 20px; /* Standard internal padding */
+        padding-bottom: 40px; /* Reduced padding since container will end above the nav */
+      }
+
+      /* Menu Screen specific: Remove default padding to allow sticky header to hit top edge of container */
+      #step-menu {
+        padding: 0;
+      }
+
+      /* Sticky Header stays at top of CONTAINER, not viewport */
+      #menu-header.sticky-top {
+        top: 0 !important;
+        z-index: 100;
+      }
+
+      /* Grid needs padding for the floating content */
+      #menu-grid {
+        padding: 15px;
+        padding-bottom: 140px; /* Clear the cart bar */
+      }
+
+      /* Cart bar position relative to container */
+      .bottom-cart-bar {
+        position: absolute; /* Absolute within #app-container */
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 400px;
+        z-index: 1050;
+      }
     </style>
   </head>
   <body>
@@ -599,32 +686,31 @@
            Screen 4: Terms & Agreement
            ========================================= -->
       <div id="step-terms" class="screen">
-        <div class="text-center mt-4">
-          <i class="bi bi-shield-exclamation text-danger" style="font-size: 3rem"></i>
-          <h2 class="fw-bold mt-2">利用規約の確認</h2>
-          <p class="text-muted small">ご注文の前に必ずご確認ください</p>
+        <div class="text-center mt-3 mb-2">
+          <i class="bi bi-shield-exclamation text-danger" style="font-size: 2.5rem"></i>
+          <h3 class="fw-bold mt-1 mb-0">利用規約の確認</h3>
         </div>
 
-        <div class="terms-warning-box">
-          <div class="warning-title">
+        <div class="terms-warning-box p-3 my-2">
+          <div class="warning-title mb-2 fs-6">
             <i class="bi bi-exclamation-triangle-fill"></i> 注意事項
           </div>
-          <ul class="warning-list">
+          <ul class="warning-list small mb-2">
             <li>注文確定後のキャンセルはできません</li>
-            <li>受け取りは「呼出」から15分以内です（経過後は即廃棄）</li>
-            <li>お金は返ってきません</li>
+            <li>受け取りは「呼出」から15分以内</li>
+            <li>返金対応は致しかねます</li>
           </ul>
-          <div class="ban-warning text-center">
-            違反時は全額徴収の上<br />今後コンピュータ科学部が制作する<br />全サービスから永久BANします
+          <div class="ban-warning text-center p-2 fs-6 mt-2">
+            違反時は全サービスから<br>永久BANします
           </div>
         </div>
 
-        <div class="mt-auto pb-4">
+        <div class="mt-auto pb-2">
           <div class="form-check mb-3 d-flex justify-content-center gap-2 align-items-center">
-            <input class="form-check-input" type="checkbox" id="check-terms" style="transform: scale(1.3)" />
-            <label class="form-check-label fw-bold" for="check-terms">上記内容を理解し、同意します</label>
+            <input class="form-check-input" type="checkbox" id="check-terms" style="transform: scale(1.2)" />
+            <label class="form-check-label fw-bold small" for="check-terms">上記内容を理解し、同意します</label>
           </div>
-          <button id="btn-agree-terms" class="btn-primary-custom" disabled>
+          <button id="btn-agree-terms" class="btn-primary-custom py-3" disabled>
             同意して次へ
           </button>
         </div>
@@ -643,14 +729,14 @@
       <!-- =========================================
            Screen 6: Menu (Grid)
            ========================================= -->
-      <div id="step-menu" class="screen" style="padding: 0">
+      <div id="step-menu" class="screen">
         <div id="menu-header" class="p-3 bg-white sticky-top shadow-sm d-flex align-items-center justify-content-between">
           <h5 class="m-0 fw-bold" id="menu-store-name">Store Name</h5>
           <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="backToStores()">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        <div id="menu-grid" class="p-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 100px;">
+        <div id="menu-grid" class="p-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
           <!-- JS Injected -->
         </div>
       </div>
@@ -704,10 +790,10 @@
       </div>
 
       <!-- =========================================
-           Modals
+           Modals (Inside Container)
            ========================================= -->
       <!-- Item Details Modal (Fullscreen) -->
-      <div class="modal fade mobile-fullscreen-modal" id="itemModal" tabindex="-1" style="z-index: 1060">
+      <div class="modal fade mobile-fullscreen-modal" id="itemModal" tabindex="-1" data-bs-backdrop="false" style="position: absolute;">
         <div class="modal-dialog">
           <div class="modal-content border-0">
             <div class="modal-header border-0 shadow-sm" style="background: #fff">
@@ -753,7 +839,7 @@
               </div>
               <div style="height: 100px"></div>
             </div>
-            <div class="modal-footer border-top bg-white d-block p-3 fixed-bottom" style="position: sticky; bottom: 0; padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+            <div class="modal-footer border-top bg-white d-block p-3 fixed-bottom" style="position: absolute; bottom: 0; padding-bottom: 120px !important;">
               <div class="d-flex justify-content-between align-items-end mb-2">
                 <div><span class="fs-2 fw-bold" id="modal-item-price">¥0</span></div>
                 <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1 border">
@@ -771,7 +857,7 @@
       </div>
 
       <!-- Cart Modal (Bottom Sheet) -->
-      <div class="modal fade bottom-sheet" id="cartModal" tabindex="-1">
+      <div class="modal fade bottom-sheet" id="cartModal" tabindex="-1" data-bs-backdrop="false" style="position: absolute;">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
@@ -785,9 +871,9 @@
                 <span class="cart-total-value" id="cart-total-modal">¥0</span>
               </div>
             </div>
-            <div class="modal-footer d-block border-top-0 p-3 pt-0" style="background: var(--bg-color)">
+            <div class="modal-footer d-block border-top-0 p-3 pt-0" style="background: var(--bg-color); padding-bottom: 120px !important;">
                <button class="btn-primary-custom" style="background: var(--brand-color); margin-bottom: 10px;" onclick="checkout()">
-                  注文を確定する <i class="bi bi-chevron-right ms-1"></i>
+                  レジにすすむ <i class="bi bi-chevron-right ms-1"></i>
                </button>
                <button class="btn w-100 text-muted small" style="font-size: 0.9rem;" onclick="clearCart()">
                   カートを空にする
@@ -798,10 +884,6 @@
       </div>
       
     </div><!-- End App Container -->
-
-    <!-- =========================================
-         Scripts
-         ========================================= -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
       /* 1. Firebase Imports */
@@ -829,7 +911,7 @@
       
       // App Check (Localhost Debug)
       if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = "b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae";
       }
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider("6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6"),
@@ -874,12 +956,26 @@
       }
 
       async function checkFlow() {
-        // Notification Check
-        if (Notification.permission === "default") {
+        // iOS Detection: iPhone/iPod or iPad, and also Skip Mac (Macintosh)
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+                      /Macintosh/i.test(navigator.userAgent);
+
+        // Initial status save
+        // If iOS/Mac, notificationEnabled is FALSE.
+        // If Android/PC, depends on current permission (only 'granted' is true).
+        const currentPerm = !isIOS ? Notification.permission : "unsupported";
+        await updateUserProfile({
+          deviceType: isIOS ? "ios_or_mac" : "other",
+          notificationEnabled: currentPerm === "granted",
+          permissionStatus: currentPerm
+        });
+
+        // Notification Check: Skip if iOS or already decided
+        if (!isIOS && Notification.permission === "default") {
           showScreen("step-notification");
         } else {
-          // Grant or Deny -> Terms
-          if (Notification.permission === "granted") await saveToken();
+          // Grant or Deny or iOS -> Terms
+          if (!isIOS && Notification.permission === "granted") await saveToken();
           showScreen("step-terms");
         }
         loader.style.display = "none";
@@ -894,12 +990,20 @@
       document.getElementById("btn-req-notification").onclick = async () => {
         try {
           const p = await Notification.requestPermission();
-          if (p === "granted") await saveToken();
+          if (p === "granted") {
+            await saveToken(); // This sets notificationEnabled: true
+          } else {
+            // Denied or dismissed
+            await updateUserProfile({ notificationEnabled: false, permissionStatus: p });
+          }
         } catch (e) { console.warn(e); }
         showScreen("step-terms");
       };
       
-      window.skipNotification = () => showScreen("step-terms");
+      window.skipNotification = async () => {
+        await updateUserProfile({ notificationEnabled: false, permissionStatus: "skipped" });
+        showScreen("step-terms");
+      };
 
       document.getElementById("check-terms").onchange = (e) => {
         document.getElementById("btn-agree-terms").disabled = !e.target.checked;
@@ -912,6 +1016,19 @@
         loader.style.display = "none";
       };
 
+      async function updateUserProfile(additionalData = {}) {
+        if (!currentUser) return;
+        try {
+          const baseData = {
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            lastLogin: serverTimestamp(),
+            ...additionalData
+          };
+          await setDoc(doc(db, "users", currentUser.uid), baseData, { merge: true });
+        } catch (e) { console.error("User save failed", e); }
+      }
+
       async function saveToken() {
         try {
           const swReg = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
@@ -921,6 +1038,7 @@
               fcmToken: token,
               notificationEnabled: true,
               lastLogin: serverTimestamp(),
+              permissionStatus: "granted"
             }, { merge: true });
           }
         } catch (e) { console.warn("Token save failed", e); }
@@ -1310,16 +1428,41 @@
 
       // Scaling
       function adjustScale() {
-        const app = document.getElementById("app-container");
-        if (window.innerWidth <= 480) {
-          app.style.transform = "none";
-          app.style.height = "100vh";
-          return;
-        }
-        const baseHeight = 844; 
-        app.style.height = `${baseHeight}px`;
-        const scale = Math.min(1, (window.innerHeight - 40) / baseHeight);
-        app.style.transform = `scale(${scale})`;
+         const app = document.getElementById("app-container");
+         const isMobile = window.innerWidth <= 480;
+
+         if (isMobile) {
+            // Mobile: Standard flow, fill parent flex space
+            app.style.height = "100%";
+            app.style.flex = "1";
+            app.style.transform = "none";
+            app.style.zoom = "1";
+            app.style.marginTop = "0";
+         } else {
+            // PC/Tablet: Simulating a phone device
+            // Force the container to "Fit" strictly BETWEEN header and the Bottom Nav (Order Button)
+            
+            // 1. Define the usable height ABOVE the bottom nav
+            // Window Height - (Header ~60px) - (Bottom Nav ~90px) - (Margins ~30px)
+            const availableHeight = window.innerHeight - 180; 
+            
+            // 2. Define standard Phone Aspect Ratio Height
+            // Reverted to 840 to fit more vertical content (preventing customization button cut-off)
+            const baseHeight = 840;
+            
+            let scale = Math.min(1, availableHeight / baseHeight);
+            
+            // Fix dimensions to the base phone size, then scale it
+            app.style.flex = "none";
+            app.style.height = `${baseHeight}px`;
+            // max-width is handled by CSS (500px)
+            
+            app.style.transform = `scale(${scale})`;
+            app.style.transformOrigin = "top center";
+            
+            // Adjust zoom to reset if mixed
+            app.style.zoom = "1";
+         }
       }
       window.addEventListener("resize", adjustScale);
       window.addEventListener("load", adjustScale);
@@ -1391,5 +1534,9 @@
 
       init();
     </script>
+    <script>
+      window.CURRENT_PAGE = 'order';
+    </script>
+    <script type="module" src="../main/app-shell.js"></script>
   </body>
 </html>

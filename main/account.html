@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .profile-img-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #eee;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            border: 4px solid white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .profile-img-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+        .profile-email {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+        
+        .section-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 0 20px 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+        .stat-card:active { transform: scale(0.98); }
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .menu-list {
+            padding: 0 20px 40px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        .menu-item i {
+            width: 30px;
+            text-align: center;
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+        .menu-item:last-child { border-bottom: none; }
+        
+        .logout-btn {
+            color: #ff4757;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 15px 0;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Loading State */
+        .loading-skeleton {
+            animation: pulse 1.5s infinite;
+            background: #eee;
+            color: transparent !important;
+            border-radius: 4px;
+        }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <div id="profile-area">
+            <!-- Loaded by JS -->
+            <div class="profile-header">
+                <div class="profile-img-lg loading-skeleton"></div>
+                <div class="profile-name loading-skeleton" style="width: 150px; height: 30px; margin: 0 auto;"></div>
+                <div class="profile-email loading-skeleton" style="width: 200px; height: 20px; margin: 10px auto 0;"></div>
+            </div>
+        </div>
+
+        <h3 class="section-title">📊 Activity</h3>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-num">0</div>
+                <div class="stat-label">Favorites</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">0</div>
+                <div class="stat-label">Orders</div>
+            </div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 20px">⚙️ Settings</h3>
+        <div class="menu-list bg-white" style="border-radius: 20px; padding: 10px 20px; margin: 0 20px 20px;">
+            <div class="menu-item">
+                <i>🔔</i> 通知設定 (In-App Only)
+            </div>
+            <div class="menu-item">
+                <i>📝</i> 利用規約
+            </div>
+            <button class="logout-btn" id="btn-logout">
+                <i style="color: #ff4757">🚪</i> ログアウト
+            </button>
+        </div>
+    </main>
+
+    <script>
+        window.CURRENT_PAGE = 'account';
+    </script>
+    <script type="module" src="app-shell.js"></script>
+
+    <!-- Account Page specific logic -->
+    <script type="module">
+        import { watchUser, logout } from './auth.js';
+        
+        const profileArea = document.getElementById('profile-area');
+        const logoutBtn = document.getElementById('btn-logout');
+
+        watchUser((user) => {
+            if (user) {
+                renderProfile(user);
+            } else {
+                // Return to Home if accessed without login? 
+                // Or show "Guest" state. Let's show Guest state for now.
+                renderGuest();
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm('ログアウトしますか？')) {
+                await logout();
+                window.location.href = 'index.html';
+            }
+        });
+
+        function renderProfile(user) {
+            const photo = user.photoURL ? `<img src="${user.photoURL}">` : '';
+            profileArea.innerHTML = `
+                <div class="profile-header">
+                    <div class="profile-img-lg">
+                        ${photo}
+                    </div>
+                    <div class="profile-name">${user.displayName || '名無しさん'}</div>
+                    <div class="profile-email">${user.email}</div>
+                </div>
+            `;
+        }
+
+        function renderGuest() {
+            profileArea.innerHTML = `
+                <div class="profile-header">
+                    <div class="profile-img-lg" style="background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                        👤
+                    </div>
+                    <div class="profile-name">ゲスト</div>
+                    <div class="profile-email">ログインしていません</div>
+                    <button onclick="document.getElementById('header-user-icon').click()" class="btn-login-trigger" style="margin-top:20px; background:var(--primary-color); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold;">ログインする</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
