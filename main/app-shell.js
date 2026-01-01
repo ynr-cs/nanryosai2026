@@ -14,6 +14,7 @@ const AppShell = {
         this.injectMenuOverlay();
         this.highlightActiveTab();
         this.initAuth();
+        this.initTheme(); // Initialize manual theme override
     },
 
     resolvePath: function(path) {
@@ -109,8 +110,34 @@ const AppShell = {
         `;
         document.body.insertAdjacentHTML('beforeend', navHtml);
     },
+
+    initTheme: function() {
+        const savedTheme = localStorage.getItem('app-theme') || 'auto';
+        this.applyTheme(savedTheme);
+    },
+
+    applyTheme: function(theme) {
+        const html = document.documentElement;
+        if (theme === 'dark') {
+            html.setAttribute('data-theme', 'dark');
+        } else if (theme === 'light') {
+            html.setAttribute('data-theme', 'light');
+        } else {
+            html.removeAttribute('data-theme');
+        }
+        localStorage.setItem('app-theme', theme);
+        
+        // Update UI state in menu if it exists
+        const btns = document.querySelectorAll('.theme-toggle-btn');
+        btns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+    },
+
     injectMenuOverlay: function() {
         if (document.querySelector('.app-menu-overlay')) return;
+
+        const currentTheme = localStorage.getItem('app-theme') || 'auto';
 
         const menuHtml = `
             <div class="app-menu-overlay" id="app-menu-overlay">
@@ -119,6 +146,23 @@ const AppShell = {
                         <span>MENU</span>
                         <div onclick="document.getElementById('app-menu-overlay').classList.remove('active')" style="cursor:pointer; padding: 10px;">✕</div>
                     </div>
+                    
+                    <!-- Theme Selector -->
+                    <div class="menu-section">
+                        <div class="section-label">テーマ設定</div>
+                        <div class="theme-selector-grid">
+                            <button class="theme-toggle-btn ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">
+                                <i class="bi bi-sun-fill"></i> ライト
+                            </button>
+                            <button class="theme-toggle-btn ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">
+                                <i class="bi bi-moon-stars-fill"></i> ダーク
+                            </button>
+                            <button class="theme-toggle-btn ${currentTheme === 'auto' ? 'active' : ''}" data-theme="auto">
+                                <i class="bi bi-display"></i> 自動
+                            </button>
+                        </div>
+                    </div>
+
                     <ul class="menu-list">
                         <li><a href="${this.resolvePath('about.html')}">
                             <span style="font-size: 1.2rem; margin-right: 10px;">ℹ️</span> 概要
@@ -138,18 +182,25 @@ const AppShell = {
                     </ul>
 
                     <div style="margin-top: auto;">
-                        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 20px;">
-                            <a href="${this.resolvePath('about-us.html')}" style="display: block; padding: 15px; background: #f8f9fa; border-radius: 15px; text-decoration: none; color: #333; font-weight: bold; border: 1px solid #eee;">
-                                <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Created by</div>
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-bottom: 20px;">
+                            <a href="${this.resolvePath('about-us.html')}" style="display: block; padding: 15px; background: var(--card-bg); border-radius: 15px; text-decoration: none; color: var(--text-main); font-weight: bold; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px;">Created by</div>
                                 💻 Computer Science Club
                             </a>
                         </div>
-                        <p style="font-size: 0.8rem; color: #999; text-align: center;">© Nanryosai Exe 2026</p>
+                        <p style="font-size: 0.8rem; color: var(--text-sub); text-align: center;">© Nanryosai Exe 2026</p>
                     </div>
                 </div>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', menuHtml);
+
+        // Add event listeners for theme buttons
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.applyTheme(btn.dataset.theme);
+            });
+        });
 
         // Click outside to close
         document.getElementById('app-menu-overlay').addEventListener('click', (e) => {

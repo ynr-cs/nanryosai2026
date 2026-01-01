@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用規約 | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .back-btn:active { transform: scale(0.95); }
+
+        .terms-container {
+            padding: 0 20px 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Ported Styles from mobile-order.html */
+        .terms-warning-box {
+            background: #ffebee;
+            border: 2px solid #ef5350; /* var(--accent-color) fallback */
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #b71c1c;
+        }
+        .warning-title {
+            color: #d32f2f;
+            font-weight: 900;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .warning-list {
+            text-align: left;
+            margin-bottom: 0;
+            padding-left: 20px;
+            font-weight: 700;
+            color: #b71c1c;
+        }
+        .warning-list li { margin-bottom: 10px; }
+        .ban-warning {
+            font-size: 1.1em;
+            background: #b71c1c;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        /* Dark Mode Adjustments for the warning box if needed */
+        @media (prefers-color-scheme: dark) {
+            /* Keep it red even in dark mode for danger feeling, but maybe dim backgrounds? 
+               For now, keeping high contrast red as it is a warning. */
+        }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <div class="page-header">
+            <a href="account.html" class="back-btn">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <h2 style="margin:0; font-weight:800; font-size:1.5rem;">利用規約</h2>
+        </div>
+
+        <div class="terms-container">
+            <div class="text-center mt-3 mb-4">
+                <i class="bi bi-shield-exclamation text-danger" style="font-size: 3rem; color: #ff4757;"></i>
+                <h3 class="fw-bold mt-2 mb-0">利用規約の確認</h3>
+                <p style="color: var(--text-sub); font-size: 0.9rem; margin-top: 10px;">
+                    南陵祭モバイルオーダーをご利用いただく前に、<br>以下の内容を必ずご確認ください。
+                </p>
+            </div>
+
+            <div class="terms-warning-box">
+                <div class="warning-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i> 注意事項
+                </div>
+                <ul class="warning-list">
+                    <li>注文確定後のキャンセルはできません</li>
+                    <li>受け取りは「呼出」から15分以内</li>
+                    <li>返金対応は致しかねます</li>
+                </ul>
+                <div class="ban-warning">
+                    違反時は今後コンピュータ科学部が<br>作成するサービスからBANします
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; color: var(--text-sub); font-size: 0.85rem; line-height: 1.6;">
+                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px;">運営について</h4>
+                <p>
+                    当システムは横浜南陵高校コンピュータ科学部によって運営されています。<br>
+                    システムの不正利用、サーバーへの攻撃、その他運営が不適切と判断した行為に対しては、予告なくアクセス制限を行う場合があります。
+                </p>
+                
+                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px; margin-top: 20px;">免責事項</h4>
+                <p>
+                    1. 本システムの利用により生じた損害について、運営元は一切の責任を負いません。<br>
+                    2. システムの保守、障害対応、天災等の不可抗力により、予告なくサービスを停止する場合があります。<br>
+                    3. 掲載されている商品情報の内容（価格、在庫状況等）の正確性については万全を期しておりますが、保証するものではありません。
+                </p>
+
+                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px; margin-top: 20px;">禁止事項</h4>
+                <p>
+                    以下の行為を禁止します。<br>
+                    ・虚偽の情報を登録する行為<br>
+                    ・本システムの運営を妨害する行為<br>
+                    ・他者になりすまして本システムを利用する行為
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.CURRENT_PAGE = 'account'; // Highlight account tab as parent
+    </script>
+    <script type="module" src="app-shell.js"></script>
+</body>
+</html>

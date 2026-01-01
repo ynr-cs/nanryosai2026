@@ -9,20 +9,22 @@
         .profile-header {
             text-align: center;
             padding: 40px 20px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px var(--shadow-color);
             margin-bottom: 20px;
         }
         .profile-img-lg {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: #eee;
+            border-radius: 50%;
+            background: var(--border-color);
+            margin: 0 auto 15px;
             margin: 0 auto 15px;
             overflow: hidden;
-            border: 4px solid white;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 4px solid var(--card-bg);
+            box-shadow: 0 8px 16px var(--shadow-color);
         }
         .profile-img-lg img {
             width: 100%;
@@ -48,6 +50,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--text-main);
         }
 
         .dashboard-grid {
@@ -57,11 +60,11 @@
             padding: 0 20px 20px;
         }
         .stat-card {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 10px var(--shadow-color);
             transition: transform 0.2s;
         }
         .stat-card:active { transform: scale(0.98); }
@@ -77,6 +80,15 @@
             margin-top: 5px;
             font-weight: bold;
         }
+        .stat-card {
+             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+             cursor: default;
+        }
+        .stat-card[id="card-order-count"] { cursor: pointer; }
+        .stat-card:hover {
+             transform: translateY(-5px);
+             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+        }
 
         .menu-list {
             padding: 0 20px 40px;
@@ -85,15 +97,25 @@
             display: flex;
             align-items: center;
             padding: 15px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid var(--border-color);
             color: var(--text-main);
             font-weight: 500;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            transform: translateX(6px);
+            color: var(--primary-color);
         }
         .menu-item i {
             width: 30px;
             text-align: center;
             margin-right: 15px;
             color: var(--primary-color);
+            transition: color 0.2s ease;
+        }
+        .menu-item:hover i {
+             color: var(--brand-color);
         }
         .menu-item:last-child { border-bottom: none; }
         
@@ -108,52 +130,235 @@
             font-weight: bold;
             display: flex;
             align-items: center;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+             transform: translateX(6px);
         }
         
         /* Loading State */
         .loading-skeleton {
             animation: pulse 1.5s infinite;
-            background: #eee;
+            background: var(--border-color);
             color: transparent !important;
             border-radius: 4px;
         }
+
+        /* Order History Styles */
+        .order-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .store-name {
+            font-weight: bold;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+        .order-date {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+        .order-items {
+            flex: 1;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+        .order-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-price {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .guest-icon-box {
+            background: var(--border-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 3rem;
+            color: var(--text-sub);
+        }
+        .btn-login-trigger {
+            margin-top: 20px; 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn-login-trigger:active { opacity: 0.8; }
+        
+        .section-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .section-title:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        
+        /* Toggle Arrow */
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        .section-closed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        /* Collapsible Content */
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            max-height: 2000px; /* Arbitrary large height */
+            opacity: 1;
+        }
+        .section-closed + .collapsible-content {
+            max-height: 0;
+            opacity: 0;
+            padding-bottom: 0 !important;
+        }
+
         @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        /* Toggle Switch CSS */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
     
     <main>
-        <div id="profile-area">
-            <!-- Loaded by JS -->
-            <div class="profile-header">
-                <div class="profile-img-lg loading-skeleton"></div>
-                <div class="profile-name loading-skeleton" style="width: 150px; height: 30px; margin: 0 auto;"></div>
-                <div class="profile-email loading-skeleton" style="width: 200px; height: 20px; margin: 10px auto 0;"></div>
+        <!-- Authenticated User Content -->
+        <div id="auth-content" style="display: none;">
+            <div id="profile-area">
+                <!-- Loaded by JS -->
+                <div class="profile-header">
+                    <div class="profile-img-lg loading-skeleton"></div>
+                    <div class="profile-name loading-skeleton" style="width: 150px; height: 30px; margin: 0 auto;"></div>
+                    <div class="profile-email loading-skeleton" style="width: 200px; height: 20px; margin: 10px auto 0;"></div>
+                </div>
+            </div>
+
+            <h3 class="section-title">📊 アクティビティ</h3>
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-fav">0</div>
+                    <div class="stat-label">お気に入り</div>
+                </div>
+                <div class="stat-card" id="card-order-count" style="cursor: pointer;">
+                    <div class="stat-num" id="stat-orders">-</div>
+                    <div class="stat-label">注文数</div>
+                </div>
+            </div>
+
+            <div id="order-history-section" style="display: none;">
+                <h3 class="section-title section-closed" id="order-history-toggle" style="margin-top: 20px">
+                    <span>📦 注文履歴</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </h3>
+                <div class="collapsible-content">
+                    <div id="order-list" style="padding: 0 20px 20px;">
+                        <!-- Orders will be injected here -->
+                        <div class="loading-skeleton" style="height: 100px; margin-bottom: 10px;"></div>
+                        <div class="loading-skeleton" style="height: 100px; margin-bottom: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title" style="margin-top: 20px">⚙️ 設定</h3>
+            <div class="menu-list" style="background: var(--card-bg); border-radius: 20px; padding: 10px 20px; margin: 0 20px 20px;">
+                <div class="menu-item" style="justify-content: space-between;">
+                    <div style="display:flex; align-items:center;">
+                        <i class="bi bi-bell"></i> 呼び出し通知
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notification-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="menu-item" onclick="window.location.href='terms.html'">
+                    <i class="bi bi-file-text"></i> 利用規約
+                </div>
+                <!-- Delete Account Button -->
+                <div class="menu-item" id="btn-delete-account" style="color: #ff4757; cursor: pointer; border-bottom: none; margin-top: 10px;">
+                    <i class="bi bi-trash"></i> アカウント削除
+                </div>
+                <button class="logout-btn" id="btn-logout">
+                    <i class="bi bi-box-arrow-right" style="color: #ff4757"></i> ログアウト
+                </button>
             </div>
         </div>
 
-        <h3 class="section-title">📊 Activity</h3>
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="stat-num">0</div>
-                <div class="stat-label">Favorites</div>
+        <!-- Guest Content -->
+        <div id="guest-content" style="display: none; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 4rem; color: var(--text-sub); margin-bottom: 20px;">
+                <i class="bi bi-person-circle"></i>
             </div>
-            <div class="stat-card">
-                <div class="stat-num">0</div>
-                <div class="stat-label">Orders</div>
-            </div>
-        </div>
-
-        <h3 class="section-title" style="margin-top: 20px">⚙️ Settings</h3>
-        <div class="menu-list bg-white" style="border-radius: 20px; padding: 10px 20px; margin: 0 20px 20px;">
-            <div class="menu-item">
-                <i>🔔</i> 通知設定 (In-App Only)
-            </div>
-            <div class="menu-item">
-                <i>📝</i> 利用規約
-            </div>
-            <button class="logout-btn" id="btn-logout">
-                <i style="color: #ff4757">🚪</i> ログアウト
+            <h2 style="margin-bottom: 10px; color: var(--text-main);">ログインが必要です</h2>
+            <p style="color: var(--text-sub); margin-bottom: 30px;">
+                マイページ機能（注文履歴や通知設定など）を利用するには、ログインしてください。
+            </p>
+            <button onclick="window.triggerLogin()" class="btn-login-trigger" style="font-size: 1.1rem; padding: 12px 40px;">
+                ログインする
             </button>
         </div>
     </main>
@@ -165,27 +370,296 @@
 
     <!-- Account Page specific logic -->
     <script type="module">
-        import { watchUser, logout } from './auth.js';
+        import { watchUser, logout, db, app, auth } from './auth.js';
+        import { collection, query, where, getCountFromServer, getDocs, orderBy, limit, updateDoc, doc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+        import { deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         
         const profileArea = document.getElementById('profile-area');
         const logoutBtn = document.getElementById('btn-logout');
 
-        watchUser((user) => {
-            if (user) {
-                renderProfile(user);
+        const orderHistorySection = document.getElementById('order-history-section');
+        const orderList = document.getElementById('order-list');
+        const orderHistoryToggle = document.getElementById('order-history-toggle');
+        
+        
+        // Toggle Logic for History Section
+        orderHistoryToggle.addEventListener('click', () => {
+            orderHistoryToggle.classList.toggle('section-closed');
+        });
+
+        // Link Order Count Card to History
+        document.getElementById('card-order-count').addEventListener('click', () => {
+             // Open section if closed
+             orderHistoryToggle.classList.remove('section-closed');
+             orderHistorySection.style.display = 'block'; // Ensure it's visible (though logic handles this)
+             
+             // Scroll
+             orderHistorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Notification Logic
+        const notificationToggle = document.getElementById('notification-toggle');
+        const messaging = getMessaging(app);
+        const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po"; 
+
+        // Check permission and Device support on load
+        const isIOSorMac = /iPhone|iPad|iPod/i.test(navigator.userAgent) || /Macintosh/i.test(navigator.userAgent);
+
+        if (isIOSorMac) {
+            notificationToggle.disabled = true;
+            notificationToggle.parentElement.parentElement.title = "この端末は通知に対応していません";
+            // Optional: Add visual label
+            const label = notificationToggle.parentElement.previousElementSibling;
+            if(label) label.innerHTML += ' <span style="font-size:0.75rem; color:var(--status-unpaid);">(非対応)</span>';
+        } else if (Notification.permission === 'granted') {
+            notificationToggle.checked = true;
+        }
+
+        notificationToggle.addEventListener('change', async (e) => {
+            const user = window.CURRENT_USER_OBJ;
+            if (!user) {
+                alert('ログインが必要です');
+                e.target.checked = false;
+                return;
+            }
+
+            if (e.target.checked) {
+                // Request Permission
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        await saveToken(user);
+                    } else {
+                        alert('通知権限が拒否されました');
+                        e.target.checked = false;
+                    }
+                } catch (err) {
+                    console.error('Notification Error:', err);
+                    alert('エラーが発生しました: ' + err.message);
+                    e.target.checked = false;
+                }
             } else {
-                // Return to Home if accessed without login? 
-                // Or show "Guest" state. Let's show Guest state for now.
-                renderGuest();
+                alert('通知をオフにしました（完全に無効化するにはブラウザの設定も変更してください）');
+            }
+        });
+
+        async function saveToken(user) {
+            try {
+                // Register Service Worker first (Required for onMessage in background)
+                const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+                
+                // Wait for the service worker to be ready (active) to avoid "no active Service Worker" errors
+                const swReg = await navigator.serviceWorker.ready;
+
+                const token = await getToken(messaging, { 
+                    vapidKey: VAPID_KEY, 
+                    serviceWorkerRegistration: swReg 
+                });
+
+                if (token) {
+                    await updateDoc(doc(db, "users", user.uid), {
+                        fcmTokens: arrayUnion(token),
+                        notificationEnabled: true
+                    });
+                     // Success feedback
+                     // alert('通知設定をオンにしました'); // Optional: Toggle is visual enough
+                } else {
+                    console.warn('No registration token available.');
+                    alert('トークンの取得に失敗しました');
+                    notificationToggle.checked = false;
+                }
+            } catch (error) {
+                console.error('An error occurred while retrieving token. ', error);
+                alert('通知設定のエラー: ' + error.message);
+                notificationToggle.checked = false;
+            }
+        }
+
+        // Store user globally for access in event listeners
+        window.CURRENT_USER_OBJ = null;
+
+        // Cache stores
+        let storesCache = {};
+
+        watchUser((user) => {
+            window.CURRENT_USER_OBJ = user;
+            if (user) {
+                document.getElementById('auth-content').style.display = 'block';
+                document.getElementById('guest-content').style.display = 'none';
+                
+                renderProfile(user);
+                fetchOrderCount(user.uid);
+                fetchOrderHistory(user.uid);
+            } else {
+                document.getElementById('auth-content').style.display = 'none';
+                document.getElementById('guest-content').style.display = 'block';
             }
         });
 
         logoutBtn.addEventListener('click', async () => {
-            if (confirm('ログアウトしますか？')) {
-                await logout();
-                window.location.href = 'index.html';
+            await logout();
+            window.location.href = 'index.html';
+        });
+
+        // Account Deletion Logic
+        const deleteAccountBtn = document.getElementById('btn-delete-account');
+        deleteAccountBtn.addEventListener('click', async () => {
+            const user = window.CURRENT_USER_OBJ;
+            if (!user) return alert('ユーザー情報が見つかりません。');
+
+            const confirmDelete = confirm('【警告】\nアカウントを削除すると、すべてのデータが完全に消去され、元に戻すことはできません。\n\n本当に削除しますか？');
+            
+            if (confirmDelete) {
+                try {
+                    // 1. Delete Firestore User Document
+                    await deleteDoc(doc(db, "users", user.uid));
+                    
+                    // 2. Delete Auth User
+                    // Note: This requires recent login. If it fails with 'requires-recent-login', we might need re-auth flow.
+                    // For MVP, we'll try direct delete and catch errors.
+                    const authUser = auth.currentUser;
+                    if (authUser) {
+                        await deleteUser(authUser);
+                        alert('アカウントを削除しました。');
+                        window.location.href = 'index.html';
+                    } else {
+                        throw new Error("認証ユーザーが見つかりません。");
+                    }
+                } catch (error) {
+                    console.error("Account deletion error:", error);
+                    if (error.code === 'auth/requires-recent-login') {
+                        alert('セキュリティ保護のため、再ログインが必要です。\nログアウト後、再度ログインしてから実行してください。');
+                         await logout();
+                         window.location.href = 'index.html';
+                    } else {
+                        alert('アカウント削除中にエラーが発生しました:\n' + error.message);
+                    }
+                }
             }
         });
+
+
+        async function fetchStores() {
+            if (Object.keys(storesCache).length > 0) return;
+            try {
+                const snapshot = await getDocs(collection(db, "stores"));
+                snapshot.forEach(doc => {
+                    storesCache[doc.id] = doc.data();
+                });
+            } catch (e) {
+                console.error("Failed to fetch stores", e);
+            }
+        }
+
+        async function fetchOrderHistory(uid) {
+            orderHistorySection.style.display = 'block';
+            orderList.innerHTML = `
+                <div class="loading-skeleton" style="height: 100px; margin-bottom: 15px;"></div>
+                <div class="loading-skeleton" style="height: 100px; margin-bottom: 15px;"></div>
+            `;
+            
+            try {
+                // Ensure stores are loaded first
+                await fetchStores();
+
+                const coll = collection(db, "orders");
+                // Note: Requires index on userId ASC, createdAt DESC
+                // If index missing, it might fail or require creating one in console.
+                // For now, let's try simple query. If it fails due to index, we might need to remove orderBy or create index.
+                const q = query(coll, where("userId", "==", uid), orderBy("createdAt", "desc"), limit(10));
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    orderList.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">注文履歴はありません</div>`;
+                    return;
+                }
+
+                let html = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const store = storesCache[data.storeId] || { name: 'Unknown Store' };
+                    
+                    // Date formatting
+                    let dateStr = "---";
+                    if (data.createdAt && data.createdAt.toDate) {
+                        const d = data.createdAt.toDate();
+                        dateStr = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    }
+
+                    // Status Badge
+                    let statusLabel = data.status;
+                    let badgeColor = "var(--text-sub)";
+                    let badgeBg = "var(--border-color)";
+
+                    switch(data.status) {
+                        case 'authorized': 
+                        case 'unpaid_at_pos':
+                            statusLabel = '調理中'; badgeColor = '#2196f3'; badgeBg = '#e3f2fd'; break;
+                        case 'ready_to_serve': 
+                            statusLabel = '調理完了'; badgeColor = '#ff9800'; badgeBg = '#fff3e0'; break;
+                        case 'ready_for_pickup': 
+                            statusLabel = '呼出中'; badgeColor = '#e91e63'; badgeBg = '#fce4ec'; break;
+                        case 'completed_online': 
+                        case 'completed_at_store':
+                            statusLabel = '受取済'; badgeColor = '#4caf50'; badgeBg = '#e8f5e9'; break;
+                        case 'abandoned_and_paid':
+                            statusLabel = '期限切れ'; badgeColor = '#9e9e9e'; badgeBg = '#eeeeee'; break;
+                        case 'cancelled': 
+                            statusLabel = 'キャンセル'; badgeColor = '#f44336'; badgeBg = '#ffebee'; break;
+                        default:
+                            statusLabel = '待機中'; badgeColor = '#var(--text-sub)'; badgeBg = 'var(--border-color)'; break;
+                    }
+
+                    // Items formatting
+                    const itemsSummary = (data.items || []).map(i => {
+                        return `<div style="font-size:0.9rem;">${i.name} <span style="font-size:0.8em; color:var(--text-sub)">x${i.quantity}</span></div>`;
+                    }).join("");
+
+                    html += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <span class="store-name">${store.name}</span>
+                            <span class="order-date">${dateStr}</span>
+                        </div>
+                        <div class="order-body">
+                            <div class="order-items">${itemsSummary}</div>
+                            <div class="order-meta">
+                                <span class="order-price">¥${data.totalPrice}</span>
+                                <span class="status-badge" style="color:${badgeColor}; background:${badgeBg}">${statusLabel}</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; font-size:0.75rem; color:var(--text-sub); text-align:right;">NO. ${data.receiptNumber || '-'}</div>
+                    </div>
+                    `;
+                });
+
+                orderList.innerHTML = html;
+
+            } catch (error) {
+                console.error("Failed to fetch history:", error);
+                
+                // Fallback for missing index error
+                if (error.message.includes("index")) {
+                     orderList.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">※インデックス構築中のため表示できません<br>開発者ツールを確認してください</div>`;
+                } else {
+                     orderList.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">履歴の読み込みに失敗しました</div>`;
+                }
+            }
+        }
+
+        async function fetchOrderCount(uid) {
+            try {
+                const coll = collection(db, "orders");
+                const q = query(coll, where("userId", "==", uid));
+                const snapshot = await getCountFromServer(q);
+                document.getElementById("stat-orders").textContent = snapshot.data().count;
+            } catch (error) {
+                console.error("Failed to fetch orders:", error);
+                document.getElementById("stat-orders").textContent = "0";
+            }
+        }
 
         function renderProfile(user) {
             const photo = user.photoURL ? `<img src="${user.photoURL}">` : '';
@@ -200,18 +674,17 @@
             `;
         }
 
-        function renderGuest() {
-            profileArea.innerHTML = `
-                <div class="profile-header">
-                    <div class="profile-img-lg" style="background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-                        👤
-                    </div>
-                    <div class="profile-name">ゲスト</div>
-                    <div class="profile-email">ログインしていません</div>
-                    <button onclick="document.getElementById('header-user-icon').click()" class="btn-login-trigger" style="margin-top:20px; background:var(--primary-color); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold;">ログインする</button>
-                </div>
-            `;
-        }
+        // Expose login for guest button
+        import { login } from './auth.js';
+        window.triggerLogin = async () => {
+            try {
+                await login();
+            } catch (e) {
+                alert("ログインに失敗しました: " + e.message);
+            }
+        };
+
+
     </script>
 </body>
 </html>
