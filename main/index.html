@@ -6,36 +6,12 @@
     <title>ホーム | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Page Specific Style (Optional) -->
     <style>
-        .hero {
-            padding: 40px 20px;
-            text-align: center;
-            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1) 0%, rgba(37, 117, 252, 0.1) 100%);
-            border-radius: 0 0 30px 30px;
-            margin-bottom: 20px;
-        }
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .dummy-content {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            text-align: center;
-        }
+
+
     </style>
 </head>
 <body>
@@ -43,37 +19,319 @@
     <!-- Header is injected here by JS -->
 
     <main>
-        <section class="hero">
-            <h1>Nanryosai '26</h1>
-            <p>The Future is Now.</p>
-        </section>
-
-        <section class="dummy-content">
-            <div class="card">
-                <h3>企画</h3>
-                <p>32 Projects</p>
-            </div>
-            <div class="card">
-                <h3>ステージ</h3>
-                <p>15 Events</p>
-            </div>
-            <div class="card" style="grid-column: span 2; background: var(--item-fill); color: var(--text-main);">
-                <h3>Mobile Order</h3>
-                <p>待ち時間ゼロへ。</p>
+        <section class="hero-container">
+            <!-- Decorative Background Elements -->
+            <div class="hero-decoration-orb orb-1"></div>
+            <div class="hero-decoration-orb orb-2"></div>
+            
+            <div class="hero-content">
+                <div class="hero-badge">2026.9.11-12</div>
+                <h1 class="hero-title">南陵祭<br>2026</h1>
+                <p class="hero-slogan">(スローガンを入れる)</p>
             </div>
         </section>
 
-        <div style="height: 1000px; padding: 20px; text-align: center; color: #999;">
-            Scroll Test Area<br>
-            ↓
-        </div>
+        <section class="countdown-container">
+            <h2 class="countdown-label">開催まであと</h2>
+            <div class="timer-grid">
+                <div class="time-box">
+                    <span class="time-value" id="days">00</span>
+                    <span class="time-unit">DAYS</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-value" id="hours">00</span>
+                    <span class="time-unit">HOURS</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-value" id="minutes">00</span>
+                    <span class="time-unit">MINS</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-value" id="seconds">00</span>
+                    <span class="time-unit">SECS</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          ★ REAL-TIME INFO SECTION (DUMMY DATA) ★ 
+          将来的にFirebase Status JSONからリアルタイム情報を取得して表示するエリアです。
+          現在はデザイン確認用のダミーデータを表示しています。
+          backend logic: Not implemented yet.
+        -->
+        <section class="realtime-container">
+            <div class="section-header">
+                <h2 class="section-title">Real-time Info</h2>
+                <div class="live-badge-pulse">LIVE</div>
+            </div>
+            
+            <div class="venue-grid">
+                <!-- 体育館 (Dummy) -->
+                <div class="venue-card">
+                    <div class="venue-header">
+                        <h3>体育館</h3>
+                        <span class="status-badge live">開催中</span>
+                    </div>
+                    <div class="venue-body">
+                        <p class="current-program">（現在調整中：ダミーデータ）</p>
+                        <p class="next-program">Next: 準備中</p>
+                    </div>
+                </div>
+
+                <!-- 音楽室 (Dummy) -->
+                <div class="venue-card">
+                    <div class="venue-header">
+                        <h3>音楽室</h3>
+                        <span class="status-badge preparing">準備中</span>
+                    </div>
+                    <div class="venue-body">
+                        <p class="current-program">（現在調整中：ダミーデータ）</p>
+                        <p class="next-program">Next: ―</p>
+                    </div>
+                </div>
+
+                <!-- 視聴覚室 (Dummy) -->
+                <div class="venue-card">
+                    <div class="venue-header">
+                        <h3>視聴覚室</h3>
+                        <span class="status-badge ended">終了</span>
+                    </div>
+                    <div class="venue-body">
+                        <p class="current-program">本日の公演は終了しました</p>
+                        <p class="next-program">See you tomorrow!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          ★ MOBILE ORDER PROMO SECTION ★ 
+        -->
+        <section class="mobile-order-promo">
+            <div class="promo-card">
+                <div class="promo-content">
+                    <span class="promo-badge">モバイルオーダー</span>
+                    <h2 class="promo-title">並ばずに<br>スマホで注文。</h2>
+                    <p class="promo-desc">
+                        列に並ばず<br>
+                        好きな時間にご注文いただけます。
+                    </p>
+                    <a href="../pos/mobile-order.html" class="promo-btn">
+                        <i class="fas fa-mobile-alt"></i>
+                        モバイルオーダーを使う
+                    </a>
+                </div>
+                <!-- Visual decoration reduced/kept subtle -->
+                <div class="promo-visual"></div>
+            </div>
+        </section>
+
+
+
+
+        </section>
+
+        <!-- 
+          ★ PROJECTS SCROLLER SECTION ★ 
+        -->
+        <section class="scroller-section">
+            <div class="scroller-header">
+                <h2 class="scroller-title">企画・展示 ハイライト</h2>
+                <button class="scroller-control-btn" id="btn-projects" aria-label="Pause Auto-scroll">
+                    <i class="fas fa-pause"></i>
+                </button>
+            </div>
+            <div class="projects-scroller" id="scroller-projects">
+                <div class="scroller-inner" id="inner-projects">
+                    <!-- JS will inject cards here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          ★ STAGE SCROLLER SECTION ★ 
+        -->
+        <section class="scroller-section">
+            <div class="scroller-header">
+                <h2 class="scroller-title">ステージ発表 ハイライト</h2>
+                <button class="scroller-control-btn" id="btn-stage" aria-label="Pause Auto-scroll">
+                    <i class="fas fa-pause"></i>
+                </button>
+            </div>
+            <div class="projects-scroller" id="scroller-stage">
+                <div class="scroller-inner" id="inner-stage">
+                    <!-- JS will inject cards here -->
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Footer is injected here by JS -->
 
+    <!-- Load External Data -->
+    <script src="data/data.js"></script>
+    
     <script>
         // Define current page for the shell
         window.CURRENT_PAGE = 'home';
+
+        // Countdown Logic
+        const targetDate = new Date('2026-09-11T09:00:00+09:00').getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.getElementById('days').innerText = "00";
+                document.getElementById('hours').innerText = "00";
+                document.getElementById('minutes').innerText = "00";
+                document.getElementById('seconds').innerText = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call
+
+        // Generic Scroller Logic
+        function setupScroller(containerId, scrollerId, btnId, data) {
+            const container = document.getElementById(containerId);
+            const scroller = document.getElementById(scrollerId);
+            const btn = document.getElementById(btnId);
+            
+            if (!container || !scroller || !data) return;
+
+            // Generate HTML
+            const generateItemsHTML = (items) => {
+                return items.map(item => {
+                    const category = item.tags ? (item.tags[1] || item.tags[0]) : 'Event';
+                    
+                    // Unified Layout:
+                    // Group Name (Small, Colored)
+                    // Project/Stage Name (Large, Main)
+                    const groupName = item.groupName || item.groupId || '参加団体';
+                    
+                    return `
+                    <div class="project-card-small">
+                        <div class="project-cat">${category}</div>
+                        <div class="project-group">${groupName}</div>
+                        <div class="project-name">${item.name}</div>
+                        <div class="project-place"><i class="fas fa-map-marker-alt"></i> ${item.place}</div>
+                        <div class="card-link">詳細を見る <i class="fas fa-arrow-right"></i></div>
+                    </div>
+                `}).join('');
+            };
+
+            const itemsHTML = generateItemsHTML(data);
+            // Double logic for seamless loop
+            container.innerHTML = itemsHTML + itemsHTML;
+
+            // --- Constant Speed Logic ---
+            // Speed: pixels per second. 
+            // e.g., 50px/s means if width is 1000px, duration is 20s.
+            const speedPxPerSec = 50; 
+            
+            // Wait for render to get width
+            requestAnimationFrame(() => {
+                const totalWidth = container.scrollWidth / 2; // Real width of one set
+                const duration = totalWidth / speedPxPerSec;
+                container.style.animationDuration = `${duration}s`;
+            });
+
+            // --- Control Button Logic ---
+            let isPaused = false;
+            
+            function togglePause() {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    container.style.animationPlayState = 'paused';
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                    btn.setAttribute('aria-label', 'Resume Auto-scroll');
+                    btn.classList.add('paused'); // For styling hooks if needed
+                } else {
+                    container.style.animationPlayState = 'running';
+                    btn.innerHTML = '<i class="fas fa-pause"></i>';
+                    btn.setAttribute('aria-label', 'Pause Auto-scroll');
+                    btn.classList.remove('paused');
+                }
+            }
+
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent drag interference if any
+                    togglePause();
+                });
+            }
+
+            // --- Drag & Interaction Logic ---
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            // Pause on hover
+            scroller.addEventListener('mouseenter', () => {
+                if (!isPaused) container.style.animationPlayState = 'paused';
+            });
+            scroller.addEventListener('mouseleave', () => {
+                isDown = false;
+                scroller.classList.remove('active');
+                if (!isPaused) container.style.animationPlayState = 'running';
+            });
+
+            // Drag events
+            scroller.addEventListener('mousedown', (e) => {
+                isDown = true;
+                scroller.classList.add('active');
+                startX = e.pageX - scroller.offsetLeft;
+                scrollLeft = scroller.scrollLeft;
+                container.style.animationPlayState = 'paused'; // Always pause on interaction
+            });
+
+            scroller.addEventListener('mouseup', () => {
+                isDown = false;
+                scroller.classList.remove('active');
+                if (!isPaused) container.style.animationPlayState = 'running';
+            });
+
+            scroller.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - scroller.offsetLeft;
+                const walk = (x - startX) * 2;
+                scroller.scrollLeft = scrollLeft - walk;
+            });
+            
+            // Touch events
+            scroller.addEventListener('touchstart', () => {
+                container.style.animationPlayState = 'paused';
+            }, { passive: true });
+            
+            scroller.addEventListener('touchend', () => {
+                if (!isPaused) container.style.animationPlayState = 'running';
+            });
+        }
+
+        // Initialize Scrollers
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof projectData !== 'undefined') {
+                setupScroller('inner-projects', 'scroller-projects', 'btn-projects', projectData);
+            }
+            if (typeof stageData !== 'undefined') {
+                setupScroller('inner-stage', 'scroller-stage', 'btn-stage', stageData);
+            }
+        });
     </script>
     <!-- App Shell Logic -->
     <script type="module" src="app-shell.js"></script>
