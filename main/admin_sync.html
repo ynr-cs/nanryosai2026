@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Master Data Admin | 南陵祭'26</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        background-color: #f5f7fa;
+        color: #333;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        padding: 20px;
+      }
+      .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2,
+      h3 {
+        color: var(--text-main);
+        margin-bottom: 20px;
+      }
+
+      /* Toolbar */
+      .toolbar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #e9ecef;
+        border-radius: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity 0.2s;
+      }
+      .btn:hover {
+        opacity: 0.9;
+      }
+      .btn-primary {
+        background: #007bff;
+        color: white;
+      }
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+      .btn-warning {
+        background: #ffc107;
+        color: #333;
+      }
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+      .btn-info {
+        background: #17a2b8;
+        color: white;
+      }
+
+      .test-mode-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff3cd;
+        padding: 8px 15px;
+        border-radius: 5px;
+        border: 1px solid #ffeeba;
+        font-weight: bold;
+        color: #856404;
+      }
+
+      /* Table Styles */
+      .data-table-wrapper {
+        overflow-x: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        max-height: 70vh;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+      }
+      th {
+        background: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      tr:hover {
+        background-color: #f1f3f5;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+
+      .json-output-area {
+        margin-top: 30px;
+        background: #2d2d2d;
+        padding: 20px;
+        border-radius: 8px;
+        color: #f8f8f2;
+      }
+      .json-textarea {
+        width: 100%;
+        height: 300px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        font-family: monospace;
+        border: 1px solid #444;
+        padding: 10px;
+      }
+
+      /* Menu Editor Modal (Simulated) */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .modal.active {
+        display: flex;
+      }
+
+      .log-area {
+        margin-top: 10px;
+        background: #333;
+        color: #0f0;
+        padding: 10px;
+        font-family: monospace;
+        max-height: 150px;
+        overflow-y: auto;
+        border-radius: 5px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-container">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        "
+      >
+        <h1>🛠️ Master Data Admin</h1>
+        <div
+          id="auth-container"
+          style="display: flex; align-items: center; gap: 10px"
+        >
+          <span id="user-display" style="font-weight: bold; color: #555"
+            >未ログイン</span
+          >
+          <button
+            id="btn-login"
+            class="btn btn-primary"
+            style="padding: 5px 15px; font-size: 0.9rem"
+          >
+            Login
+          </button>
+          <button
+            id="btn-logout"
+            class="btn btn-danger"
+            style="padding: 5px 15px; font-size: 0.9rem; display: none"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <p>
+        1. ここで編集 → 2. data.js生成ボタン → 3. コピーして `data.js` を全置換
+        → 4. Firestore同期 で更新してください。
+      </p>
+
+      <div class="toolbar">
+        <button class="btn btn-warning" onclick="generateJSON()">
+          <i class="fas fa-code"></i> data.js 生成 (全コピー用)
+        </button>
+        <div style="flex-grow: 1"></div>
+
+        <label class="test-mode-toggle">
+          <input type="checkbox" id="test-mode-check" checked />
+          <i class="fas fa-vial"></i> テストモード (stores_test / items_test)
+        </label>
+
+        <!-- NEW: Dedicated Prod Import Button -->
+        <button
+          class="btn btn-warning"
+          id="btn-import-prod"
+          style="margin-right: 10px"
+        >
+          <i class="fas fa-file-import"></i> 本番から読込
+        </button>
+        <button class="btn btn-info" id="btn-import">
+          <i class="fas fa-cloud-download-alt"></i> 現モードから読込
+        </button>
+
+        <button class="btn btn-primary" id="btn-sync-stores">
+          <i class="fas fa-cloud-upload-alt"></i> Firestore同期 (店舗情報)
+        </button>
+        <button class="btn btn-success" id="btn-sync-items">
+          <i class="fas fa-utensils"></i> Firestore同期 (メニュー)
+        </button>
+      </div>
+
+      <div class="data-table-wrapper">
+        <table id="projects-table">
+          <thead>
+            <tr>
+              <th width="80">ID</th>
+              <th width="100">LoginID</th>
+              <th width="120">クラス名</th>
+              <th width="150">企画名</th>
+              <th width="100">場所</th>
+              <th width="60">階数</th>
+              <th width="100">種類</th>
+              <th width="80">メニュー</th>
+              <th width="200">キャッチコピー</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- JS Injected -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="json-output-area">
+        <h3>📤 data.js 出力コード</h3>
+        <p style="font-size: 0.9em; color: #aaa">
+          下のテキストを全選択(Ctrl+A)してコピーし、`main/data/data.js`
+          の中身を<b>すべて消して貼り付けて</b>ください。
+        </p>
+        <textarea id="json-result" class="json-textarea" readonly></textarea>
+      </div>
+
+      <div class="log-area" id="log-console">
+        <div>System Ready.</div>
+      </div>
+    </div>
+
+    <!-- Menu Editor Modal -->
+    <div id="menu-modal" class="modal">
+      <div class="modal-content">
+        <h3>メニュー編集: <span id="modal-title"></span></h3>
+        <div id="menu-editor-container"></div>
+        <div style="margin-top: 20px; text-align: right">
+          <button class="btn btn-primary" onclick="saveMenuChanges()">
+            保存して閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load Global Data Script -->
+    <script src="data/data.js"></script>
+
+    <!-- Main Logic -->
+    <script type="module">
+      import { db, auth, login, logout, watchUser } from "./auth.js";
+      import {
+        doc,
+        setDoc,
+        collection,
+        writeBatch,
+        deleteDoc,
+        getDocs,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // Global State
+      if (typeof projectData === "undefined") {
+        alert("Error: data.js failed to load. projectData is undefined.");
+        throw new Error("projectData undefined");
+      }
+
+      window.localData = JSON.parse(JSON.stringify(projectData));
+      let currentUser = null;
+      let currentEditId = null;
+
+      // Logging
+      function log(msg) {
+        const el = document.getElementById("log-console");
+        const div = document.createElement("div");
+        const time = new Date().toLocaleTimeString();
+        div.textContent = `[${time}] ${msg}`;
+        el.appendChild(div);
+        el.scrollTop = el.scrollHeight;
+      }
+
+      // --- Helper for Test Mode ---
+      function getCollectionName(baseName) {
+        const isTest = document.getElementById("test-mode-check").checked;
+        return isTest ? baseName + "_test" : baseName;
+      }
+
+      // --- Auth Logic ---
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
+      const userDisplay = document.getElementById("user-display");
+
+      function updateAuthUI(user) {
+        currentUser = user;
+        if (user) {
+          userDisplay.textContent = user.email;
+          if (user.email === "ynrcs1000@gmail.com") {
+            userDisplay.innerHTML +=
+              ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>';
+          }
+          btnLogin.style.display = "none";
+          btnLogout.style.display = "inline-block";
+          log(`Logged in as ${user.email}`);
+        } else {
+          userDisplay.textContent = "未ログイン";
+          btnLogin.style.display = "inline-block";
+          btnLogout.style.display = "none";
+          log("Logged out.");
+        }
+      }
+
+      if (btnLogin)
+        btnLogin.onclick = async () => {
+          try {
+            await login();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      if (btnLogout)
+        btnLogout.onclick = async () => {
+          try {
+            await logout();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+
+      watchUser(updateAuthUI);
+
+      // --- UI Rendering ---
+      function renderTable() {
+        const tbody = document.getElementById("table-body");
+        tbody.innerHTML = "";
+
+        window.localData.forEach((project, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td><input type="text" value="${
+                      project.id
+                    }" onchange="updateRow(${index}, 'id', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.loginId || ""
+                    }" placeholder="loginId" onchange="updateRow(${index}, 'loginId', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.groupName || ""
+                    }" onchange="updateRow(${index}, 'groupName', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.name || ""
+                    }" onchange="updateRow(${index}, 'name', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.place || ""
+                    }" onchange="updateRow(${index}, 'place', this.value)"></td>
+                    <td><input type="number" value="${
+                      project.floor || 1
+                    }" style="width:50px" onchange="updateRow(${index}, 'floor', parseInt(this.value))"></td>
+                    <td>
+                        <select onchange="updateRow(${index}, 'contentType', this.value)">
+                            <option value="menu" ${
+                              project.contentType === "menu" ? "selected" : ""
+                            }>Menu (販売)</option>
+                            <option value="gallery" ${
+                              project.contentType === "gallery"
+                                ? "selected"
+                                : ""
+                            }>Gallery (展示)</option>
+                        </select>
+                    </td>
+                    <td>
+                        ${
+                          project.contentType === "menu"
+                            ? `<button class="btn btn-sm" style="font-size:0.8rem; padding:4px 8px; background:#6c757d; color:white;" onclick="openMenuEditor(${index})">編集 (${
+                                project.menu ? project.menu.length : 0
+                              })</button>`
+                            : '<span style="color:#ccc">-</span>'
+                        }
+                    </td>
+                    <td><input type="text" value="${
+                      project.catchphrase || ""
+                    }" onchange="updateRow(${index}, 'catchphrase', this.value)"></td>
+                    <td>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteRow(${index})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      window.updateRow = (index, field, value) =>
+        (window.localData[index][field] = value);
+      window.deleteRow = (index) => {
+        if (confirm("削除しますか？")) {
+          window.localData.splice(index, 1);
+          renderTable();
+        }
+      };
+
+      window.generateJSON = () => {
+        const jsonData = JSON.stringify(window.localData, null, 4);
+        const fullFileContent = `// =======================================================
+// ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase) ★★★
+// =======================================================
+
+console.log("data.js loading...");
+
+// 企画の名簿データ
+const projectData = ${jsonData};
+
+// ステージデータ (空でも定義が必要)
+const stageData = [
+  // 必要に応じてここに追加
+];
+
+console.log("data.js loaded: projectData count =", projectData.length);
+`;
+        document.getElementById("json-result").value = fullFileContent;
+        log(
+          "Full data.js content generated. Please copy and replace data.js content."
+        );
+      };
+
+      // --- Menu Editor ---
+      window.openMenuEditor = (index) => {
+        currentEditId = index;
+        const project = window.localData[index];
+        document.getElementById("modal-title").textContent = project.groupName;
+
+        const container = document.getElementById("menu-editor-container");
+        container.innerHTML = "";
+
+        if (!project.menu) project.menu = [];
+
+        project.menu.forEach((item, mIndex) => {
+          const div = document.createElement("div");
+          div.style.marginBottom = "10px";
+          div.style.padding = "10px";
+          div.style.background = "#f8f9fa";
+          div.style.border = "1px solid #ddd";
+
+          div.innerHTML = `
+                    <div style="display:flex; gap:10px; margin-bottom:5px;">
+                        <input type="text" placeholder="商品名" value="${
+                          item.name || ""
+                        }" id="menu-name-${mIndex}" style="flex:2">
+                        <input type="text" placeholder="価格 (円)" value="${(
+                          item.price || ""
+                        ).replace(
+                          "円",
+                          ""
+                        )}" id="menu-price-${mIndex}" style="flex:1">
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <label style="font-size:0.85rem;"><input type="checkbox" ${
+                          item.isRecommended ? "checked" : ""
+                        } id="menu-rec-${mIndex}"> おすすめ</label>
+                        <button onclick="removeMenuItem(${mIndex})" style="color:red; margin-left:auto;">削除</button>
+                    </div>
+                    <div style="font-size:0.75em; color:#666; margin-top:5px;">
+                        Toppings: ${
+                          item.allowedToppings
+                            ? item.allowedToppings.join(", ")
+                            : "None"
+                        } | 
+                        Available: ${item.isAvailable !== false ? "Yes" : "No"}
+                    </div>
+                `;
+          container.appendChild(div);
+        });
+
+        const addBtn = document.createElement("button");
+        addBtn.className = "btn btn-sm btn-success";
+        addBtn.innerHTML = "+ 商品追加";
+        addBtn.onclick = () => {
+          project.menu.push({ name: "新規商品", price: "0" });
+          window.openMenuEditor(index); // Re-render
+        };
+        container.appendChild(addBtn);
+
+        document.getElementById("menu-modal").classList.add("active");
+      };
+
+      window.removeMenuItem = (mIndex) => {
+        window.localData[currentEditId].menu.splice(mIndex, 1);
+        window.openMenuEditor(currentEditId);
+      };
+
+      window.saveMenuChanges = () => {
+        const project = window.localData[currentEditId];
+        const inputs = document.querySelectorAll(
+          "#menu-editor-container > div"
+        );
+
+        inputs.forEach((div, idx) => {
+          let itemObj = project.menu[idx];
+          if (!itemObj) return;
+
+          const nameInput = document.getElementById(`menu-name-${idx}`);
+          if (nameInput) {
+            const priceInput = document.getElementById(`menu-price-${idx}`);
+            const recInput = document.getElementById(`menu-rec-${idx}`);
+
+            itemObj.name = nameInput.value;
+            itemObj.price = priceInput.value + "円";
+            itemObj.isRecommended = recInput.checked;
+          }
+        });
+
+        document.getElementById("menu-modal").classList.remove("active");
+        renderTable();
+        log(`Menu updated for ${project.groupName}`);
+      };
+
+      // --- Firestore Sync Logic ---
+
+      async function importFromProduction() {
+        await importGeneric("stores", "items", "本番環境(stores/items)");
+      }
+
+      async function importFromFirestore() {
+        const storesCol = getCollectionName("stores");
+        const itemsCol = getCollectionName("items");
+        await importGeneric(storesCol, itemsCol, `現在のモード(${storesCol})`);
+      }
+
+      async function importGeneric(storesCol, itemsCol, sourceLabel) {
+        if (
+          !confirm(
+            `${sourceLabel} からデータをこれを読み込み、現在の編集内容とマージしますか？`
+          )
+        )
+          return;
+        log(`Starting Merge from ${sourceLabel}...`);
+
+        document.body.style.cursor = "wait";
+
+        try {
+          // 1. Fetch Stores
+          const storesSnap = await getDocs(collection(db, storesCol));
+          const storesMap = {};
+          log(`Fetched ${storesSnap.size} docs from ${storesCol}`);
+
+          storesSnap.forEach((doc) => {
+            storesMap[doc.id] = { id: doc.id, ...doc.data() };
+            // Debug: Log basic info
+            if (document.getElementById("test-mode-check").checked) {
+              console.log("Store Doc:", doc.id, doc.data());
+            }
+          });
+
+          // 2. Fetch Items
+          const itemsSnap = await getDocs(collection(db, itemsCol));
+          log(`Fetched ${itemsSnap.size} docs from ${itemsCol}`);
+
+          const itemsMap = {}; // storeId -> [items]
+          itemsSnap.forEach((doc) => {
+            const item = doc.data();
+            const sId = (item.storeId || "") + ""; // Ensure string key
+            if (!itemsMap[sId]) itemsMap[sId] = [];
+            itemsMap[sId].push(item);
+          });
+
+          // 3. Build Project Data (Merge)
+          const currentDataMap = new Map(
+            window.localData.map((p) => [p.id, p])
+          );
+          const mergedData = [];
+
+          // Process Firestore stores
+          for (const storeId in storesMap) {
+            const s = storesMap[storeId];
+            const existing = currentDataMap.get(s.id) || {};
+            const storeItems = itemsMap[storeId] || []; // storeId is key from storesMap (doc.id)
+
+            log(`Store [${s.id}] found. Items: ${storeItems.length}`);
+
+            const menuList = storeItems.map((i) => {
+              const { storeId, ...rest } = i;
+              return {
+                ...rest,
+                price: typeof i.price === "number" ? i.price + "円" : i.price,
+              };
+            });
+
+            mergedData.push({
+              id: s.id,
+              loginId: s.loginId || existing.loginId || "",
+              groupName: s.name || existing.groupName || "",
+              name: s.teamName || existing.name || "",
+              place: s.place || existing.place || "",
+              floor: s.floor || existing.floor || 1,
+              description: s.description || existing.description || "",
+              image: s.image || existing.image || "",
+              catchphrase: existing.catchphrase || "",
+              tags: existing.tags || [],
+              contentType:
+                menuList.length > 0
+                  ? "menu"
+                  : existing.contentType || "gallery",
+              menu: menuList,
+              gallery: existing.gallery || [],
+            });
+          }
+
+          if (mergedData.length === 0) {
+            log(`⚠️ No stores found in ${storesCol}.`);
+            alert(`${storesCol} にデータが見つかりませんでした`);
+          } else {
+            window.localData = mergedData;
+            renderTable();
+            window.generateJSON();
+            log(`✅ Merged ${mergedData.length} projects from ${storesCol}.`);
+            alert(
+              `読み込み完了！(${storesCol})\n${mergedData.length}件のデータをマージしました。`
+            );
+          }
+        } catch (e) {
+          console.error(e);
+          log(`❌ Error: ${e.message}`);
+          alert("エラー発生: " + e.message);
+        } finally {
+          document.body.style.cursor = "default";
+        }
+      }
+
+      async function syncStores() {
+        if (!currentUser) return alert("ログインしてください");
+
+        const storesCol = getCollectionName("stores");
+        if (
+          !confirm(
+            `Firestoreの「${storesCol}」コレクションを更新しますか？\n(テストモード: ${
+              document.getElementById("test-mode-check").checked
+            })`
+          )
+        )
+          return;
+
+        log(`Starting Stores Sync to ${storesCol}...`);
+        let count = 0;
+
+        try {
+          const batch = writeBatch(db);
+
+          window.localData.forEach((p) => {
+            if (!p.id) return;
+            // User requested to only sync sales groups (contentType === 'menu') to Firestore
+            if (p.contentType !== "menu") return;
+
+            const storeRef = doc(db, storesCol, p.id);
+
+            const storeData = {
+              name: p.groupName, // data.js: groupName -> DB: name
+              teamName: p.name, // data.js: name -> DB: teamName
+              description: p.description || "",
+              loginId: p.loginId || "", // Include loginId if user wants to sync it
+            };
+
+            batch.set(storeRef, storeData, { merge: true });
+            count++;
+          });
+
+          await batch.commit();
+          log(`✅ Success: ${count} stores synced to ${storesCol}.`);
+          alert(`${storesCol} への同期が完了しました`);
+        } catch (e) {
+          console.error(e);
+          if (e.code === "permission-denied") {
+            log("❌ Permission Denied. Are you logged in as Super Admin?");
+            alert("保存に失敗しました。スーパー管理者権限が必要です。");
+          } else {
+            log(`❌ Error: ${e.message}`);
+            alert("エラーが発生しました: " + e.message);
+          }
+        }
+      }
+
+      async function syncItems() {
+        if (!currentUser) return alert("ログインしてください");
+
+        const itemsCol = getCollectionName("items");
+
+        if (!confirm(`Firestoreの「${itemsCol}」コレクションを更新しますか？`))
+          return;
+
+        log(`Starting Items Sync to ${itemsCol}...`);
+
+        try {
+          for (const p of window.localData) {
+            if (p.contentType !== "menu" || !p.menu || p.menu.length === 0)
+              continue;
+            if (!p.id) continue;
+
+            log(`Processing ${p.groupName}...`);
+
+            // 1. Delete existing items for this store
+            const q = query(
+              collection(db, itemsCol),
+              where("storeId", "==", p.id)
+            );
+            const snapshot = await getDocs(q);
+
+            const deleteBatch = writeBatch(db);
+            snapshot.forEach((doc) => {
+              deleteBatch.delete(doc.ref);
+            });
+            await deleteBatch.commit();
+
+            // 2. Add new items
+            const addBatch = writeBatch(db);
+            p.menu.forEach((item) => {
+              const newRef = doc(collection(db, itemsCol));
+
+              const priceStr = item.price + "";
+              const priceVal = parseInt(priceStr.replace(/[^\d]/g, "")) || 0;
+
+              const payload = {
+                ...item,
+                storeId: p.id,
+                price: priceVal,
+                isRecommended: !!item.isRecommended,
+                isAvailable:
+                  item.isAvailable !== undefined ? item.isAvailable : true,
+                allowedToppings: item.allowedToppings || [],
+              };
+
+              addBatch.set(newRef, payload);
+            });
+            await addBatch.commit();
+            log(`  -> Synced ${p.menu.length} items to ${itemsCol}.`);
+          }
+
+          log(`✅ All items synced successfully to ${itemsCol}.`);
+          alert(`${itemsCol} への同期が完了しました`);
+        } catch (e) {
+          console.error(e);
+          if (e.code === "permission-denied") {
+            log("❌ Permission Denied. Are you logged in as Super Admin?");
+            alert("保存に失敗しました。スーパー管理者権限が必要です。");
+          } else {
+            log(`❌ Error: ${e.message}`);
+            alert("エラーが発生しました: " + e.message);
+          }
+        }
+      }
+
+      document
+        .getElementById("btn-import-prod")
+        .addEventListener("click", importFromProduction);
+      document
+        .getElementById("btn-import")
+        .addEventListener("click", importFromFirestore);
+      document
+        .getElementById("btn-sync-stores")
+        .addEventListener("click", syncStores);
+      document
+        .getElementById("btn-sync-items")
+        .addEventListener("click", syncItems);
+
+      renderTable();
+    </script>
+  </body>
+</html>

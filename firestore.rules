@@ -50,6 +50,14 @@ service cloud.firestore {
       allow delete: if isStoreAdmin(resource.data.storeId) || isSuperAdmin();
     }
 
+    // --- Test Collections (Super Admin Only) ---
+    match /stores_test/{storeId} {
+      allow read, write: if isSuperAdmin();
+    }
+    match /items_test/{itemId} {
+      allow read, write: if isSuperAdmin();
+    }
+
     // 3. Orders (注文)
     match /orders/{orderId} {
       // 読み取り: 認証済みユーザーなら許可 (Kitchen/Monitorの現在の仕様上)
