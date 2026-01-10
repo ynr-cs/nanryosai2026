@@ -1,9 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+// ... (imports are correct) ...
 
 /* ==============================
    Firebase Configuration
+
    (Shared with Mobile Order)
    ============================== */
 const firebaseConfig = {
@@ -60,6 +63,10 @@ async function login() {
         return user;
     } catch (error) {
         console.error("Login failed:", error);
+        
+        // Log error to Firestore for analysis
+        logErrorToFirestore(error);
+
         if (error.code === 'auth/popup-blocked') {
             alert("ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。");
         } else if (error.code === 'auth/cancelled-popup-request') {
@@ -68,6 +75,24 @@ async function login() {
             alert("ログインエラー: " + error.message);
         }
         throw error;
+    }
+}
+
+/**
+ * Logs login errors to Firestore for debugging and security monitoring
+ */
+async function logErrorToFirestore(error) {
+    try {
+        await addDoc(collection(db, "login_errors"), {
+            errorCode: error.code || 'unknown',
+            errorMessage: error.message || 'No message',
+            userAgent: navigator.userAgent,
+            timestamp: serverTimestamp(),
+            url: window.location.href
+        });
+        // console.log("Error logged to Firestore");
+    } catch (logError) {
+        console.warn("Failed to log error:", logError);
     }
 }
 

@@ -81,6 +81,13 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (request.auth.token.role == 'store_admin' || request.auth.token.email == 'ynrcs1000@gmail.com');
       allow write: if false; 
     }
+
+    // 6. Login Errors (ログ収集用)
+    // 誰でも書き込めるが、読み取りは管理者のみ (攻撃の予兆検知など)
+    match /login_errors/{document=**} {
+      allow create: if true;
+      allow read, update, delete: if isSuperAdmin();
+    }
     
     // デフォルト: 全て拒否
     match /{document=**} {

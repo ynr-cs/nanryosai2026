@@ -287,6 +287,12 @@
 <body>
     
     <main>
+        <!-- Loading State (Visible by default) -->
+        <div id="auth-loading" style="text-align: center; padding: 60px 20px;">
+            <div class="loading-skeleton" style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 20px;"></div>
+            <p style="color: var(--text-sub);">Loading account...</p>
+        </div>
+
         <!-- Authenticated User Content -->
         <div id="auth-content" style="display: none;">
             <div id="profile-area">
@@ -360,6 +366,19 @@
             <button onclick="window.triggerLogin()" class="btn-login-trigger" style="font-size: 1.1rem; padding: 12px 40px;">
                 ログインする
             </button>
+            <div style="margin-top: 30px; font-size: 0.8rem; color: var(--text-sub); background: var(--bg-color); padding: 20px; border-radius: 12px; text-align: left; border: 1px solid var(--border-color);">
+                <strong style="color: #d32f2f; display: block; margin-bottom: 10px; font-size: 0.9rem;">⚠️ 動作環境について</strong>
+                <p style="margin: 0 0 10px;">本システムはベータ版であり、現在 <strong>Google Chrome (PC/Android)</strong> でのみ動作検証を行っています。</p>
+                
+                <div style="background: rgba(255,255,255,0.5); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>✅ 推奨環境</strong>
+                    <ul style="margin: 5px 0 0 20px;">
+                        <li>Google Chrome (PC / Android)</li>
+                    </ul>
+                </div>
+
+                <p style="margin: 0;">※ iPhone (Safari/Chrome含む) やその他の環境は未検証のため、正常に動作しない可能性があります。<br>動作しない場合は、PC版などの Chrome ブラウザをご利用ください。</p>
+            </div>
         </div>
     </main>
 
@@ -481,8 +500,23 @@
 
         // Cache stores
         let storesCache = {};
+        
+        // Loader Element
+        const authLoader = document.getElementById('auth-loading');
+
+        // Fallback Timeout: If auth takes too long (e.g. In-App Browser blocked), show Guest
+        const authTimeout = setTimeout(() => {
+            if (authLoader.style.display !== 'none') {
+                console.warn("Auth timeout - forcing guest view");
+                authLoader.style.display = 'none';
+                document.getElementById('guest-content').style.display = 'block';
+            }
+        }, 2500);
 
         watchUser((user) => {
+            clearTimeout(authTimeout); // Auth responded, clear timeout
+            authLoader.style.display = 'none'; // Hide loader
+            
             window.CURRENT_USER_OBJ = user;
             if (user) {
                 document.getElementById('auth-content').style.display = 'block';
