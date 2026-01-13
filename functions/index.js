@@ -367,6 +367,140 @@ function verifyPassword(password, originalHash, salt) {
 }
 
 /**
+ * @name createStoreSecret
+ * @description 店舗のログイン用パスワードを設定する（Super Admin Only）
+ *              平文パスワードを受け取り、ハッシュ化して store_secrets に保存する
+ */
+exports.createStoreSecret = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    // 1. 認証チェック (Super Admin Only)
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "ログインが必要です。"
+      );
+    }
+    const email = context.auth.token.email;
+    if (email !== "ynrcs1000@gmail.com") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "この操作を実行する権限がありません。"
+      );
+    }
+
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const storeId = requestData.storeId;
+    const plainPassword = requestData.plainPassword;
+
+    if (!storeId || !plainPassword) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "storeId と plainPassword が必要です。"
+      );
+    }
+
+    try {
+      // 2. パスワードハッシュ生成
+      const { derivedKey, salt } = hashPassword(plainPassword);
+
+      // 3. store_secrets に保存
+      await db.collection("store_secrets").doc(storeId).set({
+        hash: derivedKey,
+        salt: salt,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedBy: email,
+      });
+
+      return {
+        success: true,
+        message: `店舗ID [${storeId}] のパスワードを設定しました。`,
+      };
+    } catch (error) {
+      console.error("createStoreSecret Error:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "パスワード設定中にエラーが発生しました。"
+      );
+    }
+  });
+
+/**
+ * @name batchUpdateStoreSecrets
+ * @description 複数の店舗パスワードを一括設定する（Super Admin Only）
+ *              引数: { secrets: [{ storeId, plainPassword }, ...] }
+ */
+exports.batchUpdateStoreSecrets = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    // 1. 認証チェック
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "ログインが必要です。"
+      );
+    }
+    const email = context.auth.token.email;
+    if (email !== "ynrcs1000@gmail.com") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "この操作を実行する権限がありません。"
+      );
+    }
+
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const secrets = requestData.secrets || [];
+
+    if (!Array.isArray(secrets) || secrets.length === 0) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "secrets 配列が必要です。"
+      );
+    }
+
+    if (secrets.length > 500) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "一度に更新できるのは500件までです。"
+      );
+    }
+
+    try {
+      const batch = db.batch();
+      const secretsRef = db.collection("store_secrets");
+
+      for (const item of secrets) {
+        if (!item.storeId || !item.plainPassword) continue;
+
+        const { derivedKey, salt } = hashPassword(item.plainPassword);
+        const docRef = secretsRef.doc(item.storeId);
+
+        batch.set(docRef, {
+          hash: derivedKey,
+          salt: salt,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedBy: email,
+        });
+      }
+
+      await batch.commit();
+
+      return {
+        success: true,
+        message: `${secrets.length} 件のパスワードを一括更新しました。`,
+      };
+    } catch (error) {
+      console.error("batchUpdateStoreSecrets Error:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "一括更新中にエラーが発生しました。"
+      );
+    }
+  });
+
+/**
  * @name loginStore
  * @description 店舗ログイン処理 (サーバーサイド)
  *              パスワードを検証し、正しければCustom Claimsを設定する

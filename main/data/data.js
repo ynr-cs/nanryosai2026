@@ -18,7 +18,7 @@ const projectData = [
     floor: 1,
     description:
       "秘伝のソースが決め手！行列必至の焼きそば専門店です。目玉焼きトッピングがおすすめ！",
-    image: "images/yakisoba.jpg",
+
     catchphrase: "星3つの味をあなたに",
     tags: ["食品", "焼きそば"],
     contentType: "menu",
@@ -27,7 +27,7 @@ const projectData = [
         name: "ソース焼きそば",
         price: "300円",
         description: "特製ソースが香る王道の焼きそば。",
-        imageUrl: "https://placehold.co/600x400/png?text=Yakisoba",
+        imageUrl: "",
         isRecommended: true,
         isAvailable: true,
         allowedToppings: ["マヨネーズ", "紅生姜", "青のり"],
@@ -36,7 +36,7 @@ const projectData = [
         name: "塩焼きそば",
         price: "350円",
         description: "さっぱりとした塩ダレ味。女性に人気！",
-        imageUrl: "https://placehold.co/600x400/png?text=Shio+Yakisoba",
+        imageUrl: "",
         isRecommended: false,
         isAvailable: true,
         allowedToppings: ["レモン果汁"],
@@ -45,7 +45,7 @@ const projectData = [
         name: "全部のせスペシャル",
         price: "500円",
         description: "目玉焼きと全部のトッピングがついた贅沢な一品。",
-        imageUrl: "https://placehold.co/600x400/png?text=Special",
+        imageUrl: "",
         isRecommended: true,
         isAvailable: true,
         allowedToppings: [],
@@ -62,7 +62,7 @@ const projectData = [
     floor: 1,
     description:
       "もちもち食感がたまらない！究極のタピオカドリンク専門店。インスタ映え間違いなし。",
-    image: "images/tapioca.jpg",
+
     catchphrase: "極上のモチモチ体験",
     tags: ["食品", "ドリンク"],
     contentType: "menu",
@@ -71,7 +71,7 @@ const projectData = [
         name: "タピオカミルクティー",
         price: "250円",
         description: "定番のロイヤルミルクティー。",
-        imageUrl: "https://placehold.co/600x400/png?text=Tapioca+Milk",
+        imageUrl: "",
         isRecommended: true,
         isAvailable: true,
         allowedToppings: ["タピオカ増量"],
@@ -80,7 +80,7 @@ const projectData = [
         name: "黒糖抹茶ラテ",
         price: "300円",
         description: "和風な甘さが落ち着く抹茶ラテ。",
-        imageUrl: "https://placehold.co/600x400/png?text=Matcha",
+        imageUrl: "",
         isRecommended: true,
         isAvailable: true,
         allowedToppings: [],
@@ -89,7 +89,7 @@ const projectData = [
         name: "マンゴーソーダ",
         price: "200円",
         description: "スッキリ爽快な炭酸ドリンク。",
-        imageUrl: "https://placehold.co/600x400/png?text=Mango",
+        imageUrl: "",
         isAvailable: true,
         allowedToppings: [],
       },
@@ -105,7 +105,7 @@ const projectData = [
     floor: 1,
     description:
       "テーマパークのあの味を再現！サクサク揚げたてのロングチュロス。",
-    image: "images/churros.jpg",
+
     catchphrase: "カリッ、サクッ、甘〜い幸せ",
     tags: ["食品", "スイーツ"],
     contentType: "menu",
@@ -113,19 +113,19 @@ const projectData = [
       {
         name: "シナモンチュロス",
         price: "200円",
-        imageUrl: "https://placehold.co/600x400",
+        imageUrl: "",
         isAvailable: true,
       },
       {
         name: "チョコチュロス",
         price: "250円",
-        imageUrl: "https://placehold.co/600x400",
+        imageUrl: "",
         isAvailable: true,
       },
       {
         name: "ストロベリーチュロス",
         price: "250円",
-        imageUrl: "https://placehold.co/600x400",
+        imageUrl: "",
         isAvailable: true,
       },
     ],
@@ -142,7 +142,7 @@ const projectData = [
     floor: 2,
     description:
       "かつて実験室だった場所で起きた悲劇...。あなたは無事に脱出できるか？最恐のお化け屋敷。",
-    image: "images/horror.jpg",
+
     catchphrase: "絶叫、保証します。",
     tags: ["展示", "お化け屋敷"],
     contentType: "gallery",
@@ -158,7 +158,7 @@ const projectData = [
     floor: 2,
     description:
       "ポーカー、ブラックジャック、ルーレット。大人の社交場を教室に再現。※金銭は賭けません",
-    image: "images/casino.jpg",
+
     catchphrase: "運命のカードを引け",
     tags: ["展示", "ゲーム"],
     contentType: "gallery",
@@ -174,7 +174,7 @@ const projectData = [
     floor: 1,
     description:
       "あの人気番組のような巨大アスレチック＆キッキングスナイパー！体力自慢集まれ！",
-    image: "images/vs.jpg",
+
     catchphrase: "最強は誰だ",
     tags: ["展示", "アトラクション"],
     contentType: "gallery",
@@ -190,7 +190,7 @@ const projectData = [
     floor: 2,
     description:
       "射的、ヨーヨー釣り、スーパーボールすくい。懐かしいお祭りの雰囲気を楽しんで。",
-    image: "images/festival.jpg",
+
     catchphrase: "日本の夏、2-4の夏",
     tags: ["展示", "縁日"],
     contentType: "gallery",
@@ -207,7 +207,7 @@ const projectData = [
     place: "北棟 3F 301",
     floor: 3,
     description: "マッククルーによるめちゃくちゃうまいポテトです",
-    image: "images/no.jpg",
+
     catchphrase: "カリカリの奇跡",
     tags: ["食品", "軽食"],
     contentType: "menu",
@@ -226,7 +226,7 @@ const projectData = [
         isAvailable: true,
         price: "100円",
         allowedToppings: [],
-        imageUrl: "https://placehold.co/600x400/png?text=Yakitori",
+        imageUrl: "",
         name: "やきとり",
         description: "炭火風の香ばしさ",
       },
@@ -252,7 +252,7 @@ const projectData = [
     floor: 3,
     description:
       "教室全体がフォトスタジオに！黒板アートや風船で飾られた空間で思い出の一枚を。",
-    image: "images/photo.jpg",
+
     catchphrase: "キミの笑顔を撮りたい",
     tags: ["展示", "フォト"],
     contentType: "gallery",
@@ -268,7 +268,7 @@ const projectData = [
     floor: 3,
     description:
       "ダンボールで作った巨大迷路。アリスの世界に迷い込んだような装飾に注目！",
-    image: "images/maze.jpg",
+
     catchphrase: "出口はどこだ？",
     tags: ["展示", "アトラクション"],
     contentType: "gallery",
@@ -286,7 +286,7 @@ const projectData = [
     floor: 1,
     description:
       "部員一同一生懸命生けたお花を展示しています。心安らぐ空間へようこそ。",
-    image: "images/kado.jpg",
+
     catchphrase: "静寂と美の世界",
     tags: ["展示", "文化部"],
     contentType: "gallery",
@@ -302,7 +302,7 @@ const projectData = [
     floor: 2,
     description:
       "油絵、水彩、立体作品など、個性豊かな作品を展示。ポストカード販売もあります。",
-    image: "images/art.jpg",
+
     catchphrase: "色が世界を変える",
     tags: ["展示", "文化部"],
     contentType: "menu",
@@ -333,7 +333,7 @@ const projectData = [
     floor: 1,
     description:
       "結構なお手前で。お抹茶と季節の和菓子をご用意してお待ちしております。",
-    image: "images/matcha.jpg",
+
     catchphrase: "一期一会",
     tags: ["食品", "文化部"],
     contentType: "menu",
@@ -357,7 +357,7 @@ const projectData = [
     place: "北棟 2F 渡り廊下",
     floor: 2,
     description: "南陵高校の日常を切り取った写真展。コンテスト入賞作品も展示。",
-    image: "images/photo_club.jpg",
+
     catchphrase: "その一瞬を永遠に",
     tags: ["展示", "文化部"],
     contentType: "gallery",
@@ -373,7 +373,7 @@ const projectData = [
     floor: 3,
     description:
       "スライム作り体験や炎色反応実験など、子供から大人まで楽しめる科学実験ショー。",
-    image: "images/science.jpg",
+
     catchphrase: "科学の不思議を体験しよう",
     tags: ["展示", "体験"],
     contentType: "gallery",
@@ -390,7 +390,7 @@ const projectData = [
     floor: 3,
     description:
       "総勢10バンドが出演！熱いライブをお届けします。日程によって場所が異なるのでご注意ください！",
-    image: "images/band.jpg",
+
     catchphrase: "魂を震わせろ",
     tags: ["ステージ", "文化部"],
     contentType: "gallery",
@@ -409,7 +409,7 @@ const projectData = [
     place: "音楽室・体育館",
     floor: 4,
     description: "ポップスからクラシックまで、幅広いジャンルの曲を演奏します。",
-    image: "images/brass.jpg",
+
     catchphrase: "響け、私たちの音",
     tags: ["ステージ", "文化部"],
     contentType: "gallery",
@@ -429,7 +429,7 @@ const projectData = [
     place: "体育館",
     floor: 1,
     description: "HipHop, Jazz, Lockなど様々なジャンルのダンスを披露します！",
-    image: "images/dance.jpg",
+
     catchphrase: "We are Dancers",
     tags: ["ステージ", "運動部"],
     contentType: "gallery",
@@ -450,7 +450,7 @@ const stageData = [
     name: "南陵ブラス・コンサート",
     place: "体育館",
     description: "「宝島」やJ-POPメドレーなど、盛り上がる曲をお届けします！",
-    image: "images/brass.jpg",
+
     tags: ["Day1", "音楽"],
   },
   {
@@ -461,7 +461,7 @@ const stageData = [
     name: "SUMMER ROCK FES",
     place: "体育館",
     description: "オーディションを勝ち抜いた3バンドによる熱いライブ。",
-    image: "images/band.jpg",
+
     tags: ["Day1", "音楽"],
   },
   {
@@ -472,7 +472,7 @@ const stageData = [
     name: "DANCE PERFORMANCE '26",
     place: "体育館",
     description: "全国大会出場の実力！迫力のパフォーマンスを見逃すな。",
-    image: "images/dance.jpg",
+
     tags: ["Day1", "ダンス"],
   },
 
@@ -485,7 +485,7 @@ const stageData = [
     name: "ACOUSTIC LIVE",
     place: "体育館",
     description: "しっとりとしたアコースティックサウンドをお届けします。",
-    image: "images/acoustic.jpg",
+
     tags: ["Day2", "音楽"],
   },
   {
@@ -496,7 +496,7 @@ const stageData = [
     name: "書道パフォーマンス",
     place: "体育館",
     description: "音楽に合わせて巨大な紙に想いを描く、圧巻のパフォーマンス。",
-    image: "images/shodo.jpg",
+
     tags: ["Day2", "パフォーマンス"],
   },
   {
@@ -507,7 +507,7 @@ const stageData = [
     name: "DANCE BATTLE FINAL",
     place: "体育館",
     description: "最強のダンサーは誰だ！？飛び入り参加ありのダンスバトル。",
-    image: "images/battle.jpg",
+
     tags: ["Day2", "ダンス"],
   },
 ];

@@ -238,6 +238,14 @@
           <i class="fas fa-vial"></i> テストモード (stores_test / items_test)
         </label>
 
+        <button
+          class="btn btn-danger"
+          style="margin-right: 15px"
+          onclick="syncAllPasswords()"
+        >
+          <i class="fas fa-key"></i> 全パスワード一括同期 (注意)
+        </button>
+
         <!-- NEW: Dedicated Prod Import Button -->
         <button
           class="btn btn-warning"
@@ -312,7 +320,7 @@
 
     <!-- Main Logic -->
     <script type="module">
-      import { db, auth, login, logout, watchUser } from "./auth.js";
+      import { db, auth, app, login, logout, watchUser } from "./auth.js";
       import {
         doc,
         setDoc,
@@ -323,11 +331,17 @@
         query,
         where,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+      // Initialize Functions logic with specific region
+      const functions = getFunctions(app, "asia-northeast1");
 
       // Global State
       if (typeof projectData === "undefined") {
         alert("Error: data.js failed to load. projectData is undefined.");
-        throw new Error("projectData undefined");
       }
 
       window.localData = JSON.parse(JSON.stringify(projectData));
@@ -349,6 +363,97 @@
         const isTest = document.getElementById("test-mode-check").checked;
         return isTest ? baseName + "_test" : baseName;
       }
+
+      // Password Setting Logic (Attached to window for HTML access)
+      window.setStorePassword = async function (index) {
+        const project = window.localData[index];
+        const storeId = project.id;
+
+        if (!storeId) {
+          alert("IDが設定されていません。");
+          return;
+        }
+
+        const password = prompt(
+          `「${
+            project.groupName || storeId
+          }」のパスワードを設定します。\n新しいパスワードを入力してください:`,
+          storeId
+        );
+
+        if (password === null) return;
+
+        if (!password) {
+          alert("パスワードを入力してください。");
+          return;
+        }
+
+        if (
+          !confirm(
+            `店舗ID: ${storeId}\nパスワード: ${password}\n\nこの内容で設定しますか？`
+          )
+        )
+          return;
+
+        try {
+          const createStoreSecret = httpsCallable(
+            functions,
+            "createStoreSecret"
+          );
+          const result = await createStoreSecret({
+            storeId: storeId,
+            plainPassword: password,
+          });
+
+          alert(`成功: ${result.data.message}`);
+        } catch (error) {
+          console.error("Set Password Error:", error);
+          alert(`エラーが発生しました:\n${error.message}`);
+        }
+      };
+
+      // Batch Password Sync Logic (Attached to window)
+      window.syncAllPasswords = async function () {
+        if (
+          !confirm(
+            "【危険】表示されている全ての店舗のパスワードを、それぞれの「店舗ID」と同じ値に一括リセットします。\n\n本当に実行しますか？"
+          )
+        ) {
+          return;
+        }
+
+        const secrets = [];
+        window.localData.forEach((project) => {
+          if (project.id) {
+            secrets.push({
+              storeId: project.id,
+              plainPassword: project.id, // Default password is ID
+            });
+          }
+        });
+
+        if (secrets.length === 0) {
+          alert("対象データがありません。");
+          return;
+        }
+
+        log(`Starting batch password update for ${secrets.length} stores...`);
+
+        try {
+          const batchUpdateStoreSecrets = httpsCallable(
+            functions,
+            "batchUpdateStoreSecrets"
+          );
+          const result = await batchUpdateStoreSecrets({ secrets: secrets });
+
+          log(`✅ Success: ${result.data.message}`);
+          alert(`完了しました: ${result.data.message}`);
+        } catch (error) {
+          console.error("Batch Update Error:", error);
+          log(`❌ Error: ${error.message}`);
+          alert(`エラーが発生しました:\n${error.message}`);
+        }
+      };
 
       // --- Auth Logic ---
       const btnLogin = document.getElementById("btn-login");
@@ -444,6 +549,7 @@
                       project.catchphrase || ""
                     }" onchange="updateRow(${index}, 'catchphrase', this.value)"></td>
                     <td>
+                        <button class="btn btn-warning" style="padding:4px 8px; font-size:0.8rem; margin-right:4px;" onclick="setStorePassword(${index})" title="パスワード設定"><i class="fas fa-key"></i></button>
                         <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteRow(${index})"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
@@ -654,7 +760,6 @@ console.log("data.js loaded: projectData count =", projectData.length);
               place: s.place || existing.place || "",
               floor: s.floor || existing.floor || 1,
               description: s.description || existing.description || "",
-              image: s.image || existing.image || "",
               catchphrase: existing.catchphrase || "",
               tags: existing.tags || [],
               contentType:
