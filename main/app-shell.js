@@ -4,7 +4,9 @@
  */
 
 // Import Auth Logic
-import { login, logout, watchUser } from "./auth.js";
+// Import Auth Logic
+import { login, logout, watchUser, db, getCurrentUser } from "./auth.js";
+import { collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const AppShell = {
     init: function() {
@@ -85,8 +87,9 @@ const AppShell = {
                 </a>
                 
                 <a href="${this.resolvePath('mobile-order.html')}" class="nav-item core-button" data-page="order">
-                    <div class="icon-circle">
+                    <div class="icon-circle" style="position: relative;">
                         <i class="bi bi-bag-check-fill" style="font-size: 1.5rem;"></i>
+                        <span id="order-nav-badge" class="nav-notification-badge" style="display: none;"></span>
                     </div>
                     <span class="nav-label" style="font-weight: 900; color: var(--primary-color)">オーダー</span>
                 </a>
@@ -109,6 +112,71 @@ const AppShell = {
             </nav>
         `;
         document.body.insertAdjacentHTML('beforeend', navHtml);
+
+        // Smart Navigation for Order Tab
+        const orderBtn = document.querySelector('.nav-item[data-page="order"]');
+        if (orderBtn) {
+            orderBtn.addEventListener('click', async (e) => {
+                const user = getCurrentUser();
+                // Only intercept if user is logged in
+                if (!user) return; 
+
+                e.preventDefault();
+                const targetHref = orderBtn.getAttribute('href');
+                
+                // Show simple feedback (optional, but good for async)
+                const originalIcon = orderBtn.querySelector('.icon-circle').innerHTML;
+                orderBtn.querySelector('.icon-circle').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="color:var(--primary-color)"></span>';
+
+                try {
+                     const completedStatuses = [
+                        "completed_at_store",
+                        "completed_online",
+                        "cancelled",
+                        "abandoned_and_paid"
+                      ];
+                      
+                     // Query latest 5 orders to check for active ones
+                     // Uses same potential index as account.html
+                     const q = query(
+                        collection(db, "orders"),
+                        where("userId", "==", user.uid),
+                        orderBy("createdAt", "desc"),
+                        limit(5)
+                     );
+                     
+                     const snap = await getDocs(q);
+                     let activeOrder = null;
+                     
+                     for(const doc of snap.docs) {
+                         const data = doc.data();
+                         if (!completedStatuses.includes(data.status)) {
+                             activeOrder = doc.id;
+                             break;
+                         }
+                     }
+
+                     if (activeOrder) {
+                        const inPos = window.location.pathname.includes('/pos/');
+                        const statusPath = inPos ? `status.html?orderId=${activeOrder}` : `../pos/status.html?orderId=${activeOrder}`;
+                        window.location.href = statusPath;
+                     } else {
+                         window.location.href = targetHref;
+                     }
+
+                } catch (err) {
+                    console.error("Smart Nav Error:", err);
+                    window.location.href = targetHref; // Fallback
+                } finally {
+                    // Restore icon if navigation doesn't happen immediately (or if we stay on page)
+                    setTimeout(() => {
+                        if(orderBtn.querySelector('.icon-circle')) {
+                            orderBtn.querySelector('.icon-circle').innerHTML = originalIcon;
+                        }
+                    }, 2000); // 2s timeout just in case
+                }
+            });
+        }
     },
 
     initTheme: function() {
@@ -245,11 +313,59 @@ const AppShell = {
                 userImg.src = user.photoURL;
                 userImg.style.display = 'block';
                 if (guestIcon) guestIcon.style.display = 'none';
+                
+                // Check for active orders after auth is confirmed
+                this.checkActiveOrder(user);
             } else {
                 userImg.style.display = 'none';
                 if (guestIcon) guestIcon.style.display = 'block';
+                // Hide badge if logged out
+                const badge = document.getElementById('order-nav-badge');
+                if(badge) badge.style.display = 'none';
             }
         });
+    },
+
+    checkActiveOrder: async function(user) {
+        const badge = document.getElementById('order-nav-badge');
+        if (!badge) return;
+        
+        try {
+            const completedStatuses = [
+                "completed_at_store",
+                "completed_online",
+                "cancelled",
+                "abandoned_and_paid"
+            ];
+            
+            const q = query(
+                collection(db, "orders"),
+                where("userId", "==", user.uid),
+                orderBy("createdAt", "desc"),
+                limit(5) // Check last 5 just in case
+            );
+            
+            const snap = await getDocs(q);
+            let hasActive = false;
+            
+            for(const doc of snap.docs) {
+                const data = doc.data();
+                if (!completedStatuses.includes(data.status)) {
+                    hasActive = true;
+                    break;
+                }
+            }
+
+            if (hasActive) {
+                badge.style.display = 'block';
+                badge.classList.add('animate__animated', 'animate__bounceIn');
+            } else {
+                badge.style.display = 'none';
+            }
+
+        } catch (e) {
+            console.error("Badge Check Error:", e);
+        }
     },
 
     showToast: function(message, isError = false) {

@@ -165,34 +165,34 @@
         </section>
 
         <!-- 
-          ★ PROJECTS SCROLLER SECTION ★ 
+          ★ PROJECTS VERTICAL SCROLLER SECTION ★ 
         -->
-        <section class="scroller-section">
-            <div class="scroller-header">
-                <h2 class="scroller-title">企画・展示 ハイライト</h2>
-                <button class="scroller-control-btn" id="btn-projects" aria-label="Pause Auto-scroll">
+        <section class="vertical-scroller-section">
+            <div class="vertical-scroller-header">
+                <h2 class="vertical-scroller-title">企画・展示 ハイライト</h2>
+                <button class="vertical-scroller-control-btn" id="btn-projects" aria-label="Pause Auto-scroll">
                     <i class="fas fa-pause"></i>
                 </button>
             </div>
-            <div class="projects-scroller" id="scroller-projects">
-                <div class="scroller-inner" id="inner-projects">
+            <div class="vertical-scroller-container" id="scroller-projects">
+                <div class="vertical-scroller-inner" id="inner-projects">
                     <!-- JS will inject cards here -->
                 </div>
             </div>
         </section>
 
         <!-- 
-          ★ STAGE SCROLLER SECTION ★ 
+          ★ STAGE VERTICAL SCROLLER SECTION ★ 
         -->
-        <section class="scroller-section">
-            <div class="scroller-header">
-                <h2 class="scroller-title">ステージ発表 ハイライト</h2>
-                <button class="scroller-control-btn" id="btn-stage" aria-label="Pause Auto-scroll">
+        <section class="vertical-scroller-section">
+            <div class="vertical-scroller-header">
+                <h2 class="vertical-scroller-title">ステージ発表 ハイライト</h2>
+                <button class="vertical-scroller-control-btn" id="btn-stage" aria-label="Pause Auto-scroll">
                     <i class="fas fa-pause"></i>
                 </button>
             </div>
-            <div class="projects-scroller" id="scroller-stage">
-                <div class="scroller-inner" id="inner-stage">
+            <div class="vertical-scroller-container" id="scroller-stage">
+                <div class="vertical-scroller-inner" id="inner-stage">
                     <!-- JS will inject cards here -->
                 </div>
             </div>
@@ -320,63 +320,123 @@
         setInterval(updateCountdown, 1000);
         updateCountdown(); // Initial call
 
-        // Generic Scroller Logic
-        function setupScroller(containerId, scrollerId, btnId, data) {
+        // Vertical Scroller Logic (無限ループ対応版)
+        function setupVerticalScroller(containerId, scrollerId, btnId, data) {
             const container = document.getElementById(containerId);
             const scroller = document.getElementById(scrollerId);
             const btn = document.getElementById(btnId);
             
-            if (!container || !scroller || !data) return;
+            if (!container || !scroller || !data || data.length === 0) return;
 
-            // Generate HTML
+            // Generate Horizontal Card HTML (横長カード)
             const generateItemsHTML = (items) => {
                 return items.map(item => {
-                    const category = item.tags ? (item.tags[1] || item.tags[0]) : 'Event';
-                    
-                    // Unified Layout:
-                    // Group Name (Small, Colored)
-                    // Project/Stage Name (Large, Main)
                     const groupName = item.groupName || item.groupId || '参加団体';
                     
+                    // Image Logic: Use ID from data.js (similar to mobile-order.html)
+                    const imgSrc = `../images/${item.id}.png`;
+
                     return `
-                    <div class="project-card-small">
-                        <div class="project-cat">${category}</div>
-                        <div class="project-group">${groupName}</div>
-                        <div class="project-name">${item.name}</div>
-                        <div class="project-place"><i class="fas fa-map-marker-alt"></i> ${item.place}</div>
-                        <div class="card-link">詳細を見る <i class="fas fa-arrow-right"></i></div>
+                    <div class="highlight-card-horizontal">
+                        <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                        <div class="highlight-card-info">
+                            <p class="highlight-card-group">${groupName}</p>
+                            <p class="highlight-card-name">${item.name}</p>
+                            <p class="highlight-card-place"><i class="fas fa-map-marker-alt"></i> ${item.place}</p>
+                        </div>
+                        <div class="highlight-card-actions">
+                            <a href="#" class="highlight-btn highlight-btn-primary">詳しく見る</a>
+                            <a href="#" class="highlight-btn highlight-btn-secondary">地図</a>
+                        </div>
                     </div>
                 `}).join('');
             };
 
             const itemsHTML = generateItemsHTML(data);
-            // Double logic for seamless loop
-            container.innerHTML = itemsHTML + itemsHTML;
+            // Triple content for seamless bidirectional loop
+            container.innerHTML = itemsHTML + itemsHTML + itemsHTML;
 
-            // --- Constant Speed Logic ---
-            // Speed: pixels per second. 
-            // e.g., 50px/s means if width is 1000px, duration is 20s.
-            const speedPxPerSec = 50; 
-            
-            // Wait for render to get width
+            // Remove CSS animation (we use JS for infinite loop)
+            container.style.animation = 'none';
+
+            // --- Infinite Loop Logic ---
+            let singleSetHeight = 0;
+            let isUserScrolling = false;
+            let scrollTimeout = null;
+
+            // Calculate single set height after render
             requestAnimationFrame(() => {
-                const totalWidth = container.scrollWidth / 2; // Real width of one set
-                const duration = totalWidth / speedPxPerSec;
-                container.style.animationDuration = `${duration}s`;
+                singleSetHeight = container.scrollHeight / 3;
+                // Start at middle section
+                scroller.scrollTop = singleSetHeight;
             });
 
-            // --- Control Button Logic ---
+            // Reset scroll position when reaching boundaries
+            const checkScrollPosition = () => {
+                if (singleSetHeight === 0) return;
+                
+                const scrollTop = scroller.scrollTop;
+                const maxScroll = singleSetHeight * 2;
+
+                // If scrolled to top area, jump to middle
+                if (scrollTop < singleSetHeight * 0.3) {
+                    scroller.scrollTop = scrollTop + singleSetHeight;
+                }
+                // If scrolled to bottom area, jump to middle
+                else if (scrollTop > maxScroll + singleSetHeight * 0.3) {
+                    scroller.scrollTop = scrollTop - singleSetHeight;
+                }
+            };
+
+            // Listen for scroll events
+            scroller.addEventListener('scroll', () => {
+                isUserScrolling = true;
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    isUserScrolling = false;
+                }, 150);
+                checkScrollPosition();
+            });
+
+            // --- Auto Scroll Logic (JS-based) ---
+            const speedPxPerSec = 25;
             let isPaused = false;
-            
+            let lastTimestamp = null;
+            let animationId = null;
+
+            const autoScroll = (timestamp) => {
+                if (isPaused || isUserScrolling) {
+                    lastTimestamp = null;
+                    animationId = requestAnimationFrame(autoScroll);
+                    return;
+                }
+
+                if (lastTimestamp === null) {
+                    lastTimestamp = timestamp;
+                }
+
+                const elapsed = (timestamp - lastTimestamp) / 1000;
+                const scrollAmount = speedPxPerSec * elapsed;
+                
+                scroller.scrollTop += scrollAmount;
+                lastTimestamp = timestamp;
+                
+                checkScrollPosition();
+                animationId = requestAnimationFrame(autoScroll);
+            };
+
+            // Start auto scroll
+            animationId = requestAnimationFrame(autoScroll);
+
+            // --- Control Button Logic ---
             function togglePause() {
                 isPaused = !isPaused;
                 if (isPaused) {
-                    container.style.animationPlayState = 'paused';
                     btn.innerHTML = '<i class="fas fa-play"></i>';
                     btn.setAttribute('aria-label', 'Resume Auto-scroll');
-                    btn.classList.add('paused'); // For styling hooks if needed
+                    btn.classList.add('paused');
                 } else {
-                    container.style.animationPlayState = 'running';
+                    lastTimestamp = null; // Reset timestamp for smooth resume
                     btn.innerHTML = '<i class="fas fa-pause"></i>';
                     btn.setAttribute('aria-label', 'Pause Auto-scroll');
                     btn.classList.remove('paused');
@@ -385,87 +445,53 @@
 
             if (btn) {
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent drag interference if any
+                    e.stopPropagation();
                     togglePause();
                 });
             }
 
-            // --- Drag & Interaction Logic ---
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            let resumeTimeout; // Timer for resuming animation
+            // --- Hover/Touch Interaction ---
+            let resumeTimeout;
+            let wasAutoScrolling = false;
 
-            const resumeAnimation = () => {
+            const pauseAutoScroll = () => {
                 if (!isPaused) {
-                    // Clear any existing timer
-                    if (resumeTimeout) clearTimeout(resumeTimeout);
-                    // Set new timer for 1 second delay
-                    resumeTimeout = setTimeout(() => {
-                        if (!isDown && !isPaused) {
-                            container.style.animationPlayState = 'running';
-                        }
-                    }, 1000);
+                    wasAutoScrolling = true;
+                    isPaused = true;
                 }
             };
 
-            const pauseAnimation = () => {
-                if (resumeTimeout) clearTimeout(resumeTimeout);
-                container.style.animationPlayState = 'paused';
+            const resumeAutoScroll = () => {
+                if (wasAutoScrolling) {
+                    if (resumeTimeout) clearTimeout(resumeTimeout);
+                    resumeTimeout = setTimeout(() => {
+                        isPaused = false;
+                        lastTimestamp = null;
+                        wasAutoScrolling = false;
+                    }, 800);
+                }
             };
 
             // Pause on hover
-            scroller.addEventListener('mouseenter', () => {
-                // If not manually paused, pause on hover
-                if (!isPaused) pauseAnimation();
-            });
-            
-            scroller.addEventListener('mouseleave', () => {
-                isDown = false;
-                scroller.classList.remove('active');
-                resumeAnimation(); // Resume after delay
-            });
-
-            // Drag events
-            scroller.addEventListener('mousedown', (e) => {
-                isDown = true;
-                scroller.classList.add('active');
-                startX = e.pageX - scroller.offsetLeft;
-                scrollLeft = scroller.scrollLeft;
-                pauseAnimation(); // Always pause on interaction
-            });
-
-            scroller.addEventListener('mouseup', () => {
-                isDown = false;
-                scroller.classList.remove('active');
-                resumeAnimation(); // Resume after delay
-            });
-
-            scroller.addEventListener('mousemove', (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - scroller.offsetLeft;
-                const walk = (x - startX) * 2;
-                scroller.scrollLeft = scrollLeft - walk;
-            });
+            scroller.addEventListener('mouseenter', pauseAutoScroll);
+            scroller.addEventListener('mouseleave', resumeAutoScroll);
             
             // Touch events
-            scroller.addEventListener('touchstart', () => {
-                pauseAnimation();
-            }, { passive: true });
-            
-            scroller.addEventListener('touchend', () => {
-                resumeAnimation(); // Resume after delay
-            });
+            scroller.addEventListener('touchstart', pauseAutoScroll, { passive: true });
+            scroller.addEventListener('touchend', resumeAutoScroll);
         }
 
         // Initialize Scrollers
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof projectData !== 'undefined') {
-                setupScroller('inner-projects', 'scroller-projects', 'btn-projects', projectData);
+                // Filter out Stage items from Project Data
+                const filteredProjects = projectData.filter(item => {
+                    return !item.tags || !item.tags.includes('ステージ');
+                });
+                setupVerticalScroller('inner-projects', 'scroller-projects', 'btn-projects', filteredProjects);
             }
             if (typeof stageData !== 'undefined') {
-                setupScroller('inner-stage', 'scroller-stage', 'btn-stage', stageData);
+                setupVerticalScroller('inner-stage', 'scroller-stage', 'btn-stage', stageData);
             }
         });
     </script>
