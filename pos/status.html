@@ -27,24 +27,90 @@
 
     <style>
       /* =========================================
-         1. Variables & Base (Copied from mobile-order.html)
+         1. Variables & Base
          ========================================= */
-      /* Note: Global variables are inheriting from main/style.css, but we keep local overrides if needed */
       :root {
-         /* Local specific overrides if necessary */
+        /* Colors */
+        --primary-color: #1a1a1a;   /* Deep Premium Black */
+        --accent-color: #e53935;    /* Vibrant Red */
+        --brand-color: #ff9800;     /* Warm Orange */
+        --bg-color: #f0f2f5;        /* Default Light */
+        --card-bg: #ffffff;
+        
+        /* Text */
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+        /* Status Colors */
+        --status-cooking: #e53935;
+        --status-prep: #3b82f6;
+        --status-done: #10b981;
+        --status-cancelled: #f44336;
+        --status-abandoned: #9e9e9e;
+
+        /* Dimensions */
+        --radius-lg: 20px;
+        --radius-md: 16px;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        /* Animation Specific */
+        --stick-stroke: #374151;
+        --item-fill: #eff6ff;
+        
+        /* Progress Bar */
+        --progress-bg: #e5e7eb;
+        --step-circle-bg: #e5e7eb;
+        --step-text-active: #1a1a1a;
+      }
+
+      /* Dark Mode Overrides */
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
+        }
+      }
+
+      /* Explicit Dark Theme */
+      [data-theme="dark"] {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
       }
 
       body {
-        background-color: var(--bg-color); /* Use variable */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: var(--bg-color);
+        font-family: var(--font-main);
         color: var(--text-main);
         height: 100dvh;
         width: 100vw;
         overflow: hidden; 
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
+        /* Alignment handled by flex children and margins */
         margin: 0;
       }
 
@@ -54,8 +120,9 @@
       #app-container {
         width: 100%;
         max-width: 500px;
-        height: 100%;
-        flex: 1 1 auto;
+        /* Matches mobile-order logic: fill available space */
+        flex: 1; 
+        height: auto;
         margin: 0 auto;
         overflow: hidden;
         background: var(--bg-color);
@@ -63,10 +130,9 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 0 40px var(--shadow-color);
-        border-right: 1px solid var(--border-color); 
-        border-left: 1px solid var(--border-color);
-        transform-origin: top center;
+        box-shadow: 0 0 40px var(--shadow-soft);
+        /* Ensure no transform scaling messes up position */
+        transform: none !important;
       }
 
       @media (max-width: 500px) {
@@ -87,7 +153,7 @@
         align-items: center;
         justify-content: flex-start;
         padding: 0;
-        padding-bottom: 160px; 
+        padding-bottom: 40px; 
         text-align: center;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
@@ -109,15 +175,16 @@
       .status-card {
         background: var(--card-bg);
         width: 90%;
-        border-radius: 20px;
+        border-radius: var(--radius-lg);
         padding: 30px 20px;
-        box-shadow: 0 4px 20px var(--shadow-color);
+        box-shadow: var(--shadow-card);
         margin-top: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
         color: var(--text-main);
+        transition: transform 0.3s;
       }
 
       /* Colored Top Border */
@@ -128,14 +195,14 @@
         left: 0;
         width: 100%;
         height: 6px;
-        background: var(--border-color);
         border-radius: 20px 20px 0 0;
+        background: var(--border-color, #ccc); /* Fallback */
       }
-      .status-card.cooking::before { background: #E53935; }
-      .status-card.prep::before { background: #3b82f6; }
-      .status-card.done::before { background: #10b981; }
-      .status-card.cancelled::before { background: #f44336; }
-      .status-card.abandoned::before { background: #9e9e9e; }
+      .status-card.cooking::before { background: var(--status-cooking); }
+      .status-card.prep::before { background: var(--status-prep); }
+      .status-card.done::before { background: var(--status-done); }
+      .status-card.cancelled::before { background: var(--status-cancelled); }
+      .status-card.abandoned::before { background: var(--status-abandoned); }
 
       /* Side-by-Side Layout */
       .status-main-row {
@@ -159,76 +226,81 @@
         justify-content: center;
       }
 
-      /* SVG Styles using variables */
-      .stick-svg {
-        width: 110px;
-        height: 110px;
-        margin: 0;
-      }
-      
-      .stick-stroke {
-        stroke: var(--stick-stroke); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none;
-      }
-      .stick-head {
-        fill: var(--stick-stroke); stroke: none;
-      }
-      .item-stroke {
-        stroke: #3b82f6; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none;
-      }
-      .item-fill {
-        fill: var(--item-fill); stroke: #3b82f6; stroke-width: 2px;
-      }
+      /* SVG Styles */
+      .stick-svg { width: 110px; height: 110px; margin: 0; }
+      .stick-stroke { stroke: var(--stick-stroke); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .stick-head { fill: var(--stick-stroke); stroke: none; }
+      .item-stroke { stroke: #3b82f6; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .item-fill { fill: var(--item-fill); stroke: #3b82f6; stroke-width: 2px; }
 
       /* Animations Keyframes */
       @keyframes cookArm { from { transform: rotate(0deg); } to { transform: rotate(-15deg); } }
       .arm-cooking { transform-origin: 50px 45px; animation: cookArm 0.6s ease-in-out infinite alternate; }
       @keyframes cookFood { 0% { transform: translate(0, 0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(5px, -15px) rotate(10deg); opacity: 0; } }
       .pan-content { opacity: 0; animation: cookFood 0.6s ease-in-out infinite; }
-
       @keyframes packArm { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(20deg); } }
       .arm-packing { transform-origin: 50px 45px; animation: packArm 1.5s ease-in-out infinite; }
       @keyframes packItem { 0%, 20% { transform: translate(0, -20px); opacity: 0; } 40%, 60% { transform: translate(0, 0); opacity: 1; } 80%, 100% { transform: translate(0, 10px); opacity: 0; } }
       .item-packing { animation: packItem 1.5s ease-in-out infinite; }
-
       @keyframes wave { from { transform: rotate(-160deg); } to { transform: rotate(-130deg); } }
       .arm-wave { transform-origin: 50px 45px; animation: wave 1s ease-in-out infinite alternate; }
       @keyframes bagSway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
       .bag-hold { transform-origin: 70px 60px; animation: bagSway 2s ease-in-out infinite alternate; }
       @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
       .stick-man-done { animation: bounce 2s ease-in-out infinite; transform-origin: bottom center; }
-
       @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
       
-      /* Order Number Adjustments */
+      /* Order Number */
       .big-number {
         font-size: 3.5rem; 
         margin-bottom: 0;
         line-height: 1;
-        color: var(--text-main); /* Ensure variable */
+        color: var(--text-main);
+        font-weight: 900;
+        letter-spacing: -2px;
       }
       .label-order-num {
         margin-bottom: 5px;
         text-align: center;
         color: var(--text-sub);
+        font-size: 0.85rem;
+        font-weight: 700;
       }
 
-      /* Progress Bar (Stepper) */
+      /* Title & Desc */
+      .status-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin: 10px 0 5px;
+        color: var(--text-main);
+      }
+      .status-desc {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        white-space: pre-wrap;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+
+      /* Improved Progress Stepper */
       .progress-stepper {
         display: flex;
         justify-content: space-between;
         width: 100%;
-        margin: 0 0 20px;
+        margin: 10px 0 20px;
         position: relative;
       }
+      /* Background Line */
       .progress-stepper::before {
         content: '';
         position: absolute;
-        top: 14px;
-        left: 10%;
-        right: 10%;
-        height: 3px;
+        top: 15px;
+        left: 15%;
+        right: 15%;
+        height: 4px;
         background: var(--progress-bg);
         z-index: 0;
+        border-radius: 4px;
       }
       .step-item {
         position: relative;
@@ -237,36 +309,110 @@
         flex-direction: column;
         align-items: center;
         width: 33%;
+        opacity: 0.6;
+        transition: opacity 0.3s, transform 0.3s;
       }
+      .step-item.active { opacity: 1; transform: scale(1.05); }
+      .step-item.completed { opacity: 1; }
+
       .step-circle {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: var(--step-circle-bg);
-        color: white;
+        color: var(--text-sub);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 14px;
         font-weight: bold;
-        transition: background 0.3s;
+        transition: all 0.3s;
+        border: 2px solid var(--bg-color); /* Cutout effect */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       }
       .step-label {
-        margin-top: 6px;
-        font-size: 0.7rem;
+        margin-top: 8px;
+        font-size: 0.75rem;
         font-weight: 700;
         color: var(--text-sub);
+        transition: color 0.3s;
       }
       
-      /* Active State Styles */
-      .step-item.active .step-circle { background: var(--step-text-active); }
+      /* Active & Completed States */
+      .step-item.active .step-circle { 
+        background: var(--text-main); 
+        color: var(--bg-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      }
       .step-item.active .step-label { color: var(--text-main); }
-      .step-item.completed .step-circle { background: #10b981; }
+      
+      .step-item.completed .step-circle { 
+        background: var(--status-done); 
+        color: white; 
+      }
+      
+      /* Dynamic Colors per status */
+      .status-card.cooking .step-item.active .step-circle { background: var(--status-cooking); color: white; }
+      .status-card.prep .step-item.active .step-circle { background: var(--status-prep); color: white; }
+      .status-card.done .step-item.active .step-circle { background: var(--status-done); color: white; }
 
-      /* Dynamic Card Border Colors override active step color if needed */
-      .status-card.cooking .step-item.active .step-circle { background: #E53935; }
-      .status-card.prep .step-item.active .step-circle { background: #3b82f6; }
-      .status-card.done .step-item.active .step-circle { background: #10b981; }
+      /* Info & List Sections */
+      .info-section {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .info-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-bottom: 8px;
+        padding-left: 5px;
+      }
+      .info-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-md); /* Matching border radius */
+        padding: 16px 20px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-main);
+      }
+      
+      .item-list-container {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .order-item-row {
+         display: flex; 
+         justify-content: space-between; 
+         align-items: flex-start;
+         margin-bottom: 12px;
+         border-bottom: 1px dashed var(--border-color, #eee);
+         padding-bottom: 12px;
+      }
+      .order-item-row:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+      }
+      .total-price-row {
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px solid var(--border-color, #eee);
+          display: flex;
+          justify-content: space-between;
+          font-weight: 800;
+          font-size: 1.1rem;
+          color: var(--text-main);
+      }
+
+      /* Dark Mode Specific Tweaks for inner elements */
+      [data-theme="dark"] .order-item-row { border-bottom-color: #334155; }
+      [data-theme="dark"] .total-price-row { border-top-color: #334155; }
+
     </style>
   </head>
   <body data-status="waiting">
@@ -320,21 +466,15 @@
         <!-- Store Info -->
         <div class="info-section">
             <div class="info-label">受け取り店舗</div>
-            <div class="info-card-row">
-                <!-- Simple generic store icon or emoji -->
-                <div class="store-icon-box" style="font-size: 2rem;">🏪</div>
-                <div>
-                    <div style="font-size: 0.8rem; color: #10b981; font-weight: bold; margin-bottom: 2px;">営業中</div>
-                    <div id="store-name-display" style="font-weight: 800; color: #1f2937;">---</div>
-                    <div style="font-size: 0.75rem; color: #9ca3af;">Store ID: <span id="store-id-raw">--</span></div>
-                </div>
+            <div class="info-card">
+                 <div style="font-weight: 800; font-size: 1.1rem; flex: 1;" id="store-name-display">読込中...</div>
             </div>
         </div>
 
         <!-- Item List -->
         <div class="item-list-container">
              <div class="info-label">注文内容</div>
-             <div style="background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+             <div class="info-card" style="display: block; padding: 20px;">
                  <div id="items-list"></div>
                  <div class="total-price-row">
                      <span>合計</span>
@@ -343,14 +483,9 @@
              </div>
         </div>
 
-        <div class="mt-5 text-center mb-4">
-             <div style="font-size:0.7rem; color:#9ca3af; margin-bottom:15px;">
-                 最終更新: <span id="last-updated">--:--:--</span>
-             </div>
-             <button onclick="location.reload()" class="btn btn-outline-secondary btn-sm rounded-pill px-4">
-                 再読み込み
-             </button>
-        </div>
+        <!-- Spacer for scrolling -->
+        <div style="height: 40px;"></div>
+      </div>
 
       </div>
     
@@ -445,9 +580,8 @@
             updateUI(data);
             fetchStoreName(data.storeId);
             
-            // Update Timestamp
-            const now = new Date();
-            document.getElementById("last-updated").innerText = now.toLocaleTimeString();
+            updateUI(data);
+            fetchStoreName(data.storeId);
           },
           (error) => {
             console.error("Snapshot Error:", error);
@@ -468,10 +602,6 @@
         const numEl = document.getElementById("display-number");
         if (numEl) numEl.textContent = `${data.receiptNumber}`;
 
-        // Store ID Raw
-        const storeIdEl = document.getElementById("store-id-raw");
-        if (storeIdEl) storeIdEl.textContent = data.storeId;
-
         // 2. Items List
         const list = document.getElementById("items-list");
         list.innerHTML = "";
@@ -484,10 +614,10 @@
             // Simplified item display
             row.innerHTML = `
                 <div style="flex:1;">
-                    <div style="font-weight:700;">${item.name}</div>
-                    <div style="font-size:0.8rem; color:#9ca3af;">数量: ${itemQty}</div>
+                    <div style="font-weight:700; color: var(--text-main);">${item.name}</div>
+                    <div style="font-size:0.8rem; color: var(--text-sub);">数量: ${itemQty}</div>
                 </div>
-                <div>¥${itemPrice * itemQty}</div>
+                <div style="font-weight:700; color: var(--text-main);">¥${itemPrice * itemQty}</div>
             `;
             list.appendChild(row);
           });
@@ -660,40 +790,8 @@
     
     <!-- App Layout Scripts -->
     <script>
-       // Scaling Logic (Copied from mobile-order.html)
-       function adjustScale() {
-          const app = document.getElementById("app-container");
-          const isMobile = window.innerWidth <= 480;
+       // Helper to check if authorized (optional specific checks)
 
-          if (isMobile) {
-             app.style.height = "100%";
-             app.style.flex = "1";
-             app.style.transform = "none";
-             app.style.zoom = "1";
-             app.style.marginTop = "0";
-          } else {
-             // PC/Tablet: Simulating a phone device
-             // Available Height Calculation (Window - Header/Nav/Margins)
-             const availableHeight = window.innerHeight - 180; 
-             
-             // Base Height (matching mobile-order)
-             const baseHeight = 840;
-             
-             let scale = Math.min(1, availableHeight / baseHeight);
-            
-             // Fix dimensions to the base phone size, then scale it
-             app.style.flex = "none";
-             app.style.height = `${baseHeight}px`;
-             
-             app.style.transform = `scale(${scale})`;
-             
-             // Reset zoom if needed
-             app.style.zoom = "1";
-          }
-       }
-       
-       window.addEventListener("resize", adjustScale);
-       window.addEventListener("load", adjustScale);
        
        // App Shell Config
        window.CURRENT_PAGE = 'home'; // Default highlighting

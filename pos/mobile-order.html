@@ -1221,8 +1221,18 @@
             list.innerHTML = "<p>店舗が見つかりません</p>";
             return;
           }
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const targetStoreId = urlParams.get('store');
+          let targetStoreName = null;
+
           snap.forEach((d) => {
             const data = d.data();
+            // Check for auto-select
+            if (d.id === targetStoreId) {
+                targetStoreName = data.name;
+            }
+
             const imgSrc = `../images/${d.id}.png`;
             const el = document.createElement("div");
             el.className = "store-card animate__animated animate__fadeInUp";
@@ -1236,6 +1246,12 @@
             el.onclick = () => selectStore(d.id, data.name);
             list.appendChild(el);
           });
+
+          // Auto Redirect if matched
+          if (targetStoreId && targetStoreName) {
+            selectStore(targetStoreId, targetStoreName);
+          }
+
         } catch (e) {
           list.innerHTML = `<p class="text-danger">読み込み失敗: ${e.message}</p>`;
         }
