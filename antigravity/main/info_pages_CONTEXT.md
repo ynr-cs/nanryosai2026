@@ -36,7 +36,17 @@
   - **技術スタック**: 使用技術 (Firebase, Vanilla JS, Gemini etc.) の紹介。
   - **リンク**: Github や 部活の公式サイトへのリンク。
 
-## 5. UI/UX 共通方針
+## 5. モバイルオーダー技術仕様 (`mobile-order-guide.html`)
+
+- **役割**: システムの堅牢性を証明する「技術仕様書 (Whitepaper)」としての解説ページ。
+- **ターゲット**: 校長、教頭、技術監査担当、保護者。
+- **コンテンツ**:
+  - **Architecture**: **GitHub Pages** (Frontend) + **Firebase** (Backend) のサーバーレス構成。
+  - **Transaction Integrity**: **Cloud Functions** 経由でのみ注文を受け付ける仕様 (`allow create: if false`).
+  - **Access Control**: **Deny by Default** のセキュリティルール。
+  - **Lifecycle**: データ自動削除と、金銭リスクゼロ (No Payment Function) の保証。
+
+## 6. UI/UX 共通方針
 
 - **シンプルさ**: テキストと画像を読みやすく配置する「記事型」レイアウト。
 - **ナビゲーション**: ページ上部に「戻るボタン」を配置し、ホームへの動線を確保。

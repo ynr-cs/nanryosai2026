@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>システム基本設計とセキュリティ仕様について | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Override for Article/Whitepaper Layout */
+        body {
+            background-color: var(--bg-color); /* Fallback */
+            line-height: 1.8;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        }
+
+        .page-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+        }
+        .back-btn:active { transform: scale(0.95); }
+
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px 100px;
+        }
+
+        /* Hero */
+        .tech-hero {
+            padding: 60px 0 40px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 50px;
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 100px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .tech-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        .tech-lead {
+            font-size: 1.05rem;
+            color: var(--text-sub);
+            margin-bottom: 0;
+            line-height: 1.8;
+        }
+
+        /* Content Sections */
+        .content-section {
+            margin-bottom: 70px;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .section-headline {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+        }
+        
+        .section-body p {
+            font-size: 1rem;
+            color: var(--text-sub);
+            margin-bottom: 24px;
+            text-align: justify;
+        }
+
+        /* Diagram Box */
+        .diagram-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .architecture-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .arch-node {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 140px;
+        }
+        
+        .arch-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+        
+        .arch-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .arch-sub {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        .arch-arrow {
+            font-size: 1.5rem;
+            color: var(--text-sub);
+            opacity: 0.5;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #d4d4d4;
+            overflow-x: auto;
+            border: 1px solid #333;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .code-keyword { color: #569cd6; }
+        .code-string { color: #ce9178; }
+        .code-comment { color: #6a9955; }
+        .code-function { color: #dcdcaa; }
+
+        /* Feature List */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 20px;
+        }
+        
+        .feature-item {
+            display: flex;
+            gap: 20px;
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .feature-item:hover {
+            border-color: rgba(255,255,255,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 2px;
+        }
+
+        .feature-content h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .feature-content p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+
+        /* Footer Info */
+        .tech-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 40px;
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <div class="page-header">
+            <a href="index.html" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <span style="font-size:0.9rem; font-weight:600; color:var(--text-sub);">戻る</span>
+        </div>
+
+        <div class="article-container">
+            
+            <header class="tech-hero">
+                <span class="tech-badge">技術仕様解説書 (Technical Whitepaper)</span>
+                <h1 class="tech-title">南陵祭2026<br>モバイルオーダーシステム<br>基本設計とセキュリティ仕様</h1>
+                <p class="tech-lead">
+                    本ドキュメントは、南陵祭モバイルオーダーシステムの技術的安全性、堅牢性、および個人情報保護のメカニズムについて、保護者様および学校関係者様向けに詳細を解説するものです。
+                </p>
+            </header>
+
+            <!-- SECTION 1: OVERVIEW -->
+            <section class="content-section">
+                <span class="section-label">第1章：システム構成</span>
+                <h2 class="section-headline">
+                    静的フロントエンドと<br>サーバーレスバックエンドの融合
+                </h2>
+                <div class="section-body">
+                    <p>
+                        本システムは、現代のWeb開発において最も堅牢かつスケーラブル（拡張性が高い）とされる構成である <strong>JAMstack (JavaScript, APIs, Markup)</strong> アーキテクチャを採用しています。<br>
+                        従来型の「1つのサーバーに全てを処理させる」方式と異なり、「静的な画面配信」と「動的なデータ処理」を完全に分離することで、セキュリティリスクを構造的に排除しています。
+                    </p>
+                    
+                    <div class="diagram-box">
+                        <div class="architecture-flow">
+                            <div class="arch-node">
+                                <div class="arch-icon"><i class="bi bi-github"></i></div>
+                                <div class="arch-label">フロントエンド</div>
+                                <div class="arch-sub">GitHub Pages</div>
+                            </div>
+                            <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+                            <div class="arch-node">
+                                <div class="arch-icon"><i class="bi bi-phone"></i></div>
+                                <div class="arch-label">利用者</div>
+                                <div class="arch-sub">スマートフォン</div>
+                            </div>
+                            <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+                            <div class="arch-node" style="border-color: #ffca28;">
+                                <div class="arch-icon" style="color:#ffca28;"><i class="bi bi-fire"></i></div>
+                                <div class="arch-label">バックエンド</div>
+                                <div class="arch-sub">Google Firebase</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 0.85rem; color: var(--text-sub);">
+                            データフロー：静的コンテンツ配信 → ブラウザでの動作 → 暗号化された通信 → 安全なクラウドデータベース
+                        </p>
+                    </div>
+
+                    <ul class="feature-list">
+                        <li class="feature-item">
+                            <i class="bi bi-shield-check feature-icon"></i>
+                            <div class="feature-content">
+                                <h4>GitHub Pages (Microsoftのインフラ)</h4>
+                                <p>画面の配信には GitHub Pages を使用しています。これは「静的ホスティング」と呼ばれる仕組みで、サーバー上でプログラムが実行されません。そのため、サーバーへの侵入や、SQLインジェクションといった「サーバーを乗っ取る攻撃」が原理的に成立せず、極めて安全です。</p>
+                            </div>
+                        </li>
+                        <li class="feature-item">
+                            <i class="bi bi-cloud-check feature-icon"></i>
+                            <div class="feature-content">
+                                <h4>Google Firebase (Googleのインフラ)</h4>
+                                <p>データベースや認証機能には Google の Firebase を採用しています。物理的なサーバーを持たない「サーバーレス」構成により、OSの更新忘れや設定ミスによる脆弱性が発生するリスクを根本から排除しています。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 2: TRANSACTION INTEGRITY -->
+            <section class="content-section">
+                <span class="section-label">第2章：取引の完全性</span>
+                <h2 class="section-headline">
+                     厳密な注文処理プロセスと<br>不正防止メカニズム
+                </h2>
+                <div class="section-body">
+                    <p>
+                        「スマホからプログラムを改ざんして、勝手に注文データを書き換えたり、価格を変更したりできるのではないか？」という懸念に対し、本システムは強力な回答を持っています。<br>
+                        データベースのセキュリティルールにおいて、<strong>「利用者のスマホ（クライアント）からの直接的な注文作成」は明確に禁止</strong>されています。
+                    </p>
+
+                    <div class="code-block">
+                        <span class="code-comment">// firestore.rules (稼働中の実際のルール設定)</span><br>
+                        match /orders/{orderId} {<br>
+                        &nbsp;&nbsp;<span class="code-comment">// スマホからの直接書き込みを禁止 (Create Denied)</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">allow</span> create: <span class="code-keyword">if</span> <span class="code-keyword">false</span>;<br>
+                        <br>
+                        &nbsp;&nbsp;<span class="code-comment">// 読み取りのみ本人に許可</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">allow</span> read: <span class="code-keyword">if</span> request.auth.uid == userId;<br>
+                        }
+                    </div>
+
+                    <p>
+                        実際の注文処理は、認証されたサーバー側プログラムである <strong>Cloud Functions for Firebase</strong> を経由してのみ実行されます。<br>
+                        利用者が「注文ボタン」を押すと、リクエストがGoogleのサーバーに送られます。そこでサーバーが「在庫はあるか？」「価格は正しいか？」「ユーザーは正当か？」を厳密に再検証した上で、初めてデータベースへの書き込みを行います。<br>
+                        この仕組みにより、外部からの不正なリクエストは全てブロックされ、改ざんは不可能です。
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION 3: ACCESS CONTROL -->
+            <section class="content-section">
+                <span class="section-label">第3章：アクセス制御</span>
+                <h2 class="section-headline">
+                    「デフォルト拒否」による<br>鉄壁の防御ポリシー
+                </h2>
+                <div class="section-body">
+                    <p>
+                        セキュリティの基本原則である "Least Privilege"（最小権限の原則）を徹底しています。<br>
+                        システム全体の初期設定として、全てのデータへのアクセスは「拒否」されています。
+                    </p>
+                    <div class="code-block">
+                        <span class="code-comment">// Default Rule: Block Everything (全てを拒否)</span><br>
+                        match /{document=**} {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">allow</span> read, write: <span class="code-keyword">if</span> <span class="code-keyword">false</span>;<br>
+                        }
+                    </div>
+                    <p>
+                        この状態から、明示的に許可された操作（例：「自分のユーザー情報の読み取り」）のみがホワイトリスト形式で開放されます。<br>
+                        「設定を忘れたらデータが見えてしまう」のではなく、<strong>「設定を忘れたら誰も見られなくなる」</strong>設計になっているため、意図しない情報漏洩事故を防ぎ、利用者のプライバシーを鉄壁に守ります。
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION 4: DATA LIFECYCLE -->
+            <section class="content-section">
+                <span class="section-label">第4章：プライバシーと安全性</span>
+                <h2 class="section-headline">
+                    データの短命化と<br>金銭リスクの排除
+                </h2>
+                <div class="section-body">
+                    <p>
+                        最後に、お預かりするデータの取り扱いと、金銭的な安全性についてご説明します。<br>
+                        本システムで扱うデータは、文化祭期間中のみ存在する「短命なデータ (Ephemeral Data)」として設計されています。
+                    </p>
+                    <ul class="feature-list" style="margin-top:20px;">
+                        <li class="feature-item">
+                            <i class="bi bi-person-lock feature-icon"></i>
+                            <div class="feature-content">
+                                <h4>Google Identity Platform の採用</h4>
+                                <p>ログインにはGoogleアカウントを使用します。パスワードや認証情報はすべてGoogle側で管理され、学校側のサーバーにパスワードが保存されることは一切ありません。</p>
+                            </div>
+                        </li>
+                        <li class="feature-item">
+                            <i class="bi bi-trash3 feature-icon"></i>
+                            <div class="feature-content">
+                                <h4>データの完全自動消去</h4>
+                                <p>取得したデータ（メールアドレス、注文履歴）は、本システムの運用目的のみに使用され、文化祭終了後の事後処理完了と同時に、プログラムによってデータベースから物理的に完全削除されます。翌年度への持ち越しは行いません。</p>
+                            </div>
+                        </li>
+                        <li class="feature-item">
+                            <i class="bi bi-wallet2 feature-icon"></i>
+                            <div class="feature-content">
+                                <h4>決済機能の非保持（金銭リスクゼロ）</h4>
+                                <p>本システムは「予約」機能のみを提供し、決済機能（クレジットカード決済等）を一切保持しません。すべて「現地での現金・チケット払い」であるため、不正決済やフィッシング詐欺といった金銭トラブルのリスクはゼロです。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <footer class="tech-footer">
+                <p>設計・開発・運用<br><strong>神奈川県立横浜南陵高等学校 コンピュータ科学部 (CSC)</strong></p>
+                <p style="opacity: 0.6; margin-top: 10px;">System Version: 2.1.0-beta</p>
+            </footer>
+
+        </div>
+    </main>
+
+    <script type="module" src="app-shell.js"></script>
+</body>
+</html>

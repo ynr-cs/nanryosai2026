@@ -29,52 +29,90 @@
         .back-btn:active { transform: scale(0.95); }
 
         .terms-container {
-            padding: 0 20px 40px;
-            max-width: 600px;
+            padding: 0 20px 60px;
+            max-width: 700px;
             margin: 0 auto;
         }
-
-        /* Ported Styles from mobile-order.html */
-        .terms-warning-box {
-            background: #ffebee;
-            border: 2px solid #ef5350; /* var(--accent-color) fallback */
-            border-radius: 12px;
+        
+        .term-section {
+            margin-bottom: 30px;
             padding: 20px;
-            margin: 20px 0;
-            color: #b71c1c;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .warning-title {
-            color: #d32f2f;
-            font-weight: 900;
-            font-size: 1.2rem;
+
+        .term-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .warning-list {
-            text-align: left;
-            margin-bottom: 0;
-            padding-left: 20px;
-            font-weight: 700;
-            color: #b71c1c;
-        }
-        .warning-list li { margin-bottom: 10px; }
-        .ban-warning {
-            font-size: 1.1em;
-            background: #b71c1c;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-weight: 900;
-            text-align: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
         }
 
-        /* Dark Mode Adjustments for the warning box if needed */
+        .term-section ul, .term-section ol {
+            padding-left: 20px;
+            margin-bottom: 0;
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        
+        .term-section li {
+            margin-bottom: 8px;
+        }
+
+        .term-section p {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        .term-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Danger / Warning Styles */
+        .text-danger { color: #ff4757 !important; }
+        .highlight-danger {
+            color: #ff4757;
+            font-weight: 800;
+            background: rgba(255, 71, 87, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .ban-box {
+            background: rgba(255, 71, 87, 0.1); /* Red tint */
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            color: #ff4757;
+        }
+        
+        .ban-box ul {
+            list-style-type: none;
+            padding-left: 0;
+            font-weight: 700;
+        }
+        
+        .ban-box ul li::before {
+            content: "⚠️ ";
+        }
+
+        /* Dark mode tweaks handled by variables primarily, but explicit text checks */
         @media (prefers-color-scheme: dark) {
-            /* Keep it red even in dark mode for danger feeling, but maybe dim backgrounds? 
-               For now, keeping high contrast red as it is a warning. */
+            .ban-box {
+                background: rgba(255, 71, 87, 0.15);
+                color: #ff6b81;
+            }
         }
     </style>
 </head>
@@ -88,50 +126,120 @@
             <h2 style="margin:0; font-weight:800; font-size:1.5rem;">利用規約</h2>
         </div>
 
-        <div class="terms-container">
-            <div class="text-center mt-3 mb-4">
-                <i class="bi bi-shield-exclamation text-danger" style="font-size: 3rem; color: #ff4757;"></i>
-                <h3 class="fw-bold mt-2 mb-0">利用規約の確認</h3>
+    <div class="terms-container">
+            <div class="text-center mt-3 mb-5">
+                <i class="bi bi-file-earmark-text tr-icon-glow" style="font-size: 3rem; color: var(--accent-color);"></i>
+                <h3 class="fw-bold mt-2 mb-0">利用規約</h3>
                 <p style="color: var(--text-sub); font-size: 0.9rem; margin-top: 10px;">
-                    南陵祭モバイルオーダーをご利用いただく前に、<br>以下の内容を必ずご確認ください。
+                    本サービス「南陵祭モバイルオーダー」を利用することで、<br>以下の規約に同意したものとみなされます。
                 </p>
             </div>
 
-            <div class="terms-warning-box">
-                <div class="warning-title">
-                    <i class="bi bi-exclamation-triangle-fill"></i> 注意事項
-                </div>
-                <ul class="warning-list">
-                    <li>注文確定後のキャンセルはできません</li>
-                    <li>受け取りは「呼出」から15分以内</li>
-                    <li>返金対応は致しかねます</li>
-                </ul>
-                <div class="ban-warning">
-                    違反時は今後コンピュータ科学部が<br>作成するサービスからBANします
-                </div>
+            <div class="terms-content">
+                <!-- 第1条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第1条（総則）</h4>
+                    <p>本規約は、横浜南陵高校コンピュータ科学部（以下「当部」といいます）が運営する南陵祭モバイルオーダーシステム（以下「本サービス」といいます）の利用に関する条件を定めるものです。</p>
+                </section>
+
+                <!-- 第2条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第2条（利用資格）</h4>
+                    <p>本サービスは、南陵祭期間中に来場された以下の利用者を対象とします。</p>
+                    <ul>
+                        <li>当校の在校生</li>
+                        <li>一般来場者（保護者、中学生、地域の方等）</li>
+                        <li>教職員および関係者</li>
+                    </ul>
+                </section>
+
+                <!-- 第3条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第3条（注文と契約成立）</h4>
+                    <ol>
+                        <li>利用者が本サービス上で注文を確定し、サーバーがこれを受理した時点で、当該商品の予約契約が成立するものとします。</li>
+                        <li>在庫状況等の理由により、注文成立後であっても当部または各出店団体が注文を取り消す場合があります。</li>
+                    </ol>
+                </section>
+
+                <!-- 第4条 -->
+                <section class="term-section">
+                    <h4 class="term-title text-danger"><i class="bi bi-clock-history"></i> 第4条（商品受取と期限）</h4>
+                    <p class="fw-bold text-danger">商品の受け取り期限は極めて重要です。</p>
+                    <ol>
+                        <li>利用者は、調理完了通知（「呼出」ステータス）または指定された受け取り時刻から<span class="highlight-danger">15分以内</span>に店舗へ受け取りに行くものとします。</li>
+                        <li>15分を経過しても受け取りがない場合、食品衛生上の観点および運営の円滑化のため、<span class="highlight-danger">注文は自動的にキャンセル扱いとなり、商品は廃棄処分されます。</span></li>
+                        <li>前項の場合、代金の返金義務は発生しないものとします。</li>
+                    </ol>
+                </section>
+
+                <!-- 第5条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第5条（キャンセル・変更）</h4>
+                    <p>注文確定後の利用者都合によるキャンセル、商品内容の変更は原則として認められません。ただし、商品に瑕疵（不良品等）がある場合は、店頭にて交換対応を行います。</p>
+                </section>
+
+                <!-- 第6条 -->
+                <section class="term-section">
+                    <h4 class="term-title text-danger"><i class="bi bi-slash-circle"></i> 第6条（禁止事項）</h4>
+                    <p>利用者は以下の行為を行ってはなりません。</p>
+                    <ul>
+                        <li>虚偽の情報（氏名、クラス等）を登録する行為</li>
+                        <li>転売または営利を目的として商品を注文する行為</li>
+                        <li>同一人物による過度な大量注文や買い占め行為</li>
+                        <li>自動化ツール（ボット、スクリプト等）を用いて本サービスにアクセスする行為</li>
+                        <li>本サービスのサーバーやネットワークに過度な負荷をかける行為</li>
+                        <li>他の利用者、出店団体、または当部の運営を妨害する行為</li>
+                    </ul>
+                </section>
+
+                <!-- 第7条 -->
+                <section class="term-section">
+                    <h4 class="term-title damage-text">第7条（利用制限・BAN）</h4>
+                    <div class="ban-box">
+                        <p class="mb-2 fw-bold">違反者への措置</p>
+                        <p class="mb-0">
+                            本規約に違反したと当部が判断した場合、当該利用者に対して事前の通知なく以下の措置を講じることができます。
+                        </p>
+                        <ul class="mt-2 mb-0">
+                            <li>本サービスの利用停止</li>
+                            <li>今後当部が開発・運営する一切のサービス（次年度以降含む）の利用永久停止（BAN）</li>
+                            <li>悪質な場合は学校側への通報</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 第8条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第8条（免責事項）</h4>
+                    <ol>
+                        <li>当部は、本サービスの利用により利用者に生じた損害について、一切の責任を負いません。</li>
+                        <li>システム障害、通信回線の混雑、天災等により本サービスが一時停止した場合に生じた損害についても同様とします。</li>
+                        <li>提供される商品情報（価格、アレルギー情報、在庫等）の正確性については各出店団体が責任を負うものとし、当部はこれを保証しません。</li>
+                    </ol>
+                </section>
+
+                <!-- 第9条 -->
+                <section class="term-section">
+                    <h4 class="term-title">第9条（個人情報の取扱い）</h4>
+                    <p>
+                        利用者が入力した情報は、本サービスの提供（本人確認、注文管理）のみに使用します。<br>
+                        取得した全データは、南陵祭終了後および事後処理完了後に速やかに破棄し、翌年度に持ち越すことはありません。
+                    </p>
+                </section>
+
+                 <!-- 第10条 -->
+                 <section class="term-section">
+                    <h4 class="term-title">第10条（規約の変更）</h4>
+                    <p>
+                        当部は、必要と判断した場合には、利用者に通知することなくいつでも本規約を変更することができるものとします。
+                    </p>
+                </section>
             </div>
-
-            <div style="margin-top: 40px; color: var(--text-sub); font-size: 0.85rem; line-height: 1.6;">
-                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px;">運営について</h4>
-                <p>
-                    当システムは横浜南陵高校コンピュータ科学部によって運営されています。<br>
-                    システムの不正利用、サーバーへの攻撃、その他運営が不適切と判断した行為に対しては、予告なくアクセス制限を行う場合があります。
-                </p>
-                
-                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px; margin-top: 20px;">免責事項</h4>
-                <p>
-                    1. 本システムの利用により生じた損害について、運営元は一切の責任を負いません。<br>
-                    2. システムの保守、障害対応、天災等の不可抗力により、予告なくサービスを停止する場合があります。<br>
-                    3. 掲載されている商品情報の内容（価格、在庫状況等）の正確性については万全を期しておりますが、保証するものではありません。
-                </p>
-
-                <h4 style="color: var(--text-main); font-weight: bold; font-size: 1rem; margin-bottom: 10px; margin-top: 20px;">禁止事項</h4>
-                <p>
-                    以下の行為を禁止します。<br>
-                    ・虚偽の情報を登録する行為<br>
-                    ・本システムの運営を妨害する行為<br>
-                    ・他者になりすまして本システムを利用する行為
-                </p>
+            
+            <div class="mt-5 text-end text-muted" style="font-size: 0.8rem;">
+                <p>制定日：2025年12月31日<br>最終改定日：2026年1月19日</p>
+                <p>横浜南陵高校 コンピュータ科学部</p>
             </div>
         </div>
     </main>
