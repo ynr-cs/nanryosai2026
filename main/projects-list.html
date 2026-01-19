@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .page-header {
-            padding: 80px 20px 20px;
+            padding: 40px 20px 20px;
             text-align: center;
         }
         
         .page-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 900;
             margin: 0;
             background: var(--primary-gradient);
@@ -25,29 +25,35 @@
 
         /* Filter Section */
         .filter-section {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            padding: 20px;
             margin: 0 20px 20px;
-            max-width: 1000px;
+            max-width: 900px;
             margin-left: auto;
             margin-right: auto;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
             animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        [data-theme="dark"] .filter-section {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .search-box-wrapper {
             width: 100%;
             max-width: 600px;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 20px;
-            font-size: 1rem;
+            padding: 10px 20px;
+            font-size: 0.95rem;
             color: var(--text-main);
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -59,15 +65,15 @@
         .search-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 15px rgba(106, 17, 203, 0.2);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
         }
 
         .filter-group {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
 
@@ -76,41 +82,42 @@
         }
 
         .filter-label {
-            color: var(--text-main);
+            color: var(--text-sub);
             font-weight: 700;
-            font-size: 0.85rem;
-            min-width: 50px;
+            font-size: 0.8rem;
+            min-width: 40px;
             text-align: right;
         }
 
         .filter-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
         }
 
         .filter-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             color: var(--text-sub);
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: all 0.2s ease;
         }
 
         .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
         }
 
         .filter-btn.active {
             background: var(--primary-gradient);
             color: white;
             border-color: transparent;
+            box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
         }
 
         /* Control Row */
@@ -118,24 +125,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1000px;
-            margin: 0 auto 20px;
-            padding: 0 20px;
+            max-width: 900px;
+            margin: 0 auto 16px;
+            padding: 0 24px;
         }
 
         .sort-wrapper {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .sort-select {
-            padding: 8px 16px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
             color: var(--text-main);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             outline: none;
@@ -143,16 +150,20 @@
 
         .view-toggle-wrapper {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            background: var(--card-bg);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
 
         .view-toggle-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: transparent;
+            border: none;
             color: var(--text-sub);
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -161,48 +172,39 @@
         }
 
         .view-toggle-btn.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
+            background: var(--item-fill); 
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        [data-theme="dark"] .view-toggle-btn.active {
+            background: rgba(255,255,255,0.1);
         }
 
         /* Projects Grid Container */
         .projects-grid-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 0 20px 60px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 0 20px 80px;
             max-width: 1200px;
             margin: 0 auto;
-        }
-
-        @media (max-width: 968px) {
-            .projects-grid-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .projects-grid-container {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
         }
 
         /* Compact List View */
         .projects-grid-container.list-view {
             grid-template-columns: 1fr;
-            max-width: 900px;
+            max-width: 800px;
             gap: 12px;
         }
 
         /* Project Card Base */
         .project-card {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 20px;
+            border: 1px solid white;
+            border-radius: 16px;
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
             display: flex;
@@ -212,21 +214,25 @@
             opacity: 0;
             transform: translateY(20px);
             animation: fadeInUp 0.5s ease-out forwards;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         [data-theme="dark"] .project-card {
             background: rgba(30, 41, 59, 0.6);
             border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .project-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: rgba(var(--primary-rgb), 0.3);
         }
 
         .card-image {
-            height: 160px;
+            height: 130px;
             overflow: hidden;
+            position: relative;
         }
 
         .card-image img {
@@ -237,40 +243,44 @@
         }
 
         .project-card:hover .card-image img {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
 
         .card-content {
-            padding: 16px 20px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
         }
 
-        /* List View Refinement (Match index.html density) */
+        /* List View Refinement */
         .list-view .project-card {
             flex-direction: row;
             align-items: center;
-            padding: 12px 16px;
-            border-radius: 16px;
+            padding: 12px;
+            border-radius: 18px;
+            min-height: 100px;
         }
 
         .list-view .card-image {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
+            width: 80px;
+            height: 80px;
+            border-radius: 14px;
             flex-shrink: 0;
         }
 
         .list-view .card-content {
-            padding: 0 16px;
+            padding: 0 0 0 16px;
             gap: 2px;
+            justify-content: center;
         }
 
         .card-group-name {
             color: var(--primary-color);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
+            margin-bottom: 2px;
+            display: block;
         }
 
         [data-theme="dark"] .card-group-name {
@@ -278,57 +288,69 @@
         }
 
         .card-project-title {
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 800;
-            margin: 2px 0;
+            margin: 0 0 4px;
             color: var(--text-main);
+            line-height: 1.3;
         }
 
         .list-view .card-project-title {
-            font-size: 1.05rem;
+            font-size: 1rem;
             margin: 0;
         }
 
-        /* Place info (newly added for list) */
+        /* Place info */
         .card-place {
-            display: none;
-            font-size: 0.8rem;
-            color: var(--text-sub);
+            display: flex;
             align-items: center;
             gap: 4px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: auto;
+            padding-top: 8px;
         }
 
         .list-view .card-place {
-            display: flex;
+            margin-top: 2px;
+            padding-top: 0;
+            font-size: 0.75rem;
+        }
+        
+        .card-place i {
+            color: var(--text-placeholder);
         }
 
         .card-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        
+        .list-view .card-tags {
             margin-top: 4px;
         }
 
         .card-tag {
-            background: rgba(var(--primary-rgb), 0.08);
-            color: var(--primary-color);
+            background: var(--item-fill);
+            color: var(--text-sub);
             font-size: 0.7rem;
-            font-weight: 700;
-            padding: 1px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(var(--primary-rgb), 0.15);
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: none;
         }
 
-        [data-theme="dark"] .card-tag {
-            background: rgba(165, 180, 252, 0.1);
-            color: #a5b4fc;
-            border-color: rgba(165, 180, 252, 0.2);
+        .card-tag.highlight-tag {
+             background: rgba(var(--primary-rgb), 0.1);
+             color: var(--primary-color);
         }
 
         .card-catchphrase {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             line-height: 1.5;
-            margin-top: 8px;
+            margin-top: 6px;
             color: var(--text-sub);
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -337,30 +359,28 @@
         }
 
         .list-view .card-catchphrase {
-            display: -webkit-box;
-            font-size: 0.75rem;
-            margin-top: 2px;
-            margin-bottom: 4px;
-            -webkit-line-clamp: 1;
+            display: none; /* Hide catchphrase in list view for compactness */
         }
 
         .card-button-wrapper {
-            margin-top: auto;
+            margin-top: 0;
+            padding: 0 12px 14px;
             display: flex;
             gap: 8px;
             justify-content: flex-end;
         }
         
         .list-view .card-button-wrapper {
-            margin-top: 0;
-            margin-left: 12px;
+            padding: 0;
+            margin-left: auto; /* Push to right */
             flex-direction: row;
+            align-items: center;
         }
 
         .btn-action {
-            padding: 8px 18px;
+            padding: 6px 14px;
             border-radius: 50px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             text-decoration: none;
             transition: all 0.2s;
@@ -371,36 +391,59 @@
         }
 
         .btn-details {
-            background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(255, 0, 128, 0.3);
+            background: var(--item-fill);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-details:hover {
+            background: var(--border-color);
         }
 
         .btn-order {
-            background: white;
-            color: #ff0080;
-            border: 2px solid #ff0080;
+            background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(255, 0, 128, 0.2);
         }
 
-        [data-theme="dark"] .btn-order {
-            background: transparent;
-            color: #ff60ad;
-            border-color: #ff60ad;
+        .btn-order:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 0, 128, 0.3);
         }
-
-        .btn-action:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(255, 0, 128, 0.4);
-        }
-
-        @media (max-width: 600px) {
-            .list-view .project-card {
-                flex-direction: column;
-                align-items: stretch;
+        
+        /* Mobile adjustments for List View to ensure it fits */
+        @media (max-width: 480px) {
+            .page-header {
+                padding-top: 30px;
             }
-            .list-view .card-button-wrapper {
-                margin-left: 0;
-                margin-top: 12px;
+            .page-title {
+                font-size: 1.6rem;
+            }
+            .filter-section {
+                padding: 16px;
+                margin: 0 10px 16px;
+            }
+            .projects-grid-container {
+                padding: 0 10px 80px;
+            }
+            
+            .list-view .card-image {
+                width: 60px;
+                height: 60px;
+            }
+            .list-view .project-card {
+                padding: 10px;
+            }
+            .list-view .card-project-title {
+                font-size: 0.95rem;
+            }
+            /* If screen is very small, stack buttons or hide details */
+            .list-view .card-button-wrapper .btn-details {
+                display: none; /* Hide 'Details' on very small list view to save space */
+            }
+            .list-view .card-button-wrapper .btn-order {
+                padding: 6px 12px;
             }
         }
 
@@ -410,10 +453,47 @@
 
         .no-results {
             text-align: center;
-            padding: 40px;
+            padding: 60px 20px;
             color: var(--text-sub);
             grid-column: 1 / -1;
             display: none;
+            font-weight: bold;
+        }
+        /* Skeleton Loading */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, 
+                var(--border-color) 25%, 
+                rgba(255,255,255,0.2) 37%, 
+                var(--border-color) 63%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            color: transparent !important;
+            user-select: none;
+        }
+
+        [data-theme="dark"] .skeleton {
+             background: linear-gradient(90deg, 
+                rgba(255,255,255,0.05) 25%, 
+                rgba(255,255,255,0.1) 37%, 
+                rgba(255,255,255,0.05) 63%
+            );
+        }
+
+        .project-card.is-loading {
+            pointer-events: none;
+            box-shadow: none;
+            border-color: transparent;
+        }
+
+        .project-card.is-loading .card-image {
+            background: var(--card-bg); /* Fallback */
         }
     </style>
 </head>
@@ -494,7 +574,7 @@
             const searchInput = document.getElementById('search-input');
             const sortSelect = document.getElementById('sort-select');
             
-            if (!gridContainer || typeof projectData === 'undefined') return;
+            if (!gridContainer) return;
 
             let activeFilters = {
                 grade: 'すべて',
@@ -502,6 +582,25 @@
                 search: '',
                 sort: 'id-asc'
             };
+
+            // Skeleton Generation
+            function renderSkeletons(count = 9) {
+                let html = '';
+                for(let i=0; i<count; i++) {
+                    html += `
+                    <div class="project-card is-loading">
+                        <div class="card-image skeleton" style="height: ${gridContainer.classList.contains('list-view') ? '80px' : '130px'}"></div>
+                        <div class="card-content">
+                            <span class="card-group-name skeleton" style="width: 50%; height: 1em; margin-bottom: 4px;"></span>
+                            <h3 class="card-project-title skeleton" style="width: 80%; height: 1.2em; margin-bottom: 8px;"></h3>
+                            <p class="card-catchphrase skeleton" style="width: 100%; height: 1em; margin-bottom: 4px;"></p>
+                            <div class="card-place skeleton" style="width: 40%; height: 1em; margin-top: auto;"></div>
+                        </div>
+                    </div>
+                    `;
+                }
+                gridContainer.innerHTML = html;
+            }
 
             function renderCards(projects) {
                 if (projects.length === 0) {
@@ -551,45 +650,62 @@
                 gridContainer.innerHTML = cardsHTML;
             }
 
-            function applyFiltersAndSort() {
-                // 1. 基本的な除外（ステージ発表などを除く）
-                let result = projectData.filter(p => !p.tags || !p.tags.includes('ステージ'));
+            // Filter & Sort Logic
+            function applyFiltersAndSort(useLoading = false) {
+                if (typeof projectData === 'undefined') return;
 
-                // 2. Filter (Grade)
-                if (activeFilters.grade !== 'すべて') {
-                    result = result.filter(p => {
-                        if (activeFilters.grade === '部活動') return p.groupName && !p.groupName.match(/^[1-3]年/);
-                        return p.groupName && p.groupName.startsWith(activeFilters.grade.replace('生',''));
-                    });
+                if (useLoading) {
+                    renderSkeletons(9); // Show skeleton while processing/filtering
+                    // Simulate subtle delay for UX (and ensures render loop clear)
+                    setTimeout(() => {
+                        processDataAndRender();
+                    }, 400); 
+                } else {
+                    processDataAndRender();
                 }
-                if (activeFilters.type !== 'すべて') {
-                    result = result.filter(p => p.tags && p.tags.includes(activeFilters.type));
+
+                function processDataAndRender() {
+                     // 1. 基本的な除外
+                    let result = projectData.filter(p => !p.tags || !p.tags.includes('ステージ'));
+
+                    // 2. Filter
+                    if (activeFilters.grade !== 'すべて') {
+                        result = result.filter(p => {
+                            if (activeFilters.grade === '部活動') return p.groupName && !p.groupName.match(/^[1-3]年/);
+                            return p.groupName && p.groupName.startsWith(activeFilters.grade.replace('生',''));
+                        });
+                    }
+                    if (activeFilters.type !== 'すべて') {
+                        result = result.filter(p => p.tags && p.tags.includes(activeFilters.type));
+                    }
+                    if (activeFilters.search) {
+                        const term = activeFilters.search.toLowerCase();
+                        result = result.filter(p => 
+                            p.name.toLowerCase().includes(term) || 
+                            (p.groupName && p.groupName.toLowerCase().includes(term))
+                        );
+                    }
+                    
+                    // 3. Sort
+                    if (activeFilters.sort === 'name-asc') {
+                        result.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+                    } else if (activeFilters.sort === 'id-asc') {
+                        result.sort((a, b) => (parseInt(a.id) || 9999) - (parseInt(b.id) || 9999));
+                    } else if (activeFilters.sort === 'floor-asc') {
+                        result.sort((a, b) => {
+                            const floorA = a.floor || 99;
+                            const floorB = b.floor || 99;
+                            if (floorA !== floorB) return floorA - floorB;
+                            return (parseInt(a.id) || 9999) - (parseInt(b.id) || 9999);
+                        });
+                    }
+                    renderCards(result);
                 }
-                if (activeFilters.search) {
-                    const term = activeFilters.search.toLowerCase();
-                    result = result.filter(p => 
-                        p.name.toLowerCase().includes(term) || 
-                        (p.groupName && p.groupName.toLowerCase().includes(term))
-                    );
-                }
-                if (activeFilters.sort === 'name-asc') {
-                    result.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-                } else if (activeFilters.sort === 'id-asc') {
-                    result.sort((a, b) => (parseInt(a.id) || 9999) - (parseInt(b.id) || 9999));
-                } else if (activeFilters.sort === 'floor-asc') {
-                    result.sort((a, b) => {
-                        const floorA = a.floor || 99;
-                        const floorB = b.floor || 99;
-                        if (floorA !== floorB) return floorA - floorB;
-                        return (parseInt(a.id) || 9999) - (parseInt(b.id) || 9999);
-                    });
-                }
-                renderCards(result);
             }
 
             searchInput?.addEventListener('input', (e) => {
                 activeFilters.search = e.target.value.trim();
-                applyFiltersAndSort();
+                applyFiltersAndSort(false); // No loading for type-ahead search
             });
 
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -599,21 +715,24 @@
                     e.target.classList.add('active');
                     if (group.id === 'filter-by-grade') activeFilters.grade = e.target.dataset.filter;
                     if (group.id === 'filter-by-type') activeFilters.type = e.target.dataset.filter;
-                    applyFiltersAndSort();
+                    applyFiltersAndSort(true); // Show loading on filter change
                 });
             });
 
             sortSelect?.addEventListener('change', (e) => {
                 activeFilters.sort = e.target.value;
-                applyFiltersAndSort();
+                applyFiltersAndSort(true); // Show loading on sort change
             });
 
+            // View Toggle
             const gridBtn = document.getElementById('grid-view-btn');
             const listBtn = document.getElementById('list-view-btn');
             gridBtn?.addEventListener('click', () => {
                 gridContainer.classList.remove('list-view');
                 gridBtn.classList.add('active');
                 listBtn.classList.remove('active');
+                // Re-render to adjust image skeleton size if needed (or just CSS handles it)
+                // renderCards not needed if content exists, but skeleton logic depends on class
             });
             listBtn?.addEventListener('click', () => {
                 gridContainer.classList.add('list-view');
@@ -621,7 +740,11 @@
                 gridBtn.classList.remove('active');
             });
 
-            applyFiltersAndSort();
+            // Initial Render
+            renderSkeletons(12);
+            setTimeout(() => {
+                applyFiltersAndSort(false);
+            }, 600); // Initial load delay
         });
     </script>
 </body>
