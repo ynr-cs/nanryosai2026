@@ -200,36 +200,17 @@
 
         /* Project Card Base */
         .project-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid white;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             text-decoration: none;
             color: var(--text-main);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s ease-out forwards;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        [data-theme="dark"] .project-card {
-            background: rgba(30, 41, 59, 0.6);
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Auto dark mode (system setting) support */
-        @media (prefers-color-scheme: dark) {
-            :root:not([data-theme="light"]) .project-card {
-                background: rgba(30, 41, 59, 0.6);
-                border-color: rgba(255, 255, 255, 0.1);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            }
+            will-change: transform;
         }
 
         .project-card:hover {
@@ -375,15 +356,17 @@
             margin-top: 0;
             padding: 0 12px 14px;
             display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
             justify-content: flex-end;
         }
         
         .list-view .card-button-wrapper {
             padding: 0;
-            margin-left: auto; /* Push to right */
-            flex-direction: row;
+            margin-left: auto;
+            flex-wrap: wrap;
             align-items: center;
+            justify-content: flex-end;
         }
 
         .btn-action {
@@ -447,12 +430,16 @@
             .list-view .card-project-title {
                 font-size: 0.95rem;
             }
-            /* If screen is very small, stack buttons or hide details */
-            .list-view .card-button-wrapper .btn-details {
-                display: none; /* Hide 'Details' on very small list view to save space */
+            /* Buttons stack vertically on small screens */
+            .list-view .card-button-wrapper {
+                flex-direction: column;
+                align-items: stretch;
             }
-            .list-view .card-button-wrapper .btn-order {
-                padding: 6px 12px;
+            .list-view .card-button-wrapper .btn-action {
+                width: 100%;
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                text-align: center;
             }
         }
 
@@ -650,7 +637,7 @@
                         </div>
                         <div class="card-button-wrapper">
                             ${orderBtnHTML}
-                            <a href="#" class="btn-action btn-details">詳しく見る</a>
+                            <a href="#" class="btn-action btn-details">詳細</a>
                         </div>
                     </div>
                     `;
