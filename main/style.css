@@ -206,6 +206,190 @@ a {
   transform: scale(1.05);
 }
 
+/* ==============================
+   HIGHLIGHT SECTION (Horizontal Carousel)
+   ============================== */
+.highlight-section {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    /* No horizontal padding on section to let carousel bleed */
+}
+
+.highlight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px; /* Use padding for header alignment */
+    margin-bottom: 16px;
+}
+
+.highlight-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.highlight-title::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 24px;
+    background: var(--primary-gradient);
+    border-radius: 4px;
+}
+
+.highlight-link {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s;
+}
+
+.highlight-link:hover {
+    opacity: 0.8;
+}
+
+/* Vertical Scroll List Container (Windowed) */
+.highlight-carousel {
+    display: flex;
+    flex-direction: column;
+    /* Show approx 3 items (Card ~106px + Gap 12px) * 3 = ~354px */
+    height: 380px;
+    overflow-y: auto;
+    padding: 0 20px 20px;
+    gap: 12px;
+    /* scroll-snap-type: y mandatory; */ /* Disabled for smooth auto-scroll */
+    
+    /* Custom Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.highlight-carousel::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+}
+
+.highlight-carousel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.highlight-carousel::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 20px;
+}
+
+/* Carousel Inner Spacer removal (not needed for vertical) */
+.highlight-carousel::after {
+    display: none;
+}
+
+/* Compact Horizontal Card (Vertical List Mode) */
+.highlight-card {
+    flex: 0 0 auto;
+    width: 100%; /* Full width in list */
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-main);
+    scroll-snap-align: start; /* Snap alignment */
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.highlight-card:hover {
+    background-color: var(--bg-color); /* Subtle interactive feedback */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+
+.highlight-card:active {
+    transform: scale(0.98);
+}
+
+.highlight-card-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--item-fill); /* Fallback bg */
+}
+
+.highlight-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-left: 12px;
+    overflow: hidden; /* For text truncation */
+    justify-content: center;
+}
+
+.highlight-group-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .highlight-group-name {
+    color: #a5b4fc;
+}
+
+.highlight-project-name {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 2px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.highlight-place {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.highlight-place i {
+    color: var(--text-sub);
+    opacity: 0.7;
+}
+
+.highlight-tags {
+    display: flex;
+    gap: 4px;
+}
+
+.highlight-tag {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--item-fill);
+    color: var(--text-sub);
+    font-weight: 600;
+}
+
 .theme-statement {
   text-align: center;
   padding: 24px;
@@ -403,7 +587,8 @@ a {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 10px 30px rgba(124, 58, 237, 0.25);
-  height: 260px; /* Even more compact height */
+  min-height: 260px; /* Flexible height */
+  height: auto;
 }
 
 .promo-content-wrapper {
@@ -466,6 +651,26 @@ a {
 
 .promo-btn-white i {
   font-size: 1rem;
+}
+
+.promo-link-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  margin-top: 16px; /* Space from button */
+}
+
+.promo-link-sub:hover {
+  opacity: 1;
+}
+
+.promo-link-sub i {
+  font-size: 0.9rem;
 }
 
 /* Visual / Mockup */
