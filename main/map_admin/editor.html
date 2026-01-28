@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Nanryosai Map Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link
+      href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+
+    <!-- Mapbox GL Draw (Compatible with MapLibre) -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.2/mapbox-gl-draw.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.2/mapbox-gl-draw.css"
+      type="text/css"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+      .controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        max-width: 300px;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+
+      .control-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+      }
+
+      button {
+        padding: 8px 12px;
+        cursor: pointer;
+        background: #4a90d9;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-top: 5px;
+        width: 100%;
+      }
+
+      button:hover {
+        background: #357abd;
+      }
+      button.secondary {
+        background: #666;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 5px;
+        box-sizing: border-box;
+      }
+
+      #properties-form {
+        display: none;
+        margin-top: 10px;
+        background: #f9f9f9;
+        padding: 10px;
+        border: 1px solid #ddd;
+      }
+
+      .coord-display {
+        font-family: monospace;
+        font-size: 11px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      /* Mapbox GL Draw ツールバーのz-index修正 */
+      .mapboxgl-ctrl-group,
+      .maplibregl-ctrl-group {
+        z-index: 10 !important;
+        pointer-events: auto !important;
+      }
+      .mapboxgl-ctrl-top-right,
+      .maplibregl-ctrl-top-right {
+        z-index: 10 !important;
+      }
+      .mapboxgl-ctrl-top-right button,
+      .maplibregl-ctrl-top-right button {
+        pointer-events: auto !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <div class="control-group">
+        <label class="control-title">1. フロア選択</label>
+        <select id="floor-select">
+          <option value="1">1F</option>
+          <option value="2">2F</option>
+          <option value="3">3F</option>
+          <option value="4">4F</option>
+          <option value="5">5F</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label class="control-title">2. 描画ツール</label>
+        <div style="font-size: 12px; color: #555">
+          右上のツールバーを使ってエリアを描画してください。<br />
+          クリック: 頂点追加 / ダブルクリック: 完了
+        </div>
+      </div>
+
+      <div id="properties-form">
+        <label class="control-title">3. 選択中の部屋設定</label>
+        <div>部屋名 / ID</div>
+        <input type="text" id="prop-name" placeholder="例: 3年1組 / 301" />
+
+        <div>カテゴリ (色分け用)</div>
+        <select id="prop-category">
+          <option value="class">クラス企画 (標準)</option>
+          <option value="food">模擬店 (赤)</option>
+          <option value="stage">ステージ・体育館 (紫)</option>
+          <option value="exhibit">文化部・展示 (青)</option>
+          <option value="toilet">トイレ</option>
+          <option value="stairs">階段</option>
+          <option value="other">その他 (廊下など)</option>
+        </select>
+
+        <div>高さ (3D用, 0-50)</div>
+        <input type="number" id="prop-height" value="20" min="0" max="100" />
+
+        <button onclick="updateFeatureProperties()">設定を保存</button>
+      </div>
+
+      <div class="control-group">
+        <label class="control-title">4. データ保存</label>
+        <button onclick="downloadGeoJSON()">GeoJSONをダウンロード</button>
+        <div
+          id="status-msg"
+          style="font-size: 12px; margin-top: 5px; color: green"
+        ></div>
+      </div>
+
+      <div class="coord-display" id="coord-display">Pos: 0, 0</div>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+      // ==========================================
+      // Config & Init
+      // ==========================================
+
+      // 画像座標系の定義
+      // MapLibreはWebメルカトル(緯度経度)が基本なので、画像を無理やり地図上の範囲に置きます。
+      // 左上: [0, 0], 右下: [0.02, -0.015] くらいの範囲に画像を貼る。
+      // ※アスペクト比は画像に合わせて自動調整するロジックが必要だが、
+      // ここでは簡易的に適当な矩形に貼る。(後で微調整可能)
+
+      const IMAGE_BOUNDS = [
+        [139.0, 35.0], // SW (左下)
+        [139.02, 35.015], // NE (右上)
+      ];
+      // ※MapLibreの画像Overlayは `coordinates` (NW, NE, SE, SW) で指定する
+      const IMAGE_COORDS = [
+        [139.0, 35.015], // NW
+        [139.02, 35.015], // NE
+        [139.02, 35.0], // SE
+        [139.0, 35.0], // SW
+      ];
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: {
+          version: 8,
+          sources: {
+            blank: {
+              type: "raster",
+              tiles: [],
+              tileSize: 256,
+            },
+          },
+          layers: [
+            {
+              id: "background",
+              type: "background",
+              paint: {
+                "background-color": "#f0f0f0",
+              },
+            },
+          ],
+        },
+        center: [139.01, 35.0075], // 画像の中心付近
+        zoom: 15,
+        minZoom: 14,
+        maxZoom: 20,
+      });
+
+      // Draw Tool Init
+      const draw = new MapboxDraw({
+        displayControlsDefault: true, // 全てのコントロールを有効化
+        userProperties: true, // プロパティを保持
+      });
+      map.addControl(draw, "top-right");
+      map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+
+      let currentFloor = "1";
+
+      // ==========================================
+      // Map Logic
+      // ==========================================
+
+      map.on("load", () => {
+        // 画像ソースの追加
+        map.addSource("floor-plan", {
+          type: "image",
+          url: "../lastyear/images/map-1f.png",
+          coordinates: IMAGE_COORDS,
+        });
+
+        map.addLayer({
+          id: "floor-plan-layer",
+          type: "raster",
+          source: "floor-plan",
+          paint: {
+            "raster-fade-duration": 0,
+          },
+        });
+
+        // 座標表示
+        map.on("mousemove", (e) => {
+          document.getElementById("coord-display").innerText =
+            `Lng: ${e.lngLat.lng.toFixed(5)}, Lat: ${e.lngLat.lat.toFixed(5)}`;
+        });
+      });
+
+      // ==========================================
+      // Draw Events & Properties
+      // ==========================================
+
+      map.on("draw.selectionchange", onSelectionChange);
+
+      function onSelectionChange(e) {
+        const form = document.getElementById("properties-form");
+        if (e.features.length > 0) {
+          form.style.display = "block";
+          const feature = e.features[0];
+          const props = feature.properties || {};
+
+          document.getElementById("prop-name").value = props.name || "";
+          document.getElementById("prop-category").value =
+            props.category || "class";
+          document.getElementById("prop-height").value = props.height || 20;
+        } else {
+          form.style.display = "none";
+        }
+      }
+
+      // プロパティ更新
+      window.updateFeatureProperties = () => {
+        const selectedIds = draw.getSelectedIds();
+        if (selectedIds.length === 0) return;
+
+        const id = selectedIds[0];
+        const name = document.getElementById("prop-name").value;
+        const category = document.getElementById("prop-category").value;
+        const height = parseInt(document.getElementById("prop-height").value);
+
+        draw.setFeatureProperty(id, "name", name);
+        draw.setFeatureProperty(id, "category", category);
+        draw.setFeatureProperty(id, "height", height);
+
+        // フィードバック
+        alert("設定を保存しました");
+      };
+
+      // ==========================================
+      // Floor Switching
+      // ==========================================
+
+      document
+        .getElementById("floor-select")
+        .addEventListener("change", (e) => {
+          const floor = e.target.value;
+
+          // 既存の作業データがあるか確認警告などは一旦省略
+
+          const imageUrl = `../lastyear/images/map-${floor}f.png`;
+          const source = map.getSource("floor-plan");
+          if (source) {
+            source.updateImage({ url: imageUrl, coordinates: IMAGE_COORDS });
+          }
+
+          currentFloor = floor;
+        });
+
+      // ==========================================
+      // Export
+      // ==========================================
+
+      window.downloadGeoJSON = () => {
+        const data = draw.getAll();
+        if (data.features.length === 0) {
+          alert("データがありません。まずは描画してください。");
+          return;
+        }
+
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `floor_${currentFloor}_data.geojson`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        document.getElementById("status-msg").innerText = "ダウンロード完了!";
+        setTimeout(
+          () => (document.getElementById("status-msg").innerText = ""),
+          3000,
+        );
+      };
+    </script>
+  </body>
+</html>
