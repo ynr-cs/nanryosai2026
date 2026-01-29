@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3Dマップエディタ | 南陵祭'26</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="editor.css" />
+  </head>
+  <body>
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="header-left">
+        <button class="back-btn" onclick="history.back()">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">
+          <span class="material-icons">view_in_ar</span>
+          3Dマップエディタ
+        </h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-import">
+          <span class="material-icons">upload_file</span>
+          インポート
+        </button>
+        <button class="btn btn-secondary" id="btn-save">
+          <span class="material-icons">save</span>
+          保存
+        </button>
+        <button class="btn btn-primary" id="btn-export">
+          <span class="material-icons">download</span>
+          JSONエクスポート
+        </button>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+      <!-- 左サイドバー -->
+      <aside class="sidebar">
+        <!-- 建物パレット -->
+        <section class="panel">
+          <div class="panel-header">
+            <span class="material-icons">apartment</span>
+            建物パレット
+          </div>
+          <div class="panel-body" id="building-palette">
+            <!-- 建物ボタンはJSで生成 -->
+          </div>
+          <div class="panel-footer">
+            <button class="btn btn-add" id="btn-add-building">
+              <span class="material-icons">add</span>
+              新規建物
+            </button>
+          </div>
+        </section>
+
+        <!-- プロパティパネル -->
+        <section class="panel" id="property-panel">
+          <div class="panel-header">
+            <span class="material-icons">tune</span>
+            プロパティ
+          </div>
+          <div class="panel-body">
+            <div class="no-selection" id="no-selection-msg">
+              建物を選択してください
+            </div>
+            <div class="property-form" id="property-form" style="display: none">
+              <div class="form-group">
+                <label>ID</label>
+                <input type="text" id="prop-id" readonly />
+              </div>
+              <div class="form-group">
+                <label>名前</label>
+                <input type="text" id="prop-name" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>X座標 (m)</label>
+                  <input type="number" id="prop-x" step="0.1" />
+                </div>
+                <div class="form-group">
+                  <label>Z座標 (m)</label>
+                  <input type="number" id="prop-z" step="0.1" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>幅 (m)</label>
+                  <input type="number" id="prop-width" step="0.1" min="1" />
+                </div>
+                <div class="form-group">
+                  <label>奥行き (m)</label>
+                  <input type="number" id="prop-depth" step="0.1" min="1" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>階数</label>
+                  <input
+                    type="number"
+                    id="prop-floors"
+                    step="1"
+                    min="1"
+                    max="10"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>回転 (°)</label>
+                  <input type="number" id="prop-rotation" step="15" />
+                </div>
+              </div>
+              <button class="btn btn-edit-vertex" id="btn-edit-vertex">
+                <span class="material-icons">edit</span>
+                頂点編集モード
+              </button>
+              <button class="btn btn-danger" id="btn-delete-building">
+                <span class="material-icons">delete</span>
+                削除
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- オプション -->
+        <section class="panel">
+          <div class="panel-header">
+            <span class="material-icons">settings</span>
+            オプション
+          </div>
+          <div class="panel-body">
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="opt-grid" checked />
+              <label for="opt-grid">グリッド表示</label>
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="opt-snap" checked />
+              <label for="opt-snap">グリッドスナップ</label>
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="opt-snap-90" checked />
+              <label for="opt-snap-90">90度スナップ</label>
+            </div>
+            <div class="form-group">
+              <label>スナップ幅 (m)</label>
+              <input
+                type="number"
+                id="opt-snap-size"
+                value="1"
+                step="0.5"
+                min="0.5"
+                max="50"
+              />
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="opt-bg-image" />
+              <label for="opt-bg-image">背景画像 (トレース用)</label>
+            </div>
+            <div
+              class="form-group bg-controls"
+              id="bg-image-controls"
+              style="display: none"
+            >
+              <!-- 入力ソース -->
+              <div class="bg-input-group">
+                <label>画像ソース</label>
+                <div class="button-row">
+                  <button id="btn-bg-file" class="btn-sm">ファイル選択</button>
+                  <button
+                    id="btn-bg-paste"
+                    class="btn-sm"
+                    title="クリップボードから貼り付け"
+                  >
+                    <span class="material-icons">content_paste</span>
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  id="bg-file-input"
+                  accept="image/*"
+                  style="display: none"
+                />
+                <input
+                  type="text"
+                  id="opt-bg-url"
+                  placeholder="Google Maps URL または 画像URL"
+                />
+                <div class="help-text">
+                  Google Maps URLを貼るとスケールを自動推定
+                </div>
+              </div>
+
+              <!-- スケール調整 -->
+              <div class="bg-input-group">
+                <label>スケール設定</label>
+                <button id="btn-calibrate" class="btn-outline w-100">
+                  <span class="material-icons">square_foot</span> 距離で補正
+                </button>
+                <div class="input-row mt-1">
+                  <label>幅(m):</label>
+                  <input
+                    type="number"
+                    id="bg-metric-width"
+                    step="0.1"
+                    value="100"
+                  />
+                </div>
+              </div>
+
+              <!-- 位置・調整 -->
+              <div class="bg-input-group">
+                <label>位置・調整</label>
+                <div class="input-row">
+                  <label>X:</label>
+                  <input type="number" id="bg-offset-x" step="1" value="0" />
+                  <label>Z:</label>
+                  <input type="number" id="bg-offset-z" step="1" value="0" />
+                </div>
+                <div class="input-row">
+                  <label>回転:</label>
+                  <input type="number" id="bg-rotation" step="1" value="0" />
+                </div>
+                <div class="input-row">
+                  <label>透明度:</label>
+                  <input
+                    type="range"
+                    id="opt-bg-opacity"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value="0.5"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- 3Dキャンバス -->
+      <div class="canvas-container" id="canvas-container"></div>
+
+      <!-- 右サイドコントロール -->
+      <div class="canvas-controls">
+        <button class="ctrl-btn" id="btn-zoom-in" title="ズームイン">
+          <span class="material-icons">add</span>
+        </button>
+        <button class="ctrl-btn" id="btn-zoom-out" title="ズームアウト">
+          <span class="material-icons">remove</span>
+        </button>
+        <button class="ctrl-btn" id="btn-reset-view" title="ビューをリセット">
+          <span class="material-icons">center_focus_strong</span>
+        </button>
+        <button class="ctrl-btn" id="btn-top-view" title="真上から見る">
+          <span class="material-icons">layers</span>
+        </button>
+      </div>
+
+      <!-- 頂点編集ヘルプ -->
+      <div class="vertex-handle-info" id="vertex-info">
+        <h4>📐 頂点編集モード</h4>
+        <p>
+          🟡 黄色い球をドラッグ → 頂点移動<br />
+          🔵 青い円柱を2回クリック → 幅を決定<br />
+          　→ マウスで奥行き調整 → クリックで確定<br />
+          ESCキー → キャンセル
+        </p>
+      </div>
+    </main>
+
+    <!-- 新規建物モーダル -->
+    <div class="modal-overlay" id="modal-new-building" style="display: none">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>新規建物を追加</h2>
+          <button class="modal-close" id="modal-close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>ID (英数字)</label>
+            <input type="text" id="new-id" placeholder="building1" />
+          </div>
+          <div class="form-group">
+            <label>名前</label>
+            <input type="text" id="new-name" placeholder="新規建物" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="modal-cancel">
+            キャンセル
+          </button>
+          <button class="btn btn-primary" id="modal-confirm">追加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ステータスバー -->
+    <footer class="status-bar">
+      <span id="status-text">建物を選択してドラッグで移動</span>
+      <span id="status-save">自動保存: --</span>
+    </footer>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
+    <script src="editor.js"></script>
+  </body>
+</html>
