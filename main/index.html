@@ -8,10 +8,104 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Page Specific Style (Optional) -->
+    <!-- Page Specific Style -->
     <style>
+        /* 
+           Countdown Enhanced Styles 
+        */
+        .sp-only { display: none; }
+        @media (max-width: 768px) { .sp-only { display: inline; } }
 
+        /* Phase Container Switching */
+        .countdown-phase {
+            display: none; /* Hide all by default */
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
 
+        .countdown-phase.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* URGENT MODE (< 24h) */
+        .countdown-urgent .time-value {
+            color: #ff0055;
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        .countdown-urgent .countdown-label {
+            color: #ff0055;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            5% { transform: scale(1.1); }
+            10% { transform: scale(1); }
+            15% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        /* HAPPENING NOW MODE */
+        .status-badge-large {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff0080, #7928ca);
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            padding: 20px 60px;
+            border-radius: 100px;
+            box-shadow: 0 10px 40px rgba(255, 0, 128, 0.5);
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            animation: pulse-glow 2s infinite;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .status-badge-sub {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: block;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 128, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 128, 0); }
+        }
+
+        /* ENDED MODE */
+        .status-badge-ended {
+            font-size: 2rem; /* Adjusted for Japanese text length */
+            font-weight: 900;
+            color: var(--text-sub);
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .status-badge-large {
+                font-size: 1.8rem;
+                padding: 15px 40px;
+            }
+            .status-badge-ended {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -32,24 +126,43 @@
         </section>
 
         <section class="countdown-container">
-            <h2 class="countdown-label">開催まであと</h2>
-            <div class="timer-grid">
-                <div class="time-box">
-                    <span class="time-value" id="days">00</span>
-                    <span class="time-unit">DAYS</span>
+            <!-- Phase 1: Countdown (Normal & Urgent) -->
+            <div id="phase-countdown" class="countdown-phase active">
+                <h2 class="countdown-label">開催まであと</h2>
+                <div class="timer-grid">
+                    <div class="time-box">
+                        <span class="time-value" id="days">00</span>
+                        <span class="time-unit">DAYS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="hours">00</span>
+                        <span class="time-unit">HOURS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="minutes">00</span>
+                        <span class="time-unit">MINS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="seconds">00</span>
+                        <span class="time-unit">SECS</span>
+                    </div>
                 </div>
-                <div class="time-box">
-                    <span class="time-value" id="hours">00</span>
-                    <span class="time-unit">HOURS</span>
+            </div>
+
+            <!-- Phase 2: Happening Now -->
+            <div id="phase-happening" class="countdown-phase">
+                <div class="status-badge-large">
+                    開催中
                 </div>
-                <div class="time-box">
-                    <span class="time-value" id="minutes">00</span>
-                    <span class="time-unit">MINS</span>
+                <span class="status-badge-sub">みなさまのご来場をお待ちしています</span>
+            </div>
+
+            <!-- Phase 3: Ended -->
+            <div id="phase-ended" class="countdown-phase">
+                <div class="status-badge-ended">
+                    ご来場<br class="sp-only">ありがとうございました
                 </div>
-                <div class="time-box">
-                    <span class="time-value" id="seconds">00</span>
-                    <span class="time-unit">SECS</span>
-                </div>
+                <span class="status-badge-sub">本年度の南陵祭は終了しました</span>
             </div>
         </section>
 
@@ -292,19 +405,69 @@
         // Define current page for the shell
         window.CURRENT_PAGE = 'home';
 
-        // Countdown Logic
-        const targetDate = new Date('2026-09-11T09:00:00+09:00').getTime();
+        // Countdown Logic (Enhanced)
+        const START_DATE = new Date('2026-09-11T09:00:00+09:00').getTime();
+        const END_DATE   = new Date('2026-09-12T18:00:00+09:00').getTime(); // End of After-party
 
         function updateCountdown() {
             const now = new Date().getTime();
-            const distance = targetDate - now;
+            
+            // Phase Elements
+            const phaseCountdown = document.getElementById('phase-countdown');
+            const phaseHappening = document.getElementById('phase-happening');
+            const phaseEnded     = document.getElementById('phase-ended');
 
-            if (distance < 0) {
-                document.getElementById('days').innerText = "00";
-                document.getElementById('hours').innerText = "00";
-                document.getElementById('minutes').innerText = "00";
-                document.getElementById('seconds').innerText = "00";
+            // --- Debug Mode (URL Params) ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const debugMode = urlParams.get('mode');
+
+            if (debugMode) {
+                if (debugMode === 'live') {
+                    switchPhase(phaseHappening);
+                    return;
+                }
+                if (debugMode === 'ended') {
+                    switchPhase(phaseEnded);
+                    return;
+                }
+                if (debugMode === 'urgent') {
+                    // Force urgent countdown style (fake 1 hour remaining)
+                    switchPhase(phaseCountdown);
+                    phaseCountdown.classList.add('countdown-urgent');
+                    // Mock display for visual check
+                    document.getElementById('days').innerText = "00";
+                    document.getElementById('hours').innerText = "00";
+                    document.getElementById('minutes').innerText = "59";
+                    document.getElementById('seconds').innerText = (59 - (new Date().getSeconds())).toString().padStart(2, '0');
+                    return;
+                }
+            }
+
+            // --- Phase Determination ---
+            
+            // 1. ENDED
+            if (now > END_DATE) {
+                switchPhase(phaseEnded);
                 return;
+            }
+
+            // 2. HAPPENING NOW (Start <= Now <= End)
+            if (now >= START_DATE && now <= END_DATE) {
+                switchPhase(phaseHappening);
+                return;
+            }
+
+            // 3. BEFORE START (Countdown Mode)
+            switchPhase(phaseCountdown);
+            
+            const distance = START_DATE - now;
+
+            // Urgent Mode Check (Within 24 Hours)
+            const hoursUntilStart = distance / (1000 * 60 * 60);
+            if (hoursUntilStart < 24) {
+                phaseCountdown.classList.add('countdown-urgent');
+            } else {
+                phaseCountdown.classList.remove('countdown-urgent');
             }
 
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -316,6 +479,24 @@
             document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
             document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
             document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+        }
+
+        function switchPhase(activeElement) {
+            const phases = [
+                document.getElementById('phase-countdown'),
+                document.getElementById('phase-happening'),
+                document.getElementById('phase-ended')
+            ];
+
+            phases.forEach(el => {
+                if (el === activeElement) {
+                    if (!el.classList.contains('active')) {
+                        el.classList.add('active');
+                    }
+                } else {
+                    el.classList.remove('active');
+                }
+            });
         }
 
         setInterval(updateCountdown, 1000);
