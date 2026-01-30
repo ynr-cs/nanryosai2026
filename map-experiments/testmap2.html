@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ショッピングモール 3Dフロアマップ</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Noto Sans JP", sans-serif;
+        overflow: hidden;
+        background: linear-gradient(180deg, #87ceeb 0%, #b8d4e8 100%);
+      }
+      #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .ui-panel {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        pointer-events: auto;
+      }
+
+      #floor-selector {
+        top: 20px;
+        right: 20px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .floor-btn {
+        border: none;
+        background: transparent;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #666;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .floor-btn:hover {
+        background: #f0f0f0;
+      }
+      .floor-btn.active {
+        background: #2196f3;
+        color: white;
+      }
+
+      #controls {
+        bottom: 20px;
+        right: 20px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .ctrl-btn {
+        width: 48px;
+        height: 48px;
+        border: none;
+        background: transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .ctrl-btn:hover {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      #legend {
+        top: 20px;
+        left: 20px;
+        padding: 20px;
+      }
+      .legend-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 16px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        color: #555;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+      }
+
+      #info-panel {
+        bottom: 20px;
+        left: 20px;
+        width: 340px;
+        transform: translateY(120%);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+      }
+      #info-panel.show {
+        transform: translateY(0);
+      }
+
+      .info-header {
+        padding: 20px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+      }
+      .info-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+      }
+      .info-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #222;
+      }
+      .info-cat {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .info-body {
+        padding: 20px;
+      }
+      .info-desc {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.7;
+        margin-bottom: 16px;
+      }
+      .info-meta {
+        display: flex;
+        gap: 20px;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #666;
+      }
+      .meta-item .material-icons {
+        font-size: 18px;
+        color: #999;
+      }
+      #close-info {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: #f5f5f5;
+        border-radius: 50%;
+        cursor: pointer;
+        color: #888;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #close-info:hover {
+        background: #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <div id="legend" class="ui-panel">
+      <div class="legend-title">フロアガイド</div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #43a047"></div>
+        グルメ・フード
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #1e88e5"></div>
+        ファッション
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ff9800"></div>
+        雑貨・ライフスタイル
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #9c27b0"></div>
+        エンターテイメント
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #78909c"></div>
+        サービス・施設
+      </div>
+    </div>
+
+    <div id="floor-selector" class="ui-panel">
+      <button class="floor-btn" onclick="changeFloor(3)">3F</button>
+      <button class="floor-btn" onclick="changeFloor(2)">2F</button>
+      <button class="floor-btn active" onclick="changeFloor(1)">1F</button>
+    </div>
+
+    <div id="controls" class="ui-panel">
+      <button class="ctrl-btn" onclick="zoomIn()">
+        <span class="material-icons">add</span>
+      </button>
+      <button class="ctrl-btn" onclick="zoomOut()">
+        <span class="material-icons">remove</span>
+      </button>
+      <button class="ctrl-btn" onclick="resetView()">
+        <span class="material-icons">center_focus_strong</span>
+      </button>
+    </div>
+
+    <div id="info-panel" class="ui-panel">
+      <button id="close-info" onclick="hideInfo()">
+        <span class="material-icons" style="font-size: 20px">close</span>
+      </button>
+      <div class="info-header">
+        <div class="info-icon" id="info-icon">
+          <span class="material-icons">store</span>
+        </div>
+        <div>
+          <div class="info-name" id="info-name">店舗名</div>
+          <div class="info-cat" id="info-cat">カテゴリ</div>
+        </div>
+      </div>
+      <div class="info-body">
+        <div class="info-desc" id="info-desc">説明</div>
+        <div class="info-meta">
+          <div class="meta-item">
+            <span class="material-icons">schedule</span
+            ><span id="info-hours">10:00-21:00</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">place</span
+            ><span id="info-floor">1F</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+      let scene, camera, renderer, controls;
+      let raycaster, mouse;
+      let floors = {};
+      let currentFloor = 1;
+      let hoveredShop = null;
+      let selectedShop = null;
+
+      const CATEGORIES = {
+        food: { color: 0x43a047, label: "グルメ・フード", icon: "restaurant" },
+        fashion: { color: 0x1e88e5, label: "ファッション", icon: "checkroom" },
+        lifestyle: {
+          color: 0xff9800,
+          label: "雑貨・ライフスタイル",
+          icon: "shopping_bag",
+        },
+        entertainment: {
+          color: 0x9c27b0,
+          label: "エンターテイメント",
+          icon: "sports_esports",
+        },
+        service: { color: 0x78909c, label: "サービス・施設", icon: "info" },
+      };
+
+      const LAYOUT = {
+        corridorWidth: 18,
+        shopDepth: 24,
+        shopHeight: 8,
+        floorHeight: 15,
+        buildingWidth: 180,
+        buildingDepth: 140,
+      };
+
+      init();
+      animate();
+
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xd4e5f7);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 120;
+        camera = new THREE.OrthographicCamera(
+          -d * aspect,
+          d * aspect,
+          d,
+          -d,
+          1,
+          2000,
+        );
+        camera.position.set(200, 200, 200);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document
+          .getElementById("canvas-container")
+          .appendChild(renderer.domElement);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.minZoom = 0.3;
+        controls.maxZoom = 2.5;
+        controls.maxPolarAngle = Math.PI / 2.3;
+        controls.target.set(0, 0, 0);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambient);
+
+        const sun = new THREE.DirectionalLight(0xffffff, 0.55);
+        sun.position.set(100, 200, 100);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 4096;
+        sun.shadow.mapSize.height = 4096;
+        sun.shadow.camera.left = -200;
+        sun.shadow.camera.right = 200;
+        sun.shadow.camera.top = 200;
+        sun.shadow.camera.bottom = -200;
+        sun.shadow.bias = -0.0005;
+        scene.add(sun);
+
+        const fill = new THREE.DirectionalLight(0xe8f4fd, 0.25);
+        fill.position.set(-80, 60, -80);
+        scene.add(fill);
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        createEnvironment();
+        createFloor(1);
+        createFloor(2);
+        createFloor(3);
+
+        window.addEventListener("resize", onResize);
+        renderer.domElement.addEventListener("mousemove", onMouseMove);
+        renderer.domElement.addEventListener("click", onClick);
+      }
+
+      function createEnvironment() {
+        const groundGeo = new THREE.PlaneGeometry(600, 600);
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x7cb342 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -1;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        const parkingGeo = new THREE.PlaneGeometry(160, 100);
+        const parkingMat = new THREE.MeshLambertMaterial({ color: 0x546e7a });
+        const parking = new THREE.Mesh(parkingGeo, parkingMat);
+        parking.rotation.x = -Math.PI / 2;
+        parking.position.set(0, -0.9, 130);
+        parking.receiveShadow = true;
+        scene.add(parking);
+
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        for (let i = -7; i <= 7; i++) {
+          const lineGeo = new THREE.PlaneGeometry(0.4, 14);
+          const line = new THREE.Mesh(lineGeo, lineMat);
+          line.rotation.x = -Math.PI / 2;
+          line.position.set(i * 10, -0.85, 130);
+          scene.add(line);
+        }
+
+        const roadGeo = new THREE.PlaneGeometry(50, 400);
+        const roadMat = new THREE.MeshLambertMaterial({ color: 0x455a64 });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.rotation.x = -Math.PI / 2;
+        road.position.set(-130, -0.9, 0);
+        road.receiveShadow = true;
+        scene.add(road);
+
+        const walkGeo = new THREE.PlaneGeometry(12, 400);
+        const walkMat = new THREE.MeshLambertMaterial({ color: 0xbdbdbd });
+        const walk = new THREE.Mesh(walkGeo, walkMat);
+        walk.rotation.x = -Math.PI / 2;
+        walk.position.set(-99, -0.85, 0);
+        scene.add(walk);
+
+        const treePositions = [
+          [-85, -80],
+          [-85, -40],
+          [-85, 0],
+          [-85, 40],
+          [-85, 80],
+          [100, -60],
+          [100, 0],
+          [100, 60],
+          [-40, 95],
+          [40, 95],
+        ];
+        treePositions.forEach(([x, z]) => createTree(x, z));
+      }
+
+      function createTree(x, z) {
+        const group = new THREE.Group();
+
+        const trunkGeo = new THREE.CylinderGeometry(1.2, 1.8, 10, 8);
+        const trunkMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.y = 5;
+        trunk.castShadow = true;
+        group.add(trunk);
+
+        const leafGeo = new THREE.SphereGeometry(7, 12, 10);
+        const leafMat = new THREE.MeshLambertMaterial({ color: 0x388e3c });
+        const leaf = new THREE.Mesh(leafGeo, leafMat);
+        leaf.position.y = 14;
+        leaf.scale.y = 0.75;
+        leaf.castShadow = true;
+        group.add(leaf);
+
+        group.position.set(x, 0, z);
+        scene.add(group);
+      }
+
+      function createFloor(floorNum) {
+        const group = new THREE.Group();
+        const yBase = (floorNum - 1) * LAYOUT.floorHeight;
+
+        floors[floorNum] = { group, objects: [] };
+
+        createFloorBase(group, yBase);
+        createCorridorSystem(group, yBase);
+
+        if (floorNum === 1) {
+          createFloor1Shops(group, yBase);
+        } else if (floorNum === 2) {
+          createFloor2Shops(group, yBase);
+        } else {
+          createFloor3Shops(group, yBase);
+        }
+
+        createFacilities(group, yBase, floorNum);
+
+        if (floorNum !== 1) {
+          group.visible = false;
+        }
+
+        scene.add(group);
+      }
+
+      function createFloorBase(group, y) {
+        const floorGeo = new THREE.BoxGeometry(
+          LAYOUT.buildingWidth,
+          2,
+          LAYOUT.buildingDepth,
+        );
+        const floorMat = new THREE.MeshLambertMaterial({ color: 0xe8e8e8 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.position.set(0, y - 1, 0);
+        floor.receiveShadow = true;
+        group.add(floor);
+
+        const wallHeight = 1.5;
+        const wallMat = new THREE.MeshLambertMaterial({ color: 0xcfd8dc });
+
+        const northWall = new THREE.Mesh(
+          new THREE.BoxGeometry(LAYOUT.buildingWidth, wallHeight, 2),
+          wallMat,
+        );
+        northWall.position.set(
+          0,
+          y + wallHeight / 2,
+          -LAYOUT.buildingDepth / 2 + 1,
+        );
+        group.add(northWall);
+
+        const southWall = new THREE.Mesh(
+          new THREE.BoxGeometry(LAYOUT.buildingWidth, wallHeight, 2),
+          wallMat,
+        );
+        southWall.position.set(
+          0,
+          y + wallHeight / 2,
+          LAYOUT.buildingDepth / 2 - 1,
+        );
+        group.add(southWall);
+
+        const eastWall = new THREE.Mesh(
+          new THREE.BoxGeometry(2, wallHeight, LAYOUT.buildingDepth),
+          wallMat,
+        );
+        eastWall.position.set(
+          LAYOUT.buildingWidth / 2 - 1,
+          y + wallHeight / 2,
+          0,
+        );
+        group.add(eastWall);
+
+        const westWall = new THREE.Mesh(
+          new THREE.BoxGeometry(2, wallHeight, LAYOUT.buildingDepth),
+          wallMat,
+        );
+        westWall.position.set(
+          -LAYOUT.buildingWidth / 2 + 1,
+          y + wallHeight / 2,
+          0,
+        );
+        group.add(westWall);
+      }
+
+      function createCorridorSystem(group, y) {
+        const corridorMat = new THREE.MeshLambertMaterial({ color: 0xfafafa });
+        const corridorHeight = 0.3;
+
+        const mainCorridor = new THREE.Mesh(
+          new THREE.BoxGeometry(
+            LAYOUT.buildingWidth - 10,
+            corridorHeight,
+            LAYOUT.corridorWidth,
+          ),
+          corridorMat,
+        );
+        mainCorridor.position.set(0, y + corridorHeight / 2, 0);
+        mainCorridor.receiveShadow = true;
+        group.add(mainCorridor);
+
+        const leftCorridor = new THREE.Mesh(
+          new THREE.BoxGeometry(
+            LAYOUT.corridorWidth,
+            corridorHeight,
+            LAYOUT.buildingDepth - 10,
+          ),
+          corridorMat,
+        );
+        leftCorridor.position.set(-55, y + corridorHeight / 2, 0);
+        leftCorridor.receiveShadow = true;
+        group.add(leftCorridor);
+
+        const rightCorridor = new THREE.Mesh(
+          new THREE.BoxGeometry(
+            LAYOUT.corridorWidth,
+            corridorHeight,
+            LAYOUT.buildingDepth - 10,
+          ),
+          corridorMat,
+        );
+        rightCorridor.position.set(55, y + corridorHeight / 2, 0);
+        rightCorridor.receiveShadow = true;
+        group.add(rightCorridor);
+
+        addCorridorPattern(
+          group,
+          0,
+          y + 0.35,
+          LAYOUT.buildingWidth - 10,
+          LAYOUT.corridorWidth,
+        );
+        addCorridorPattern(
+          group,
+          -55,
+          y + 0.35,
+          LAYOUT.corridorWidth,
+          LAYOUT.buildingDepth - 10,
+        );
+        addCorridorPattern(
+          group,
+          55,
+          y + 0.35,
+          LAYOUT.corridorWidth,
+          LAYOUT.buildingDepth - 10,
+        );
+
+        // 中央広場
+        const atriumGeo = new THREE.BoxGeometry(30, 0.5, 30);
+        const atriumMat = new THREE.MeshLambertMaterial({ color: 0xe3f2fd });
+        const atrium = new THREE.Mesh(atriumGeo, atriumMat);
+        atrium.position.set(0, y + 0.25, 0);
+        group.add(atrium);
+
+        const edgeGeo = new THREE.EdgesGeometry(atriumGeo);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: 0x1976d2,
+          linewidth: 2,
+        });
+        const edge = new THREE.LineSegments(edgeGeo, edgeMat);
+        edge.position.copy(atrium.position);
+        group.add(edge);
+      }
+
+      function addCorridorPattern(group, x, y, w, d) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#FAFAFA";
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.strokeStyle = "#E0E0E0";
+        ctx.lineWidth = 2;
+        const tileSize = 32;
+        for (let i = 0; i <= 8; i++) {
+          ctx.beginPath();
+          ctx.moveTo(i * tileSize, 0);
+          ctx.lineTo(i * tileSize, 256);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, i * tileSize);
+          ctx.lineTo(256, i * tileSize);
+          ctx.stroke();
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(w / 25, d / 25);
+
+        const patternGeo = new THREE.PlaneGeometry(w, d);
+        const patternMat = new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: true,
+          opacity: 0.7,
+          depthWrite: false,
+        });
+        const pattern = new THREE.Mesh(patternGeo, patternMat);
+        pattern.rotation.x = -Math.PI / 2;
+        pattern.position.set(x, y, 0);
+        group.add(pattern);
+      }
+
+      function createFloor1Shops(group, y) {
+        const shopY = y + 0.5;
+
+        // 北側店舗
+        createShop(group, -70, -38, 26, 22, shopY, {
+          name: "スターバックス",
+          category: "food",
+          desc: "世界最大のコーヒーチェーン。こだわりのエスプレッソドリンク。",
+          hours: "7:00-22:00",
+        });
+        createShop(group, -42, -38, 22, 22, shopY, {
+          name: "タリーズコーヒー",
+          category: "food",
+          desc: "本格エスプレッソとフードメニュー。",
+          hours: "8:00-21:00",
+        });
+        createShop(group, -15, -38, 26, 22, shopY, {
+          name: "ユニクロ",
+          category: "fashion",
+          desc: "LifeWearをコンセプトにした日本発カジュアルブランド。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 15, -38, 26, 22, shopY, {
+          name: "GU",
+          category: "fashion",
+          desc: "トレンドファッションをお手頃価格で。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 42, -38, 22, 22, shopY, {
+          name: "ABC-MART",
+          category: "fashion",
+          desc: "シューズ＆スニーカー専門店。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 70, -38, 26, 22, shopY, {
+          name: "Right-on",
+          category: "fashion",
+          desc: "ジーンズカジュアルセレクト。",
+          hours: "10:00-21:00",
+        });
+
+        // 南側店舗
+        createShop(group, -70, 38, 26, 22, shopY, {
+          name: "無印良品",
+          category: "lifestyle",
+          desc: "シンプルで質の良い生活雑貨・衣料品・食品。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -42, 38, 22, 22, shopY, {
+          name: "Francfranc",
+          category: "lifestyle",
+          desc: "おしゃれなインテリア雑貨。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -15, 38, 26, 22, shopY, {
+          name: "カルディ",
+          category: "food",
+          desc: "コーヒーと輸入食品のワンダーショップ。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 15, 38, 26, 22, shopY, {
+          name: "ダイソー",
+          category: "lifestyle",
+          desc: "100円ショップの最大手。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 42, 38, 22, 22, shopY, {
+          name: "セリア",
+          category: "lifestyle",
+          desc: "おしゃれな100円ショップ。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 70, 38, 26, 22, shopY, {
+          name: "キャンドゥ",
+          category: "lifestyle",
+          desc: "便利グッズが揃う100円ショップ。",
+          hours: "10:00-21:00",
+        });
+      }
+
+      function createFloor2Shops(group, y) {
+        const shopY = y + 0.5;
+
+        // 北側
+        createShop(group, -70, -38, 26, 22, shopY, {
+          name: "ZARA",
+          category: "fashion",
+          desc: "スペイン発グローバルファッション。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -42, -38, 22, 22, shopY, {
+          name: "H&M",
+          category: "fashion",
+          desc: "スウェーデン発ファストファッション。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -15, -38, 26, 22, shopY, {
+          name: "GLOBAL WORK",
+          category: "fashion",
+          desc: "ライフスタイル提案型セレクト。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 15, -38, 26, 22, shopY, {
+          name: "niko and...",
+          category: "fashion",
+          desc: "ファッション×インテリアのライフスタイルショップ。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 42, -38, 22, 22, shopY, {
+          name: "WEGO",
+          category: "fashion",
+          desc: "原宿系カジュアルファッション。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 70, -38, 26, 22, shopY, {
+          name: "SPINNS",
+          category: "fashion",
+          desc: "古着MIXストリートファッション。",
+          hours: "10:00-21:00",
+        });
+
+        // 南側
+        createShop(group, -70, 38, 26, 22, shopY, {
+          name: "紀伊國屋書店",
+          category: "lifestyle",
+          desc: "豊富な品揃えの大型書店。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -42, 38, 22, 22, shopY, {
+          name: "タワーレコード",
+          category: "entertainment",
+          desc: "NO MUSIC, NO LIFE.",
+          hours: "10:00-21:00",
+        });
+        createShop(group, -15, 38, 26, 22, shopY, {
+          name: "ヴィレッジヴァンガード",
+          category: "entertainment",
+          desc: "遊べる本屋。面白雑貨満載。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 15, 38, 26, 22, shopY, {
+          name: "ゲームセンター",
+          category: "entertainment",
+          desc: "最新アーケードゲームが勢揃い。",
+          hours: "10:00-22:00",
+        });
+        createShop(group, 42, 38, 22, 22, shopY, {
+          name: "namco",
+          category: "entertainment",
+          desc: "クレーンゲーム＆プリクラ。",
+          hours: "10:00-22:00",
+        });
+        createShop(group, 70, 38, 26, 22, shopY, {
+          name: "ロフト",
+          category: "lifestyle",
+          desc: "文具・コスメ・雑貨のセレクトショップ。",
+          hours: "10:00-21:00",
+        });
+      }
+
+      function createFloor3Shops(group, y) {
+        const shopY = y + 0.5;
+
+        // 北側
+        createShop(group, -55, -38, 48, 22, shopY, {
+          name: "フードコート",
+          category: "food",
+          desc: "多彩な飲食店が集結。席数500席。",
+          hours: "10:00-21:00",
+        });
+        createShop(group, 10, -38, 38, 22, shopY, {
+          name: "TOHOシネマズ",
+          category: "entertainment",
+          desc: "最新映画を上映。10スクリーン。",
+          hours: "9:00-24:00",
+        });
+        createShop(group, 55, -38, 30, 22, shopY, {
+          name: "カラオケまねきねこ",
+          category: "entertainment",
+          desc: "全50室のカラオケ店。",
+          hours: "10:00-翌5:00",
+        });
+
+        // 南側
+        createShop(group, -70, 38, 26, 22, shopY, {
+          name: "しゃぶ葉",
+          category: "food",
+          desc: "しゃぶしゃぶ食べ放題。",
+          hours: "11:00-22:00",
+        });
+        createShop(group, -42, 38, 22, 22, shopY, {
+          name: "丸亀製麺",
+          category: "food",
+          desc: "打ちたて讃岐うどん。",
+          hours: "11:00-21:00",
+        });
+        createShop(group, -15, 38, 26, 22, shopY, {
+          name: "一蘭",
+          category: "food",
+          desc: "天然とんこつラーメン専門店。",
+          hours: "11:00-23:00",
+        });
+        createShop(group, 15, 38, 26, 22, shopY, {
+          name: "サイゼリヤ",
+          category: "food",
+          desc: "お手頃イタリアン。",
+          hours: "10:00-22:00",
+        });
+        createShop(group, 42, 38, 22, 22, shopY, {
+          name: "スシロー",
+          category: "food",
+          desc: "回転寿司チェーン。",
+          hours: "11:00-22:00",
+        });
+        createShop(group, 70, 38, 26, 22, shopY, {
+          name: "牛角",
+          category: "food",
+          desc: "炭火焼肉食べ放題。",
+          hours: "11:00-23:00",
+        });
+      }
+
+      function createFacilities(group, y, floorNum) {
+        // トイレ（四隅、店舗エリアの外側に配置）
+        createToilet(group, -82, -55, y);
+        createToilet(group, 82, -55, y);
+        createToilet(group, -82, 55, y);
+        createToilet(group, 82, 55, y);
+
+        // 階段（左右の通路に2箇所ずつ）
+        createStairs(group, -55, -30, y, floorNum, "left");
+        createStairs(group, -55, 30, y, floorNum, "left");
+        createStairs(group, 55, -30, y, floorNum, "right");
+        createStairs(group, 55, 30, y, floorNum, "right");
+
+        // 1Fのみ入口
+        if (floorNum === 1) {
+          createEntrance(group, 0, -70, y, "正面入口");
+          createEntrance(group, 0, 70, y, "駐車場口");
+          createEntrance(group, -90, 0, y, "西入口");
+        }
+      }
+
+      function createShop(group, x, z, w, d, y, data) {
+        const category = CATEGORIES[data.category];
+        const h = LAYOUT.shopHeight;
+        const shopGroup = new THREE.Group();
+
+        const bodyGeo = new THREE.BoxGeometry(w, h, d);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.set(0, h / 2, 0);
+        body.castShadow = true;
+        body.receiveShadow = true;
+        shopGroup.add(body);
+
+        const roofGeo = new THREE.BoxGeometry(w + 1, 1.2, d + 1);
+        const roofMat = new THREE.MeshLambertMaterial({
+          color: category.color,
+        });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.set(0, h + 0.6, 0);
+        roof.castShadow = true;
+        shopGroup.add(roof);
+
+        const labelTex = createShopLabel(data.name, category.color);
+        const labelGeo = new THREE.PlaneGeometry(w - 2, d - 2);
+        const labelMat = new THREE.MeshBasicMaterial({
+          map: labelTex,
+          transparent: true,
+        });
+        const label = new THREE.Mesh(labelGeo, labelMat);
+        label.rotation.x = -Math.PI / 2;
+        label.position.set(0, h + 1.3, 0);
+        shopGroup.add(label);
+
+        const edgeGeo = new THREE.EdgesGeometry(bodyGeo);
+        const edgeMat = new THREE.LineBasicMaterial({ color: 0xbdbdbd });
+        const edge = new THREE.LineSegments(edgeGeo, edgeMat);
+        edge.position.copy(body.position);
+        shopGroup.add(edge);
+
+        shopGroup.position.set(x, y, z);
+
+        body.userData = {
+          isShop: true,
+          shopGroup: shopGroup,
+          name: data.name,
+          category: data.category,
+          categoryLabel: category.label,
+          color: category.color,
+          icon: category.icon,
+          desc: data.desc,
+          hours: data.hours,
+          floor: Math.floor(y / LAYOUT.floorHeight) + 1 + "F",
+          bodyMat: bodyMat,
+          roofMat: roofMat,
+          edgeMat: edgeMat,
+        };
+
+        floors[Math.floor(y / LAYOUT.floorHeight) + 1].objects.push(body);
+        group.add(shopGroup);
+      }
+
+      function createShopLabel(name, color) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, 512, 512);
+
+        const colorStr = "#" + color.toString(16).padStart(6, "0");
+        ctx.fillStyle = colorStr;
+        ctx.fillRect(30, 30, 452, 10);
+        ctx.fillRect(30, 472, 452, 10);
+
+        ctx.fillStyle = "#333333";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        let fontSize = 52;
+        if (name.length > 8) fontSize = 40;
+        if (name.length > 12) fontSize = 32;
+
+        ctx.font = `bold ${fontSize}px "Noto Sans JP", sans-serif`;
+        ctx.fillText(name, 256, 256);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.anisotropy = 16;
+        return tex;
+      }
+
+      function createToilet(group, x, z, y) {
+        const toiletGroup = new THREE.Group();
+
+        const bodyGeo = new THREE.BoxGeometry(12, 6, 12);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x90a4ae });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.set(0, 3, 0);
+        body.castShadow = true;
+        toiletGroup.add(body);
+
+        // 屋根
+        const roofGeo = new THREE.BoxGeometry(13, 0.8, 13);
+        const roofMat = new THREE.MeshLambertMaterial({ color: 0x607d8b });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.set(0, 6.4, 0);
+        roof.castShadow = true;
+        toiletGroup.add(roof);
+
+        // WCラベル
+        const labelTex = createFacilityLabel("WC", 0x455a64);
+        const labelGeo = new THREE.PlaneGeometry(8, 8);
+        const labelMat = new THREE.MeshBasicMaterial({
+          map: labelTex,
+          transparent: true,
+        });
+        const label = new THREE.Mesh(labelGeo, labelMat);
+        label.rotation.x = -Math.PI / 2;
+        label.position.set(0, 6.9, 0);
+        toiletGroup.add(label);
+
+        toiletGroup.position.set(x, y, z);
+
+        body.userData = {
+          isShop: true,
+          name: "トイレ",
+          category: "service",
+          categoryLabel: "サービス・施設",
+          color: 0x78909c,
+          icon: "wc",
+          desc: "男女トイレ・多目的トイレ・おむつ替えシート完備",
+          hours: "営業時間中",
+          floor: Math.floor(y / LAYOUT.floorHeight) + 1 + "F",
+          bodyMat: bodyMat,
+        };
+
+        floors[Math.floor(y / LAYOUT.floorHeight) + 1].objects.push(body);
+        group.add(toiletGroup);
+      }
+
+      function createStairs(group, x, z, y, floorNum, side) {
+        const stairsGroup = new THREE.Group();
+
+        const stepCount = 10;
+        const stepWidth = 12;
+        const stepDepth = 2;
+        const stepHeight = 1.2;
+
+        const baseMat = new THREE.MeshLambertMaterial({ color: 0x78909c });
+        const stepMat = new THREE.MeshLambertMaterial({ color: 0xb0bec5 });
+        const railMat = new THREE.MeshLambertMaterial({ color: 0x546e7a });
+
+        // ベースプラットフォーム
+        const baseGeo = new THREE.BoxGeometry(
+          stepWidth + 4,
+          1,
+          stepCount * stepDepth + 6,
+        );
+        const base = new THREE.Mesh(baseGeo, baseMat);
+        base.position.set(0, 0.5, 0);
+        base.castShadow = true;
+        base.receiveShadow = true;
+        stairsGroup.add(base);
+
+        // 階段のステップ
+        for (let i = 0; i < stepCount; i++) {
+          const stepGeo = new THREE.BoxGeometry(
+            stepWidth,
+            stepHeight,
+            stepDepth,
+          );
+          const step = new THREE.Mesh(stepGeo, stepMat);
+          step.position.set(
+            0,
+            1 + (i + 0.5) * stepHeight,
+            (-stepCount * stepDepth) / 2 + (i + 0.5) * stepDepth,
+          );
+          step.castShadow = true;
+          step.receiveShadow = true;
+          stairsGroup.add(step);
+        }
+
+        // 手すり（左右）
+        const railHeight = 4;
+        const railGeo = new THREE.BoxGeometry(
+          0.5,
+          railHeight,
+          stepCount * stepDepth + 2,
+        );
+
+        const leftRail = new THREE.Mesh(railGeo, railMat);
+        leftRail.position.set(-stepWidth / 2 - 0.5, railHeight / 2 + 1, 0);
+        leftRail.castShadow = true;
+        stairsGroup.add(leftRail);
+
+        const rightRail = new THREE.Mesh(railGeo, railMat);
+        rightRail.position.set(stepWidth / 2 + 0.5, railHeight / 2 + 1, 0);
+        rightRail.castShadow = true;
+        stairsGroup.add(rightRail);
+
+        // 上部の手すり（傾斜）
+        const diagRailLen = Math.sqrt(
+          Math.pow(stepCount * stepDepth, 2) +
+            Math.pow(stepCount * stepHeight, 2),
+        );
+        const diagAngle = Math.atan2(
+          stepCount * stepHeight,
+          stepCount * stepDepth,
+        );
+        const diagRailGeo = new THREE.BoxGeometry(0.5, 1, diagRailLen);
+
+        [-stepWidth / 2 - 0.5, stepWidth / 2 + 0.5].forEach((xPos) => {
+          const diagRail = new THREE.Mesh(diagRailGeo, railMat);
+          diagRail.position.set(
+            xPos,
+            1 + (stepCount * stepHeight) / 2 + 1.5,
+            0,
+          );
+          diagRail.rotation.x = -diagAngle;
+          diagRail.castShadow = true;
+          stairsGroup.add(diagRail);
+        });
+
+        // 階段ラベル
+        const labelTex = createFacilityLabel("階段", 0x455a64);
+        const labelGeo = new THREE.PlaneGeometry(8, 8);
+        const labelMat2 = new THREE.MeshBasicMaterial({
+          map: labelTex,
+          transparent: true,
+        });
+        const label = new THREE.Mesh(labelGeo, labelMat2);
+        label.rotation.x = -Math.PI / 2;
+        label.position.set(
+          0,
+          stepCount * stepHeight + 2,
+          (stepCount * stepDepth) / 2 + 2,
+        );
+        stairsGroup.add(label);
+
+        stairsGroup.position.set(x, y, z);
+
+        // 向きを調整
+        if (z > 0) {
+          stairsGroup.rotation.y = Math.PI;
+        }
+
+        base.userData = {
+          isShop: true,
+          name: "階段",
+          category: "service",
+          categoryLabel: "サービス・施設",
+          color: 0x78909c,
+          icon: "stairs",
+          desc: "各フロアへの階段。車椅子の方はエレベーターをご利用ください。",
+          hours: "営業時間中",
+          floor: floorNum + "F",
+          bodyMat: baseMat,
+        };
+
+        floors[floorNum].objects.push(base);
+        group.add(stairsGroup);
+      }
+
+      function createEntrance(group, x, z, y, name) {
+        const entGroup = new THREE.Group();
+
+        const canopyGeo = new THREE.BoxGeometry(24, 1, 10);
+        const canopyMat = new THREE.MeshLambertMaterial({ color: 0xe0e0e0 });
+        const canopy = new THREE.Mesh(canopyGeo, canopyMat);
+        canopy.position.set(0, 10, z > 0 ? 6 : -6);
+        canopy.castShadow = true;
+        entGroup.add(canopy);
+
+        const pillarGeo = new THREE.CylinderGeometry(0.8, 0.8, 10, 12);
+        const pillarMat = new THREE.MeshLambertMaterial({ color: 0xbdbdbd });
+        [-10, 10].forEach((px) => {
+          const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+          pillar.position.set(px, 5, z > 0 ? 10 : -10);
+          pillar.castShadow = true;
+          entGroup.add(pillar);
+        });
+
+        const matGeo = new THREE.BoxGeometry(16, 0.3, 6);
+        const matMaterial = new THREE.MeshLambertMaterial({ color: 0x1565c0 });
+        const mat = new THREE.Mesh(matGeo, matMaterial);
+        mat.position.set(0, 0.15, z > 0 ? 4 : -4);
+        entGroup.add(mat);
+
+        const signCanvas = document.createElement("canvas");
+        signCanvas.width = 256;
+        signCanvas.height = 64;
+        const ctx = signCanvas.getContext("2d");
+        ctx.fillStyle = "#1565C0";
+        ctx.font = 'bold 32px "Noto Sans JP"';
+        ctx.textAlign = "center";
+        ctx.fillText(name, 128, 44);
+
+        const signTex = new THREE.CanvasTexture(signCanvas);
+        const signGeo = new THREE.PlaneGeometry(22, 5.5);
+        const signMat = new THREE.MeshBasicMaterial({
+          map: signTex,
+          transparent: true,
+        });
+        const sign = new THREE.Mesh(signGeo, signMat);
+        sign.position.set(0, 12, z > 0 ? 12 : -12);
+        entGroup.add(sign);
+
+        entGroup.position.set(x, y, 0);
+
+        if (x < 0) {
+          entGroup.rotation.y = Math.PI / 2;
+        }
+
+        group.add(entGroup);
+      }
+
+      function createFacilityLabel(text, color) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+
+        const colorStr = "#" + color.toString(16).padStart(6, "0");
+        ctx.fillStyle = colorStr;
+        ctx.fillRect(0, 0, 128, 128);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = 'bold 36px "Noto Sans JP", sans-serif';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, 64, 68);
+
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      function onResize() {
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 120;
+        camera.left = -d * aspect;
+        camera.right = d * aspect;
+        camera.top = d;
+        camera.bottom = -d;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function onMouseMove(e) {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const currentObjects = floors[currentFloor].objects;
+        const intersects = raycaster.intersectObjects(currentObjects, false);
+
+        let found = null;
+        if (intersects.length > 0 && intersects[0].object.userData.isShop) {
+          found = intersects[0].object;
+        }
+
+        if (found !== hoveredShop) {
+          if (hoveredShop && hoveredShop !== selectedShop) {
+            setShopState(hoveredShop, "normal");
+          }
+          hoveredShop = found;
+          if (hoveredShop && hoveredShop !== selectedShop) {
+            setShopState(hoveredShop, "hover");
+          }
+        }
+
+        renderer.domElement.style.cursor = found ? "pointer" : "grab";
+      }
+
+      function onClick() {
+        if (hoveredShop) {
+          if (selectedShop && selectedShop !== hoveredShop) {
+            setShopState(selectedShop, "normal");
+          }
+          selectedShop = hoveredShop;
+          setShopState(selectedShop, "selected");
+          showInfo(selectedShop.userData);
+        } else if (selectedShop) {
+          setShopState(selectedShop, "normal");
+          selectedShop = null;
+          hideInfo();
+        }
+      }
+
+      function setShopState(obj, state) {
+        const data = obj.userData;
+        if (!data.bodyMat) return;
+
+        switch (state) {
+          case "normal":
+            data.bodyMat.color.setHex(0xffffff);
+            if (data.edgeMat) data.edgeMat.color.setHex(0xbdbdbd);
+            break;
+          case "hover":
+            data.bodyMat.color.setHex(0xf5f5f5);
+            if (data.edgeMat) data.edgeMat.color.setHex(data.color);
+            break;
+          case "selected":
+            data.bodyMat.color.setHex(0xe3f2fd);
+            if (data.edgeMat) data.edgeMat.color.setHex(0x1976d2);
+            break;
+        }
+      }
+
+      function showInfo(data) {
+        document.getElementById("info-name").textContent = data.name;
+        document.getElementById("info-cat").textContent = data.categoryLabel;
+        document.getElementById("info-desc").textContent = data.desc;
+        document.getElementById("info-hours").textContent = data.hours;
+        document.getElementById("info-floor").textContent = data.floor;
+
+        const icon = document.getElementById("info-icon");
+        icon.style.background = "#" + data.color.toString(16).padStart(6, "0");
+        icon.innerHTML = `<span class="material-icons">${data.icon}</span>`;
+
+        document.getElementById("info-panel").classList.add("show");
+      }
+
+      function hideInfo() {
+        document.getElementById("info-panel").classList.remove("show");
+      }
+
+      function changeFloor(num) {
+        if (selectedShop) {
+          setShopState(selectedShop, "normal");
+          selectedShop = null;
+          hideInfo();
+        }
+        hoveredShop = null;
+
+        Object.keys(floors).forEach((key) => {
+          floors[key].group.visible = parseInt(key) === num;
+        });
+        currentFloor = num;
+
+        document.querySelectorAll(".floor-btn").forEach((btn) => {
+          const btnFloor = parseInt(btn.textContent);
+          btn.classList.toggle("active", btnFloor === num);
+        });
+      }
+
+      function zoomIn() {
+        camera.zoom = Math.min(camera.zoom * 1.3, 2.5);
+        camera.updateProjectionMatrix();
+      }
+
+      function zoomOut() {
+        camera.zoom = Math.max(camera.zoom / 1.3, 0.3);
+        camera.updateProjectionMatrix();
+      }
+
+      function resetView() {
+        camera.position.set(200, 200, 200);
+        camera.lookAt(0, 0, 0);
+        camera.zoom = 1;
+        camera.updateProjectionMatrix();
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>

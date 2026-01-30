@@ -1,14 +1,11 @@
 // =======================================================
 // ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase) ★★★
 // =======================================================
-// ※このファイルは admin_sync.html から生成・更新されることを想定していますが、
-//   開発用として初期データを充実させています。
 
 console.log("data.js loading...");
 
-// 企画の名簿データ (全40団体程度を想定したダミーデータセット)
+// 企画の名簿データ
 const projectData = [
-  // --- 3年生 (食品・模擬店) ---
   {
     id: "301",
     loginId: "class301",
@@ -18,7 +15,6 @@ const projectData = [
     floor: 1,
     description:
       "秘伝のソースが決め手！行列必至の焼きそば専門店です。目玉焼きトッピングがおすすめ！",
-
     catchphrase: "星3つの味をあなたに",
     tags: ["食品", "焼きそば"],
     contentType: "menu",
@@ -62,7 +58,6 @@ const projectData = [
     floor: 1,
     description:
       "もちもち食感がたまらない！究極のタピオカドリンク専門店。インスタ映え間違いなし。",
-
     catchphrase: "極上のモチモチ体験",
     tags: ["食品", "ドリンク"],
     contentType: "menu",
@@ -105,7 +100,6 @@ const projectData = [
     floor: 1,
     description:
       "テーマパークのあの味を再現！サクサク揚げたてのロングチュロス。",
-
     catchphrase: "カリッ、サクッ、甘〜い幸せ",
     tags: ["食品", "スイーツ"],
     contentType: "menu",
@@ -131,8 +125,6 @@ const projectData = [
     ],
     gallery: [],
   },
-
-  // --- 2年生 (アトラクション・展示) ---
   {
     id: "201",
     loginId: "class201",
@@ -142,7 +134,6 @@ const projectData = [
     floor: 2,
     description:
       "かつて実験室だった場所で起きた悲劇...。あなたは無事に脱出できるか？最恐のお化け屋敷。",
-
     catchphrase: "絶叫、保証します。",
     tags: ["展示", "お化け屋敷"],
     contentType: "gallery",
@@ -158,7 +149,6 @@ const projectData = [
     floor: 2,
     description:
       "ポーカー、ブラックジャック、ルーレット。大人の社交場を教室に再現。※金銭は賭けません",
-
     catchphrase: "運命のカードを引け",
     tags: ["展示", "ゲーム"],
     contentType: "gallery",
@@ -174,7 +164,6 @@ const projectData = [
     floor: 1,
     description:
       "あの人気番組のような巨大アスレチック＆キッキングスナイパー！体力自慢集まれ！",
-
     catchphrase: "最強は誰だ",
     tags: ["展示", "アトラクション"],
     contentType: "gallery",
@@ -190,15 +179,12 @@ const projectData = [
     floor: 2,
     description:
       "射的、ヨーヨー釣り、スーパーボールすくい。懐かしいお祭りの雰囲気を楽しんで。",
-
     catchphrase: "日本の夏、2-4の夏",
     tags: ["展示", "縁日"],
     contentType: "gallery",
     menu: [],
     gallery: [],
   },
-
-  // --- 1年生 (展示・ミニゲーム) ---
   {
     id: "101",
     loginId: "class101",
@@ -207,7 +193,6 @@ const projectData = [
     place: "北棟 3F 301",
     floor: 3,
     description: "マッククルーによるめちゃくちゃうまいポテトです",
-
     catchphrase: "カリカリの奇跡",
     tags: ["食品", "軽食"],
     contentType: "menu",
@@ -252,7 +237,6 @@ const projectData = [
     floor: 3,
     description:
       "教室全体がフォトスタジオに！黒板アートや風船で飾られた空間で思い出の一枚を。",
-
     catchphrase: "キミの笑顔を撮りたい",
     tags: ["展示", "フォト"],
     contentType: "gallery",
@@ -268,15 +252,12 @@ const projectData = [
     floor: 3,
     description:
       "ダンボールで作った巨大迷路。アリスの世界に迷い込んだような装飾に注目！",
-
     catchphrase: "出口はどこだ？",
     tags: ["展示", "アトラクション"],
     contentType: "gallery",
     menu: [],
     gallery: [],
   },
-
-  // --- 部活動 (展示・物販) ---
   {
     id: "kado",
     loginId: "kado",
@@ -286,7 +267,6 @@ const projectData = [
     floor: 1,
     description:
       "部員一同一生懸命生けたお花を展示しています。心安らぐ空間へようこそ。",
-
     catchphrase: "静寂と美の世界",
     tags: ["展示", "文化部"],
     contentType: "gallery",
@@ -302,7 +282,6 @@ const projectData = [
     floor: 2,
     description:
       "油絵、水彩、立体作品など、個性豊かな作品を展示。ポストカード販売もあります。",
-
     catchphrase: "色が世界を変える",
     tags: ["展示", "文化部"],
     contentType: "menu",
@@ -313,6 +292,8 @@ const projectData = [
         imageUrl: "",
         description: "部員手描きのイラスト",
         isAvailable: true,
+        isRecommended: false,
+        allowedToppings: [],
       },
       {
         name: "レジンアクセサリー",
@@ -320,6 +301,8 @@ const projectData = [
         imageUrl: "",
         description: "手作りの一点物",
         isAvailable: true,
+        isRecommended: false,
+        allowedToppings: [],
       },
     ],
     gallery: ["images/art1.jpg", "images/art2.jpg"],
@@ -333,7 +316,6 @@ const projectData = [
     floor: 1,
     description:
       "結構なお手前で。お抹茶と季節の和菓子をご用意してお待ちしております。",
-
     catchphrase: "一期一会",
     tags: ["食品", "文化部"],
     contentType: "menu",
@@ -345,6 +327,7 @@ const projectData = [
         description: "和菓子付き",
         isRecommended: true,
         isAvailable: true,
+        allowedToppings: [],
       },
     ],
     gallery: [],
@@ -357,7 +340,6 @@ const projectData = [
     place: "北棟 2F 渡り廊下",
     floor: 2,
     description: "南陵高校の日常を切り取った写真展。コンテスト入賞作品も展示。",
-
     catchphrase: "その一瞬を永遠に",
     tags: ["展示", "文化部"],
     contentType: "gallery",
@@ -373,14 +355,12 @@ const projectData = [
     floor: 3,
     description:
       "スライム作り体験や炎色反応実験など、子供から大人まで楽しめる科学実験ショー。",
-
     catchphrase: "科学の不思議を体験しよう",
     tags: ["展示", "体験"],
     contentType: "gallery",
     menu: [],
     gallery: [],
   },
-  // --- ステージ・パフォーマンス系部活動（場所移動あり） ---
   {
     id: "keion",
     loginId: "keion",
@@ -390,15 +370,24 @@ const projectData = [
     floor: 3,
     description:
       "総勢10バンドが出演！熱いライブをお届けします。日程によって場所が異なるのでご注意ください！",
-
     catchphrase: "魂を震わせろ",
     tags: ["ステージ", "文化部"],
     contentType: "gallery",
     menu: [],
     gallery: [],
     schedule: [
-      { day: 1, place: "特別棟 3F 視聴覚室", floor: 3, time: "10:00-15:00" },
-      { day: 2, place: "体育館", floor: 1, time: "10:00-13:00" },
+      {
+        day: 1,
+        place: "特別棟 3F 視聴覚室",
+        floor: 3,
+        time: "10:00-15:00",
+      },
+      {
+        day: 2,
+        place: "体育館",
+        floor: 1,
+        time: "10:00-13:00",
+      },
     ],
   },
   {
@@ -409,16 +398,30 @@ const projectData = [
     place: "音楽室・体育館",
     floor: 4,
     description: "ポップスからクラシックまで、幅広いジャンルの曲を演奏します。",
-
     catchphrase: "響け、私たちの音",
     tags: ["ステージ", "文化部"],
     contentType: "gallery",
     menu: [],
     gallery: [],
     schedule: [
-      { day: 1, place: "体育館", floor: 1, time: "10:15-10:45" },
-      { day: 1, place: "特別棟 4F 音楽室", floor: 4, time: "13:30-14:15" },
-      { day: 2, place: "特別棟 4F 音楽室", floor: 4, time: "13:30-14:15" },
+      {
+        day: 1,
+        place: "体育館",
+        floor: 1,
+        time: "10:15-10:45",
+      },
+      {
+        day: 1,
+        place: "特別棟 4F 音楽室",
+        floor: 4,
+        time: "13:30-14:15",
+      },
+      {
+        day: 2,
+        place: "特別棟 4F 音楽室",
+        floor: 4,
+        time: "13:30-14:15",
+      },
     ],
   },
   {
@@ -429,13 +432,30 @@ const projectData = [
     place: "体育館",
     floor: 1,
     description: "HipHop, Jazz, Lockなど様々なジャンルのダンスを披露します！",
-
     catchphrase: "We are Dancers",
     tags: ["ステージ", "運動部"],
     contentType: "gallery",
     menu: [],
     gallery: [],
-    schedule: [{ day: 1, place: "体育館", floor: 1, time: "13:30-14:30" }],
+    schedule: [
+      {
+        day: 1,
+        place: "体育館",
+        floor: 1,
+        time: "13:30-14:30",
+      },
+    ],
+  },
+  {
+    id: "cs",
+    loginId: "cs",
+    groupName: "コンピュータ科学部",
+    name: "南陵祭'26 Webサイト&モバイルオーダー",
+    place: "コンピュータ科学部",
+    floor: 2,
+    contentType: "gallery",
+    menu: [],
+    catchphrase: "Make Nanryo Great Again",
   },
 ];
 

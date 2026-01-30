@@ -1,0 +1,620 @@
+/* ===================================
+   3Dマップエディタ - スタイルシート
+   =================================== */
+
+:root {
+  /* カラーパレット */
+  --bg-dark: #1a1a2e;
+  --bg-panel: #16213e;
+  --bg-input: #0f3460;
+  --accent: #e94560;
+  --accent-hover: #ff6b6b;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --border: #2a3f5f;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #ef4444;
+
+  /* レイアウト */
+  --header-height: 56px;
+  --sidebar-width: 280px;
+  --status-height: 28px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Noto Sans JP", sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===================================
+   ヘッダー
+   =================================== */
+.header {
+  height: var(--header-height);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title .material-icons {
+  color: var(--accent);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+/* ===================================
+   ボタン
+   =================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn .material-icons {
+  font-size: 18px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  width: 100%;
+  margin-top: 16px;
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-add {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+  width: 100%;
+  padding: 10px;
+}
+
+.btn-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-edit-vertex {
+  background: transparent;
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn-edit-vertex:hover {
+  background: var(--warning);
+  color: #000;
+}
+
+.btn-edit-vertex.active {
+  background: var(--warning);
+  color: #000;
+}
+
+/* 頂点ハンドル */
+.vertex-handle-info {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  background: var(--bg-panel);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+
+.vertex-handle-info.show {
+  display: block;
+}
+
+.vertex-handle-info h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--warning);
+  margin-bottom: 8px;
+}
+
+.vertex-handle-info p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ===================================
+   メインレイアウト
+   =================================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===================================
+   サイドバー
+   =================================== */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.panel {
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.panel-header .material-icons {
+  font-size: 18px;
+}
+
+.panel-body {
+  padding: 12px;
+}
+
+.panel-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* 背景画像コントロール */
+.bg-controls {
+  margin-top: 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+}
+
+.bg-input-group {
+  margin-bottom: 12px;
+}
+
+.bg-input-group label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.bg-input-group .button-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.bg-input-group .input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bg-input-group .input-row label {
+  margin-bottom: 0;
+  width: auto;
+}
+
+.bg-input-group .input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-sm {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-sm:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-outline:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.btn-outline.active {
+  background: var(--accent);
+  color: #000;
+}
+
+.help-text {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  opacity: 0.7;
+}
+.building-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.building-item:hover {
+  background: var(--bg-input);
+}
+
+.building-item.selected {
+  background: var(--bg-input);
+  border-color: var(--accent);
+}
+
+.building-item .building-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.building-item .building-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.building-item .building-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* プロパティ・フォーム */
+.no-selection {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.property-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 100%;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-group input[readonly] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.checkbox-group label {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* ===================================
+   キャンバス
+   =================================== */
+.canvas-container {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+}
+
+.canvas-container canvas {
+  display: block;
+}
+
+.canvas-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-panel);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.ctrl-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+/* ===================================
+   モーダル
+   =================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border-radius: 16px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===================================
+   ステータスバー
+   =================================== */
+.status-bar {
+  height: var(--status-height);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+#status-save {
+  color: var(--success);
+}
+
+/* ===================================
+   レスポンシブ
+   =================================== */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: var(--status-height);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .header-actions .btn span:not(.material-icons) {
+    display: none;
+  }
+
+  .header-actions .btn {
+    padding: 8px;
+  }
+}

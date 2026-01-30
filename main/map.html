@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>フロアマップ | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Map Specific Styles -->
+    <style>
+      /* ========================================
+       Map Page Layout
+       ======================================== */
+      .map-page-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      }
+
+      /* Floor Selector UI */
+      .floor-selector {
+        position: fixed;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        padding: 8px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .floor-btn {
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--text-secondary, #666);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .floor-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .floor-btn.active {
+        background: var(--primary-color, #4a90d9);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+      }
+
+      /* Map Container with 3D Perspective */
+      .map-viewport {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        perspective: 1500px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .map-layer-container {
+        transform-style: preserve-3d;
+        transform: rotateX(55deg) rotateZ(-45deg);
+        transition: transform 0.3s ease;
+        cursor: grab;
+        position: relative;
+      }
+
+      .map-layer-container:active {
+        cursor: grabbing;
+      }
+
+      .map-image {
+        width: 800px;
+        max-width: none;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-sizing: content-box;
+        transition: opacity 0.3s ease;
+      }
+
+      /* Pin Markers - Billboard Effect (stand upright) */
+      .map-pin {
+        position: absolute;
+        transform: rotateZ(45deg) rotateX(-55deg);
+        cursor: pointer;
+        z-index: 10;
+      }
+
+      .pin-marker {
+        width: 32px;
+        height: 40px;
+        background: var(--primary-color, #4a90d9);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .pin-marker::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 16px;
+        height: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 50%;
+        filter: blur(4px);
+      }
+
+      .pin-marker i {
+        transform: rotate(45deg);
+        color: #fff;
+        font-size: 14px;
+      }
+
+      .map-pin:hover .pin-marker {
+        transform: rotate(-45deg) scale(1.2);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Pin Label (Tooltip) */
+      .pin-label {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        z-index: 100;
+      }
+
+      .pin-label::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 8px solid transparent;
+        border-top-color: #fff;
+      }
+
+      .pin-label-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text-primary, #333);
+      }
+
+      .pin-label-group {
+        font-size: 12px;
+        color: var(--text-secondary, #666);
+      }
+
+      .map-pin:hover .pin-label {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-12px);
+      }
+
+      /* Facility Icons (Toilet, Stairs) */
+      .facility-icon {
+        position: absolute;
+        transform: rotateZ(45deg) rotateX(-55deg);
+        z-index: 5;
+      }
+
+      .facility-marker {
+        width: 28px;
+        height: 28px;
+        background: rgba(100, 100, 100, 0.9);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .facility-marker.toilet {
+        background: #5c6bc0;
+      }
+
+      .facility-marker.stairs {
+        background: #7cb342;
+      }
+
+      .facility-marker.entrance {
+        background: #ef5350;
+      }
+
+      /* Back Button */
+      .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary, #333);
+        font-size: 18px;
+        transition: all 0.2s ease;
+      }
+
+      .back-btn:hover {
+        background: #fff;
+        transform: scale(1.05);
+      }
+
+      /* Floor Title */
+      .floor-title {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        padding: 12px 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text-primary, #333);
+      }
+
+      /* Zoom Controls */
+      .zoom-controls {
+        position: fixed;
+        bottom: 100px;
+        right: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 1000;
+      }
+
+      .zoom-btn {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary, #333);
+        font-size: 18px;
+        transition: all 0.2s ease;
+      }
+
+      .zoom-btn:hover {
+        background: #fff;
+      }
+
+      /* View Toggle (2D / 3D) */
+      .view-toggle {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        padding: 4px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .view-toggle-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text-secondary, #666);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .view-toggle-btn.active {
+        background: var(--primary-color, #4a90d9);
+        color: #fff;
+      }
+
+      /* 2D View Mode */
+      .map-layer-container.view-2d {
+        transform: rotateX(0deg) rotateZ(0deg);
+      }
+
+      .map-layer-container.view-2d .map-pin,
+      .map-layer-container.view-2d .facility-icon {
+        transform: rotateZ(0deg) rotateX(0deg);
+      }
+
+      .map-layer-container.view-2d .pin-marker {
+        transform: rotate(-45deg);
+      }
+
+      /* Loading State */
+      .map-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        transition: opacity 0.3s ease;
+      }
+
+      .map-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .map-loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(74, 144, 217, 0.2);
+        border-top-color: var(--primary-color, #4a90d9);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .map-loading-text {
+        margin-top: 16px;
+        font-weight: 600;
+        color: var(--text-secondary, #666);
+      }
+
+      /* Mobile Adjustments */
+      @media (max-width: 768px) {
+        .floor-selector {
+          right: 8px;
+          padding: 6px;
+        }
+
+        .floor-btn {
+          width: 38px;
+          height: 38px;
+          font-size: 12px;
+        }
+
+        .back-btn,
+        .zoom-btn {
+          width: 38px;
+          height: 38px;
+          font-size: 16px;
+        }
+
+        .floor-title {
+          font-size: 14px;
+          padding: 10px 18px;
+        }
+
+        .map-image {
+          width: 600px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Overlay -->
+    <div class="map-loading" id="mapLoading">
+      <div class="map-loading-spinner"></div>
+      <div class="map-loading-text">マップを読み込み中...</div>
+    </div>
+
+    <!-- Map Page Container -->
+    <div class="map-page-container">
+      <!-- Back Button -->
+      <button class="back-btn" onclick="history.back()" aria-label="戻る">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      <!-- Floor Title -->
+      <div class="floor-title" id="floorTitle">1F フロアマップ</div>
+
+      <!-- Floor Selector -->
+      <div class="floor-selector">
+        <button class="floor-btn active" data-floor="1">1F</button>
+        <button class="floor-btn" data-floor="2">2F</button>
+        <button class="floor-btn" data-floor="3">3F</button>
+        <button class="floor-btn" data-floor="4">4F</button>
+        <button class="floor-btn" data-floor="5">5F</button>
+      </div>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoomIn" aria-label="拡大">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="zoom-btn" id="zoomOut" aria-label="縮小">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" data-view="3d">3D View</button>
+        <button class="view-toggle-btn" data-view="2d">2D View</button>
+      </div>
+
+      <!-- Map Viewport -->
+      <div class="map-viewport" id="mapViewport">
+        <div class="map-layer-container" id="mapContainer">
+          <img
+            src="lastyear/images/map-1f.png"
+            alt="1F Floor Map"
+            class="map-image"
+            id="mapImage"
+          />
+
+          <!-- Pins will be dynamically inserted here -->
+          <div id="pinsContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load External Data -->
+    <script src="data/data.js"></script>
+
+    <script>
+      (function () {
+        "use strict";
+
+        // ==========================================
+        // Configuration
+        // ==========================================
+        const CONFIG = {
+          floorImages: {
+            1: "lastyear/images/map-1f.png",
+            2: "lastyear/images/map-2f.png",
+            3: "lastyear/images/map-3f.png",
+            4: "lastyear/images/map-4f.png",
+            5: "lastyear/images/map-5f.png",
+          },
+          floorNames: {
+            1: "1F フロアマップ",
+            2: "2F フロアマップ",
+            3: "3F フロアマップ",
+            4: "4F フロアマップ",
+            5: "5F フロアマップ",
+          },
+          minScale: 0.5,
+          maxScale: 3,
+          scaleStep: 0.2,
+        };
+
+        // Pin Coordinates (x, y are percentages of the map image)
+        // TODO: These need to be manually adjusted based on actual map layout
+        const PIN_COORDINATES = {
+          // Floor 1
+          301: { floor: 1, x: 20, y: 45, icon: "fa-utensils" }, // 中庭テントA
+          303: { floor: 1, x: 35, y: 45, icon: "fa-utensils" }, // 中庭テントB
+          302: { floor: 1, x: 50, y: 55, icon: "fa-coffee" }, // 昇降口前
+          203: { floor: 1, x: 75, y: 30, icon: "fa-dumbbell" }, // サブアリーナ
+          kado: { floor: 1, x: 60, y: 70, icon: "fa-leaf" }, // 作法室
+          sado: { floor: 1, x: 62, y: 72, icon: "fa-mug-hot" }, // 作法室
+          dance: { floor: 1, x: 80, y: 25, icon: "fa-music" }, // 体育館
+
+          // Floor 2
+          201: { floor: 2, x: 25, y: 40, icon: "fa-ghost" }, // 南棟 2F 201
+          202: { floor: 2, x: 35, y: 40, icon: "fa-dice" }, // 南棟 2F 202
+          204: { floor: 2, x: 65, y: 40, icon: "fa-fish" }, // 北棟 2F 204
+          shashin: { floor: 2, x: 50, y: 60, icon: "fa-camera" }, // 渡り廊下
+          bijutsu: { floor: 2, x: 70, y: 70, icon: "fa-palette" }, // 美術室
+          cs: { floor: 2, x: 45, y: 50, icon: "fa-laptop-code" }, // コンピュータ科学部
+
+          // Floor 3
+          101: { floor: 3, x: 25, y: 40, icon: "fa-utensils" }, // 北棟 3F 301
+          102: { floor: 3, x: 35, y: 40, icon: "fa-camera-retro" }, // 北棟 3F 302
+          103: { floor: 3, x: 45, y: 40, icon: "fa-puzzle-piece" }, // 北棟 3F 303
+          keion: { floor: 3, x: 70, y: 70, icon: "fa-guitar" }, // 視聴覚室
+          science: { floor: 3, x: 60, y: 60, icon: "fa-flask" }, // 化学室
+
+          // Floor 4
+          brass: { floor: 4, x: 50, y: 50, icon: "fa-drum" }, // 音楽室
+        };
+
+        // Facility markers (toilets, stairs, etc.)
+        const FACILITY_MARKERS = {
+          toilet_1f_1: {
+            floor: 1,
+            x: 30,
+            y: 50,
+            type: "toilet",
+            icon: "fa-restroom",
+          },
+          stairs_1f_1: {
+            floor: 1,
+            x: 40,
+            y: 35,
+            type: "stairs",
+            icon: "fa-stairs",
+          },
+          entrance: {
+            floor: 1,
+            x: 50,
+            y: 80,
+            type: "entrance",
+            icon: "fa-door-open",
+          },
+          // Add more as needed
+        };
+
+        // ==========================================
+        // State
+        // ==========================================
+        let currentFloor = 1;
+        let currentScale = 1;
+        let currentView = "3d"; // '3d' or '2d'
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        // ==========================================
+        // DOM Elements
+        // ==========================================
+        const mapContainer = document.getElementById("mapContainer");
+        const mapImage = document.getElementById("mapImage");
+        const mapViewport = document.getElementById("mapViewport");
+        const pinsContainer = document.getElementById("pinsContainer");
+        const floorTitle = document.getElementById("floorTitle");
+        const floorButtons = document.querySelectorAll(".floor-btn");
+        const viewButtons = document.querySelectorAll(".view-toggle-btn");
+        const zoomInBtn = document.getElementById("zoomIn");
+        const zoomOutBtn = document.getElementById("zoomOut");
+        const loadingOverlay = document.getElementById("mapLoading");
+
+        // ==========================================
+        // Floor Switching
+        // ==========================================
+        function switchFloor(floor) {
+          currentFloor = floor;
+          floorTitle.textContent = CONFIG.floorNames[floor];
+          mapImage.src = CONFIG.floorImages[floor];
+
+          // Update button states
+          floorButtons.forEach((btn) => {
+            btn.classList.toggle(
+              "active",
+              parseInt(btn.dataset.floor) === floor,
+            );
+          });
+
+          // Render pins for this floor
+          renderPins();
+          renderFacilities();
+
+          // Reset position
+          resetPosition();
+        }
+
+        // ==========================================
+        // Pin Rendering
+        // ==========================================
+        function renderPins() {
+          pinsContainer.innerHTML = "";
+
+          // Filter projectData by current floor
+          if (typeof projectData === "undefined") {
+            console.warn("projectData not loaded");
+            return;
+          }
+
+          projectData.forEach((project) => {
+            const coords = PIN_COORDINATES[project.id];
+            if (!coords || coords.floor !== currentFloor) return;
+
+            const pinEl = document.createElement("div");
+            pinEl.className = "map-pin";
+            pinEl.style.left = `${coords.x}%`;
+            pinEl.style.top = `${coords.y}%`;
+            pinEl.dataset.projectId = project.id;
+
+            pinEl.innerHTML = `
+                    <div class="pin-marker">
+                        <i class="fas ${coords.icon || "fa-map-marker-alt"}"></i>
+                    </div>
+                    <div class="pin-label">
+                        <div class="pin-label-group">${project.groupName || ""}</div>
+                        <div class="pin-label-name">${project.name}</div>
+                    </div>
+                `;
+
+            pinEl.addEventListener("click", () => showProjectDetail(project));
+
+            pinsContainer.appendChild(pinEl);
+          });
+        }
+
+        function renderFacilities() {
+          // Remove existing facility icons
+          document
+            .querySelectorAll(".facility-icon")
+            .forEach((el) => el.remove());
+
+          Object.entries(FACILITY_MARKERS).forEach(([id, marker]) => {
+            if (marker.floor !== currentFloor) return;
+
+            const facilityEl = document.createElement("div");
+            facilityEl.className = "facility-icon";
+            facilityEl.style.left = `${marker.x}%`;
+            facilityEl.style.top = `${marker.y}%`;
+
+            facilityEl.innerHTML = `
+                    <div class="facility-marker ${marker.type}">
+                        <i class="fas ${marker.icon}"></i>
+                    </div>
+                `;
+
+            mapContainer.appendChild(facilityEl);
+          });
+        }
+
+        function showProjectDetail(project) {
+          // For now, just alert. Later, could open a modal or navigate
+          alert(
+            `${project.groupName}\n${project.name}\n\n場所: ${project.place}\n\n${project.description || ""}`,
+          );
+        }
+
+        // ==========================================
+        // View Toggle (2D / 3D)
+        // ==========================================
+        function setView(view) {
+          currentView = view;
+          viewButtons.forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.view === view);
+          });
+
+          if (view === "2d") {
+            mapContainer.classList.add("view-2d");
+          } else {
+            mapContainer.classList.remove("view-2d");
+          }
+        }
+
+        // ==========================================
+        // Zoom Controls
+        // ==========================================
+        function zoom(delta) {
+          currentScale = Math.max(
+            CONFIG.minScale,
+            Math.min(CONFIG.maxScale, currentScale + delta),
+          );
+          updateTransform();
+        }
+
+        // ==========================================
+        // Pan (Drag) Controls
+        // ==========================================
+        function startDrag(e) {
+          isDragging = true;
+          const point = e.touches ? e.touches[0] : e;
+          startX = point.clientX - translateX;
+          startY = point.clientY - translateY;
+          mapContainer.style.cursor = "grabbing";
+        }
+
+        function drag(e) {
+          if (!isDragging) return;
+          e.preventDefault();
+          const point = e.touches ? e.touches[0] : e;
+          translateX = point.clientX - startX;
+          translateY = point.clientY - startY;
+          updateTransform();
+        }
+
+        function endDrag() {
+          isDragging = false;
+          mapContainer.style.cursor = "grab";
+        }
+
+        function updateTransform() {
+          const baseTransform =
+            currentView === "2d"
+              ? `translate(${translateX}px, ${translateY}px) scale(${currentScale})`
+              : `translate(${translateX}px, ${translateY}px) rotateX(55deg) rotateZ(-45deg) scale(${currentScale})`;
+
+          mapContainer.style.transform = baseTransform;
+        }
+
+        function resetPosition() {
+          currentScale = 1;
+          translateX = 0;
+          translateY = 0;
+          updateTransform();
+        }
+
+        // ==========================================
+        // Pinch Zoom (Touch)
+        // ==========================================
+        let initialPinchDistance = null;
+        let initialScale = 1;
+
+        function handlePinchStart(e) {
+          if (e.touches.length === 2) {
+            initialPinchDistance = getPinchDistance(e.touches);
+            initialScale = currentScale;
+          }
+        }
+
+        function handlePinchMove(e) {
+          if (e.touches.length === 2 && initialPinchDistance) {
+            e.preventDefault();
+            const currentDistance = getPinchDistance(e.touches);
+            const scaleChange = currentDistance / initialPinchDistance;
+            currentScale = Math.max(
+              CONFIG.minScale,
+              Math.min(CONFIG.maxScale, initialScale * scaleChange),
+            );
+            updateTransform();
+          }
+        }
+
+        function handlePinchEnd() {
+          initialPinchDistance = null;
+        }
+
+        function getPinchDistance(touches) {
+          const dx = touches[0].clientX - touches[1].clientX;
+          const dy = touches[0].clientY - touches[1].clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // ==========================================
+        // Event Listeners
+        // ==========================================
+        function initEventListeners() {
+          // Floor switching
+          floorButtons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              switchFloor(parseInt(btn.dataset.floor));
+            });
+          });
+
+          // View toggle
+          viewButtons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              setView(btn.dataset.view);
+            });
+          });
+
+          // Zoom buttons
+          zoomInBtn.addEventListener("click", () => zoom(CONFIG.scaleStep));
+          zoomOutBtn.addEventListener("click", () => zoom(-CONFIG.scaleStep));
+
+          // Mouse wheel zoom
+          mapViewport.addEventListener(
+            "wheel",
+            (e) => {
+              e.preventDefault();
+              const delta = e.deltaY > 0 ? -CONFIG.scaleStep : CONFIG.scaleStep;
+              zoom(delta);
+            },
+            { passive: false },
+          );
+
+          // Mouse drag
+          mapContainer.addEventListener("mousedown", startDrag);
+          window.addEventListener("mousemove", drag);
+          window.addEventListener("mouseup", endDrag);
+
+          // Touch drag (single finger)
+          mapContainer.addEventListener(
+            "touchstart",
+            (e) => {
+              if (e.touches.length === 1) {
+                startDrag(e);
+              } else if (e.touches.length === 2) {
+                handlePinchStart(e);
+              }
+            },
+            { passive: true },
+          );
+
+          mapContainer.addEventListener(
+            "touchmove",
+            (e) => {
+              if (e.touches.length === 1) {
+                drag(e);
+              } else if (e.touches.length === 2) {
+                handlePinchMove(e);
+              }
+            },
+            { passive: false },
+          );
+
+          mapContainer.addEventListener("touchend", () => {
+            endDrag();
+            handlePinchEnd();
+          });
+
+          // Image load
+          mapImage.addEventListener("load", () => {
+            loadingOverlay.classList.add("hidden");
+          });
+        }
+
+        // ==========================================
+        // Initialization
+        // ==========================================
+        function init() {
+          initEventListeners();
+          switchFloor(1); // Start on 1F
+
+          // Hide loading after a short delay if image cached
+          setTimeout(() => {
+            if (mapImage.complete) {
+              loadingOverlay.classList.add("hidden");
+            }
+          }, 300);
+        }
+
+        // Start
+        init();
+      })();
+    </script>
+  </body>
+</html>
