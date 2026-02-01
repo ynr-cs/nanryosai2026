@@ -210,184 +210,193 @@ a {
    HIGHLIGHT SECTION (Horizontal Carousel)
    ============================== */
 .highlight-section {
-    margin-bottom: 40px;
-    padding-bottom: 20px;
-    /* No horizontal padding on section to let carousel bleed */
+  padding: 0 20px 40px;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  overflow-x: hidden;
+  /* No horizontal padding on section to let carousel bleed */
 }
 
 .highlight-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px; /* Use padding for header alignment */
-    margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0; /* Align with parent padding */
+  margin-bottom: 16px;
 }
 
 .highlight-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    margin: 0;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .highlight-title::before {
-    content: '';
-    display: block;
-    width: 6px;
-    height: 24px;
-    background: var(--primary-gradient);
-    border-radius: 4px;
+  content: "";
+  display: block;
+  width: 6px;
+  height: 24px;
+  background: var(--primary-gradient);
+  border-radius: 4px;
 }
 
 .highlight-link {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: opacity 0.2s;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.2s;
 }
 
 .highlight-link:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 /* Vertical Scroll List Container (Windowed) */
 .highlight-carousel {
-    display: flex;
-    flex-direction: column;
-    /* Show approx 3 items (Card ~106px + Gap 12px) * 3 = ~354px */
-    height: 380px;
-    overflow-y: auto;
-    padding: 0 20px 20px;
-    gap: 12px;
-    /* scroll-snap-type: y mandatory; */ /* Disabled for smooth auto-scroll */
-    
-    /* Custom Scrollbar */
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-color) transparent;
+  display: flex;
+  flex-direction: column;
+  /* Show approx 3 items (Card ~106px + Gap 12px) * 3 = ~354px */
+  height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 20px; /* Left/Right padding handled by parent */
+  gap: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+  /* scroll-snap-type: y mandatory; */ /* Disabled for smooth auto-scroll */
+
+  /* Custom Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
 
 .highlight-carousel::-webkit-scrollbar {
-    display: block;
-    width: 6px;
+  display: block;
+  width: 6px;
 }
 
 .highlight-carousel::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 .highlight-carousel::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
-    border-radius: 20px;
+  background-color: var(--border-color);
+  border-radius: 20px;
 }
 
 /* Carousel Inner Spacer removal (not needed for vertical) */
 .highlight-carousel::after {
-    display: none;
+  display: none;
 }
 
 /* Compact Horizontal Card (Vertical List Mode) */
 .highlight-card {
-    flex: 0 0 auto;
-    width: 100%; /* Full width in list */
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-main);
-    scroll-snap-align: start; /* Snap alignment */
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  flex: 0 0 auto;
+  width: 100%; /* Full width in list */
+  max-width: 100%;
+  box-sizing: border-box;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-main);
+  scroll-snap-align: start; /* Snap alignment */
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    background-color 0.2s;
 }
 
 .highlight-card:hover {
-    background-color: var(--bg-color); /* Subtle interactive feedback */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background-color: var(--bg-color); /* Subtle interactive feedback */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-
 .highlight-card:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
 
 .highlight-card-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: var(--item-fill); /* Fallback bg */
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--item-fill); /* Fallback bg */
 }
 
 .highlight-card-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding-left: 12px;
-    overflow: hidden; /* For text truncation */
-    justify-content: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+  overflow: hidden; /* For text truncation */
+  justify-content: center;
 }
 
 .highlight-group-name {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 2px;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 2px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 [data-theme="dark"] .highlight-group-name {
-    color: #a5b4fc;
+  color: #a5b4fc;
 }
 
 .highlight-project-name {
-    font-size: 1rem;
-    font-weight: 800;
-    margin: 0 0 2px;
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 2px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .highlight-place {
-    font-size: 0.75rem;
-    color: var(--text-sub);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 4px;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .highlight-place i {
-    color: var(--text-sub);
-    opacity: 0.7;
+  color: var(--text-sub);
+  opacity: 0.7;
 }
 
 .highlight-tags {
-    display: flex;
-    gap: 4px;
+  display: flex;
+  gap: 4px;
 }
 
 .highlight-tag {
-    font-size: 0.65rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--item-fill);
-    color: var(--text-sub);
-    font-weight: 600;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--item-fill);
+  color: var(--text-sub);
+  font-weight: 600;
 }
 
 .theme-statement {
@@ -641,7 +650,9 @@ a {
   font-weight: 800;
   font-size: 0.85rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .promo-btn-white:active {
@@ -692,7 +703,9 @@ a {
   border-radius: 20px;
   border: 5px solid #111;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 0 1px #333;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px #333;
   /* Removed rotation/tilt */
   transform: none;
   overflow: hidden;
@@ -967,27 +980,36 @@ a {
 
 /* Notification Badge */
 .nav-notification-badge {
-    position: absolute;
-    top: 4px; /* Slightly adjusted for icon-circle */
-    right: 6px;
-    width: 12px;
-    height: 12px;
-    background-color: #ff4757;
-    border: 2px solid white;
-    border-radius: 50%;
-    z-index: 10;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  position: absolute;
+  top: 4px; /* Slightly adjusted for icon-circle */
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  background-color: #ff4757;
+  border: 2px solid white;
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Pulse Animation for Badge */
 @keyframes badgePulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
-    70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(255, 71, 87, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+  }
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 6px rgba(255, 71, 87, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+  }
 }
 
 .nav-notification-badge {
-    animation: badgePulse 2s infinite;
+  animation: badgePulse 2s infinite;
 }
 main {
   flex: 1;
@@ -1249,7 +1271,8 @@ main {
   position: relative;
   overflow: hidden;
   /* Create a deep, premium background */
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at top right,
       rgba(37, 117, 252, 0.1),
       transparent 60%
@@ -1267,7 +1290,8 @@ main {
 
 /* Dark mode adjustments for hero background */
 [data-theme="dark"] .hero-container {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at top right,
       rgba(37, 117, 252, 0.15),
       transparent 50%
@@ -1381,7 +1405,9 @@ main {
   box-shadow: 0 10px 25px rgba(37, 117, 252, 0.4);
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 0.6s forwards;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .hero-cta:active {
@@ -1535,7 +1561,8 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 16px; /* 角丸も少し控えめに */
   padding: 16px; /* パディング縮小 */
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -1713,7 +1740,8 @@ main {
   font-weight: 700;
   border-radius: 50px;
   text-decoration: none;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.3s ease;
   box-shadow: 0 8px 20px rgba(255, 0, 128, 0.3);
 }
@@ -1897,7 +1925,9 @@ main {
   display: flex;
   flex-direction: column;
   text-align: left;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   user-select: none;
 }
 
@@ -2090,8 +2120,12 @@ main {
 }
 
 @keyframes verticalScrollLoop {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(calc(-50% - 6px)); }
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-50% - 6px));
+  }
 }
 
 /* 横長カード */
@@ -2104,7 +2138,9 @@ main {
   flex-direction: row;
   align-items: center;
   gap: 16px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   user-select: none;
   flex-shrink: 0;
   will-change: transform;
@@ -2122,7 +2158,7 @@ main {
   border-radius: 50%;
   object-fit: cover;
   background: #eee;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
 
@@ -2175,7 +2211,9 @@ main {
   font-size: 0.8rem;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .highlight-btn-primary {
@@ -2211,12 +2249,12 @@ main {
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .highlight-card-actions {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .highlight-btn {
     padding: 6px 12px;
     font-size: 0.75rem;
@@ -2230,7 +2268,8 @@ main {
 @media (prefers-color-scheme: dark) {
   /* Hero Section */
   html:not([data-theme="light"]) .hero-container {
-    background: radial-gradient(
+    background:
+      radial-gradient(
         circle at top right,
         rgba(37, 117, 252, 0.15),
         transparent 50%
@@ -2291,7 +2330,6 @@ main {
   }
 }
 
-
 /* =========================================
 
    Vertical HighLight Section (Refactor)
@@ -2299,7 +2337,6 @@ main {
    ========================================= */
 
 .vertical-scroll-container {
-
   height: 400px; /* Show approx 4 items (each ~90px + gap) */
 
   overflow-y: auto;
@@ -2317,36 +2354,21 @@ main {
   scrollbar-width: thin;
 
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-
 }
-
-
 
 .vertical-scroll-container::-webkit-scrollbar {
-
   width: 6px;
-
 }
-
-
 
 .vertical-scroll-container::-webkit-scrollbar-track {
-
   background: transparent;
-
 }
 
-
-
 .vertical-scroll-container::-webkit-scrollbar-thumb {
-
   background-color: rgba(255, 255, 255, 0.3);
 
   border-radius: 20px;
-
 }
-
-
 
 /* Wide Project Card */
 
@@ -2360,7 +2382,9 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   box-shadow: 0 4px 6px var(--shadow-color);
   will-change: transform;
 }
@@ -2370,10 +2394,7 @@ main {
   box-shadow: 0 8px 15px var(--shadow-color);
 }
 
-
-
 .card-wide-content {
-
   flex: 1;
 
   display: flex;
@@ -2381,45 +2402,29 @@ main {
   flex-direction: column;
 
   gap: 4px;
-
 }
 
-
-
 .card-wide-header {
-
   display: flex;
 
   align-items: center;
 
   gap: 8px;
-
 }
-
-
 
 /* Reusing .project-cat and .project-group from existing styles */
 
 .card-wide-header .project-cat {
-
   margin-bottom: 0; /* Reset margin */
-
 }
 
-
-
 .card-wide-header .project-group {
-
   margin-bottom: 0; /* Reset margin */
 
   font-size: 0.9rem;
-
 }
 
-
-
 .project-name-wide {
-
   margin: 0;
 
   font-size: 1.1rem;
@@ -2429,13 +2434,9 @@ main {
   color: var(--text-main);
 
   line-height: 1.3;
-
 }
 
-
-
 .card-wide-actions {
-
   display: flex;
 
   align-items: center;
@@ -2443,13 +2444,9 @@ main {
   gap: 8px;
 
   flex-shrink: 0;
-
 }
 
-
-
 .btn-action-primary {
-
   padding: 8px 16px;
 
   background: linear-gradient(135deg, #ff9a9e 0%, #ff6a88 100%);
@@ -2469,23 +2466,15 @@ main {
   box-shadow: 0 4px 10px rgba(255, 106, 136, 0.3);
 
   transition: transform 0.2s;
-
 }
 
-
-
 .btn-action-primary:hover {
-
   transform: translateY(-2px);
 
   box-shadow: 0 6px 15px rgba(255, 106, 136, 0.4);
-
 }
 
-
-
 .btn-action-secondary {
-
   padding: 8px 16px;
 
   background: rgba(255, 255, 255, 0.3);
@@ -2505,68 +2494,43 @@ main {
   white-space: nowrap;
 
   transition: background 0.2s;
-
 }
 
-
-
 [data-theme="dark"] .btn-action-secondary {
-
   background: rgba(255, 255, 255, 0.1);
 
   border-color: rgba(255, 255, 255, 0.2);
 
   color: var(--text-main);
-
 }
-
-
 
 .btn-action-secondary:hover {
-
   background: rgba(255, 255, 255, 0.5);
-
 }
-
-
 
 [data-theme="dark"] .btn-action-secondary:hover {
-
   background: rgba(255, 255, 255, 0.2);
-
 }
-
-
 
 /* Mobile adjustments */
 
 @media (max-width: 600px) {
-
   .project-card-wide {
-
     flex-direction: column;
 
     align-items: flex-start;
 
     padding: 16px;
-
   }
 
-  
-
   .card-wide-actions {
-
     width: 100%;
 
     margin-top: 8px;
 
     justify-content: flex-end;
-
   }
-
 }
-
-
 
 /* =========================================
 
@@ -2575,7 +2539,6 @@ main {
    ========================================= */
 
 .projects-grid-container {
-
   display: grid;
 
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -2587,23 +2550,14 @@ main {
   max-width: 1200px;
 
   margin: 0 auto;
-
 }
 
-
-
 @media (max-width: 600px) {
-
   .projects-grid-container {
-
     grid-template-columns: 1fr;
 
     padding: 16px;
 
     gap: 16px;
-
   }
-
 }
-
-
