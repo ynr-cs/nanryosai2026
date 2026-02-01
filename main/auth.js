@@ -52,7 +52,7 @@ async function login() {
 
   if (isInApp) {
     alert(
-      "⚠️ 注意: アプリ内ブラウザではログインが正常に動作しない場合があります。\n\nもしログインできない場合は、右上のメニューから「ブラウザで開く」を選択してください。"
+      "⚠️ 注意: アプリ内ブラウザではログインが正常に動作しない場合があります。\n\nもしログインできない場合は、右上のメニューから「ブラウザで開く」を選択してください。",
     );
   }
 
@@ -76,7 +76,7 @@ async function login() {
         photoURL: user.photoURL,
         lastLogin: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     return user;
@@ -84,7 +84,7 @@ async function login() {
     console.error("Login failed:", error);
     if (error.code === "auth/popup-blocked") {
       alert(
-        "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。"
+        "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。",
       );
     } else if (error.code === "auth/cancelled-popup-request") {
       // User closed the popup, ignore.

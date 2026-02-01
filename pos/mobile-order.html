@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -36,16 +36,18 @@
          ========================================= */
       :root {
         /* Colors */
-        --primary-color: #1a1a1a;   /* Deep Premium Black */
-        --accent-color: #e53935;    /* Vibrant Red */
-        --brand-color: #ff9800;     /* Warm Orange */
-        --bg-color: #f0f2f5;        /* Default Light */
+        --primary-color: #1a1a1a; /* Deep Premium Black */
+        --accent-color: #e53935; /* Vibrant Red */
+        --brand-color: #ff9800; /* Warm Orange */
+        --bg-color: #f0f2f5; /* Default Light */
         --card-bg: #ffffff;
-        
+
         /* Text */
         --text-main: #2d3436;
         --text-sub: #636e72;
-        --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-main:
+          "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
 
         /* Dimensions */
         --radius-lg: 20px;
@@ -67,38 +69,38 @@
           --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         :root:not([data-theme="light"]) .btn-primary-custom {
-            color: #fff !important;
+          color: #fff !important;
         }
         :root:not([data-theme="light"]) .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
+          filter: invert(1) grayscale(100%) brightness(200%);
         }
       }
 
       /* Explicit Dark Theme Override */
       [data-theme="dark"] {
-          --bg-color: #0f172a;
-          --card-bg: #1e293b;
-          --text-main: #f1f5f9;
-          --text-sub: #94a3b8;
-          --primary-color: #334155;
-          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
-          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+        --bg-color: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f1f5f9;
+        --text-sub: #94a3b8;
+        --primary-color: #334155;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+        --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
       [data-theme="dark"] .btn-primary-custom {
-          color: #fff !important;
+        color: #fff !important;
       }
       [data-theme="dark"] .btn-close {
-          filter: invert(1) grayscale(100%) brightness(200%);
+        filter: invert(1) grayscale(100%) brightness(200%);
       }
 
       /* Explicit Light Theme Override */
       [data-theme="light"] {
-          --bg-color: #f0f2f5;
-          --card-bg: #ffffff;
-          --text-main: #2d3436;
-          --text-sub: #636e72;
-          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
-          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
 
       body {
@@ -109,12 +111,12 @@
         height: 100dvh;
         width: 100vw;
         overflow: hidden;
-        
+
         display: flex;
         flex-direction: column;
         justify-content: flex-start; /* Ensure start from top */
         align-items: center; /* Center horizontally */
-        
+
         /* Padding is handled by style.css */
         box-sizing: border-box;
       }
@@ -128,23 +130,23 @@
         height: 100%; /* Force full height usage of flex space */
         flex: 1 1 auto; /* Grow to fill space */
         margin: 0 auto; /* Horizontal centering */
-        
+
         overflow: hidden; /* Internal scrolling */
         background: var(--bg-color);
         position: relative;
         z-index: 1;
         display: flex;
         flex-direction: column;
-        
+
         /* Subtle device boundary on PC */
-        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
       }
 
       @media (max-width: 500px) {
-          #app-container {
-              max-width: 100%;
-              box-shadow: none;
-          }
+        #app-container {
+          max-width: 100%;
+          box-shadow: none;
+        }
       }
 
       /* Loading Overlay */
@@ -167,8 +169,9 @@
         width: 60px;
         height: 60px;
       }
-      .premium-loader:before, .premium-loader:after {
-        content: '';
+      .premium-loader:before,
+      .premium-loader:after {
+        content: "";
         position: absolute;
         border-radius: 50%;
         top: 50%;
@@ -186,7 +189,8 @@
         width: 60%;
         height: 60%;
         background: var(--brand-color);
-        animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955)
+          infinite;
         box-shadow: 0 0 15px var(--brand-color);
       }
       .loader-text {
@@ -198,17 +202,38 @@
         animation: fade-text 1.5s ease-in-out infinite alternate;
       }
       @keyframes pulse-ring {
-        0% { width: 60%; height: 60%; opacity: 1; }
-        100% { width: 150%; height: 150%; opacity: 0; }
+        0% {
+          width: 60%;
+          height: 60%;
+          opacity: 1;
+        }
+        100% {
+          width: 150%;
+          height: 150%;
+          opacity: 0;
+        }
       }
       @keyframes pulse-dot {
-        0% { width: 60%; height: 60%; }
-        50% { width: 80%; height: 80%; }
-        100% { width: 60%; height: 60%; }
+        0% {
+          width: 60%;
+          height: 60%;
+        }
+        50% {
+          width: 80%;
+          height: 80%;
+        }
+        100% {
+          width: 60%;
+          height: 60%;
+        }
       }
       @keyframes fade-text {
-        0% { opacity: 0.5; }
-        100% { opacity: 1; }
+        0% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
       }
 
       /* =========================================
@@ -223,14 +248,20 @@
         overflow-y: auto; /* Internal scroll */
         -webkit-overflow-scrolling: touch;
       }
-      
+
       .screen.active {
         display: flex;
       }
 
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       /* =========================================
@@ -246,13 +277,15 @@
         font-weight: 700;
         width: 100%;
         font-size: 1.05rem;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
         letter-spacing: 0.05em;
       }
       .btn-primary-custom:active:not(:disabled) {
         transform: scale(0.96);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
       .btn-primary-custom:disabled {
         background: #ced4da;
@@ -272,7 +305,9 @@
         gap: 20px;
         box-shadow: var(--shadow-card);
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
       }
       .store-card:active {
         transform: scale(0.97);
@@ -284,7 +319,7 @@
         border-radius: 50%;
         object-fit: cover;
         background: #eee;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
       }
       .store-info h3 {
         font-size: 1.15rem;
@@ -302,7 +337,9 @@
         border: none;
         display: flex;
         flex-direction: column;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
         height: 100%;
       }
       .menu-card:active {
@@ -321,7 +358,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0; 
+        opacity: 0;
         transition: opacity 0.4s ease;
         z-index: 2;
       }
@@ -376,8 +413,13 @@
         align-items: center;
         text-align: center;
       }
-      .login-hero { margin-bottom: 40px; }
-      .login-logo { font-size: 3rem; margin-bottom: 10px; }
+      .login-hero {
+        margin-bottom: 40px;
+      }
+      .login-logo {
+        font-size: 3rem;
+        margin-bottom: 10px;
+      }
 
       /* Terms Step */
       .terms-warning-box {
@@ -403,7 +445,9 @@
         font-weight: 700;
         color: #b71c1c;
       }
-      .warning-list li { margin-bottom: 10px; }
+      .warning-list li {
+        margin-bottom: 10px;
+      }
       .ban-warning {
         font-size: 1.1em;
         background: #b71c1c;
@@ -456,7 +500,9 @@
         font-weight: bold;
         transition: all 0.2s;
       }
-      .topping-btn:active { background: var(--border-color); }
+      .topping-btn:active {
+        background: var(--border-color);
+      }
       .topping-btn.mod-selected-no {
         background: rgba(211, 47, 47, 0.2);
         border-color: #d32f2f;
@@ -484,8 +530,12 @@
         font-weight: bold;
         color: white;
       }
-      .mod-tag.no { background: #d32f2f; }
-      .mod-tag.add { background: #2e7d32; }
+      .mod-tag.no {
+        background: #d32f2f;
+      }
+      .mod-tag.add {
+        background: #2e7d32;
+      }
 
       /* =========================================
          6. Cart & Checkout Components
@@ -497,7 +547,7 @@
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
-        max-width: 440px; 
+        max-width: 440px;
         background: #2d3436; /* Premium Dark */
         color: white;
         z-index: 1050;
@@ -508,7 +558,9 @@
         align-items: center;
         padding: 8px 8px 8px 24px;
         cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
+        transition:
+          transform 0.2s,
+          background 0.2s;
       }
       .bottom-cart-bar:active {
         transform: translateX(-50%) scale(0.98);
@@ -541,7 +593,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         border: 2px solid #2d3436;
       }
       .cart-total-price {
@@ -561,7 +613,9 @@
         align-items: center;
         gap: 6px;
         box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
-        transition: transform 0.2s, background 0.2s;
+        transition:
+          transform 0.2s,
+          background 0.2s;
       }
       .btn-checkout-action:active {
         transform: scale(0.95);
@@ -581,7 +635,9 @@
         align-items: center;
         transition: transform 0.2s;
       }
-      .cart-item:active { transform: scale(0.98); }
+      .cart-item:active {
+        transform: scale(0.98);
+      }
       .cart-item-details h5 {
         font-size: 1.05rem;
         margin: 0 0 4px 0;
@@ -593,7 +649,9 @@
         color: var(--text-main);
         font-size: 0.95rem;
       }
-      .cart-item-mods { margin-top: 6px; }
+      .cart-item-mods {
+        margin-top: 6px;
+      }
       .cart-del-btn {
         width: 40px;
         height: 40px;
@@ -607,8 +665,10 @@
         font-size: 1.1rem;
         transition: background 0.2s;
       }
-      .cart-del-btn:active { background: #ffcdd2; }
-      
+      .cart-del-btn:active {
+        background: #ffcdd2;
+      }
+
       .cart-total-row {
         display: flex;
         justify-content: space-between;
@@ -653,7 +713,9 @@
         display: flex;
         flex-direction: column;
       }
-      .modal-backdrop.show { opacity: 0.2; }
+      .modal-backdrop.show {
+        opacity: 0.2;
+      }
 
       /* Make modal-body flex-grow and remove large padding */
       .mobile-fullscreen-modal .modal-body {
@@ -672,7 +734,7 @@
       /* =========================================
          8. Layout Overrides for App Shell Integration
          ========================================= */
-      
+
       /* 
          The App Shell (style.css) adds padding-top and padding-bottom to BODY.
          So normally content sits strictly between Header and Bottom Nav.
@@ -684,7 +746,7 @@
 
       /* Ensure body doesn't scroll, only the container */
       body {
-        overflow: hidden; 
+        overflow: hidden;
       }
 
       #app-container {
@@ -697,12 +759,12 @@
         display: flex;
         flex-direction: column;
         overflow: hidden; /* Ensure inner content doesn't spill out and cause body scroll */
-        
+
         /* Reset any transforms from previous scripts if they interfere */
         transform-origin: top center;
         background: var(--bg-color); /* Ensure background is solid */
-        border-right: 1px solid rgba(0,0,0,0.05); /* Subtle border for desktop view */
-        border-left: 1px solid rgba(0,0,0,0.05);
+        border-right: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border for desktop view */
+        border-left: 1px solid rgba(0, 0, 0, 0.05);
       }
 
       /* Screens take full available height of the container */
@@ -742,7 +804,6 @@
   </head>
   <body>
     <div id="app-container">
-      
       <!-- =========================================
            Screen 1: Loading
            ========================================= -->
@@ -755,10 +816,36 @@
            Screen 2: Login
            ========================================= -->
       <div id="step-login" class="screen">
-        <div class="login-hero" style="font-family: 'Noto Sans JP', sans-serif;">
-          <p style="color: var(--text-sub); margin-bottom: 0.5rem; font-weight: 500;">南陵祭2026</p>
-          <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main);">モバイルオーダー</h1>
-          <p style="color: var(--text-sub); font-size: 0.875rem; line-height: 1.6;">
+        <div
+          class="login-hero"
+          style="font-family: &quot;Noto Sans JP&quot;, sans-serif"
+        >
+          <p
+            style="
+              color: var(--text-sub);
+              margin-bottom: 0.5rem;
+              font-weight: 500;
+            "
+          >
+            南陵祭2026
+          </p>
+          <h1
+            style="
+              font-size: 2.5rem;
+              font-weight: 700;
+              margin-bottom: 1.5rem;
+              color: var(--text-main);
+            "
+          >
+            モバイルオーダー
+          </h1>
+          <p
+            style="
+              color: var(--text-sub);
+              font-size: 0.875rem;
+              line-height: 1.6;
+            "
+          >
             モバイルオーダー機能を使うには<br />
             ログインしてください
           </p>
@@ -766,18 +853,49 @@
         <button id="btn-login" class="btn-primary-custom">
           <i class="bi bi-google me-2"></i> Google でログイン
         </button>
-        <div class="mt-4 p-3 rounded text-start" style="background: var(--item-fill); font-size: 0.85rem; border: 1px solid var(--border-color);">
-            <strong class="d-block mb-2" style="font-size: 0.95rem; color: #ff4757;">⚠️ 推奨ブラウザについて</strong>
-            <p class="mb-3" style="color: var(--text-main);">本システムの利用には、以下のブラウザを推奨しています。</p>
-            
-            <p class="fw-bold mb-1" style="color: var(--text-main);">✅ 推奨ブラウザ</p>
-            <ul class="mb-3 ps-3" style="color: var(--text-main);">
-                <li>Google Chrome</li>
-            </ul>
-            <p class="mb-0 small" style="color: var(--text-sub);">※ その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。</p>
-            <div class="mt-2 pt-2" style="border-top: 1px dashed var(--border-color);">
-                <small style="color: var(--text-sub);">動作しない場合は <a href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header" id="bug-report-link-mobile" target="_blank" style="color: #4dabf7; text-decoration: underline;">不具合報告フォーム</a> までご連絡ください。</small>
-            </div>
+        <div
+          class="mt-4 p-3 rounded text-start"
+          style="
+            background: var(--item-fill);
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+          "
+        >
+          <strong
+            class="d-block mb-2"
+            style="font-size: 0.95rem; color: #ff4757"
+            >⚠️ 推奨ブラウザについて</strong
+          >
+          <p class="mb-3" style="color: var(--text-main)">
+            本システムの利用には、以下のブラウザを推奨しています。
+          </p>
+
+          <p class="fw-bold mb-1" style="color: var(--text-main)">
+            ✅ 推奨ブラウザ
+          </p>
+          <ul class="mb-3 ps-3" style="color: var(--text-main)">
+            <li>Google Chrome</li>
+          </ul>
+          <p class="mb-0 small" style="color: var(--text-sub)">
+            ※
+            その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
+          </p>
+          <div
+            class="mt-2 pt-2"
+            style="border-top: 1px dashed var(--border-color)"
+          >
+            <small style="color: var(--text-sub)"
+              >動作しない場合は
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
+                id="bug-report-link-mobile"
+                target="_blank"
+                style="color: #4dabf7; text-decoration: underline"
+                >不具合報告フォーム</a
+              >
+              までご連絡ください。</small
+            >
+          </div>
         </div>
       </div>
 
@@ -803,7 +921,10 @@
           <button id="btn-req-notification" class="btn-primary-custom mb-3">
             通知を受け取る
           </button>
-          <button class="btn btn-link text-secondary text-decoration-none" onclick="skipNotification()">
+          <button
+            class="btn btn-link text-secondary text-decoration-none"
+            onclick="skipNotification()"
+          >
             通知を受け取らない
           </button>
         </div>
@@ -814,7 +935,10 @@
            ========================================= -->
       <div id="step-terms" class="screen">
         <div class="text-center mt-3 mb-2">
-          <i class="bi bi-shield-exclamation text-danger" style="font-size: 2.5rem"></i>
+          <i
+            class="bi bi-shield-exclamation text-danger"
+            style="font-size: 2.5rem"
+          ></i>
           <h3 class="fw-bold mt-1 mb-0">利用規約の確認</h3>
         </div>
 
@@ -828,14 +952,23 @@
             <li>返金対応は致しかねます</li>
           </ul>
           <div class="ban-warning text-center p-2 fs-6 mt-2">
-            違反時は全サービスから<br>永久BANします
+            違反時は全サービスから<br />永久BANします
           </div>
         </div>
 
         <div class="mt-auto pb-2">
-          <div class="form-check mb-3 d-flex justify-content-center gap-2 align-items-center">
-            <input class="form-check-input" type="checkbox" id="check-terms" style="transform: scale(1.2)" />
-            <label class="form-check-label fw-bold small" for="check-terms">上記内容を理解し、同意します</label>
+          <div
+            class="form-check mb-3 d-flex justify-content-center gap-2 align-items-center"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="check-terms"
+              style="transform: scale(1.2)"
+            />
+            <label class="form-check-label fw-bold small" for="check-terms"
+              >上記内容を理解し、同意します</label
+            >
           </div>
           <button id="btn-agree-terms" class="btn-primary-custom py-3" disabled>
             同意して次へ
@@ -857,13 +990,24 @@
            Screen 6: Menu (Grid)
            ========================================= -->
       <div id="step-menu" class="screen">
-        <div id="menu-header" class="p-3 sticky-top shadow-sm d-flex align-items-center justify-content-between" style="background: var(--card-bg); color: var(--text-main);">
+        <div
+          id="menu-header"
+          class="p-3 sticky-top shadow-sm d-flex align-items-center justify-content-between"
+          style="background: var(--card-bg); color: var(--text-main)"
+        >
           <h5 class="m-0 fw-bold" id="menu-store-name">Store Name</h5>
-          <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="backToStores()">
+          <button
+            class="btn btn-sm btn-outline-secondary rounded-circle"
+            onclick="backToStores()"
+          >
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        <div id="menu-grid" class="p-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div
+          id="menu-grid"
+          class="p-3"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+        >
           <!-- JS Injected -->
         </div>
       </div>
@@ -873,21 +1017,34 @@
            ========================================= -->
       <div id="step-checkout" class="screen">
         <h2 class="fw-bold mb-4">注文内容の確認</h2>
-        <div class="card mb-3 shadow-sm border-0" style="background: var(--card-bg); color: var(--text-main);">
+        <div
+          class="card mb-3 shadow-sm border-0"
+          style="background: var(--card-bg); color: var(--text-main)"
+        >
           <div class="card-body">
-            <h6 class="small" style="color: var(--text-sub);">受け取り店舗</h6>
+            <h6 class="small" style="color: var(--text-sub)">受け取り店舗</h6>
             <h4 class="fw-bold" id="checkout-store-name">Store Name</h4>
           </div>
         </div>
-        <div class="card mb-3 shadow-sm border-0" style="background: var(--card-bg); color: var(--text-main);">
-          <div class="card-header border-bottom-0 fw-bold" style="background: var(--card-bg); color: var(--text-main);">注文商品</div>
+        <div
+          class="card mb-3 shadow-sm border-0"
+          style="background: var(--card-bg); color: var(--text-main)"
+        >
+          <div
+            class="card-header border-bottom-0 fw-bold"
+            style="background: var(--card-bg); color: var(--text-main)"
+          >
+            注文商品
+          </div>
           <div class="card-body p-0">
             <div id="checkout-items-list" class="list-group list-group-flush">
               <!-- Injected -->
             </div>
           </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 px-2"
+        >
           <span class="fw-bold fs-5">合計金額</span>
           <span class="fw-bold fs-2 text-danger" id="checkout-total">¥0</span>
         </div>
@@ -896,8 +1053,15 @@
           <strong>確定後のキャンセル・返金はできません。</strong><br />
           調理完了通知が届いてから15分以内に受け取りに来てください。
         </div>
-        <button class="btn-primary-custom mb-3" onclick="finalizeOrder()">注文を確定する</button>
-        <button class="btn btn-link text-secondary w-100" onclick="backToMenu()">メニューに戻る</button>
+        <button class="btn-primary-custom mb-3" onclick="finalizeOrder()">
+          注文を確定する
+        </button>
+        <button
+          class="btn btn-link text-secondary w-100"
+          onclick="backToMenu()"
+        >
+          メニューに戻る
+        </button>
       </div>
 
       <!-- =========================================
@@ -911,8 +1075,15 @@
           </div>
           <span class="cart-total-price" id="bar-total">¥0</span>
         </div>
-        <button class="btn-checkout-action" onclick="event.stopPropagation(); checkout()">
-          レジへ <i class="bi bi-arrow-right-short" style="font-size: 1.2rem;"></i>
+        <button
+          class="btn-checkout-action"
+          onclick="
+            event.stopPropagation();
+            checkout();
+          "
+        >
+          レジへ
+          <i class="bi bi-arrow-right-short" style="font-size: 1.2rem"></i>
         </button>
       </div>
 
@@ -920,45 +1091,132 @@
            Modals (Inside Container)
            ========================================= -->
       <!-- Item Details Modal (Fullscreen) -->
-      <div class="modal fade mobile-fullscreen-modal" id="itemModal" tabindex="-1" data-bs-backdrop="false" style="position: absolute;">
+      <div
+        class="modal fade mobile-fullscreen-modal"
+        id="itemModal"
+        tabindex="-1"
+        data-bs-backdrop="false"
+        style="position: absolute"
+      >
         <div class="modal-dialog">
-          <div class="modal-content border-0" style="background: var(--bg-color);">
-            <div class="modal-header border-0 shadow-sm" style="background: var(--card-bg); color: var(--text-main);">
-              <button type="button" class="btn btn-link p-0 me-3" data-bs-dismiss="modal" style="font-size: 1.5rem; color: var(--text-main);">
+          <div
+            class="modal-content border-0"
+            style="background: var(--bg-color)"
+          >
+            <div
+              class="modal-header border-0 shadow-sm"
+              style="background: var(--card-bg); color: var(--text-main)"
+            >
+              <button
+                type="button"
+                class="btn btn-link p-0 me-3"
+                data-bs-dismiss="modal"
+                style="font-size: 1.5rem; color: var(--text-main)"
+              >
                 <i class="bi bi-chevron-left"></i>
               </button>
-              <h5 class="modal-title fw-bold flex-grow-1 text-center pe-4" id="modal-item-name">商品名</h5>
+              <h5
+                class="modal-title fw-bold flex-grow-1 text-center pe-4"
+                id="modal-item-name"
+              >
+                商品名
+              </h5>
             </div>
-            <div class="modal-body p-0" style="background: var(--bg-color); flex: 1; overflow-y: auto;">
-              <div class="text-center py-2 mb-3 shadow-sm position-relative" style="background: var(--card-bg); min-height: 200px; display: flex; align-items: center; justify-content: center;">
-                 <div class="img-loader">
-                    <div class="spinner-border text-secondary" role="status"></div>
-                 </div>
-                 <img id="modal-item-img" src="" class="img-fluid" style="max-width: 80%; max-height: 200px; object-fit: contain; opacity: 0; transition: opacity 0.3s;" />
+            <div
+              class="modal-body p-0"
+              style="background: var(--bg-color); flex: 1; overflow-y: auto"
+            >
+              <div
+                class="text-center py-2 mb-3 shadow-sm position-relative"
+                style="
+                  background: var(--card-bg);
+                  min-height: 200px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <div class="img-loader">
+                  <div
+                    class="spinner-border text-secondary"
+                    role="status"
+                  ></div>
+                </div>
+                <img
+                  id="modal-item-img"
+                  src=""
+                  class="img-fluid"
+                  style="
+                    max-width: 80%;
+                    max-height: 200px;
+                    object-fit: contain;
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                  "
+                />
               </div>
               <div class="px-3 mb-4">
-                <p class="small" style="color: var(--text-sub);" id="modal-item-desc">
+                <p
+                  class="small"
+                  style="color: var(--text-sub)"
+                  id="modal-item-desc"
+                >
                   注文後の調理となります。<br />※画像はイメージです。
                 </p>
               </div>
               <div class="px-3">
-                <div id="customization-area" class="p-3 rounded-3 shadow-sm mb-3" style="background: var(--card-bg); color: var(--text-main);">
-                  <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#customization-collapse" aria-expanded="false" aria-controls="customization-collapse" style="cursor: pointer">
+                <div
+                  id="customization-area"
+                  class="p-3 rounded-3 shadow-sm mb-3"
+                  style="background: var(--card-bg); color: var(--text-main)"
+                >
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#customization-collapse"
+                    aria-expanded="false"
+                    aria-controls="customization-collapse"
+                    style="cursor: pointer"
+                  >
                     <div class="d-flex align-items-center">
                       <i class="bi bi-gear-fill me-2 text-primary"></i>
                       <span class="fw-bold">カスタマイズ</span>
                     </div>
-                    <i class="bi bi-chevron-down" style="color: var(--text-sub);"></i>
+                    <i
+                      class="bi bi-chevron-down"
+                      style="color: var(--text-sub)"
+                    ></i>
                   </div>
                   <div class="collapse mt-3" id="customization-collapse">
                     <div class="mode-toggle mb-3">
-                      <button class="mode-btn w-100 py-2" data-mode="NO" onclick="setMode('NO')"><i class="bi bi-dash-circle me-1"></i> 抜き</button>
-                      <button class="mode-btn w-100 py-2" data-mode="ADD" onclick="setMode('ADD')"><i class="bi bi-plus-circle me-1"></i> 追加</button>
+                      <button
+                        class="mode-btn w-100 py-2"
+                        data-mode="NO"
+                        onclick="setMode('NO')"
+                      >
+                        <i class="bi bi-dash-circle me-1"></i> 抜き
+                      </button>
+                      <button
+                        class="mode-btn w-100 py-2"
+                        data-mode="ADD"
+                        onclick="setMode('ADD')"
+                      >
+                        <i class="bi bi-plus-circle me-1"></i> 追加
+                      </button>
                     </div>
-                    <p class="small mb-2 ms-1" style="color: var(--text-sub);"><i class="bi bi-info-circle me-1"></i>先に「抜き」か「追加」を選んでください</p>
+                    <p class="small mb-2 ms-1" style="color: var(--text-sub)">
+                      <i class="bi bi-info-circle me-1"></i
+                      >先に「抜き」か「追加」を選んでください
+                    </p>
                     <div class="topping-list" id="topping-list"></div>
-                    <div class="active-mods-display mt-3" id="active-mods-display" style="display: none">
-                      <small class="d-block mb-1" style="color: var(--text-sub);">選択中の変更:</small>
+                    <div
+                      class="active-mods-display mt-3"
+                      id="active-mods-display"
+                      style="display: none"
+                    >
+                      <small class="d-block mb-1" style="color: var(--text-sub)"
+                        >選択中の変更:</small
+                      >
                       <div id="active-mods-list"></div>
                     </div>
                   </div>
@@ -966,17 +1224,62 @@
               </div>
               <div style="height: 100px"></div>
             </div>
-            <div class="modal-footer border-top d-block p-3" style="background: var(--card-bg); border-top-color: var(--border-color) !important;">
+            <div
+              class="modal-footer border-top d-block p-3"
+              style="
+                background: var(--card-bg);
+                border-top-color: var(--border-color) !important;
+              "
+            >
               <div class="d-flex justify-content-between align-items-end mb-2">
-                <div><span class="fs-2 fw-bold" id="modal-item-price" style="color: var(--text-main);">¥0</span></div>
-                <div class="d-flex align-items-center rounded-pill px-2 py-1 border" style="background: var(--bg-color); border-color: var(--border-color) !important;">
-                  <button class="btn btn-sm" onclick="adjustQty(-1)" style="font-size: 1.2rem; width: 30px; color: var(--text-sub);">-</button>
-                  <span class="mx-3 fw-bold fs-5" id="modal-item-qty" style="color: var(--text-main);">1</span>
-                  <button class="btn btn-sm text-primary" onclick="adjustQty(1)" style="font-size: 1.2rem; width: 30px">+</button>
+                <div>
+                  <span
+                    class="fs-2 fw-bold"
+                    id="modal-item-price"
+                    style="color: var(--text-main)"
+                    >¥0</span
+                  >
+                </div>
+                <div
+                  class="d-flex align-items-center rounded-pill px-2 py-1 border"
+                  style="
+                    background: var(--bg-color);
+                    border-color: var(--border-color) !important;
+                  "
+                >
+                  <button
+                    class="btn btn-sm"
+                    onclick="adjustQty(-1)"
+                    style="
+                      font-size: 1.2rem;
+                      width: 30px;
+                      color: var(--text-sub);
+                    "
+                  >
+                    -
+                  </button>
+                  <span
+                    class="mx-3 fw-bold fs-5"
+                    id="modal-item-qty"
+                    style="color: var(--text-main)"
+                    >1</span
+                  >
+                  <button
+                    class="btn btn-sm text-primary"
+                    onclick="adjustQty(1)"
+                    style="font-size: 1.2rem; width: 30px"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-warning w-100 py-3 rounded-pill fw-bold text-dark shadow-sm" onclick="commitAddToCart()">カートに追加</button>
+                <button
+                  class="btn btn-warning w-100 py-3 rounded-pill fw-bold text-dark shadow-sm"
+                  onclick="commitAddToCart()"
+                >
+                  カートに追加
+                </button>
               </div>
             </div>
           </div>
@@ -984,12 +1287,28 @@
       </div>
 
       <!-- Cart Modal (Bottom Sheet) -->
-      <div class="modal fade bottom-sheet" id="cartModal" tabindex="-1" data-bs-backdrop="false" style="position: absolute;">
+      <div
+        class="modal fade bottom-sheet"
+        id="cartModal"
+        tabindex="-1"
+        data-bs-backdrop="false"
+        style="position: absolute"
+      >
         <div class="modal-dialog">
-          <div class="modal-content" style="background: var(--card-bg); color: var(--text-main);">
-            <div class="modal-header" style="border-bottom-color: var(--border-color);">
+          <div
+            class="modal-content"
+            style="background: var(--card-bg); color: var(--text-main)"
+          >
+            <div
+              class="modal-header"
+              style="border-bottom-color: var(--border-color)"
+            >
               <h5 class="modal-title fw-bold">カート</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
             </div>
             <div class="modal-body p-3" style="background: var(--bg-color)">
               <div id="cart-list"></div>
@@ -998,29 +1317,72 @@
                 <span class="cart-total-value" id="cart-total-modal">¥0</span>
               </div>
             </div>
-            <div class="modal-footer d-block border-top-0 p-3 pt-0" style="background: var(--bg-color); padding-bottom: 120px !important;">
-               <button class="btn-primary-custom" style="background: var(--brand-color); margin-bottom: 10px;" onclick="checkout()">
-                  レジにすすむ <i class="bi bi-chevron-right ms-1"></i>
-               </button>
-               <button class="btn w-100 small" style="font-size: 0.9rem; color: var(--text-sub);" onclick="clearCart()">
-                  カートを空にする
-               </button>
+            <div
+              class="modal-footer d-block border-top-0 p-3 pt-0"
+              style="
+                background: var(--bg-color);
+                padding-bottom: 120px !important;
+              "
+            >
+              <button
+                class="btn-primary-custom"
+                style="background: var(--brand-color); margin-bottom: 10px"
+                onclick="checkout()"
+              >
+                レジにすすむ <i class="bi bi-chevron-right ms-1"></i>
+              </button>
+              <button
+                class="btn w-100 small"
+                style="font-size: 0.9rem; color: var(--text-sub)"
+                onclick="clearCart()"
+              >
+                カートを空にする
+              </button>
             </div>
           </div>
         </div>
       </div>
-      
-    </div><!-- End App Container -->
+    </div>
+    <!-- End App Container -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
       /* 1. Firebase Imports */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-      import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-      import { getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-      import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
-      import { getStorage, ref as sRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
-      import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        setDoc,
+        serverTimestamp,
+        writeBatch,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getMessaging,
+        getToken,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+      import {
+        getStorage,
+        ref as sRef,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaEnterpriseProvider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 
       /* 2. Configuration */
       const firebaseConfig = {
@@ -1031,17 +1393,25 @@
         messagingSenderId: "93228414556",
         appId: "1:93228414556:web:f64f90c13849fae9049899",
       };
-      const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+      const VAPID_KEY =
+        "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
 
       // Initialize Services
       const app = initializeApp(firebaseConfig);
-      
+
       // App Check (Localhost Debug)
-      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = "b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae";
+      if (
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1"
+      ) {
+        // 'true' に設定すると、ブラウザごとに一意のデバッグトークンが生成され、コンソールに出力されます。
+        // これにより、他の開発者がコードをプルしても、各自の環境で個別に Firebase にトークンを登録して開発を継続できます。
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       }
       const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider("6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6"),
+        provider: new ReCaptchaEnterpriseProvider(
+          "6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6",
+        ),
         isTokenAutoRefreshEnabled: true,
       });
 
@@ -1056,7 +1426,7 @@
       let currentStoreId = null;
       let products = [];
       let cart = [];
-      
+
       // Modal State
       let selectingProduct = null;
       let selectingQty = 1;
@@ -1084,8 +1454,9 @@
 
       async function checkFlow() {
         // iOS Detection: iPhone/iPod or iPad, and also Skip Mac (Macintosh)
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-                      /Macintosh/i.test(navigator.userAgent);
+        const isIOS =
+          /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          /Macintosh/i.test(navigator.userAgent);
 
         // Initial status save
         // If iOS/Mac, notificationEnabled is FALSE.
@@ -1094,7 +1465,7 @@
         await updateUserProfile({
           deviceType: isIOS ? "ios_or_mac" : "other",
           notificationEnabled: currentPerm === "granted",
-          permissionStatus: currentPerm
+          permissionStatus: currentPerm,
         });
 
         // Notification Check: Skip if iOS or already decided
@@ -1102,7 +1473,8 @@
           showScreen("step-notification");
         } else {
           // Grant or Deny or iOS -> Terms
-          if (!isIOS && Notification.permission === "granted") await saveToken();
+          if (!isIOS && Notification.permission === "granted")
+            await saveToken();
           showScreen("step-terms");
         }
         loader.style.display = "none";
@@ -1111,46 +1483,57 @@
       // Handlers
       document.getElementById("btn-login").onclick = async () => {
         const btn = document.getElementById("btn-login");
-        
+
         // 1. In-App Browser Check
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
+        const isInApp =
+          ua.indexOf("FBAN") > -1 ||
+          ua.indexOf("FBAV") > -1 ||
+          ua.indexOf("Instagram") > -1 ||
+          ua.indexOf("Line") > -1;
         if (isInApp) {
-            alert("⚠️ 注意: アプリ内ブラウザではログインが正常に動作しない場合があります。\n\nもしログインできない場合は、右上のメニューから「ブラウザで開く」を選択してください。");
+          alert(
+            "⚠️ 注意: アプリ内ブラウザではログインが正常に動作しない場合があります。\n\nもしログインできない場合は、右上のメニューから「ブラウザで開く」を選択してください。",
+          );
         }
 
         // 2. UI Feedback
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
 
-        try { 
-            const provider = new GoogleAuthProvider();
-            // Force account selection to avoid "auto-login loop" issues and "blank popup" confusion
-            provider.setCustomParameters({
-              prompt: 'select_account'
-            });
+        try {
+          const provider = new GoogleAuthProvider();
+          // Force account selection to avoid "auto-login loop" issues and "blank popup" confusion
+          provider.setCustomParameters({
+            prompt: "select_account",
+          });
 
-            const result = await signInWithPopup(auth, provider);
-            
-            // Explicitly trigger UI update to prevent "Reload required" issues
-            currentUser = result.user;
-            await checkFlow(); 
-        } 
-        catch (e) { 
-            console.error(e);
-            if (e.code === 'auth/popup-blocked') {
-                alert("ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。");
-            } else if (e.code === 'auth/cancelled-popup-request' || e.code === 'auth/popup-closed-by-user') {
-                // User closed it intentionally, do nothing or show subtle toast
-                console.log("Login cancelled by user");
-            } else {
-                alert("ログインエラー: " + e.message);
-            }
-            
-            // Reset Button only on error
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+          const result = await signInWithPopup(auth, provider);
+
+          // Explicitly trigger UI update to prevent "Reload required" issues
+          currentUser = result.user;
+          await checkFlow();
+        } catch (e) {
+          console.error(e);
+          if (e.code === "auth/popup-blocked") {
+            alert(
+              "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。",
+            );
+          } else if (
+            e.code === "auth/cancelled-popup-request" ||
+            e.code === "auth/popup-closed-by-user"
+          ) {
+            // User closed it intentionally, do nothing or show subtle toast
+            console.log("Login cancelled by user");
+          } else {
+            alert("ログインエラー: " + e.message);
+          }
+
+          // Reset Button only on error
+          btn.disabled = false;
+          btn.innerHTML = originalText;
         }
       };
 
@@ -1161,14 +1544,22 @@
             await saveToken(); // This sets notificationEnabled: true
           } else {
             // Denied or dismissed
-            await updateUserProfile({ notificationEnabled: false, permissionStatus: p });
+            await updateUserProfile({
+              notificationEnabled: false,
+              permissionStatus: p,
+            });
           }
-        } catch (e) { console.warn(e); }
+        } catch (e) {
+          console.warn(e);
+        }
         showScreen("step-terms");
       };
-      
+
       window.skipNotification = async () => {
-        await updateUserProfile({ notificationEnabled: false, permissionStatus: "skipped" });
+        await updateUserProfile({
+          notificationEnabled: false,
+          permissionStatus: "skipped",
+        });
         showScreen("step-terms");
       };
 
@@ -1179,7 +1570,9 @@
       document.getElementById("btn-agree-terms").onclick = async () => {
         loader.style.display = "flex";
         await loadStores();
-        showScreen("step-stores");
+        if (!currentStoreId) {
+          showScreen("step-stores");
+        }
         loader.style.display = "none";
       };
 
@@ -1190,25 +1583,40 @@
             email: currentUser.email,
             displayName: currentUser.displayName,
             lastLogin: serverTimestamp(),
-            ...additionalData
+            ...additionalData,
           };
-          await setDoc(doc(db, "users", currentUser.uid), baseData, { merge: true });
-        } catch (e) { console.error("User save failed", e); }
+          await setDoc(doc(db, "users", currentUser.uid), baseData, {
+            merge: true,
+          });
+        } catch (e) {
+          console.error("User save failed", e);
+        }
       }
 
       async function saveToken() {
         try {
-          const swReg = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+          const swReg = await navigator.serviceWorker.register(
+            "./firebase-messaging-sw.js",
+          );
+          const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+          });
           if (token && currentUser) {
-            await setDoc(doc(db, "users", currentUser.uid), {
-              fcmToken: token,
-              notificationEnabled: true,
-              lastLogin: serverTimestamp(),
-              permissionStatus: "granted"
-            }, { merge: true });
+            await setDoc(
+              doc(db, "users", currentUser.uid),
+              {
+                fcmToken: token,
+                notificationEnabled: true,
+                lastLogin: serverTimestamp(),
+                permissionStatus: "granted",
+              },
+              { merge: true },
+            );
           }
-        } catch (e) { console.warn("Token save failed", e); }
+        } catch (e) {
+          console.warn("Token save failed", e);
+        }
       }
 
       /* 5. Feature: Stores */
@@ -1223,14 +1631,14 @@
           }
 
           const urlParams = new URLSearchParams(window.location.search);
-          const targetStoreId = urlParams.get('store');
+          const targetStoreId = urlParams.get("store");
           let targetStoreName = null;
 
           snap.forEach((d) => {
             const data = d.data();
             // Check for auto-select
             if (d.id === targetStoreId) {
-                targetStoreName = data.name;
+              targetStoreName = data.name;
             }
 
             const imgSrc = `../images/${d.id}.png`;
@@ -1251,7 +1659,6 @@
           if (targetStoreId && targetStoreName) {
             selectStore(targetStoreId, targetStoreName);
           }
-
         } catch (e) {
           list.innerHTML = `<p class="text-danger">読み込み失敗: ${e.message}</p>`;
         }
@@ -1283,7 +1690,10 @@
         initLazyLoader();
 
         try {
-          const q = query(collection(db, "items"), where("storeId", "==", storeId));
+          const q = query(
+            collection(db, "items"),
+            where("storeId", "==", storeId),
+          );
           const snap = await getDocs(q);
           grid.innerHTML = "";
 
@@ -1314,7 +1724,9 @@
             const imgEl = el.querySelector(".menu-img");
             lazyLoadImage(imgEl, p);
 
-            el.onclick = () => { if (!isSoldOut) openItemModal(p); };
+            el.onclick = () => {
+              if (!isSoldOut) openItemModal(p);
+            };
             grid.appendChild(el);
           });
 
@@ -1334,18 +1746,20 @@
         currentMods = [];
 
         document.getElementById("modal-item-name").textContent = product.name;
-        document.getElementById("modal-item-price").textContent = `¥${product.price}`;
+        document.getElementById("modal-item-price").textContent =
+          `¥${product.price}`;
         document.getElementById("modal-item-qty").textContent = selectingQty;
 
         const imgEl = document.getElementById("modal-item-img");
         setProductImage(imgEl, product);
 
         renderCustomizationUI();
-        
+
         const collapseEl = document.getElementById("customization-collapse");
         if (collapseEl) collapseEl.classList.remove("show");
 
-        if (!itemModal) itemModal = new bootstrap.Modal(document.getElementById("itemModal"));
+        if (!itemModal)
+          itemModal = new bootstrap.Modal(document.getElementById("itemModal"));
         itemModal.show();
       };
 
@@ -1363,7 +1777,7 @@
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "topping-btn";
-            btn.dataset.target = t; 
+            btn.dataset.target = t;
             btn.textContent = t;
             btn.onclick = () => toggleMod(t);
             list.appendChild(btn);
@@ -1379,7 +1793,7 @@
         currentMode = currentMode === mode ? null : mode;
         updateModeBtns();
       };
-      
+
       function updateModeBtns() {
         document.querySelectorAll(".mode-btn").forEach((btn) => {
           if (btn.dataset.mode === currentMode) btn.classList.add("active");
@@ -1388,23 +1802,31 @@
       }
 
       function updateToppingBtnStyles() {
-        document.querySelectorAll("#topping-list .topping-btn").forEach((btn) => {
-          const target = btn.dataset.target;
-          const mod = currentMods.find((m) => m.target === target);
-          btn.classList.remove("mod-selected-no", "mod-selected-add");
-          if (mod) {
-            if (mod.mode === "NO") btn.classList.add("mod-selected-no");
-            if (mod.mode === "ADD") btn.classList.add("mod-selected-add");
-          }
-        });
+        document
+          .querySelectorAll("#topping-list .topping-btn")
+          .forEach((btn) => {
+            const target = btn.dataset.target;
+            const mod = currentMods.find((m) => m.target === target);
+            btn.classList.remove("mod-selected-no", "mod-selected-add");
+            if (mod) {
+              if (mod.mode === "NO") btn.classList.add("mod-selected-no");
+              if (mod.mode === "ADD") btn.classList.add("mod-selected-add");
+            }
+          });
       }
 
       function toggleMod(target) {
         if (!currentMode) {
           const modeContainer = document.querySelector(".mode-toggle");
-          modeContainer.classList.remove("animate__animated", "animate__headShake");
+          modeContainer.classList.remove(
+            "animate__animated",
+            "animate__headShake",
+          );
           void modeContainer.offsetWidth; // Reflow
-          modeContainer.classList.add("animate__animated", "animate__headShake");
+          modeContainer.classList.add(
+            "animate__animated",
+            "animate__headShake",
+          );
           return;
         }
         const existingIdx = currentMods.findIndex((m) => m.target === target);
@@ -1436,17 +1858,22 @@
         selectingQty += delta;
         if (selectingQty < 1) selectingQty = 1;
         document.getElementById("modal-item-qty").textContent = selectingQty;
-        document.getElementById("modal-item-price").textContent = `¥${selectingProduct.price * selectingQty}`;
+        document.getElementById("modal-item-price").textContent =
+          `¥${selectingProduct.price * selectingQty}`;
       };
 
       /* 8. Feature: Cart Logic */
       window.commitAddToCart = () => {
-        const sortedNewMods = [...currentMods].sort((a, b) => (a.mode + a.target).localeCompare(b.mode + b.target));
+        const sortedNewMods = [...currentMods].sort((a, b) =>
+          (a.mode + a.target).localeCompare(b.mode + b.target),
+        );
         const newModsStr = JSON.stringify(sortedNewMods);
 
         const existing = cart.find((c) => {
           if (c.productId !== selectingProduct.id) return false;
-          const cMods = [...c.customizations].sort((a, b) => (a.mode + a.target).localeCompare(b.mode + b.target));
+          const cMods = [...c.customizations].sort((a, b) =>
+            (a.mode + a.target).localeCompare(b.mode + b.target),
+          );
           return JSON.stringify(cMods) === newModsStr;
         });
 
@@ -1469,7 +1896,8 @@
 
       window.openCart = () => {
         renderCartList();
-        if (!cartModal) cartModal = new bootstrap.Modal(document.getElementById("cartModal"));
+        if (!cartModal)
+          cartModal = new bootstrap.Modal(document.getElementById("cartModal"));
         cartModal.show();
       };
 
@@ -1482,11 +1910,13 @@
           const el = document.createElement("div");
           el.className = "cart-item animate__animated animate__fadeInUp";
           el.style.animationDelay = `${idx * 0.05}s`;
-          
-          let modsHtml = c.customizations.map(m => {
-            const modeText = m.mode === "NO" ? "抜き" : "追加";
-            return `<span class="badge me-1" style="background: var(--border-color); color: var(--text-sub); font-size:0.75rem; font-weight:normal; opacity:0.8;">${m.target} ${modeText}</span>`;
-          }).join("");
+
+          let modsHtml = c.customizations
+            .map((m) => {
+              const modeText = m.mode === "NO" ? "抜き" : "追加";
+              return `<span class="badge me-1" style="background: var(--border-color); color: var(--text-sub); font-size:0.75rem; font-weight:normal; opacity:0.8;">${m.target} ${modeText}</span>`;
+            })
+            .join("");
 
           el.innerHTML = `
              <div class="cart-item-details">
@@ -1499,7 +1929,9 @@
           list.appendChild(el);
         });
         document.getElementById("cart-total-modal").textContent = `¥${total}`;
-        if (cart.length === 0) list.innerHTML = "<p class='p-4 text-center text-muted'>カートは空です</p>";
+        if (cart.length === 0)
+          list.innerHTML =
+            "<p class='p-4 text-center text-muted'>カートは空です</p>";
       }
 
       window.removeFromCart = (idx) => {
@@ -1526,22 +1958,29 @@
 
       window.checkout = () => {
         if (cartModal) cartModal.hide();
-        
-        document.getElementById("checkout-store-name").textContent = document.getElementById("menu-store-name").textContent;
+
+        document.getElementById("checkout-store-name").textContent =
+          document.getElementById("menu-store-name").textContent;
         const list = document.getElementById("checkout-items-list");
         list.innerHTML = "";
         let total = 0;
 
         cart.forEach((c) => {
           total += c.price * c.quantity;
-          let modsHtml = c.customizations.map(m => {
-            const colorClass = m.mode === "NO" ? "text-danger border-danger" : "text-success border-success";
-            const modeText = m.mode === "NO" ? "抜き" : "追加";
-            return `<span class="badge border ${colorClass} me-1 mb-1" style="background: var(--bg-color); font-size:0.8rem">${m.target} ${modeText}</span>`;
-          }).join("");
+          let modsHtml = c.customizations
+            .map((m) => {
+              const colorClass =
+                m.mode === "NO"
+                  ? "text-danger border-danger"
+                  : "text-success border-success";
+              const modeText = m.mode === "NO" ? "抜き" : "追加";
+              return `<span class="badge border ${colorClass} me-1 mb-1" style="background: var(--bg-color); font-size:0.8rem">${m.target} ${modeText}</span>`;
+            })
+            .join("");
 
           const div = document.createElement("div");
-          div.className = "list-group-item p-3 border-0 border-bottom d-flex justify-content-between align-items-start";
+          div.className =
+            "list-group-item p-3 border-0 border-bottom d-flex justify-content-between align-items-start";
           div.style.background = "var(--card-bg)";
           div.style.color = "var(--text-main)";
           div.style.borderColor = "var(--border-color)";
@@ -1583,9 +2022,13 @@
           });
           await batch.commit();
 
-          const createOnlineOrder = httpsCallable(functions, "createOnlineOrder");
+          const createOnlineOrder = httpsCallable(
+            functions,
+            "createOnlineOrder",
+          );
           const result = await createOnlineOrder({ storeId: currentStoreId });
-          if (!result.data.success) throw new Error(result.data.error || "Order Failed");
+          if (!result.data.success)
+            throw new Error(result.data.error || "Order Failed");
 
           window.location.href = `status.html?orderId=${result.data.orderId}`;
         } catch (e) {
@@ -1597,7 +2040,9 @@
 
       /* 10. Utils & Helpers */
       function showScreen(id) {
-        document.querySelectorAll(".screen").forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll(".screen")
+          .forEach((el) => el.classList.remove("active"));
         document.getElementById(id).classList.add("active");
         const bar = document.getElementById("bottom-bar");
         if (id !== "step-menu") bar.style.display = "none";
@@ -1607,13 +2052,20 @@
       function updateBottomBar() {
         const bar = document.getElementById("bottom-bar");
         const activeScreen = document.querySelector(".screen.active");
-        if (!activeScreen || activeScreen.id !== "step-menu" || cart.length === 0) {
+        if (
+          !activeScreen ||
+          activeScreen.id !== "step-menu" ||
+          cart.length === 0
+        ) {
           bar.style.display = "none";
         } else {
           bar.style.display = "flex";
           let total = 0;
           let count = 0;
-          cart.forEach((c) => { total += c.price * c.quantity; count += c.quantity; });
+          cart.forEach((c) => {
+            total += c.price * c.quantity;
+            count += c.quantity;
+          });
           document.getElementById("bar-total").textContent = `¥${total}`;
           const badge = document.getElementById("bar-count-badge");
           if (badge) badge.textContent = count;
@@ -1622,41 +2074,41 @@
 
       // Scaling
       function adjustScale() {
-         const app = document.getElementById("app-container");
-         const isMobile = window.innerWidth <= 480;
+        const app = document.getElementById("app-container");
+        const isMobile = window.innerWidth <= 480;
 
-         if (isMobile) {
-            // Mobile: Standard flow, fill parent flex space
-            app.style.height = "100%";
-            app.style.flex = "1";
-            app.style.transform = "none";
-            app.style.zoom = "1";
-            app.style.marginTop = "0";
-         } else {
-            // PC/Tablet: Simulating a phone device
-            // Force the container to "Fit" strictly BETWEEN header and the Bottom Nav (Order Button)
-            
-            // 1. Define the usable height ABOVE the bottom nav
-            // Window Height - (Header ~60px) - (Bottom Nav ~90px) - (Margins ~30px)
-            const availableHeight = window.innerHeight - 180; 
-            
-            // 2. Define standard Phone Aspect Ratio Height
-            // Reverted to 840 to fit more vertical content (preventing customization button cut-off)
-            const baseHeight = 840;
-            
-            let scale = Math.min(1, availableHeight / baseHeight);
-            
-            // Fix dimensions to the base phone size, then scale it
-            app.style.flex = "none";
-            app.style.height = `${baseHeight}px`;
-            // max-width is handled by CSS (500px)
-            
-            app.style.transform = `scale(${scale})`;
-            app.style.transformOrigin = "top center";
-            
-            // Adjust zoom to reset if mixed
-            app.style.zoom = "1";
-         }
+        if (isMobile) {
+          // Mobile: Standard flow, fill parent flex space
+          app.style.height = "100%";
+          app.style.flex = "1";
+          app.style.transform = "none";
+          app.style.zoom = "1";
+          app.style.marginTop = "0";
+        } else {
+          // PC/Tablet: Simulating a phone device
+          // Force the container to "Fit" strictly BETWEEN header and the Bottom Nav (Order Button)
+
+          // 1. Define the usable height ABOVE the bottom nav
+          // Window Height - (Header ~60px) - (Bottom Nav ~90px) - (Margins ~30px)
+          const availableHeight = window.innerHeight - 180;
+
+          // 2. Define standard Phone Aspect Ratio Height
+          // Reverted to 840 to fit more vertical content (preventing customization button cut-off)
+          const baseHeight = 840;
+
+          let scale = Math.min(1, availableHeight / baseHeight);
+
+          // Fix dimensions to the base phone size, then scale it
+          app.style.flex = "none";
+          app.style.height = `${baseHeight}px`;
+          // max-width is handled by CSS (500px)
+
+          app.style.transform = `scale(${scale})`;
+          app.style.transformOrigin = "top center";
+
+          // Adjust zoom to reset if mixed
+          app.style.zoom = "1";
+        }
       }
       window.addEventListener("resize", adjustScale);
       window.addEventListener("load", adjustScale);
@@ -1680,10 +2132,10 @@
 
       function lazyLoadImage(imgEl, product) {
         if (imageObserver) {
-           imgEl.dataset.product = JSON.stringify(product);
-           imageObserver.observe(imgEl);
+          imgEl.dataset.product = JSON.stringify(product);
+          imageObserver.observe(imgEl);
         } else {
-           setProductImage(imgEl, product);
+          setProductImage(imgEl, product);
         }
       }
 
@@ -1705,7 +2157,10 @@
 
         const CACHE_KEY = `img_cache_${pathOrUrl}`;
         const cachedUrl = sessionStorage.getItem(CACHE_KEY);
-        if (cachedUrl) { imgEl.src = cachedUrl; return; }
+        if (cachedUrl) {
+          imgEl.src = cachedUrl;
+          return;
+        }
 
         if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("data:")) {
           imgEl.src = pathOrUrl;
@@ -1713,7 +2168,9 @@
           try {
             const url = await getDownloadURL(sRef(storage, pathOrUrl));
             imgEl.src = url;
-            try { sessionStorage.setItem(CACHE_KEY, url); } catch(e) {}
+            try {
+              sessionStorage.setItem(CACHE_KEY, url);
+            } catch (e) {}
           } catch (e) {
             console.warn("Storage image load failed:", pathOrUrl, e);
             imgEl.src = "../images/noimage.png";
@@ -1729,7 +2186,7 @@
       init();
     </script>
     <script>
-      window.CURRENT_PAGE = 'order';
+      window.CURRENT_PAGE = "order";
     </script>
     <script type="module" src="../main/app-shell.js"></script>
   </body>

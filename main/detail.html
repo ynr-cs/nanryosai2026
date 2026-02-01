@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>詳細 | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Page Specific Style -->
+    <style>
+      /* ========================================
+           Detail Page Premium Styles 
+        ======================================== */
+
+      /* Header Background Image */
+      .detail-header-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 55vh; /* Balanced height */
+        min-height: 400px;
+        background-size: cover;
+        background-position: center;
+        z-index: 1;
+        /* Mask to blend smoothly into background */
+        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          black 50%,
+          transparent 100%
+        );
+      }
+
+      /* Dark Overlay only on the image itself to make text pop */
+      .detail-header-bg::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(
+          0,
+          0,
+          0,
+          0.6
+        ); /* Consistent darkening for text readability */
+      }
+
+      /* Title Section */
+      .detail-title-section {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        min-height: 50vh;
+        text-align: center;
+        padding: 120px 20px 40px;
+        /* Ensure text stays white even in light mode because it sits on image */
+        color: white;
+      }
+
+      .detail-group-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 6px 16px;
+        border-radius: 50px;
+        margin-bottom: 16px;
+        letter-spacing: 0.05em;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .detail-title {
+        font-size: clamp(2rem, 5vw, 4rem);
+        font-weight: 900;
+        color: #ffffff; /* FORCE WHITE */
+        line-height: 1.1;
+        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+      }
+
+      .detail-catchphrase {
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.95);
+        max-width: 700px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        line-height: 1.6;
+      }
+
+      /* Content Wrapper */
+      .detail-content-wrapper {
+        max-width: 900px;
+        margin: -40px auto 0; /* Overlap effect */
+        padding: 40px 20px 80px;
+        position: relative;
+        z-index: 10;
+        background: var(--bg-color);
+        border-radius: 32px 32px 0 0;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      [data-theme="dark"] .detail-content-wrapper {
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Glassmorphism Card Base - Adaptive to Theme */
+      .glass-card {
+        background: var(--card-bg); /* Use theme card-bg as base */
+        background: rgba(255, 255, 255, 0.85); /* Light mode specific glass */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border for light mode */
+        box-shadow:
+          0 10px 40px -5px rgba(0, 0, 0, 0.1),
+          0 0 0 1px rgba(0, 0, 0, 0.02); /* Crisp edge */
+        border-radius: 24px;
+      }
+
+      [data-theme="dark"] .glass-card {
+        background: rgba(30, 41, 59, 0.7); /* Dark glass */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Metadata Chips (in header) */
+      .detail-meta-chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition:
+          transform 0.2s ease,
+          background 0.2s;
+      }
+
+      .meta-chip:hover {
+        transform: translateY(-2px);
+        background: rgba(0, 0, 0, 0.65);
+      }
+
+      .meta-chip i {
+        color: #a5b4fc;
+        font-size: 0.9rem;
+      }
+
+      /* Tabs */
+      .detail-tabs-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+        position: sticky;
+        top: calc(var(--header-height) + 10px);
+        z-index: 100;
+        padding: 10px 0;
+      }
+
+      .detail-tabs {
+        display: inline-flex;
+        background: rgba(255, 255, 255, 0.7); /* Light mode tab track */
+        padding: 6px;
+        border-radius: 50px;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(0, 0, 0, 0.05); /* Light border */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+      }
+
+      [data-theme="dark"] .detail-tabs {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .tab-button {
+        background: transparent;
+        border: none;
+        color: var(--text-sub);
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 10px 24px;
+        cursor: pointer;
+        border-radius: 40px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
+      }
+
+      .tab-button:hover {
+        color: var(--text-main);
+        background: rgba(0, 0, 0, 0.03);
+      }
+
+      [data-theme="dark"] .tab-button:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .tab-button.active {
+        background: var(--primary-color);
+        color: #ffffff !important; /* Force white text on active tab */
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+        transform: scale(1.02);
+      }
+
+      /* Tab Content - Always visible (scroll navigation) */
+      .tab-content {
+        display: block; /* Always show all sections */
+        margin-bottom: 40px;
+        scroll-margin-top: calc(
+          var(--header-height) + 80px
+        ); /* Offset for sticky nav */
+      }
+
+      .section-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title i {
+        color: var(--primary-color);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* General Content Card Style */
+      .content-card-style {
+        background: var(--card-bg);
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); /* Very subtle for light mode */
+        padding: 30px;
+      }
+
+      [data-theme="dark"] .content-card-style {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Info Tab */
+      .detail-description {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-main);
+        background: var(--card-bg); /* Opaque bg for readability */
+        padding: 40px;
+        border-radius: 24px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      }
+
+      /* Menu Tab */
+      .menu-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .menu-item {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        gap: 16px;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      }
+
+      .menu-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color); /* Highlight border on hover */
+      }
+
+      .menu-item-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        object-fit: cover;
+        background: var(--bg-color);
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .menu-item-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .menu-item-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        line-height: 1.3;
+      }
+
+      .menu-item-desc {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        margin-bottom: 12px;
+        line-height: 1.4;
+      }
+
+      .menu-item-price {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-top: auto;
+      }
+
+      .menu-item-badge {
+        display: inline-block;
+        width: fit-content;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 8px;
+        letter-spacing: 0.02em;
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        margin-bottom: 6px;
+      }
+
+      /* Gallery Tab */
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+
+      .gallery-item {
+        border-radius: 20px;
+        overflow: hidden;
+        aspect-ratio: 4/3;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border for definition */
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .gallery-item:hover img {
+        transform: scale(1.08);
+      }
+
+      /* Schedule Tab */
+      .schedule-list {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 30px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .schedule-timeline {
+        position: relative;
+        padding-left: 20px;
+      }
+
+      .schedule-timeline::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: var(--border-color);
+        border-radius: 2px;
+      }
+
+      .schedule-item {
+        display: flex;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+      }
+
+      .schedule-item:last-child {
+        border-bottom: none;
+      }
+
+      .schedule-day-badge {
+        background: var(--primary-gradient);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 6px 12px;
+        border-radius: 50px;
+        white-space: nowrap;
+        margin-right: 16px;
+        box-shadow: 0 4px 10px rgba(106, 17, 203, 0.2);
+        z-index: 2; /* Sit above timeline line if they overlap */
+      }
+
+      .schedule-day-badge.day1 {
+        background: linear-gradient(135deg, #ff6b6b, #ee5253);
+        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+      }
+      .schedule-day-badge.day2 {
+        background: linear-gradient(135deg, #54a0ff, #2e86de);
+        box-shadow: 0 4px 10px rgba(84, 160, 255, 0.3);
+      }
+
+      .schedule-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .schedule-time {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--text-main);
+        font-family: "Inter", sans-serif;
+      }
+
+      .schedule-place {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* Map Tab (Placeholder) */
+      .map-placeholder {
+        background: linear-gradient(135deg, var(--card-bg), var(--bg-color));
+        border-radius: 24px;
+        padding: 80px 24px;
+        text-align: center;
+        border: 2px dashed var(--border-color);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .map-placeholder::before {
+        content: "";
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: var(--primary-color);
+        filter: blur(80px);
+        opacity: 0.08; /* Subtler */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+      }
+
+      .map-placeholder-icon {
+        font-size: 4rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 24px;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      .map-placeholder-text {
+        font-size: 1.2rem;
+        color: var(--text-main);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .map-placeholder-sub {
+        color: var(--text-sub);
+      }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .detail-title-section {
+          padding-top: 100px;
+        }
+
+        .detail-content-wrapper {
+          margin-top: -20px;
+        }
+
+        .menu-list {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .menu-item {
+          flex-direction: row;
+          align-items: center;
+          padding: 12px;
+          gap: 12px;
+        }
+
+        .menu-item-image {
+          width: 80px;
+          height: 80px;
+          border-radius: 12px;
+        }
+
+        .menu-item-name {
+          font-size: 1rem;
+          margin-bottom: 4px;
+        }
+
+        .menu-item-desc {
+          font-size: 0.8rem;
+          margin-bottom: 4px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .schedule-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .tab-button {
+          padding: 8px 16px;
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header is injected here by JS -->
+
+    <main>
+      <!-- Header Background (JS sets image) -->
+      <div id="detail-header-bg" class="detail-header-bg"></div>
+
+      <!-- Title Section -->
+      <div class="detail-title-section">
+        <p id="detail-group-name" class="detail-group-name"></p>
+        <h1 id="detail-title" class="detail-title">読み込み中...</h1>
+        <p id="detail-catchphrase" class="detail-catchphrase"></p>
+        <!-- Metadata Chips -->
+        <div id="detail-meta-chips" class="detail-meta-chips"></div>
+      </div>
+
+      <div class="detail-content-wrapper">
+        <!-- Tabs Navigation -->
+        <div id="detail-tabs" class="detail-tabs"></div>
+
+        <!-- Tab Contents -->
+        <div id="detail-tab-contents"></div>
+      </div>
+    </main>
+
+    <!-- Footer is injected here by JS -->
+
+    <!-- Load External Data -->
+    <script src="data/data.js"></script>
+
+    <script>
+      // Define current page for the shell
+      window.CURRENT_PAGE = "detail";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get("id");
+
+        if (!id) {
+          showError("IDが指定されていません");
+          return;
+        }
+
+        // Search in projectData first (1 Group 1 Page principle)
+        let project = null;
+        if (typeof projectData !== "undefined") {
+          project = projectData.find((p) => p.id === id);
+        }
+
+        // Fallback: if not found in projectData, maybe it's a stageData ID - try to find parent
+        if (!project && typeof stageData !== "undefined") {
+          const stageItem = stageData.find((s) => s.id === id);
+          if (stageItem && typeof projectData !== "undefined") {
+            // Try to find parent group in projectData by groupName
+            project = projectData.find(
+              (p) => p.groupName === stageItem.groupName,
+            );
+          }
+        }
+
+        if (!project) {
+          showError("企画が見つかりません");
+          return;
+        }
+
+        // Render the page
+        renderDetail(project);
+      });
+
+      function showError(message) {
+        document.getElementById("detail-title").innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="error-title">エラー</div>
+                    <div class="error-message">${message}</div>
+                </div>
+            `;
+        document.getElementById("detail-group-name").style.display = "none";
+        document.getElementById("detail-catchphrase").style.display = "none";
+        document.querySelector(".detail-content-wrapper").style.display =
+          "none";
+      }
+
+      function renderDetail(project) {
+        // Set page title
+        document.title = `${project.name} | 南陵祭'26`;
+
+        // Header Background
+        const headerBg = document.getElementById("detail-header-bg");
+        const imgSrc = `../images/${project.id}.png`;
+        headerBg.style.backgroundImage = `url(${imgSrc})`;
+
+        // Title section
+        document.getElementById("detail-group-name").textContent =
+          project.groupName || "";
+        document.getElementById("detail-title").textContent = project.name;
+        document.getElementById("detail-catchphrase").textContent =
+          project.catchphrase || "";
+
+        // Metadata Chips
+        const metaChipsEl = document.getElementById("detail-meta-chips");
+        const tagsStr = (project.tags || []).join("・");
+        let chipsHTML = "";
+        if (project.place) {
+          chipsHTML += `<div class="meta-chip"><i class="fas fa-map-marker-alt"></i>${project.place}</div>`;
+        }
+        if (tagsStr) {
+          chipsHTML += `<div class="meta-chip"><i class="fas fa-tag"></i>${tagsStr}</div>`;
+        }
+        metaChipsEl.innerHTML = chipsHTML;
+
+        // Build Tabs
+        const tabsEl = document.getElementById("detail-tabs");
+        const contentsEl = document.getElementById("detail-tab-contents");
+
+        // Wrap tabs in container div for sticky/glass effect
+        if (!document.querySelector(".detail-tabs-container")) {
+          const container = document.createElement("div");
+          container.className = "detail-tabs-container";
+          tabsEl.parentNode.insertBefore(container, tabsEl);
+          container.appendChild(tabsEl);
+        }
+
+        let tabsHTML = "";
+        let contentsHTML = "";
+
+        // Tab 1: Info (Always)
+        tabsHTML += `<button class="tab-button active" data-tab="info">基本情報</button>`;
+        contentsHTML += `
+                <div class="tab-content" id="tab-info">
+                    <h2 class="section-title"><i class="fas fa-info-circle"></i>基本情報</h2>
+                    <div class="detail-description">
+                        ${project.description || "詳細は当日をお楽しみに！"}
+                    </div>
+                </div>
+            `;
+
+        // Tab 2: Menu (if exists)
+        if (project.menu && project.menu.length > 0) {
+          tabsHTML += `<button class="tab-button" data-tab="menu">メニュー</button>`;
+          // Sort: recommended items first
+          const sortedMenu = [...project.menu].sort((a, b) => {
+            if (a.isRecommended && !b.isRecommended) return -1;
+            if (!a.isRecommended && b.isRecommended) return 1;
+            return 0;
+          });
+          const menuItemsHTML = sortedMenu
+            .map((item) => {
+              const imgUrl = item.imageUrl || "../images/noimage.png";
+              const recommendBadge = item.isRecommended
+                ? '<span class="menu-item-badge">おすすめ</span>'
+                : "";
+              return `
+                        <div class="menu-item">
+                            <img src="${imgUrl}" class="menu-item-image" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                            <div class="menu-item-content">
+                                <div class="menu-item-name">${item.name}</div>
+                                ${recommendBadge}
+                                <div class="menu-item-desc">${item.description || ""}</div>
+                                <div class="menu-item-price">${item.price}</div>
+                            </div>
+                        </div>
+                    `;
+            })
+            .join("");
+
+          // Order Button (Mobile Order Integration)
+          const orderButtonHTML = `
+            <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                 <a href="../pos/mobile-order.html?store=${project.id}" 
+                    style="
+                        background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
+                        color: white;
+                        border: none;
+                        padding: 16px 40px;
+                        border-radius: 50px;
+                        font-size: 1.1rem;
+                        font-weight: 800;
+                        text-decoration: none;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+                        transition: transform 0.2s;
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.transform='translateY(0)'"
+                 >
+                    <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
+                 </a>
+                 <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                    <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
+                 </p>
+            </div>
+          `;
+
+          contentsHTML += `
+                    <div class="tab-content" id="tab-menu">
+                        <h2 class="section-title"><i class="fas fa-utensils"></i>メニュー</h2>
+                        <div class="menu-list">${menuItemsHTML}</div>
+                        ${orderButtonHTML}
+                    </div>
+                `;
+        }
+
+        // Tab 3: Gallery (if exists)
+        if (project.gallery && project.gallery.length > 0) {
+          tabsHTML += `<button class="tab-button" data-tab="gallery">ギャラリー</button>`;
+          const galleryHTML = project.gallery
+            .map(
+              (url) => `
+                    <div class="gallery-item">
+                        <img src="${url}" alt="ギャラリー画像">
+                    </div>
+                `,
+            )
+            .join("");
+          contentsHTML += `
+                    <div class="tab-content" id="tab-gallery">
+                        <h2 class="section-title"><i class="fas fa-images"></i>ギャラリー</h2>
+                        <div class="gallery-grid">${galleryHTML}</div>
+                    </div>
+                `;
+        }
+
+        // Tab 4: Schedule (if project.schedule exists OR stageData has items for this group)
+        let scheduleItems = [];
+
+        // Check project.schedule first
+        if (project.schedule && project.schedule.length > 0) {
+          scheduleItems = project.schedule.map((s) => ({
+            day: s.day,
+            time: s.time,
+            place: s.place,
+          }));
+        }
+
+        // Also check stageData for this group
+        if (typeof stageData !== "undefined") {
+          const groupStages = stageData.filter(
+            (s) => s.groupName === project.groupName,
+          );
+          groupStages.forEach((s) => {
+            scheduleItems.push({
+              day: s.day,
+              time: s.time,
+              place: s.place,
+              name: s.name,
+              description: s.description,
+            });
+          });
+        }
+
+        if (scheduleItems.length > 0) {
+          tabsHTML += `<button class="tab-button" data-tab="schedule">スケジュール</button>`;
+          // Sort by day
+          scheduleItems.sort((a, b) => (a.day || 0) - (b.day || 0));
+          const scheduleHTML = scheduleItems
+            .map((s) => {
+              const dayLabel =
+                s.day === 1 ? "DAY 1" : s.day === 2 ? "DAY 2" : "";
+              const nameInfo = s.name
+                ? `<div style="font-weight: 700; color:var(--primary-color); margin-bottom: 2px;">${s.name}</div>`
+                : "";
+              const dayClass = s.day === 1 ? "day1" : "day2";
+              return `
+                        <div class="schedule-item">
+                             <div class="schedule-day-badge ${dayClass}">${dayLabel || "EVENT"}</div>
+                             <div class="schedule-info">
+                                <div class="schedule-time">${s.time || "時間未定"}</div>
+                                ${nameInfo}
+                                <div class="schedule-place"><i class="fas fa-map-marker-alt"></i> ${s.place || ""}</div>
+                             </div>
+                        </div>
+                    `;
+            })
+            .join("");
+          contentsHTML += `
+                    <div class="tab-content" id="tab-schedule">
+                        <h2 class="section-title"><i class="fas fa-calendar-alt"></i>スケジュール</h2>
+                        <div class="schedule-list">
+                            <div class="schedule-timeline">
+                                ${scheduleHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // Tab 5: Map (Placeholder)
+        tabsHTML += `<button class="tab-button" data-tab="map">マップ</button>`;
+        contentsHTML += `
+                <div class="tab-content" id="tab-map">
+                    <h2 class="section-title"><i class="fas fa-map-marked-alt"></i>マップ</h2>
+                    <div class="map-placeholder">
+                        <div class="map-placeholder-icon"><i class="fas fa-cube"></i></div>
+                        <div class="map-placeholder-text">3Dマップ機能 近日公開</div>
+                        <div class="map-placeholder-sub">よりリアルな校内案内を準備中です。</div>
+                    </div>
+                </div>
+            `;
+
+        tabsEl.innerHTML = tabsHTML;
+        contentsEl.innerHTML = contentsHTML;
+
+        // Scroll Navigation Click Handlers
+        const tabButtons = document.querySelectorAll(".tab-button");
+        let isScrolling = false;
+
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const targetTab = button.dataset.tab;
+            const targetSection = document.getElementById(`tab-${targetTab}`);
+
+            // Disable observer during programmatic scroll
+            isScrolling = true;
+
+            // Update active state immediately
+            tabButtons.forEach((btn) => btn.classList.remove("active"));
+            button.classList.add("active");
+
+            if (targetSection) {
+              targetSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+
+              // Re-enable observer after scroll completes
+              setTimeout(() => {
+                isScrolling = false;
+              }, 800);
+            }
+          });
+        });
+
+        // Update active nav on scroll (only when not programmatically scrolling)
+        const sections = document.querySelectorAll(".tab-content");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (isScrolling) return; // Skip during click-scroll
+
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id.replace("tab-", "");
+                tabButtons.forEach((btn) => {
+                  btn.classList.toggle("active", btn.dataset.tab === id);
+                });
+              }
+            });
+          },
+          { rootMargin: "-40% 0px -50% 0px", threshold: 0.1 },
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      }
+    </script>
+
+    <!-- App Shell Logic -->
+    <script type="module" src="app-shell.js"></script>
+  </body>
+</html>

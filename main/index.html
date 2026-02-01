@@ -516,7 +516,7 @@
                     const tagsHTML = tags.map(tag => `<span class="highlight-tag">${tag}</span>`).join('');
                     
                     return `
-                    <a href="#" class="highlight-card">
+                    <a href="detail.html?id=${item.id}" class="highlight-card">
                         <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
