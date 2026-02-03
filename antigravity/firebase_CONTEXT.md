@@ -9,7 +9,7 @@
 
 - **全体実装済み**: 不正なアクセスをブロックするため全域で有効化。
 - **プロバイダー**:
-  - `mobile-order.html`: **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`)
+  - `mobile-order.html`: **ReCaptcha Enterprise** (Key: `6LeHxzIsAAAAAOfOlXePHNpUkvYRdFtQw9osmlS`)
   - 管理・モニター画面: **ReCaptcha v3**
 - **デバッグ**: ローカル開発用トークン `b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae`。
 
