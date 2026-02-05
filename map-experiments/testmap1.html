@@ -1,274 +1,295 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Interactive Indoor Map with Gemini AI</title>
     <!-- Google Fonts for icons and text -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: #f8f9fa; /* 明るいグレーの背景 */
-        }
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Noto Sans JP", sans-serif;
+        background-color: #f8f9fa; /* 明るいグレーの背景 */
+      }
 
-        /* UIオーバーレイのスタイル */
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
+      /* UIオーバーレイのスタイル */
+      #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
 
-        /* 共通ボタン・パネルスタイル */
-        .panel {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            pointer-events: auto;
-            overflow: hidden;
-        }
+      /* 共通ボタン・パネルスタイル */
+      .panel {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        pointer-events: auto;
+        overflow: hidden;
+      }
 
-        /* フロア選択メニュー（右上） */
-        #floor-selector {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-        .floor-btn {
-            background: white;
-            border: none;
-            padding: 10px 16px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 700;
-            color: #5f6368;
-            border-bottom: 1px solid #dadce0;
-            transition: all 0.2s;
-            font-size: 14px;
-            min-width: 60px;
-        }
-        .floor-btn:first-child {
-            border-radius: 8px 8px 0 0;
-        }
-        .floor-btn:last-child {
-            border-bottom: none;
-            border-radius: 0 0 8px 8px;
-        }
-        .floor-btn:hover {
-            background-color: #f1f3f4;
-            color: #202124;
-        }
-        .floor-btn.active {
-            color: #1a73e8; /* Google Blue */
-            background-color: #e8f0fe;
-        }
+      /* フロア選択メニュー（右上） */
+      #floor-selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+      }
+      .floor-btn {
+        background: white;
+        border: none;
+        padding: 10px 16px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 700;
+        color: #5f6368;
+        border-bottom: 1px solid #dadce0;
+        transition: all 0.2s;
+        font-size: 14px;
+        min-width: 60px;
+      }
+      .floor-btn:first-child {
+        border-radius: 8px 8px 0 0;
+      }
+      .floor-btn:last-child {
+        border-bottom: none;
+        border-radius: 0 0 8px 8px;
+      }
+      .floor-btn:hover {
+        background-color: #f1f3f4;
+        color: #202124;
+      }
+      .floor-btn.active {
+        color: #1a73e8; /* Google Blue */
+        background-color: #e8f0fe;
+      }
 
-        /* ズームコントロール（右下） */
-        #zoom-controls {
-            position: absolute;
-            bottom: 30px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            width: 40px;
-            border-radius: 4px;
-        }
-        .zoom-btn {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border: none;
-            color: #5f6368;
-            cursor: pointer;
-            border-bottom: 1px solid #dadce0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .zoom-btn:last-child {
-            border-bottom: none;
-        }
-        .zoom-btn:hover {
-            color: #202124;
-            background-color: #f1f3f4;
-        }
-        .material-icons {
-            font-size: 20px;
-        }
+      /* ズームコントロール（右下） */
+      #zoom-controls {
+        position: absolute;
+        bottom: 30px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        width: 40px;
+        border-radius: 4px;
+      }
+      .zoom-btn {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: none;
+        color: #5f6368;
+        cursor: pointer;
+        border-bottom: 1px solid #dadce0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .zoom-btn:last-child {
+        border-bottom: none;
+      }
+      .zoom-btn:hover {
+        color: #202124;
+        background-color: #f1f3f4;
+      }
+      .material-icons {
+        font-size: 20px;
+      }
 
-        /* リセットボタン（左下） */
-        #reset-view {
-            position: absolute;
-            bottom: 30px;
-            left: 20px;
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 50%; /* 丸いボタン */
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #5f6368;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: background 0.2s;
-        }
-        #reset-view:hover {
-            background-color: #f1f3f4;
-            color: #202124;
-        }
+      /* リセットボタン（左下） */
+      #reset-view {
+        position: absolute;
+        bottom: 30px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%; /* 丸いボタン */
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5f6368;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: background 0.2s;
+      }
+      #reset-view:hover {
+        background-color: #f1f3f4;
+        color: #202124;
+      }
 
-        /* 選択された部屋の情報表示ポップアップ */
-        #info-card {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: white;
-            padding: 0; /* paddingを内部コンテナに移動 */
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            width: 320px; /* 少し幅広に */
-            text-align: left;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-        }
-        #info-card.visible {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-        .info-content {
-            padding: 20px 24px;
-        }
-        #info-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #202124;
-            margin: 0 0 8px 0;
-        }
-        #info-desc {
-            font-size: 13px;
-            color: #5f6368;
-            margin: 0 0 16px 0;
-            line-height: 1.5;
-        }
-        #close-info {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            color: #999;
-            font-size: 18px;
-            border: none;
-            background: none;
-            z-index: 5;
-        }
+      /* 選択された部屋の情報表示ポップアップ */
+      #info-card {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: white;
+        padding: 0; /* paddingを内部コンテナに移動 */
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        width: 320px; /* 少し幅広に */
+        text-align: left;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+      }
+      #info-card.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+      }
+      .info-content {
+        padding: 20px 24px;
+      }
+      #info-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #202124;
+        margin: 0 0 8px 0;
+      }
+      #info-desc {
+        font-size: 13px;
+        color: #5f6368;
+        margin: 0 0 16px 0;
+        line-height: 1.5;
+      }
+      #close-info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        color: #999;
+        font-size: 18px;
+        border: none;
+        background: none;
+        z-index: 5;
+      }
 
-        /* AI機能用のスタイル */
-        #ai-section {
-            border-top: 1px solid #eee;
-            padding: 16px 24px;
-            background-color: #fafafa;
-        }
-        .ai-btn {
-            background: linear-gradient(135deg, #4285f4, #34a853);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: transform 0.1s;
-        }
-        .ai-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
-        }
-        .ai-btn:active {
-            transform: scale(0.98);
-        }
-        #ai-result {
-            margin-top: 12px;
-            font-size: 13px;
-            color: #333;
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            display: none; /* デフォルト非表示 */
-            line-height: 1.6;
-        }
-        #ai-result strong {
-            color: #1a73e8;
-        }
-        .typing-indicator {
-            display: inline-block;
-            font-style: italic;
-            color: #666;
-            font-size: 12px;
-        }
-
+      /* AI機能用のスタイル */
+      #ai-section {
+        border-top: 1px solid #eee;
+        padding: 16px 24px;
+        background-color: #fafafa;
+      }
+      .ai-btn {
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.1s;
+      }
+      .ai-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+      }
+      .ai-btn:active {
+        transform: scale(0.98);
+      }
+      #ai-result {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #333;
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        display: none; /* デフォルト非表示 */
+        line-height: 1.6;
+      }
+      #ai-result strong {
+        color: #1a73e8;
+      }
+      .typing-indicator {
+        display: inline-block;
+        font-style: italic;
+        color: #666;
+        font-size: 12px;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <!-- 3Dレンダリング領域 -->
     <div id="canvas-container"></div>
 
     <!-- UIレイヤー -->
     <div id="ui-layer">
-        <!-- フロア選択 -->
-        <div id="floor-selector" class="panel">
-            <button class="floor-btn" onclick="changeFloor(2)">2F</button>
-            <button class="floor-btn active" onclick="changeFloor(1)">1F</button>
-            <button class="floor-btn" onclick="changeFloor(0)">B1</button>
-        </div>
+      <!-- フロア選択 -->
+      <div id="floor-selector" class="panel">
+        <button class="floor-btn" onclick="changeFloor(2)">2F</button>
+        <button class="floor-btn active" onclick="changeFloor(1)">1F</button>
+        <button class="floor-btn" onclick="changeFloor(0)">B1</button>
+      </div>
 
-        <!-- ズーム操作 -->
-        <div id="zoom-controls" class="panel">
-            <button class="zoom-btn" onclick="zoomIn()"><span class="material-icons">add</span></button>
-            <button class="zoom-btn" onclick="zoomOut()"><span class="material-icons">remove</span></button>
-        </div>
-
-        <!-- ビューリセット -->
-        <button id="reset-view" class="panel" onclick="resetCamera()" title="ビューをリセット">
-            <span class="material-icons">near_me</span>
+      <!-- ズーム操作 -->
+      <div id="zoom-controls" class="panel">
+        <button class="zoom-btn" onclick="zoomIn()">
+          <span class="material-icons">add</span>
         </button>
+        <button class="zoom-btn" onclick="zoomOut()">
+          <span class="material-icons">remove</span>
+        </button>
+      </div>
 
-        <!-- 情報カード -->
-        <div id="info-card" class="panel">
-            <button id="close-info" onclick="hideInfo()"><span class="material-icons">close</span></button>
-            <div class="info-content">
-                <h2 id="info-title">ショップ名</h2>
-                <p id="info-desc">フロアガイド情報</p>
-            </div>
-            <!-- AI機能セクション -->
-            <div id="ai-section">
-                <button class="ai-btn" onclick="askAI()">
-                    <span>✨</span> AIコンシェルジュに聞く
-                </button>
-                <div id="ai-result"></div>
-            </div>
+      <!-- ビューリセット -->
+      <button
+        id="reset-view"
+        class="panel"
+        onclick="resetCamera()"
+        title="ビューをリセット"
+      >
+        <span class="material-icons">near_me</span>
+      </button>
+
+      <!-- 情報カード -->
+      <div id="info-card" class="panel">
+        <button id="close-info" onclick="hideInfo()">
+          <span class="material-icons">close</span>
+        </button>
+        <div class="info-content">
+          <h2 id="info-title">ショップ名</h2>
+          <p id="info-desc">フロアガイド情報</p>
         </div>
+        <!-- AI機能セクション -->
+        <div id="ai-section">
+          <button class="ai-btn" onclick="askAI()">
+            <span>✨</span> AIコンシェルジュに聞く
+          </button>
+          <div id="ai-result"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Three.js ライブラリの読み込み -->
@@ -277,431 +298,454 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // --- Gemini API Configuration ---
-        const apiKey = ""; // APIキーは実行環境で自動的に挿入されます
-        
-        // --- グローバル変数 ---
-        let scene, camera, renderer, controls;
-        let raycaster, mouse;
-        let currentFloorGroup;
-        const floors = {};
-        let hoveredObject = null;
-        let selectedObject = null;
+      // --- Gemini API Configuration ---
+      const apiKey = ""; // APIキーは実行環境で自動的に挿入されます
 
-        // 現在選択中のショップ情報
-        let currentShopData = { name: "", type: "" };
+      // --- グローバル変数 ---
+      let scene, camera, renderer, controls;
+      let raycaster, mouse;
+      let currentFloorGroup;
+      const floors = {};
+      let hoveredObject = null;
+      let selectedObject = null;
 
-        // カラーパレット (Google Maps Indoor style)
-        const COLORS = {
-            background: 0xf8f9fa, // 背景
-            floor: 0xEBE9E4,      // 通路（ベージュ）
-            wall: 0xFFFFFF,       // 店舗（白）
-            wallHover: 0xF1F3F4,  // ホバー時の薄いグレー
-            wallSelected: 0xE8F0FE, // 選択時の薄い青
-            stroke: 0xDADCE0,     // 輪郭線（薄いグレー）
-            strokeSelected: 0x4285F4, // 選択時の輪郭線（青）
-            text: 0x3C4043        // テキスト色
+      // 現在選択中のショップ情報
+      let currentShopData = { name: "", type: "" };
+
+      // カラーパレット (Google Maps Indoor style)
+      const COLORS = {
+        background: 0xf8f9fa, // 背景
+        floor: 0xebe9e4, // 通路（ベージュ）
+        wall: 0xffffff, // 店舗（白）
+        wallHover: 0xf1f3f4, // ホバー時の薄いグレー
+        wallSelected: 0xe8f0fe, // 選択時の薄い青
+        stroke: 0xdadce0, // 輪郭線（薄いグレー）
+        strokeSelected: 0x4285f4, // 選択時の輪郭線（青）
+        text: 0x3c4043, // テキスト色
+      };
+
+      init();
+      animate();
+
+      function init() {
+        const container = document.getElementById("canvas-container");
+
+        // 1. シーン
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(COLORS.background);
+
+        // 2. カメラ (OrthographicCamera)
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 50;
+        camera = new THREE.OrthographicCamera(
+          -d * aspect,
+          d * aspect,
+          d,
+          -d,
+          1,
+          1000,
+        );
+
+        // アイソメトリック視点
+        camera.position.set(60, 60, 60);
+        camera.lookAt(scene.position);
+
+        // 3. レンダラー
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio); // 高解像度対応
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // 4. コントロール
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.screenSpacePanning = true;
+        controls.minZoom = 0.5;
+        controls.maxZoom = 3;
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.rotateSpeed = 0.6;
+
+        // 5. ライティング
+        // 環境光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        scene.add(ambientLight);
+
+        // 平行光源 (影用)
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        dirLight.position.set(40, 80, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.bias = -0.0001;
+        // 影の範囲設定
+        const shadowSize = 60;
+        dirLight.shadow.camera.left = -shadowSize;
+        dirLight.shadow.camera.right = shadowSize;
+        dirLight.shadow.camera.top = shadowSize;
+        dirLight.shadow.camera.bottom = -shadowSize;
+        scene.add(dirLight);
+
+        // 6. レイキャスター
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        // 7. マップ生成
+        createFloors();
+
+        // 8. イベント
+        window.addEventListener("resize", onWindowResize);
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("click", onMouseClick);
+      }
+
+      // --- マップ生成 ---
+
+      function createFloors() {
+        // 1階
+        floors[1] = new THREE.Group();
+        createBaseFloor(floors[1]);
+
+        // 店舗配置: x, z, w, d, name, type
+        // メイン通路を挟んで配置するようなレイアウト
+
+        // 左上エリア
+        createShop(floors[1], -20, -15, 14, 16, "カフェ", "cafe");
+        createShop(floors[1], -20, 5, 14, 14, "Book Store", "shop");
+        createShop(floors[1], -20, 22, 14, 10, "ATM", "service");
+
+        // 右上エリア（トイレなど）
+        createShop(floors[1], 15, -20, 10, 8, "トイレ", "restroom");
+        createShop(floors[1], 25, -12, 8, 8, "喫煙所", "smoking");
+
+        // 中央・右下（大型店舗）
+        const attMain = createShop(floors[1], 15, 10, 24, 18, "AT&T", "main");
+
+        // インフォメーション
+        createShop(floors[1], 0, -20, 8, 6, "i", "info");
+
+        scene.add(floors[1]);
+        currentFloorGroup = floors[1];
+
+        // 2階
+        floors[2] = new THREE.Group();
+        createBaseFloor(floors[2]);
+        createShop(floors[2], -15, -15, 20, 20, "Restaurant", "cafe");
+        createShop(floors[2], 15, 15, 20, 20, "Cinema", "main");
+        createShop(floors[2], 0, 0, 8, 8, "吹抜", "void");
+        floors[2].visible = false;
+        scene.add(floors[2]);
+
+        // 地下
+        floors[0] = new THREE.Group();
+        createBaseFloor(floors[0]);
+        createShop(floors[0], 0, 0, 40, 30, "Super Market", "main");
+        floors[0].visible = false;
+        scene.add(floors[0]);
+      }
+
+      function createBaseFloor(group) {
+        // 通路（フロア全体）
+        const geometry = new THREE.PlaneGeometry(120, 120);
+        const material = new THREE.MeshLambertMaterial({ color: COLORS.floor });
+        const plane = new THREE.Mesh(geometry, material);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -0.1;
+        plane.receiveShadow = true;
+        group.add(plane);
+
+        // フロアの境界線（装飾）
+        const edges = new THREE.EdgesGeometry(
+          new THREE.BoxGeometry(120, 0.2, 120),
+        );
+        const line = new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({ color: 0xdadada }),
+        );
+        line.position.y = -0.15;
+        group.add(line);
+      }
+
+      function createShop(group, x, z, w, d, name, type) {
+        const h = type === "void" ? 0.2 : 5; // 吹抜は低く
+        const y = h / 2;
+
+        // ジオメトリ
+        const geometry = new THREE.BoxGeometry(w, h, d);
+
+        // テクスチャ
+        const texture = type === "void" ? null : createLabelTexture(name, type);
+
+        // マテリアル
+        const wallMat = new THREE.MeshLambertMaterial({ color: COLORS.wall });
+        const topMat =
+          type === "void"
+            ? new THREE.MeshLambertMaterial({ color: 0x333333 })
+            : new THREE.MeshLambertMaterial({ map: texture, color: 0xffffff });
+
+        const materials = [
+          wallMat,
+          wallMat, // 右・左
+          topMat, // 上
+          wallMat, // 下
+          wallMat,
+          wallMat, // 前・後
+        ];
+
+        const mesh = new THREE.Mesh(geometry, materials);
+        mesh.position.set(x, y, z);
+
+        if (type !== "void") {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+
+        // 輪郭線 (Edges)
+        const edgesGeometry = new THREE.EdgesGeometry(geometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({
+          color: COLORS.stroke,
+          linewidth: 1,
+        });
+        const edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        mesh.add(edges);
+
+        // データ保持
+        mesh.userData = {
+          isShop: true,
+          name: name,
+          type: type,
+          edges: edges,
         };
 
-        init();
-        animate();
-
-        function init() {
-            const container = document.getElementById('canvas-container');
-            
-            // 1. シーン
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(COLORS.background);
-
-            // 2. カメラ (OrthographicCamera)
-            const aspect = window.innerWidth / window.innerHeight;
-            const d = 50;
-            camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-            
-            // アイソメトリック視点
-            camera.position.set(60, 60, 60); 
-            camera.lookAt(scene.position);
-
-            // 3. レンダラー
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio); // 高解像度対応
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            container.appendChild(renderer.domElement);
-
-            // 4. コントロール
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.08;
-            controls.screenSpacePanning = true;
-            controls.minZoom = 0.5;
-            controls.maxZoom = 3;
-            controls.maxPolarAngle = Math.PI / 2.2; 
-            controls.rotateSpeed = 0.6;
-
-            // 5. ライティング
-            // 環境光
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
-            scene.add(ambientLight);
-
-            // 平行光源 (影用)
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
-            dirLight.position.set(40, 80, 50);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
-            dirLight.shadow.bias = -0.0001;
-            // 影の範囲設定
-            const shadowSize = 60;
-            dirLight.shadow.camera.left = -shadowSize;
-            dirLight.shadow.camera.right = shadowSize;
-            dirLight.shadow.camera.top = shadowSize;
-            dirLight.shadow.camera.bottom = -shadowSize;
-            scene.add(dirLight);
-
-            // 6. レイキャスター
-            raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
-
-            // 7. マップ生成
-            createFloors();
-
-            // 8. イベント
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('click', onMouseClick);
+        // 特別な色付け
+        if (type === "restroom" || type === "smoking") {
+          mesh.userData.specialColor = 0xf5f5f5;
+          wallMat.color.setHex(0xf5f5f5);
         }
 
-        // --- マップ生成 ---
+        group.add(mesh);
+        return mesh;
+      }
 
-        function createFloors() {
-            // 1階
-            floors[1] = new THREE.Group();
-            createBaseFloor(floors[1]);
-            
-            // 店舗配置: x, z, w, d, name, type
-            // メイン通路を挟んで配置するようなレイアウト
-            
-            // 左上エリア
-            createShop(floors[1], -20, -15, 14, 16, "カフェ", "cafe");
-            createShop(floors[1], -20, 5, 14, 14, "Book Store", "shop");
-            createShop(floors[1], -20, 22, 14, 10, "ATM", "service");
+      function createLabelTexture(text, type) {
+        const canvas = document.createElement("canvas");
+        const w = 512;
+        const h = 512;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
 
-            // 右上エリア（トイレなど）
-            createShop(floors[1], 15, -20, 10, 8, "トイレ", "restroom");
-            createShop(floors[1], 25, -12, 8, 8, "喫煙所", "smoking");
+        ctx.fillStyle = "#FFFFFF";
+        if (type === "restroom") ctx.fillStyle = "#f1f3f4";
+        if (type === "info") ctx.fillStyle = "#e8f0fe";
+        ctx.fillRect(0, 0, w, h);
 
-            // 中央・右下（大型店舗）
-            const attMain = createShop(floors[1], 15, 10, 24, 18, "AT&T", "main");
-            
-            // インフォメーション
-            createShop(floors[1], 0, -20, 8, 6, "i", "info");
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#3C4043";
 
-            scene.add(floors[1]);
-            currentFloorGroup = floors[1];
+        if (type === "restroom") {
+          ctx.font = '150px "Material Icons"';
+          ctx.fillText("WC", w / 2, h / 2);
+        } else if (type === "info") {
+          ctx.font = 'bold 200px "Noto Sans JP"';
+          ctx.fillStyle = "#1a73e8";
+          ctx.fillText("?", w / 2, h / 2);
+        } else if (type === "main") {
+          ctx.fillStyle = "#1a73e8";
+          ctx.beginPath();
+          ctx.arc(w / 2, h / 2 - 60, 40, 0, Math.PI * 2);
+          ctx.fill();
 
-            // 2階
-            floors[2] = new THREE.Group();
-            createBaseFloor(floors[2]);
-            createShop(floors[2], -15, -15, 20, 20, "Restaurant", "cafe");
-            createShop(floors[2], 15, 15, 20, 20, "Cinema", "main");
-            createShop(floors[2], 0, 0, 8, 8, "吹抜", "void");
-            floors[2].visible = false;
-            scene.add(floors[2]);
-
-            // 地下
-            floors[0] = new THREE.Group();
-            createBaseFloor(floors[0]);
-            createShop(floors[0], 0, 0, 40, 30, "Super Market", "main");
-            floors[0].visible = false;
-            scene.add(floors[0]);
+          ctx.font = 'bold 60px "Noto Sans JP"';
+          ctx.fillStyle = "#3C4043";
+          ctx.fillText(text, w / 2, h / 2 + 60);
+        } else {
+          ctx.font = 'bold 50px "Noto Sans JP"';
+          if (text.length > 8) {
+            ctx.fillText(text.substring(0, 8), w / 2, h / 2 - 30);
+            ctx.fillText(text.substring(8), w / 2, h / 2 + 30);
+          } else {
+            ctx.fillText(text, w / 2, h / 2);
+          }
         }
 
-        function createBaseFloor(group) {
-            // 通路（フロア全体）
-            const geometry = new THREE.PlaneGeometry(120, 120);
-            const material = new THREE.MeshLambertMaterial({ color: COLORS.floor });
-            const plane = new THREE.Mesh(geometry, material);
-            plane.rotation.x = -Math.PI / 2;
-            plane.position.y = -0.1;
-            plane.receiveShadow = true;
-            group.add(plane);
-            
-            // フロアの境界線（装飾）
-            const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(120, 0.2, 120));
-            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xdadada }));
-            line.position.y = -0.15;
-            group.add(line);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        return texture;
+      }
+
+      // --- イベントハンドラ ---
+
+      function onWindowResize() {
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 50;
+        camera.left = -d * aspect;
+        camera.right = d * aspect;
+        camera.top = d;
+        camera.bottom = -d;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const intersects = raycaster.intersectObjects(
+          currentFloorGroup.children,
+          false,
+        );
+
+        if (intersects.length > 0) {
+          const object = intersects[0].object;
+
+          if (object.userData.isShop && object.userData.type !== "void") {
+            document.body.style.cursor = "pointer";
+
+            if (hoveredObject !== object) {
+              if (hoveredObject && hoveredObject !== selectedObject) {
+                setObjectState(hoveredObject, "normal");
+              }
+              hoveredObject = object;
+              if (object !== selectedObject) {
+                setObjectState(object, "hover");
+              }
+            }
+            return;
+          }
         }
 
-        function createShop(group, x, z, w, d, name, type) {
-            const h = type === 'void' ? 0.2 : 5; // 吹抜は低く
-            const y = h / 2;
-            
-            // ジオメトリ
-            const geometry = new THREE.BoxGeometry(w, h, d);
-
-            // テクスチャ
-            const texture = type === 'void' ? null : createLabelTexture(name, type);
-
-            // マテリアル
-            const wallMat = new THREE.MeshLambertMaterial({ color: COLORS.wall });
-            const topMat = type === 'void' 
-                ? new THREE.MeshLambertMaterial({ color: 0x333333 }) 
-                : new THREE.MeshLambertMaterial({ map: texture, color: 0xffffff });
-
-            const materials = [
-                wallMat, wallMat, // 右・左
-                topMat,           // 上
-                wallMat,          // 下
-                wallMat, wallMat  // 前・後
-            ];
-
-            const mesh = new THREE.Mesh(geometry, materials);
-            mesh.position.set(x, y, z);
-            
-            if (type !== 'void') {
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-            }
-
-            // 輪郭線 (Edges)
-            const edgesGeometry = new THREE.EdgesGeometry(geometry);
-            const edgesMaterial = new THREE.LineBasicMaterial({ color: COLORS.stroke, linewidth: 1 });
-            const edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
-            mesh.add(edges);
-
-            // データ保持
-            mesh.userData = { 
-                isShop: true, 
-                name: name,
-                type: type,
-                edges: edges 
-            };
-
-            // 特別な色付け
-            if (type === 'restroom' || type === 'smoking') {
-                 mesh.userData.specialColor = 0xf5f5f5;
-                 wallMat.color.setHex(0xf5f5f5);
-            }
-
-            group.add(mesh);
-            return mesh;
+        document.body.style.cursor = "default";
+        if (hoveredObject) {
+          if (hoveredObject !== selectedObject) {
+            setObjectState(hoveredObject, "normal");
+          }
+          hoveredObject = null;
         }
+      }
 
-        function createLabelTexture(text, type) {
-            const canvas = document.createElement('canvas');
-            const w = 512;
-            const h = 512;
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = "#FFFFFF"; 
-            if(type === 'restroom') ctx.fillStyle = "#f1f3f4";
-            if(type === 'info') ctx.fillStyle = "#e8f0fe";
-            ctx.fillRect(0, 0, w, h);
-
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#3C4043';
-
-            if (type === 'restroom') {
-                ctx.font = '150px "Material Icons"';
-                ctx.fillText('WC', w/2, h/2);
-            } else if (type === 'info') {
-                ctx.font = 'bold 200px "Noto Sans JP"';
-                ctx.fillStyle = '#1a73e8';
-                ctx.fillText('?', w/2, h/2);
-            } else if (type === 'main') {
-                ctx.fillStyle = '#1a73e8';
-                ctx.beginPath();
-                ctx.arc(w/2, h/2 - 60, 40, 0, Math.PI*2);
-                ctx.fill();
-                
-                ctx.font = 'bold 60px "Noto Sans JP"';
-                ctx.fillStyle = '#3C4043';
-                ctx.fillText(text, w/2, h/2 + 60);
-            } else {
-                ctx.font = 'bold 50px "Noto Sans JP"';
-                if (text.length > 8) {
-                    ctx.fillText(text.substring(0, 8), w/2, h/2 - 30);
-                    ctx.fillText(text.substring(8), w/2, h/2 + 30);
-                } else {
-                    ctx.fillText(text, w/2, h/2);
-                }
-            }
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            return texture;
-        }
-
-
-        // --- イベントハンドラ ---
-
-        function onWindowResize() {
-            const aspect = window.innerWidth / window.innerHeight;
-            const d = 50;
-            camera.left = -d * aspect;
-            camera.right = d * aspect;
-            camera.top = d;
-            camera.bottom = -d;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            
-            const intersects = raycaster.intersectObjects(currentFloorGroup.children, false);
-
-            if (intersects.length > 0) {
-                const object = intersects[0].object;
-                
-                if (object.userData.isShop && object.userData.type !== 'void') {
-                    document.body.style.cursor = 'pointer';
-
-                    if (hoveredObject !== object) {
-                        if (hoveredObject && hoveredObject !== selectedObject) {
-                            setObjectState(hoveredObject, 'normal');
-                        }
-                        hoveredObject = object;
-                        if (object !== selectedObject) {
-                            setObjectState(object, 'hover');
-                        }
-                    }
-                    return;
-                }
-            }
-
-            document.body.style.cursor = 'default';
-            if (hoveredObject) {
-                if (hoveredObject !== selectedObject) {
-                    setObjectState(hoveredObject, 'normal');
-                }
-                hoveredObject = null;
-            }
-        }
-
-        function onMouseClick(event) {
-            if (hoveredObject) {
-                selectObject(hoveredObject);
-            } else {
-                if (selectedObject) {
-                    setObjectState(selectedObject, 'normal');
-                    selectedObject = null;
-                    hideInfo();
-                }
-            }
-        }
-
-        // --- 状態管理・ヘルパー ---
-
-        function setObjectState(mesh, state) {
-            const materials = mesh.material;
-            const edges = mesh.userData.edges;
-            const isSpecial = mesh.userData.specialColor;
-            
-            let wallColorHex = isSpecial || COLORS.wall;
-            let edgeColorHex = COLORS.stroke;
-
-            if (state === 'hover') {
-                wallColorHex = COLORS.wallHover;
-            } else if (state === 'selected') {
-                wallColorHex = COLORS.wallSelected;
-                edgeColorHex = COLORS.strokeSelected;
-            }
-
-            materials.forEach(m => {
-                if (!m.map) m.color.setHex(wallColorHex);
-            });
-
-            if (edges) {
-                edges.material.color.setHex(edgeColorHex);
-                edges.material.opacity = state === 'selected' ? 1.0 : 0.5;
-                edges.material.transparent = true;
-                edges.visible = true;
-            }
-        }
-
-        function selectObject(mesh) {
-            if (selectedObject && selectedObject !== mesh) {
-                setObjectState(selectedObject, 'normal');
-            }
-            selectedObject = mesh;
-            setObjectState(mesh, 'selected');
-            
-            showInfo(mesh.userData.name, mesh.userData.type);
-        }
-
-        // --- UIロジック ---
-
-        function changeFloor(floorNum) {
-            Object.values(floors).forEach(g => g.visible = false);
-            floors[floorNum].visible = true;
-            currentFloorGroup = floors[floorNum];
-
-            const btns = document.querySelectorAll('.floor-btn');
-            const map = {2:0, 1:1, 0:2}; 
-            btns.forEach((btn, idx) => {
-                btn.classList.toggle('active', idx === map[floorNum]);
-            });
-
-            if (selectedObject) {
-                setObjectState(selectedObject, 'normal');
-                selectedObject = null;
-            }
+      function onMouseClick(event) {
+        if (hoveredObject) {
+          selectObject(hoveredObject);
+        } else {
+          if (selectedObject) {
+            setObjectState(selectedObject, "normal");
+            selectedObject = null;
             hideInfo();
+          }
+        }
+      }
+
+      // --- 状態管理・ヘルパー ---
+
+      function setObjectState(mesh, state) {
+        const materials = mesh.material;
+        const edges = mesh.userData.edges;
+        const isSpecial = mesh.userData.specialColor;
+
+        let wallColorHex = isSpecial || COLORS.wall;
+        let edgeColorHex = COLORS.stroke;
+
+        if (state === "hover") {
+          wallColorHex = COLORS.wallHover;
+        } else if (state === "selected") {
+          wallColorHex = COLORS.wallSelected;
+          edgeColorHex = COLORS.strokeSelected;
         }
 
-        function showInfo(name, type) {
-            // 現在のショップデータを保存
-            currentShopData = { name: name, type: type };
+        materials.forEach((m) => {
+          if (!m.map) m.color.setHex(wallColorHex);
+        });
 
-            const card = document.getElementById('info-card');
-            const title = document.getElementById('info-title');
-            const desc = document.getElementById('info-desc');
-            const aiResult = document.getElementById('ai-result');
-
-            title.innerText = name;
-            
-            let description = "1階・中央エリア";
-            if (type === 'cafe') description = "カフェ・軽食 / 営業時間 10:00 - 20:00";
-            if (type === 'restroom') description = "多目的トイレ・授乳室あり";
-            if (type === 'main') description = "メインテナント / 営業時間 10:00 - 21:00";
-            
-            desc.innerText = description;
-            
-            // AI結果をリセット
-            aiResult.style.display = 'none';
-            aiResult.innerHTML = '';
-            
-            card.classList.add('visible');
+        if (edges) {
+          edges.material.color.setHex(edgeColorHex);
+          edges.material.opacity = state === "selected" ? 1.0 : 0.5;
+          edges.material.transparent = true;
+          edges.visible = true;
         }
+      }
 
-        function hideInfo() {
-            const card = document.getElementById('info-card');
-            card.classList.remove('visible');
-            
-            if (selectedObject) {
-                setObjectState(selectedObject, 'normal');
-                selectedObject = null;
-            }
+      function selectObject(mesh) {
+        if (selectedObject && selectedObject !== mesh) {
+          setObjectState(selectedObject, "normal");
         }
+        selectedObject = mesh;
+        setObjectState(mesh, "selected");
 
-        // --- Gemini AI Feature ---
+        showInfo(mesh.userData.name, mesh.userData.type);
+      }
 
-        async function askAI() {
-            const resultDiv = document.getElementById('ai-result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '<span class="typing-indicator">✨ AIが情報を生成中...</span>';
+      // --- UIロジック ---
 
-            const prompt = `あなたはショッピングモールの親切なコンシェルジュです。
+      function changeFloor(floorNum) {
+        Object.values(floors).forEach((g) => (g.visible = false));
+        floors[floorNum].visible = true;
+        currentFloorGroup = floors[floorNum];
+
+        const btns = document.querySelectorAll(".floor-btn");
+        const map = { 2: 0, 1: 1, 0: 2 };
+        btns.forEach((btn, idx) => {
+          btn.classList.toggle("active", idx === map[floorNum]);
+        });
+
+        if (selectedObject) {
+          setObjectState(selectedObject, "normal");
+          selectedObject = null;
+        }
+        hideInfo();
+      }
+
+      function showInfo(name, type) {
+        // 現在のショップデータを保存
+        currentShopData = { name: name, type: type };
+
+        const card = document.getElementById("info-card");
+        const title = document.getElementById("info-title");
+        const desc = document.getElementById("info-desc");
+        const aiResult = document.getElementById("ai-result");
+
+        title.innerText = name;
+
+        let description = "1階・中央エリア";
+        if (type === "cafe")
+          description = "カフェ・軽食 / 営業時間 10:00 - 20:00";
+        if (type === "restroom") description = "多目的トイレ・授乳室あり";
+        if (type === "main")
+          description = "メインテナント / 営業時間 10:00 - 21:00";
+
+        desc.innerText = description;
+
+        // AI結果をリセット
+        aiResult.style.display = "none";
+        aiResult.innerHTML = "";
+
+        card.classList.add("visible");
+      }
+
+      function hideInfo() {
+        const card = document.getElementById("info-card");
+        card.classList.remove("visible");
+
+        if (selectedObject) {
+          setObjectState(selectedObject, "normal");
+          selectedObject = null;
+        }
+      }
+
+      // --- Gemini AI Feature ---
+
+      async function askAI() {
+        const resultDiv = document.getElementById("ai-result");
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML =
+          '<span class="typing-indicator">✨ AIが情報を生成中...</span>';
+
+        const prompt = `あなたはショッピングモールの親切なコンシェルジュです。
 お客様が「${currentShopData.name}」（カテゴリ: ${currentShopData.type}）という施設を選択しました。
 この施設について、魅力的で簡潔な紹介文（80文字以内）と、ここでの「おすすめの過ごし方」（50文字以内）を1つ提案してください。
 出力形式は以下のようにしてください：
@@ -709,71 +753,74 @@
 【おすすめ】(ここにおすすめ)
 語調は丁寧で明るい日本語でお願いします。`;
 
-            try {
-                const response = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        })
-                    }
-                );
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: prompt,
+                      },
+                    ],
+                  },
+                ],
+              }),
+            },
+          );
 
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
+          const data = await response.json();
 
-                const rawText = data.candidates[0].content.parts[0].text;
-                
-                // 簡単なフォーマット整形
-                const formattedText = rawText
-                    .replace('【紹介】', '<strong>紹介:</strong> ')
-                    .replace('【おすすめ】', '<br><strong>💡 おすすめ:</strong> ');
+          if (data.error) {
+            throw new Error(data.error.message);
+          }
 
-                resultDiv.innerHTML = formattedText;
+          const rawText = data.candidates[0].content.parts[0].text;
 
-            } catch (error) {
-                console.error('Gemini API Error:', error);
-                resultDiv.innerHTML = '<span style="color:red;">申し訳ありません。現在AIサービスを利用できません。</span>';
-            }
+          // 簡単なフォーマット整形
+          const formattedText = rawText
+            .replace("【紹介】", "<strong>紹介:</strong> ")
+            .replace("【おすすめ】", "<br><strong>💡 おすすめ:</strong> ");
+
+          resultDiv.innerHTML = formattedText;
+        } catch (error) {
+          console.error("Gemini API Error:", error);
+          resultDiv.innerHTML =
+            '<span style="color:red;">申し訳ありません。現在AIサービスを利用できません。</span>';
         }
+      }
 
-        // --- Camera Controls ---
+      // --- Camera Controls ---
 
-        function zoomIn() {
-            camera.zoom = Math.min(camera.zoom + 0.4, 4);
-            camera.updateProjectionMatrix();
-        }
+      function zoomIn() {
+        camera.zoom = Math.min(camera.zoom + 0.4, 4);
+        camera.updateProjectionMatrix();
+      }
 
-        function zoomOut() {
-            camera.zoom = Math.max(camera.zoom - 0.4, 0.5);
-            camera.updateProjectionMatrix();
-        }
+      function zoomOut() {
+        camera.zoom = Math.max(camera.zoom - 0.4, 0.5);
+        camera.updateProjectionMatrix();
+      }
 
-        function resetCamera() {
-            controls.reset();
-            camera.zoom = 1;
-            camera.position.set(60, 60, 60);
-            camera.lookAt(scene.position);
-            camera.updateProjectionMatrix();
-        }
+      function resetCamera() {
+        controls.reset();
+        camera.zoom = 1;
+        camera.position.set(60, 60, 60);
+        camera.lookAt(scene.position);
+        camera.updateProjectionMatrix();
+      }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
     </script>
-</body>
+  </body>
 </html>

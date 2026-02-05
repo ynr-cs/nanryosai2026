@@ -1,4 +1,9 @@
 /**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ *
  * 3Dマップエディタ - メインスクリプト（押し出し機能改良版）
  */
 

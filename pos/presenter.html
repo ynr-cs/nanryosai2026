@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -536,7 +542,7 @@
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(
           0.001,
-          audioCtx.currentTime + 0.5
+          audioCtx.currentTime + 0.5,
         );
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -588,9 +594,8 @@
           startTimerLoop();
         } else {
           const modal = document.getElementById("store-login-modal");
-          document.getElementById(
-            "target-store-id-display"
-          ).textContent = `Store ID: ${storeId}`;
+          document.getElementById("target-store-id-display").textContent =
+            `Store ID: ${storeId}`;
           modal.style.display = "flex";
         }
       }
@@ -680,12 +685,12 @@
               console.error("Firestore Error:", error);
               if (error.code === "failed-precondition") {
                 showError(
-                  `インデックスが必要です。<a href="#" onclick="alert('コンソールを確認してください')">詳細</a>`
+                  `インデックスが必要です。<a href="#" onclick="alert('コンソールを確認してください')">詳細</a>`,
                 );
               } else if (error.code === "permission-denied") {
                 showError("アクセス権限がありません。");
               }
-            }
+            },
           );
       }
 
@@ -724,15 +729,18 @@
         // ★ ソース判定ロジック (受付番号範囲で判定)
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
-        
+
         // Mobile range: 7000-7999
         if (data.receiptNumber >= 7000 && data.receiptNumber <= 7999) {
           sourceLabel = "Mobile";
           sourceClass = "badge-mobile";
-        } else if (data.status === "authorized" || data.paymentMethod === "ONLINE") {
-           // Fallback for legacy/other cases
-           sourceLabel = "Mobile";
-           sourceClass = "badge-mobile";
+        } else if (
+          data.status === "authorized" ||
+          data.paymentMethod === "ONLINE"
+        ) {
+          // Fallback for legacy/other cases
+          sourceLabel = "Mobile";
+          sourceClass = "badge-mobile";
         }
 
         let itemsHtml = buildItemsHtml(data.items);
@@ -747,7 +755,8 @@
             `;
         } else if (data.status === "ready_for_pickup") {
           // ★ 修正: 受付番号範囲(7000系)も含めて判定する
-          const isMobileRange = data.receiptNumber >= 7000 && data.receiptNumber <= 7999;
+          const isMobileRange =
+            data.receiptNumber >= 7000 && data.receiptNumber <= 7999;
           const isOnline =
             isMobileRange ||
             data.isPrepaid === true ||
@@ -913,7 +922,7 @@
       window.cancelOrder = function (orderId) {
         if (
           !confirm(
-            "【キャンセル】\nこの注文を提供不可としてキャンセルしますか？"
+            "【キャンセル】\nこの注文を提供不可としてキャンセルしますか？",
           )
         )
           return;

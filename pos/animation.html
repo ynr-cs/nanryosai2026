@@ -1,254 +1,392 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>モバイルオーダー ステータスアニメーション</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 共通設定 */
-        .stick-svg {
-            width: 100px;
-            height: 100px;
-            display: block;
-            margin: 0 auto;
-            overflow: visible; /* アニメーションがはみ出ても良いように */
-        }
-        .stick-stroke {
-            stroke: #374151; /* gray-700 */
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-        }
-        .stick-head {
-            fill: #374151;
-            stroke: none;
-        }
-        .item-stroke {
-            stroke: #3b82f6; /* blue-500 アクセントカラー */
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-        }
-        .item-fill {
-            fill: #eff6ff; /* blue-50 */
-            stroke: #3b82f6;
-            stroke-width: 2;
-        }
+      /* 共通設定 */
+      .stick-svg {
+        width: 100px;
+        height: 100px;
+        display: block;
+        margin: 0 auto;
+        overflow: visible; /* アニメーションがはみ出ても良いように */
+      }
+      .stick-stroke {
+        stroke: #374151; /* gray-700 */
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      .stick-head {
+        fill: #374151;
+        stroke: none;
+      }
+      .item-stroke {
+        stroke: #3b82f6; /* blue-500 アクセントカラー */
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      .item-fill {
+        fill: #eff6ff; /* blue-50 */
+        stroke: #3b82f6;
+        stroke-width: 2;
+      }
 
-        /* -----------------------
+      /* -----------------------
            1. 調理中 (Cooking)
            ----------------------- */
-        .arm-cooking {
-            transform-origin: 50px 45px; /* 肩の位置 */
-            animation: cookArm 0.6s ease-in-out infinite alternate;
+      .arm-cooking {
+        transform-origin: 50px 45px; /* 肩の位置 */
+        animation: cookArm 0.6s ease-in-out infinite alternate;
+      }
+      .pan-content {
+        opacity: 0;
+        animation: cookFood 0.6s ease-in-out infinite;
+      }
+      @keyframes cookArm {
+        from {
+          transform: rotate(0deg);
         }
-        .pan-content {
-            opacity: 0;
-            animation: cookFood 0.6s ease-in-out infinite;
+        to {
+          transform: rotate(-15deg);
         }
-        @keyframes cookArm {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(-15deg); }
+      }
+      @keyframes cookFood {
+        0% {
+          transform: translate(0, 0);
+          opacity: 0;
         }
-        @keyframes cookFood {
-            0% { transform: translate(0, 0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translate(5px, -15px) rotate(10deg); opacity: 0; }
+        50% {
+          opacity: 1;
         }
+        100% {
+          transform: translate(5px, -15px) rotate(10deg);
+          opacity: 0;
+        }
+      }
 
-        /* -----------------------
+      /* -----------------------
            2. 準備中 (Packing) 
            ----------------------- */
-        .arm-packing {
-            transform-origin: 50px 45px;
-            animation: packArm 1.5s ease-in-out infinite;
+      .arm-packing {
+        transform-origin: 50px 45px;
+        animation: packArm 1.5s ease-in-out infinite;
+      }
+      .item-packing {
+        animation: packItem 1.5s ease-in-out infinite;
+      }
+      @keyframes packArm {
+        0%,
+        100% {
+          transform: rotate(0deg);
         }
-        .item-packing {
-            animation: packItem 1.5s ease-in-out infinite;
+        40% {
+          transform: rotate(20deg);
+        } /* 手を伸ばす */
+        60% {
+          transform: rotate(20deg);
         }
-        @keyframes packArm {
-            0%, 100% { transform: rotate(0deg); }
-            40% { transform: rotate(20deg); } /* 手を伸ばす */
-            60% { transform: rotate(20deg); } 
+      }
+      @keyframes packItem {
+        0%,
+        20% {
+          transform: translate(0, -20px);
+          opacity: 0;
+        } /* 上から出現 */
+        40% {
+          transform: translate(0, 0);
+          opacity: 1;
+        } /* 袋に入れる */
+        60% {
+          transform: translate(0, 0);
+          opacity: 1;
         }
-        @keyframes packItem {
-            0%, 20% { transform: translate(0, -20px); opacity: 0; } /* 上から出現 */
-            40% { transform: translate(0, 0); opacity: 1; } /* 袋に入れる */
-            60% { transform: translate(0, 0); opacity: 1; } 
-            80% { transform: translate(0, 10px); opacity: 0; } /* 袋に入って消える */
-            100% { transform: translate(0, 10px); opacity: 0; }
+        80% {
+          transform: translate(0, 10px);
+          opacity: 0;
+        } /* 袋に入って消える */
+        100% {
+          transform: translate(0, 10px);
+          opacity: 0;
         }
+      }
 
-        /* -----------------------
+      /* -----------------------
            3. 完成 (Done)
            ----------------------- */
-        .stick-man-done {
-            animation: bounce 2s ease-in-out infinite;
-            transform-origin: bottom center;
+      .stick-man-done {
+        animation: bounce 2s ease-in-out infinite;
+        transform-origin: bottom center;
+      }
+      .arm-wave {
+        transform-origin: 50px 45px;
+        animation: wave 1s ease-in-out infinite alternate;
+      }
+      .bag-hold {
+        transform-origin: 70px 60px; /* 手の位置 */
+        animation: bagSway 2s ease-in-out infinite alternate;
+      }
+      @keyframes wave {
+        from {
+          transform: rotate(-160deg);
+        } /* 手を挙げている */
+        to {
+          transform: rotate(-130deg);
         }
-        .arm-wave {
-            transform-origin: 50px 45px;
-            animation: wave 1s ease-in-out infinite alternate;
+      }
+      @keyframes bagSway {
+        from {
+          transform: rotate(-5deg);
         }
-        .bag-hold {
-            transform-origin: 70px 60px; /* 手の位置 */
-            animation: bagSway 2s ease-in-out infinite alternate;
+        to {
+          transform: rotate(5deg);
         }
-        @keyframes wave {
-            from { transform: rotate(-160deg); } /* 手を挙げている */
-            to { transform: rotate(-130deg); }
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
         }
-        @keyframes bagSway {
-            from { transform: rotate(-5deg); }
-            to { transform: rotate(5deg); }
+        50% {
+          transform: translateY(-3px);
         }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
-
+      }
     </style>
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-
+  </head>
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <!-- モバイル画面風コンテナ -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-
-        <!-- 1. 調理中 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-            <div class="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-500">STATUS</span>
-                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold">調理中</span>
-            </div>
-            <div class="p-8 flex flex-col items-center justify-center text-center h-64">
-                
-                <!-- SVG Animation: Cooking -->
-                <svg class="stick-svg" viewBox="0 0 100 100">
-                    <!-- 頭 -->
-                    <circle cx="50" cy="30" r="8" class="stick-head"/>
-                    <!-- 胴体 -->
-                    <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
-                    <!-- 足 -->
-                    <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
-                    <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
-                    
-                    <!-- 左手（奥） -->
-                    <path d="M50 45 L30 55" class="stick-stroke"/>
-
-                    <!-- 右手とフライパン（アニメーション） -->
-                    <g class="arm-cooking">
-                        <!-- 腕 -->
-                        <path d="M50 45 L70 55" class="stick-stroke"/>
-                        <!-- フライパン -->
-                        <line x1="70" y1="55" x2="80" y2="55" class="stick-stroke"/>
-                        <path d="M80 55 A10 10 0 0 0 95 55 Z" class="stick-stroke" fill="#e5e7eb"/>
-                        <!-- 具材 -->
-                        <circle cx="87" cy="50" r="2" class="stick-head pan-content" fill="#ef4444"/>
-                        <rect x="85" y="48" width="4" height="4" class="stick-head pan-content" style="animation-delay: 0.1s" fill="#f59e0b"/>
-                    </g>
-                </svg>
-
-                <h3 class="mt-4 text-lg font-bold text-gray-800">商品を作っています</h3>
-                <p class="text-sm text-gray-500 mt-1">おいしく調理中...</p>
-            </div>
+      <!-- 1. 調理中 -->
+      <div
+        class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200"
+      >
+        <div
+          class="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center"
+        >
+          <span class="text-xs font-bold text-gray-500">STATUS</span>
+          <span
+            class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold"
+            >調理中</span
+          >
         </div>
+        <div
+          class="p-8 flex flex-col items-center justify-center text-center h-64"
+        >
+          <!-- SVG Animation: Cooking -->
+          <svg class="stick-svg" viewBox="0 0 100 100">
+            <!-- 頭 -->
+            <circle cx="50" cy="30" r="8" class="stick-head" />
+            <!-- 胴体 -->
+            <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke" />
+            <!-- 足 -->
+            <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke" />
+            <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke" />
 
-        <!-- 2. お渡し準備中 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-            <div class="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-500">STATUS</span>
-                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-bold">準備中</span>
-            </div>
-            <div class="p-8 flex flex-col items-center justify-center text-center h-64">
-                
-                <!-- SVG Animation: Packing -->
-                <svg class="stick-svg" viewBox="0 0 100 100">
-                    <!-- 机 -->
-                    <line x1="60" y1="80" x2="100" y2="80" class="stick-stroke" style="stroke-width: 2; stroke: #9ca3af;"/>
+            <!-- 左手（奥） -->
+            <path d="M50 45 L30 55" class="stick-stroke" />
 
-                    <!-- 頭 -->
-                    <circle cx="40" cy="30" r="8" class="stick-head"/>
-                    <!-- 胴体 -->
-                    <line x1="40" y1="38" x2="40" y2="70" class="stick-stroke"/>
-                    <!-- 足 -->
-                    <line x1="40" y1="70" x2="25" y2="95" class="stick-stroke"/>
-                    <line x1="40" y1="70" x2="55" y2="95" class="stick-stroke"/>
-                    
-                    <!-- 袋（机の上） -->
-                    <path d="M75 80 L75 65 L90 65 L90 80 Z" class="item-fill"/>
-                    
-                    <!-- 商品（動く） -->
-                    <circle cx="82" cy="60" r="4" class="item-stroke item-packing" style="stroke: #ef4444; fill: #ef4444; border:none;"/>
+            <!-- 右手とフライパン（アニメーション） -->
+            <g class="arm-cooking">
+              <!-- 腕 -->
+              <path d="M50 45 L70 55" class="stick-stroke" />
+              <!-- フライパン -->
+              <line x1="70" y1="55" x2="80" y2="55" class="stick-stroke" />
+              <path
+                d="M80 55 A10 10 0 0 0 95 55 Z"
+                class="stick-stroke"
+                fill="#e5e7eb"
+              />
+              <!-- 具材 -->
+              <circle
+                cx="87"
+                cy="50"
+                r="2"
+                class="stick-head pan-content"
+                fill="#ef4444"
+              />
+              <rect
+                x="85"
+                y="48"
+                width="4"
+                height="4"
+                class="stick-head pan-content"
+                style="animation-delay: 0.1s"
+                fill="#f59e0b"
+              />
+            </g>
+          </svg>
 
-                    <!-- 右手（詰める動き） -->
-                    <g class="arm-packing">
-                        <path d="M40 45 L60 45 L75 55" class="stick-stroke" fill="none"/>
-                    </g>
-                </svg>
-
-                <h3 class="mt-4 text-lg font-bold text-gray-800">まもなくお呼び出し</h3>
-                <p class="text-sm text-gray-500 mt-1">袋詰めしています</p>
-            </div>
+          <h3 class="mt-4 text-lg font-bold text-gray-800">
+            商品を作っています
+          </h3>
+          <p class="text-sm text-gray-500 mt-1">おいしく調理中...</p>
         </div>
+      </div>
 
-        <!-- 3. 完成 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-green-500 relative">
-            <div class="absolute top-0 inset-x-0 h-1 bg-green-500"></div>
-            <div class="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between items-center">
-                <span class="text-xs font-bold text-green-700">STATUS</span>
-                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">完成</span>
-            </div>
-            <div class="p-8 flex flex-col items-center justify-center text-center h-64">
-                
-                <!-- SVG Animation: Done -->
-                <svg class="stick-svg" viewBox="0 0 100 100">
-                    <g class="stick-man-done">
-                        <!-- 頭 -->
-                        <circle cx="50" cy="30" r="8" class="stick-head"/>
-                        <!-- 胴体 -->
-                        <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
-                        <!-- 足 -->
-                        <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
-                        <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
-                        
-                        <!-- 右手（袋を持つ） -->
-                        <path d="M50 45 L70 60" class="stick-stroke"/>
-                        <!-- 袋 -->
-                        <g class="bag-hold">
-                            <path d="M70 60 L70 75 L85 75 L85 60 Z" class="item-fill"/>
-                            <path d="M70 60 Q77 50 85 60" class="item-stroke" style="fill:none; stroke-width:2;"/>
-                        </g>
-
-                        <!-- 左手（手を振る/挙げる） -->
-                        <g class="arm-wave">
-                            <path d="M50 45 L80 45" class="stick-stroke"/> <!-- 簡略化して回転で制御 -->
-                        </g>
-                    </g>
-                    
-                    <!-- キラキラエフェクト -->
-                    <g>
-                        <text x="20" y="30" font-size="20" fill="#fbbf24" style="animation: pulse 1s infinite;">✨</text>
-                        <text x="80" y="20" font-size="15" fill="#fbbf24" style="animation: pulse 1s infinite 0.5s;">✨</text>
-                    </g>
-                </svg>
-
-                <h3 class="mt-4 text-lg font-bold text-gray-800">商品完成！</h3>
-                <p class="text-sm text-gray-500 mt-1">カウンターへお越しください</p>
-            </div>
+      <!-- 2. お渡し準備中 -->
+      <div
+        class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200"
+      >
+        <div
+          class="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center"
+        >
+          <span class="text-xs font-bold text-gray-500">STATUS</span>
+          <span
+            class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-bold"
+            >準備中</span
+          >
         </div>
+        <div
+          class="p-8 flex flex-col items-center justify-center text-center h-64"
+        >
+          <!-- SVG Animation: Packing -->
+          <svg class="stick-svg" viewBox="0 0 100 100">
+            <!-- 机 -->
+            <line
+              x1="60"
+              y1="80"
+              x2="100"
+              y2="80"
+              class="stick-stroke"
+              style="stroke-width: 2; stroke: #9ca3af"
+            />
 
+            <!-- 頭 -->
+            <circle cx="40" cy="30" r="8" class="stick-head" />
+            <!-- 胴体 -->
+            <line x1="40" y1="38" x2="40" y2="70" class="stick-stroke" />
+            <!-- 足 -->
+            <line x1="40" y1="70" x2="25" y2="95" class="stick-stroke" />
+            <line x1="40" y1="70" x2="55" y2="95" class="stick-stroke" />
+
+            <!-- 袋（机の上） -->
+            <path d="M75 80 L75 65 L90 65 L90 80 Z" class="item-fill" />
+
+            <!-- 商品（動く） -->
+            <circle
+              cx="82"
+              cy="60"
+              r="4"
+              class="item-stroke item-packing"
+              style="stroke: #ef4444; fill: #ef4444; border: none"
+            />
+
+            <!-- 右手（詰める動き） -->
+            <g class="arm-packing">
+              <path d="M40 45 L60 45 L75 55" class="stick-stroke" fill="none" />
+            </g>
+          </svg>
+
+          <h3 class="mt-4 text-lg font-bold text-gray-800">
+            まもなくお呼び出し
+          </h3>
+          <p class="text-sm text-gray-500 mt-1">袋詰めしています</p>
+        </div>
+      </div>
+
+      <!-- 3. 完成 -->
+      <div
+        class="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-green-500 relative"
+      >
+        <div class="absolute top-0 inset-x-0 h-1 bg-green-500"></div>
+        <div
+          class="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between items-center"
+        >
+          <span class="text-xs font-bold text-green-700">STATUS</span>
+          <span
+            class="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold"
+            >完成</span
+          >
+        </div>
+        <div
+          class="p-8 flex flex-col items-center justify-center text-center h-64"
+        >
+          <!-- SVG Animation: Done -->
+          <svg class="stick-svg" viewBox="0 0 100 100">
+            <g class="stick-man-done">
+              <!-- 頭 -->
+              <circle cx="50" cy="30" r="8" class="stick-head" />
+              <!-- 胴体 -->
+              <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke" />
+              <!-- 足 -->
+              <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke" />
+              <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke" />
+
+              <!-- 右手（袋を持つ） -->
+              <path d="M50 45 L70 60" class="stick-stroke" />
+              <!-- 袋 -->
+              <g class="bag-hold">
+                <path d="M70 60 L70 75 L85 75 L85 60 Z" class="item-fill" />
+                <path
+                  d="M70 60 Q77 50 85 60"
+                  class="item-stroke"
+                  style="fill: none; stroke-width: 2"
+                />
+              </g>
+
+              <!-- 左手（手を振る/挙げる） -->
+              <g class="arm-wave">
+                <path d="M50 45 L80 45" class="stick-stroke" />
+                <!-- 簡略化して回転で制御 -->
+              </g>
+            </g>
+
+            <!-- キラキラエフェクト -->
+            <g>
+              <text
+                x="20"
+                y="30"
+                font-size="20"
+                fill="#fbbf24"
+                style="animation: pulse 1s infinite"
+              >
+                ✨
+              </text>
+              <text
+                x="80"
+                y="20"
+                font-size="15"
+                fill="#fbbf24"
+                style="animation: pulse 1s infinite 0.5s"
+              >
+                ✨
+              </text>
+            </g>
+          </svg>
+
+          <h3 class="mt-4 text-lg font-bold text-gray-800">商品完成！</h3>
+          <p class="text-sm text-gray-500 mt-1">カウンターへお越しください</p>
+        </div>
+      </div>
     </div>
 
     <style>
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0.5; }
+      @keyframes pulse {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.5;
         }
+        50% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+      }
     </style>
-
-</body>
+  </body>
 </html>

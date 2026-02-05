@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -776,7 +782,7 @@
 
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
-          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
         ),
         isTokenAutoRefreshEnabled: true,
       });
@@ -818,7 +824,7 @@
       const modalTotalEl = document.getElementById("modal-total-price");
       const productGrid = document.getElementById("product-grid");
       const ingredientContainer = document.getElementById(
-        "ingredient-container"
+        "ingredient-container",
       );
       const modeBtns = document.querySelectorAll(".mode-btn");
       const qtyDisplay = document.getElementById("current-qty-display");
@@ -957,7 +963,7 @@
 
         const existingItem = cart.find(
           (item) =>
-            item.productId === product.id && item.customizations.length === 0
+            item.productId === product.id && item.customizations.length === 0,
         );
         if (existingItem) {
           existingItem.quantity++;
@@ -1078,7 +1084,7 @@
 
         const newMod = { mode: currentMode, target: ingName };
         const exIdx = item.customizations.findIndex(
-          (c) => c.target === ingName
+          (c) => c.target === ingName,
         );
         if (exIdx > -1) item.customizations[exIdx] = newMod;
         else item.customizations.push(newMod);
@@ -1156,9 +1162,8 @@
           const mockReceiptNumber = Math.floor(Math.random() * 900) + 100;
 
           closeAllModals();
-          document.getElementById(
-            "receipt-display"
-          ).innerText = `No. ${mockReceiptNumber} (練習)`;
+          document.getElementById("receipt-display").innerText =
+            `No. ${mockReceiptNumber} (練習)`;
           successModal.classList.add("active");
 
           cart = [];

@@ -1,151 +1,198 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ありがとうございました！ | 南陵祭'25 公式サイト</title>
     <!-- Google Analytics (必要なら) -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        :root {
-            --header-height: 80px;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --shadow-medium: 0 15px 50px rgba(0, 0, 0, 0.15);
-            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.2);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            padding: 20px;
-        }
-        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%); pointer-events: none; z-index: -1; }
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+      :root {
+        --header-height: 80px;
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --shadow-medium: 0 15px 50px rgba(0, 0, 0, 0.15);
+        --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.2);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg-gradient);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        padding: 20px;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 40%
+          );
+        pointer-events: none;
+        z-index: -1;
+      }
 
+      .thank-you-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 40px 50px;
+        max-width: 800px;
+        width: 100%;
+        text-align: center;
+        animation: fadeIn 1s ease-out;
+      }
+      .thank-you-card h1 {
+        /* ★★★ ここを修正しました！ ★★★ */
+        /* clamp()を使って、文字サイズを可変にします */
+        /* clamp(最小サイズ, 推奨サイズ, 最大サイズ) */
+        /* これにより、スマホでは小さく、PCでは大きく自動調整されます */
+        font-size: clamp(1.6rem, 5vw, 2.5rem);
+        font-weight: 600;
+        background: linear-gradient(45deg, #fff, #e8f4f8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+      .thank-you-card p {
+        font-size: 1.1em;
+        line-height: 1.8;
+        opacity: 0.9;
+        margin-bottom: 30px;
+      }
+      .results {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+      }
+      .result-item {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 15px 25px;
+        border-radius: 10px;
+      }
+      .result-item .number {
+        font-size: 2.2em;
+        font-weight: 700;
+        display: block;
+      }
+      .result-item .label {
+        font-size: 0.9em;
+        opacity: 0.8;
+      }
+      .credit {
+        font-size: 0.9em;
+        opacity: 0.7;
+        margin-top: 40px;
+      }
+
+      .cta-button {
+        display: inline-block;
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 15px 35px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1em;
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: var(--shadow-medium);
+        margin-top: 10px;
+      }
+      .cta-button:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-strong);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 600px) {
         .thank-you-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            padding: 40px 50px;
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            animation: fadeIn 1s ease-out;
+          padding: 30px 25px;
         }
-        .thank-you-card h1 {
-            /* ★★★ ここを修正しました！ ★★★ */
-            /* clamp()を使って、文字サイズを可変にします */
-            /* clamp(最小サイズ, 推奨サイズ, 最大サイズ) */
-            /* これにより、スマホでは小さく、PCでは大きく自動調整されます */
-            font-size: clamp(1.6rem, 5vw, 2.5rem);
-            font-weight: 600;
-            background: linear-gradient(45deg, #fff, #e8f4f8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-        .thank-you-card p {
-            font-size: 1.1em;
-            line-height: 1.8;
-            opacity: 0.9;
-            margin-bottom: 30px;
-        }
-        .results {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-        }
-        .result-item {
-            background: rgba(0,0,0,0.2);
-            padding: 15px 25px;
-            border-radius: 10px;
-        }
-        .result-item .number {
-            font-size: 2.2em;
-            font-weight: 700;
-            display: block;
-        }
-        .result-item .label {
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        .credit {
-            font-size: 0.9em;
-            opacity: 0.7;
-            margin-top: 40px;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: var(--secondary-gradient);
-            color: white;
-            padding: 15px 35px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1em;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: var(--shadow-medium);
-            margin-top: 10px;
-        }
-        .cta-button:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-strong);
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @media (max-width: 600px) {
-            .thank-you-card { padding: 30px 25px; }
-            /* ★★★ h1の指定はclamp()に任せるので、ここの行は不要になります ★★★ */
-            /* .thank-you-card h1 { font-size: 2em; } */
-        }
+        /* ★★★ h1の指定はclamp()に任せるので、ここの行は不要になります ★★★ */
+        /* .thank-you-card h1 { font-size: 2em; } */
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="thank-you-card">
-        <h1>南陵祭'25 Webサイト<br>ご利用ありがとうございました！</h1>
-        <p>
-            多くの方にご利用いただき、心より感謝申し上げます。<br>
-            このサイトが、あなたの文化祭の思い出の1ページになれたなら幸いです。
-        </p>
+      <h1>南陵祭'25 Webサイト<br />ご利用ありがとうございました！</h1>
+      <p>
+        多くの方にご利用いただき、心より感謝申し上げます。<br />
+        このサイトが、あなたの文化祭の思い出の1ページになれたなら幸いです。
+      </p>
 
-        <div class="results">
-            <div class="result-item">
-                <span class="number">402<small>人</small></span>
-                <span class="label">総ユーザー数</span>
-            </div>
-            <div class="result-item">
-                <span class="number">1,753<small>回</small></span>
-                <span class="label">表示回数</span>
-            </div>
+      <div class="results">
+        <div class="result-item">
+          <span class="number">402<small>人</small></span>
+          <span class="label">総ユーザー数</span>
         </div>
-
-        <p>
-            今後の活動の参考にさせていただくため、アンケートへのご協力をお願いいたします。
-        </p>
-
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeeDEz0FurehkW_Jaia7m_ZIiigB16id12wDWzsrh4uNlEaLQ/viewform" class="cta-button" target="_blank" rel="noopener noreferrer">
-            アンケートにご協力ください
-        </a>
-
-        <div class="credit">
-            制作・運営：横浜南陵高校 コンピュータ科学部
+        <div class="result-item">
+          <span class="number">1,753<small>回</small></span>
+          <span class="label">表示回数</span>
         </div>
+      </div>
+
+      <p>
+        今後の活動の参考にさせていただくため、アンケートへのご協力をお願いいたします。
+      </p>
+
+      <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSeeDEz0FurehkW_Jaia7m_ZIiigB16id12wDWzsrh4uNlEaLQ/viewform"
+        class="cta-button"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        アンケートにご協力ください
+      </a>
+
+      <div class="credit">制作・運営：横浜南陵高校 コンピュータ科学部</div>
     </div>
-
-</body>
+  </body>
 </html>

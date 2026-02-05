@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -17,7 +23,7 @@
     <style>
       :root {
         --bg-color: #f8f9fa; /* Light Background */
-        --card-bg: #ffffff;  /* White Card */
+        --card-bg: #ffffff; /* White Card */
         --text-color: #333333; /* Dark Text */
         --accent-color: #0d6efd;
         --warning-accent: #ffc107;
@@ -30,16 +36,22 @@
         padding-bottom: 50px;
       }
 
-      h1, h2, h3, h4, h5, h6 {
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
         color: #222;
       }
 
       .navbar {
         background-color: #ffffff !important;
         border-bottom: 1px solid #ddd;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
-      .navbar-brand, .nav-link {
+      .navbar-brand,
+      .nav-link {
         color: #333 !important;
       }
 
@@ -49,7 +61,7 @@
         margin-bottom: 30px;
         border-radius: 0 0 20px 20px;
         text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         color: #333;
       }
 
@@ -58,12 +70,14 @@
         border: 1px solid #eaeaea;
         color: var(--text-color);
         margin-bottom: 20px;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
       .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       }
       .card-title {
         color: #222;
@@ -140,7 +154,9 @@
     <div class="hero-section">
       <div class="container">
         <h1 class="display-5 fw-bold mb-3">トレーニングポータル</h1>
-        <p class="lead mb-0">南陵祭2026 POSシステムの操作方法を安全に学びましょう。</p>
+        <p class="lead mb-0">
+          南陵祭2026 POSシステムの操作方法を安全に学びましょう。
+        </p>
       </div>
     </div>
 
@@ -149,33 +165,41 @@
       <section class="mb-5">
         <h2 class="border-bottom pb-2 mb-4">責任者トレーニング</h2>
         <div class="card p-4">
-           <div class="row align-items-center">
-             <div class="col-md-8">
-               <h4><i class="bi bi-shield-lock-fill text-primary"></i> 管理者向け機能の練習</h4>
-               <p>
-                 注文のキャンセル処理や、在庫切れ設定（Sold Out）の操作を練習できます。<br>
-                 トラブル対応は責任者の重要な役割です。事前に操作を確認しておきましょう。
-               </p>
-             </div>
-             <div class="col-md-4 text-end">
-               <a href="./manager.html" class="btn btn-primary btn-lg w-100">
-                 <i class="bi bi-play-circle-fill"></i> トレーニング開始
-               </a>
-             </div>
-           </div>
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h4>
+                <i class="bi bi-shield-lock-fill text-primary"></i>
+                管理者向け機能の練習
+              </h4>
+              <p>
+                注文のキャンセル処理や、在庫切れ設定（Sold
+                Out）の操作を練習できます。<br />
+                トラブル対応は責任者の重要な役割です。事前に操作を確認しておきましょう。
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="./manager.html" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-play-circle-fill"></i> トレーニング開始
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- 1. System Overview -->
       <section class="mb-5">
-        <h3 class="mb-4 border-bottom pb-2"><i class="bi bi-diagram-3 me-2"></i>システム概要</h3>
+        <h3 class="mb-4 border-bottom pb-2">
+          <i class="bi bi-diagram-3 me-2"></i>システム概要
+        </h3>
         <div class="row align-items-center justify-content-center g-4">
           <!-- Step 1 -->
           <div class="col-md-3">
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-cart-plus"></i></div>
               <h5>1. 注文 (POS)</h5>
-              <p class="small text-muted mb-0">お客様から注文を受け、レジで入力・会計します。</p>
+              <p class="small text-muted mb-0">
+                お客様から注文を受け、レジで入力・会計します。
+              </p>
               <i class="bi bi-arrow-right flow-arrow"></i>
             </div>
           </div>
@@ -184,7 +208,9 @@
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-fire"></i></div>
               <h5>2. 調理 (Kitchen)</h5>
-              <p class="small text-muted mb-0">注文内容を確認し、調理を行います。完了したら呼び出します。</p>
+              <p class="small text-muted mb-0">
+                注文内容を確認し、調理を行います。完了したら呼び出します。
+              </p>
               <i class="bi bi-arrow-right flow-arrow"></i>
             </div>
           </div>
@@ -193,7 +219,9 @@
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-megaphone"></i></div>
               <h5>3. 受取 (Presenter)</h5>
-              <p class="small text-muted mb-0">番号を呼び出し、お客様に商品をお渡しします。</p>
+              <p class="small text-muted mb-0">
+                番号を呼び出し、お客様に商品をお渡しします。
+              </p>
             </div>
           </div>
         </div>
@@ -201,26 +229,31 @@
 
       <!-- 2. Training Modules -->
       <section class="mb-5">
-        <h3 class="mb-4 border-bottom pb-2 border-secondary"><i class="bi bi-controller me-2"></i>トレーニングメニュー</h3>
+        <h3 class="mb-4 border-bottom pb-2 border-secondary">
+          <i class="bi bi-controller me-2"></i>トレーニングメニュー
+        </h3>
         <div class="row g-4">
-            
           <!-- POS Training -->
           <div class="col-md-4">
             <div class="card training-card">
               <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <span class="display-6 me-3 text-primary"><i class="bi bi-calculator"></i></span>
-                    <h5 class="card-title mb-0">レジ打ち担当 (POS)</h5>
+                  <span class="display-6 me-3 text-primary"
+                    ><i class="bi bi-calculator"></i
+                  ></span>
+                  <h5 class="card-title mb-0">レジ打ち担当 (POS)</h5>
                 </div>
                 <p class="card-text text-muted">
-                    注文の入力、オプション変更（抜き・追加）、会計処理の基本フローを練習します。
+                  注文の入力、オプション変更（抜き・追加）、会計処理の基本フローを練習します。
                 </p>
                 <div class="mt-3">
-                    <span class="badge bg-secondary mb-2">基本操作</span>
-                    <span class="badge bg-secondary mb-2">会計フロー</span>
-                    <span class="badge bg-secondary mb-2">商品削除</span>
+                  <span class="badge bg-secondary mb-2">基本操作</span>
+                  <span class="badge bg-secondary mb-2">会計フロー</span>
+                  <span class="badge bg-secondary mb-2">商品削除</span>
                 </div>
-                <a href="./pos.html" class="btn btn-primary w-100 mt-3">トレーニングを開始</a>
+                <a href="./pos.html" class="btn btn-primary w-100 mt-3"
+                  >トレーニングを開始</a
+                >
               </div>
             </div>
           </div>
@@ -230,17 +263,23 @@
             <div class="card training-card">
               <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <span class="display-6 me-3 text-warning"><i class="bi bi-egg-fried"></i></span>
-                    <h5 class="card-title mb-0">キッチン担当</h5>
+                  <span class="display-6 me-3 text-warning"
+                    ><i class="bi bi-egg-fried"></i
+                  ></span>
+                  <h5 class="card-title mb-0">キッチン担当</h5>
                 </div>
                 <p class="card-text text-muted">
-                    オーダーディスプレイの見方、調理ステータスの更新、効率的なオーダー処理を練習します。
+                  オーダーディスプレイの見方、調理ステータスの更新、効率的なオーダー処理を練習します。
                 </p>
                 <div class="mt-3">
-                    <span class="badge bg-secondary mb-2">オーダ確認</span>
-                    <span class="badge bg-secondary mb-2">ステータス更新</span>
+                  <span class="badge bg-secondary mb-2">オーダ確認</span>
+                  <span class="badge bg-secondary mb-2">ステータス更新</span>
                 </div>
-                <a href="./kitchen.html" class="btn btn-warning text-dark w-100 mt-3">トレーニングを開始</a>
+                <a
+                  href="./kitchen.html"
+                  class="btn btn-warning text-dark w-100 mt-3"
+                  >トレーニングを開始</a
+                >
               </div>
             </div>
           </div>
@@ -250,30 +289,34 @@
             <div class="card training-card">
               <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <span class="display-6 me-3 text-success"><i class="bi bi-broadcast"></i></span>
-                    <h5 class="card-title mb-0">呼び出し担当 (Presenter)</h5>
+                  <span class="display-6 me-3 text-success"
+                    ><i class="bi bi-broadcast"></i
+                  ></span>
+                  <h5 class="card-title mb-0">呼び出し担当 (Presenter)</h5>
                 </div>
                 <p class="card-text text-muted">
-                    お客様の番号呼び出し、受け渡し完了の処理、不在時の対応を練習します。
+                  お客様の番号呼び出し、受け渡し完了の処理、不在時の対応を練習します。
                 </p>
                 <div class="mt-3">
-                    <span class="badge bg-secondary mb-2">番号呼出</span>
-                    <span class="badge bg-secondary mb-2">受渡完了</span>
+                  <span class="badge bg-secondary mb-2">番号呼出</span>
+                  <span class="badge bg-secondary mb-2">受渡完了</span>
                 </div>
-                <a href="./presenter.html" class="btn btn-success w-100 mt-3">トレーニングを開始</a>
+                <a href="./presenter.html" class="btn btn-success w-100 mt-3"
+                  >トレーニングを開始</a
+                >
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
       <!-- Link to Manager replaced by section above -->
 
       <div class="text-center mt-5">
-        <a href="../portal.html" class="return-link"><i class="bi bi-arrow-left me-2"></i>ポータルへ戻る</a>
+        <a href="../portal.html" class="return-link"
+          ><i class="bi bi-arrow-left me-2"></i>ポータルへ戻る</a
+        >
       </div>
-
     </div>
 
     <!-- Bootstrap JS -->
