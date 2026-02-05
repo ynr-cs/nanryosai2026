@@ -1,6 +1,16 @@
+/**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ */
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
+importScripts(
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js",
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js",
+);
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
@@ -17,15 +27,18 @@ const messaging = firebase.messaging();
 
 // Background message handler
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
+  console.log(
+    "[firebase-messaging-sw.js] Received background message ",
+    payload,
+  );
+
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/images/icon.png',
-    badge: '/images/badge.png',
-    tag: 'nanryosai-notification',
-    data: payload.data
+    icon: "/images/icon.png",
+    badge: "/images/badge.png",
+    tag: "nanryosai-notification",
+    data: payload.data,
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
