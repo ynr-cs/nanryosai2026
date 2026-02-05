@@ -18,8 +18,15 @@ let gridHelper, bgPlane;
 // 建物データ
 let buildings = [];
 let buildingMeshes = [];
+
 let selectedBuilding = null;
 let selectedMesh = null;
+
+// 道路データ
+let roads = [];
+let roadMeshes = [];
+let selectedRoad = null;
+let selectedRoadMesh = null;
 
 // 頂点編集モード
 let vertexEditMode = false;
@@ -41,6 +48,9 @@ let isDragging = false;
 let snapEnabled = true;
 let snapSize = 1;
 let snap90Enabled = true;
+
+// 背景画像データ
+let currentBgData = null;
 
 // 建物カラー
 const BUILDING_COLORS = {
@@ -208,9 +218,15 @@ function initEdgeHighlights() {
 }
 
 function updateEdgeHighlight(event) {
-  if (!vertexEditMode || !selectedBuilding) {
+  if (!vertexEditMode || (!selectedBuilding && !selectedRoad)) {
     if (hoverEdgeMesh) hoverEdgeMesh.visible = false;
     if (selectionLineMesh) selectionLineMesh.visible = false;
+    return;
+  }
+
+  // 道路の場合はハイライト無し (v0.3.0)
+  if (selectedRoad) {
+    if (hoverEdgeMesh) hoverEdgeMesh.visible = false;
     return;
   }
 
@@ -385,8 +401,14 @@ function initEventListeners() {
     .addEventListener("click", toggleVertexEditMode);
 
   document
+    .getElementById("btn-edit-vertex")
+    .addEventListener("click", toggleVertexEditMode);
+
+  document
     .getElementById("btn-add-building")
     .addEventListener("click", showNewBuildingModal);
+  document.getElementById("btn-add-road").addEventListener("click", addNewRoad);
+
   document
     .getElementById("modal-close")
     .addEventListener("click", hideNewBuildingModal);
@@ -531,6 +553,86 @@ function createBuildings() {
   updateDragControls();
 }
 
+function createRoads() {
+  roadMeshes.forEach((mesh) => {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  });
+  roadMeshes = [];
+
+  roads.forEach((road) => {
+    const mesh = createRoadMesh(road);
+    scene.add(mesh);
+    roadMeshes.push(mesh);
+  });
+}
+
+function createRoadMesh(road) {
+  if (!road.path || road.path.length < 2) return null;
+
+  const width = road.width || 4.0;
+  const halfWidth = width / 2;
+  const points = road.path;
+
+  const vertices = [];
+  const indices = [];
+
+  // 単純なリボン生成 (マイター結合などの高度な処理は省略し、セグメントごとに生成)
+  // より綺麗にするなら曲線補間や結合処理が必要だが、まずは直線の連結で実装
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+
+    const dx = p2.x - p1.x;
+    const dz = p2.z - p1.z;
+    const len = Math.sqrt(dx * dx + dz * dz);
+    if (len === 0) continue;
+
+    // 法線ベクトル
+    const nx = -dz / len;
+    const nz = dx / len;
+
+    // 4頂点 (Y=0.02 で地面より少し上)
+    const y = 0.02;
+
+    // p1 left, p1 right, p2 left, p2 right
+    // 頂点バッファに追加 (重複頂点は許容)
+    // 0: p1-L
+    vertices.push(p1.x + nx * halfWidth, y, p1.z + nz * halfWidth);
+    // 1: p1-R
+    vertices.push(p1.x - nx * halfWidth, y, p1.z - nz * halfWidth);
+    // 2: p2-L
+    vertices.push(p2.x + nx * halfWidth, y, p2.z + nz * halfWidth);
+    // 3: p2-R
+    vertices.push(p2.x - nx * halfWidth, y, p2.z - nz * halfWidth);
+
+    const baseIndex = i * 4;
+    // face 1 (0, 2, 1)
+    indices.push(baseIndex + 0, baseIndex + 2, baseIndex + 1);
+    // face 2 (1, 2, 3)
+    indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshBasicMaterial({
+    color: road.color || 0x555555,
+    side: THREE.DoubleSide,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.userData = { roadId: road.id, type: "road" };
+
+  return mesh;
+}
+
 function createBuildingMesh(building) {
   const FLOOR_HEIGHT = 3;
   const height = building.floors * FLOOR_HEIGHT;
@@ -612,8 +714,18 @@ function updateDragControls() {
 // ===================================
 function selectBuilding(building, mesh) {
   if (selectedMesh && selectedMesh !== mesh) {
-    selectedMesh.material.emissive = new THREE.Color(0x000000);
+    // 古い選択解除（道路の場合もあるので色戻しは厳密にやるべきだが一旦黒emissive）
+    if (selectedMesh.userData.type === "road") {
+      selectedMesh.material.color.setHex(
+        (selectedRoad && selectedRoad.color) || 0x555555,
+      );
+    } else {
+      selectedMesh.material.emissive = new THREE.Color(0x000000);
+    }
   }
+
+  // 道路選択の解除
+  selectedRoad = null;
 
   selectedBuilding = building;
   selectedMesh = mesh;
@@ -638,11 +750,47 @@ function selectBuilding(building, mesh) {
   updateBuildingPalette();
 }
 
+function selectRoad(road, mesh) {
+  if (selectedMesh && selectedMesh !== mesh) {
+    selectedMesh.material.emissive = new THREE.Color(0x000000);
+  }
+
+  // 建物の選択解除
+  if (selectedBuilding) {
+    const bMesh = buildingMeshes.find(
+      (m) => m.userData.buildingId === selectedBuilding.id,
+    );
+    if (bMesh) bMesh.material.emissive = new THREE.Color(0x000000);
+    selectedBuilding = null;
+  }
+
+  selectedRoad = road;
+  selectedMesh = mesh;
+
+  if (mesh) {
+    mesh.material.color.setHex(0xffaa00); // 選択時は一時的に色変更（emissiveが効かないMaterialの場合あるので）
+    // BasicMaterialにはemissiveがないが、roadはBasicMaterial
+    mesh.material.color.setHex(0xaaaaaa); // 少し明るく
+  }
+
+  if (vertexEditMode && selectedRoad) {
+    createVertexHandles();
+  } else if (!selectedRoad) {
+    removeVertexHandles();
+    vertexEditMode = false;
+    document.getElementById("btn-edit-vertex").classList.remove("active");
+    document.getElementById("btn-edit-vertex").innerHTML =
+      '<span class="material-icons">edit</span>頂点編集モード';
+  }
+
+  updatePropertyPanel();
+}
+
 function updatePropertyPanel() {
   const form = document.getElementById("property-form");
   const noSelection = document.getElementById("no-selection-msg");
 
-  if (!selectedBuilding) {
+  if (!selectedBuilding && !selectedRoad) {
     form.style.display = "none";
     noSelection.style.display = "block";
     return;
@@ -651,19 +799,49 @@ function updatePropertyPanel() {
   form.style.display = "flex";
   noSelection.style.display = "none";
 
-  document.getElementById("prop-id").value = selectedBuilding.id;
-  document.getElementById("prop-name").value = selectedBuilding.name;
-  document.getElementById("prop-x").value = Math.round(selectedBuilding.x);
-  document.getElementById("prop-z").value = Math.round(selectedBuilding.z);
-  document.getElementById("prop-width").value = Math.round(
-    selectedBuilding.width,
-  );
-  document.getElementById("prop-depth").value = Math.round(
-    selectedBuilding.depth,
-  );
-  document.getElementById("prop-floors").value = selectedBuilding.floors;
-  document.getElementById("prop-rotation").value =
-    selectedBuilding.rotation || 0;
+  if (selectedBuilding) {
+    // 既存の建物プロパティ表示
+    document.getElementById("prop-id").value = selectedBuilding.id;
+    document.getElementById("prop-name").value = selectedBuilding.name;
+    document.getElementById("prop-x").value = Math.round(selectedBuilding.x);
+    document.getElementById("prop-z").value = Math.round(selectedBuilding.z);
+    document.getElementById("prop-width").value = Math.round(
+      selectedBuilding.width,
+    );
+    document.getElementById("prop-depth").value = Math.round(
+      selectedBuilding.depth,
+    );
+    document.getElementById("prop-floors").parentElement.style.display = "flex";
+    document.getElementById("prop-floors").value = selectedBuilding.floors;
+    document.getElementById("prop-rotation").parentElement.style.display =
+      "flex";
+    document.getElementById("prop-rotation").value =
+      selectedBuilding.rotation || 0;
+
+    // 入力不可にしておく（道路用と共有のため）
+    document.getElementById("prop-x").disabled = false;
+    document.getElementById("prop-z").disabled = false;
+    document.getElementById("prop-depth").disabled = false;
+  } else if (selectedRoad) {
+    // 道路プロパティ表示
+    document.getElementById("prop-id").value = selectedRoad.id;
+    document.getElementById("prop-name").value = "道路"; // 名前フィールドがないので固定
+
+    // 道路にX/Z/Depth/Rotation/Floorsはない
+    document.getElementById("prop-x").value = "-";
+    document.getElementById("prop-x").disabled = true;
+    document.getElementById("prop-z").value = "-";
+    document.getElementById("prop-z").disabled = true;
+
+    document.getElementById("prop-width").value = selectedRoad.width;
+
+    document.getElementById("prop-depth").value = "-";
+    document.getElementById("prop-depth").disabled = true;
+
+    document.getElementById("prop-floors").parentElement.style.display = "none";
+    document.getElementById("prop-rotation").parentElement.style.display =
+      "none";
+  }
 }
 
 // ===================================
@@ -708,14 +886,26 @@ function onClick(event) {
   mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(buildingMeshes);
 
+  // 1. 道路の判定
+  const roadIntersects = raycaster.intersectObjects(roadMeshes);
+  if (roadIntersects.length > 0) {
+    const mesh = roadIntersects[0].object;
+    const road = roads.find((r) => r.id === mesh.userData.roadId);
+    selectRoad(road, mesh);
+    return;
+  }
+
+  // 2. 建物の判定
+  const intersects = raycaster.intersectObjects(buildingMeshes);
   if (intersects.length > 0) {
     const mesh = intersects[0].object;
     const building = buildings.find((b) => b.id === mesh.userData.buildingId);
     selectBuilding(building, mesh);
   } else {
+    // どちらも選択解除
     selectBuilding(null, null);
+    selectRoad(null, null);
   }
 }
 
@@ -891,6 +1081,30 @@ function addNewBuilding() {
   autoSave();
 
   updateStatus(`「${name}」を追加しました`);
+}
+
+function addNewRoad() {
+  const id = "road_" + Date.now();
+  // 画面中央付近にデフォルトパスを作成
+  const newRoad = {
+    id: id,
+    width: 4.0,
+    path: [
+      { x: -10, z: 0 },
+      { x: 10, z: 0 },
+    ],
+    color: 0x555555,
+  };
+
+  roads.push(newRoad);
+  const mesh = createRoadMesh(newRoad);
+  scene.add(mesh);
+  roadMeshes.push(mesh);
+
+  // 選択状態にする (まだ実装してないのでログだけ)
+  console.log("New road created:", newRoad);
+  updateStatus("新しい道路を追加しました");
+  autoSave();
 }
 
 function deleteSelectedBuilding() {
@@ -1086,6 +1300,7 @@ function createPlaceholderTexture(message) {
   bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
   bgPlane.rotation.x = -Math.PI / 2;
   bgPlane.position.y = 0.05;
+  bgPlane.visible = document.getElementById("opt-bg-image").checked;
   scene.add(bgPlane);
 
   updateBackgroundTransform();
@@ -1098,6 +1313,13 @@ function loadBgImage(url) {
     (texture) => {
       bgTexture = texture;
       bgOriginalAspect = texture.image.width / texture.image.height;
+      if (
+        url.startsWith("data:") ||
+        url.startsWith("http") ||
+        url.startsWith("https")
+      ) {
+        currentBgData = url;
+      }
 
       if (bgPlane) {
         scene.remove(bgPlane);
@@ -1114,6 +1336,7 @@ function loadBgImage(url) {
       bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
       bgPlane.rotation.x = -Math.PI / 2;
       bgPlane.position.y = 0.05;
+      bgPlane.visible = document.getElementById("opt-bg-image").checked;
       scene.add(bgPlane);
 
       updateBackgroundTransform();
@@ -1304,12 +1527,35 @@ function importJSON() {
 function saveToLocalStorage() {
   const data = {
     buildings: buildings,
+    roads: roads,
     savedAt: new Date().toISOString(),
+    background: null,
   };
-  localStorage.setItem("mapEditorData", JSON.stringify(data));
 
-  const time = new Date().toLocaleTimeString("ja-JP");
-  document.getElementById("status-save").textContent = `自動保存: ${time}`;
+  // 背景データの保存
+  if (bgPlane && bgPlane.visible && currentBgData) {
+    data.background = {
+      active: document.getElementById("opt-bg-image").checked,
+      source: currentBgData,
+      width:
+        parseFloat(document.getElementById("bg-metric-width").value) || 100,
+      offsetX: parseFloat(document.getElementById("bg-offset-x").value) || 0,
+      offsetZ: parseFloat(document.getElementById("bg-offset-z").value) || 0,
+      rotation: parseFloat(document.getElementById("bg-rotation").value) || 0,
+      opacity:
+        parseFloat(document.getElementById("opt-bg-opacity").value) || 0.5,
+    };
+  }
+
+  try {
+    localStorage.setItem("mapEditorData", JSON.stringify(data));
+    const time = new Date().toLocaleTimeString("ja-JP");
+    document.getElementById("status-save").textContent = `自動保存: ${time}`;
+  } catch (e) {
+    console.error("保存に失敗しました (容量オーバーの可能性があります):", e);
+    document.getElementById("status-save").textContent =
+      `保存失敗: 容量オーバー`;
+  }
 }
 
 function loadFromLocalStorage() {
@@ -1319,7 +1565,29 @@ function loadFromLocalStorage() {
       const data = JSON.parse(saved);
       if (data.buildings && Array.isArray(data.buildings)) {
         buildings = data.buildings;
+
+        // 背景データの復元
+        if (data.background) {
+          restoreBackgroundSettings(data.background);
+        }
+
         console.log("LocalStorageから読み込み:", buildings.length, "件");
+
+        if (data.roads && Array.isArray(data.roads)) {
+          roads = data.roads;
+          createRoads();
+        }
+
+        if (data.roads && Array.isArray(data.roads)) {
+          roads = data.roads;
+          createRoads();
+        }
+
+        // 背景画像の復元 (あれば)
+        if (data.background) {
+          restoreBackgroundSettings(data.background);
+        }
+
         return;
       }
     } catch (err) {
@@ -1328,6 +1596,37 @@ function loadFromLocalStorage() {
   }
 
   buildings = JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+}
+
+function restoreBackgroundSettings(bgData) {
+  if (!bgData || !bgData.source) return;
+
+  // UI値の復元
+  document.getElementById("opt-bg-image").checked = bgData.active !== false;
+
+  if (bgData.width)
+    document.getElementById("bg-metric-width").value = bgData.width;
+  if (bgData.offsetX)
+    document.getElementById("bg-offset-x").value = bgData.offsetX;
+  if (bgData.offsetZ)
+    document.getElementById("bg-offset-z").value = bgData.offsetZ;
+  if (bgData.rotation)
+    document.getElementById("bg-rotation").value = bgData.rotation;
+  if (bgData.opacity) {
+    document.getElementById("opt-bg-opacity").value = bgData.opacity;
+  }
+
+  // 初期表示切り替え
+  toggleBackgroundImage({ target: { checked: bgData.active !== false } });
+
+  // 画像ロード
+  // loadBgImageは非同期だが、ロード完了後に updateBackgroundTransform が呼ばれるため
+  // 正しい位置・サイズが適用されるはず
+  loadBgImage(bgData.source);
+
+  // 明示的に値をセットしているので、ロード完了を待たずにTransform更新関数内で
+  // 以前の値が上書きされないように注意が必要だが、
+  // updateBackgroundTransformはDOMの値を読むので、先にDOMをセットしておけばOK
 }
 
 function autoSave() {
@@ -1347,8 +1646,8 @@ function updateStatus(text) {
 // ===================================
 function localToWorld(pt, bx, bz, rot) {
   return {
-    x: bx + pt.x * Math.cos(rot) - pt.z * Math.sin(rot),
-    z: bz + pt.x * Math.sin(rot) + pt.z * Math.cos(rot),
+    x: bx + pt.x * Math.cos(rot) + pt.z * Math.sin(rot),
+    z: bz - pt.x * Math.sin(rot) + pt.z * Math.cos(rot),
   };
 }
 
@@ -1356,8 +1655,8 @@ function worldToLocal(wx, wz, bx, bz, rot) {
   const dx = wx - bx;
   const dz = wz - bz;
   return {
-    x: dx * Math.cos(-rot) - dz * Math.sin(-rot),
-    z: dx * Math.sin(-rot) + dz * Math.cos(-rot),
+    x: dx * Math.cos(rot) - dz * Math.sin(rot),
+    z: dx * Math.sin(rot) + dz * Math.cos(rot),
   };
 }
 
@@ -1411,8 +1710,8 @@ function pickClosestEdgeIndex(localPt, path) {
 let vertexListenersInitialized = false;
 
 function toggleVertexEditMode() {
-  if (!selectedBuilding || !selectedMesh) {
-    updateStatus("頂点編集: まず建物を選択してください");
+  if ((!selectedBuilding && !selectedRoad) || !selectedMesh) {
+    updateStatus("頂点編集: まず建物または道路を選択してください");
     return;
   }
 
@@ -1451,9 +1750,28 @@ function toggleVertexEditMode() {
 }
 
 function createVertexHandles() {
-  if (!selectedBuilding || !selectedMesh) return;
+  if ((!selectedBuilding && !selectedRoad) || !selectedMesh) return;
 
   removeVertexHandles();
+
+  const handleGeo = new THREE.SphereGeometry(1.5, 16, 16);
+  const handleMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+
+  if (selectedRoad) {
+    const r = selectedRoad;
+    r.path.forEach((pt, index) => {
+      const handle = new THREE.Mesh(handleGeo.clone(), handleMat.clone());
+      handle.position.set(pt.x, 0.5, pt.z); // 地面より少し上
+      handle.userData = {
+        type: "vertex",
+        index: index,
+        roadId: r.id,
+      };
+      scene.add(handle);
+      vertexHandles.push(handle);
+    });
+    return;
+  }
 
   const b = selectedBuilding;
   const FLOOR_HEIGHT = 3;
@@ -1470,9 +1788,6 @@ function createVertexHandles() {
       { x: -w, z: d },
     ];
   }
-
-  const handleGeo = new THREE.SphereGeometry(1.5, 16, 16);
-  const handleMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
 
   // 辺ハンドル用
   const edgeHandleGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
@@ -1529,7 +1844,7 @@ function initVertexDragListeners() {
   canvas.addEventListener(
     "pointerdown",
     (event) => {
-      if (!vertexEditMode || !selectedBuilding) return;
+      if (!vertexEditMode || (!selectedBuilding && !selectedRoad)) return;
 
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
@@ -1659,8 +1974,27 @@ function initVertexDragListeners() {
         let snapInfo = "";
 
         if (snapEnabled) {
-          targetX = Math.round(targetX / snapSize) * snapSize;
-          targetZ = Math.round(targetZ / snapSize) * snapSize;
+          if (selectedBuilding) {
+            // 【修正】回転している建物でも軸に合わせてスナップする
+            const b = selectedBuilding;
+            const rot = ((b.rotation || 0) * Math.PI) / 180;
+
+            // ワールド -> ローカル
+            const local = worldToLocal(targetX, targetZ, b.x, b.z, rot);
+
+            // ローカルでスナップ
+            local.x = Math.round(local.x / snapSize) * snapSize;
+            local.z = Math.round(local.z / snapSize) * snapSize;
+
+            // ローカル -> ワールド
+            const world = localToWorld(local, b.x, b.z, rot);
+            targetX = world.x;
+            targetZ = world.z;
+          } else if (selectedRoad) {
+            // 道路はワールド座標でスナップ
+            targetX = Math.round(targetX / snapSize) * snapSize;
+            targetZ = Math.round(targetZ / snapSize) * snapSize;
+          }
         }
 
         if (snap90Enabled) {
@@ -1681,6 +2015,12 @@ function initVertexDragListeners() {
           x: targetX,
           z: targetZ,
         });
+
+        // 道路の場合は角度表示などをスキップ
+        if (selectedRoad) {
+          updateStatus(`頂点編集(道路): 🟡ドラッグ中${snapInfo}`);
+          return;
+        }
 
         // 【追加】リアルタイム角度表示
         const angleInfo = calculateVertexAngle(
@@ -2176,6 +2516,26 @@ function cancelExtrudeMode() {
 // 頂点位置更新
 // ===================================
 function updateVertexPosition(vertexIndex, worldPosition) {
+  if (selectedRoad) {
+    if (vertexIndex < 0 || vertexIndex >= selectedRoad.path.length) return;
+    selectedRoad.path[vertexIndex].x = worldPosition.x;
+    selectedRoad.path[vertexIndex].z = worldPosition.z;
+
+    // ハンドル更新
+    const handle = vertexHandles.find(
+      (h) => h.userData.type === "vertex" && h.userData.index === vertexIndex,
+    );
+    if (handle) {
+      handle.position.set(worldPosition.x, 0.5, worldPosition.z);
+    }
+
+    rebuildSelectedRoad(); // これから実装
+    updateStatus(
+      `頂点${vertexIndex}: (${Math.round(worldPosition.x)}, ${Math.round(worldPosition.z)})`,
+    );
+    return;
+  }
+
   const b = selectedBuilding;
   if (!b || !b.path || vertexIndex < 0 || vertexIndex >= b.path.length) return;
 
@@ -2201,6 +2561,25 @@ function updateVertexPosition(vertexIndex, worldPosition) {
   updateStatus(
     `頂点${vertexIndex}: (${Math.round(local.x)}, ${Math.round(local.z)})`,
   );
+}
+
+function rebuildSelectedRoad() {
+  if (!selectedRoad || !selectedMesh) return;
+
+  const index = roadMeshes.indexOf(selectedMesh);
+  if (index === -1) return;
+
+  scene.remove(selectedMesh);
+  selectedMesh.geometry.dispose();
+  selectedMesh.material.dispose();
+
+  const newMesh = createRoadMesh(selectedRoad);
+  // 選択色
+  newMesh.material.color.setHex(0xaaaaaa);
+
+  scene.add(newMesh);
+  roadMeshes[index] = newMesh;
+  selectedMesh = newMesh;
 }
 
 function updateEdgeHandlePositions() {
