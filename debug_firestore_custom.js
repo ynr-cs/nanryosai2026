@@ -1,3 +1,9 @@
+/**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ */
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 

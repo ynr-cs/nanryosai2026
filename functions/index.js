@@ -1,4 +1,9 @@
-// Last updated: 2025-12-10 22:08
+/**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ */
 const functions = require("firebase-functions/v1");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
@@ -777,6 +782,58 @@ exports.createPOSOrder = functions
       console.error("POS Order Error:", error);
       if (error.code && error.details) throw error;
       throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+// ... (previous code)
+
+/**
+ * @name mockAuPayPayment
+ * @description 【デモ用】auPay決済の擬似処理を行い、注文を完了済みに更新する
+ */
+exports.mockAuPayPayment = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    // 1. 引数チェック
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const orderId = requestData.orderId;
+
+    if (!orderId) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "orderId が必要です。"
+      );
+    }
+
+    try {
+      // 2. 注文データの取得
+      const orderRef = db.collection("orders").doc(orderId);
+      const orderDoc = await orderRef.get();
+
+      if (!orderDoc.exists) {
+        throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+      }
+
+      // 3. ステータス更新 (決済完了 -> 提供完了)
+      // 本番フローでは「決済完了」->「提供完了」だが、デモなので一気に完了にする
+      await orderRef.update({
+        status: "completed_online",
+        paymentMethod: "auPay", // 記録用
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        message: "auPay決済が完了しました (Demo)",
+      };
+    } catch (error) {
+      console.error("mockAuPayPayment Error:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "決済処理中にエラーが発生しました。"
+      );
     }
   });
 
