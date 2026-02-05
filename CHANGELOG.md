@@ -60,3 +60,21 @@
 ### 変更 (Changed)
 
 - `japanese_workflow` に変更履歴記録プロセスを追加
+
+---
+
+## [0.1.1] 移行フェーズの完了とクリーンアップ - 2026-02-05
+
+### メタ情報
+
+- **時刻**: 22:05
+- **AIモデル**: Antigravity (Gemini 3.0 Pro)
+- **筆者**: AI
+
+### 削除 (Removed)
+
+- `antigravity/v0.1.0_MIGRATION_CHECKLIST.md`: 全ファイルの移行（ヘッダー付与）が完了したため削除。
+
+### 追加 (Added)
+
+- `antigravity/migration_CONTEXT.md`: v0.1.0 移行作業の完了記録と、今後の運用方針をまとめた知見。
