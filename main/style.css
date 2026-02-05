@@ -1,4 +1,10 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap");
+﻿/**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap");
 
 :root {
   /* Brand Colors */
@@ -411,6 +417,7 @@ a {
   margin-bottom: 8px;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.2;
 }
@@ -851,6 +858,7 @@ a {
   font-size: 20px;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -1352,6 +1360,7 @@ main {
   background: linear-gradient(-45deg, #2575fc 0%, #6a11cb 50%, #2575fc 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: titleGradientFlow 5s ease infinite alternate;
   /* Add a subtle drop shadow to lift it off the page */
@@ -1474,6 +1483,7 @@ main {
   font-weight: 900;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-feature-settings: "tnum"; /* Tabular numbers */
   line-height: 1.2;

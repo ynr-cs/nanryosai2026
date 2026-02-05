@@ -1,722 +1,954 @@
-<!DOCTYPE html>
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>マイページ | 南陵祭'26</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
     <style>
-        .profile-header {
-            text-align: center;
-            padding: 40px 20px;
-            background: var(--card-bg);
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            margin-bottom: 20px;
+      .profile-header {
+        text-align: center;
+        padding: 40px 20px;
+        background: var(--card-bg);
+        border-radius: 0 0 30px 30px;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        margin-bottom: 20px;
+      }
+      .profile-img-lg {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border-radius: 50%;
+        background: var(--border-color);
+        margin: 0 auto 15px;
+        margin: 0 auto 15px;
+        overflow: hidden;
+        border: 4px solid var(--card-bg);
+        box-shadow: 0 8px 16px var(--shadow-color);
+      }
+      .profile-img-lg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .profile-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: var(--text-main);
+      }
+      .profile-email {
+        color: var(--text-sub);
+        font-size: 0.9rem;
+      }
+
+      .section-title {
+        padding: 0 20px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-main);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        padding: 0 20px 20px;
+      }
+      .stat-card {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 4px 10px var(--shadow-color);
+        transition: transform 0.2s;
+      }
+      .stat-card:active {
+        transform: scale(0.98);
+      }
+      .stat-num {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--primary-color);
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        margin-top: 5px;
+        font-weight: bold;
+      }
+      .stat-card {
+        transition:
+          transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+          box-shadow 0.3s ease;
+        cursor: default;
+      }
+      .stat-card[id="card-order-count"] {
+        cursor: pointer;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+      }
+
+      .menu-list {
+        padding: 0 20px 40px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-weight: 500;
+        transition:
+          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          color 0.2s ease;
+        cursor: pointer;
+      }
+      .menu-item:hover {
+        transform: translateX(6px);
+        color: var(--primary-color);
+      }
+      .menu-item i {
+        width: 30px;
+        text-align: center;
+        margin-right: 15px;
+        color: var(--primary-color);
+        transition: color 0.2s ease;
+      }
+      .menu-item:hover i {
+        color: var(--brand-color);
+      }
+      .menu-item:last-child {
+        border-bottom: none;
+      }
+
+      .logout-btn {
+        color: #ff4757;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 15px 0;
+        font-size: 1rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+        cursor: pointer;
+      }
+      .logout-btn:hover {
+        transform: translateX(6px);
+      }
+
+      /* Loading State */
+      .loading-skeleton {
+        animation: pulse 1.5s infinite;
+        background: var(--border-color);
+        color: transparent !important;
+        border-radius: 4px;
+      }
+
+      /* Order History Styles */
+      .order-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px var(--shadow-color);
+        border: 1px solid var(--border-color);
+      }
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed var(--border-color);
+      }
+      .store-name {
+        font-weight: bold;
+        color: var(--text-main);
+        font-size: 1rem;
+      }
+      .order-date {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+      }
+      .order-items {
+        flex: 1;
+        margin-bottom: 8px;
+        color: var(--text-main);
+      }
+      .order-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .order-price {
+        font-weight: 900;
+        font-size: 1.1rem;
+        color: var(--text-main);
+      }
+      .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+      }
+
+      .header-count-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-left: 8px;
+      }
+
+      .guest-icon-box {
+        background: var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--text-sub);
+      }
+      .btn-login-trigger {
+        margin-top: 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: opacity 0.2s;
+      }
+      .btn-login-trigger:active {
+        opacity: 0.8;
+      }
+
+      .section-title {
+        padding: 0 20px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--text-main);
+        cursor: pointer;
+        user-select: none;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .section-title:hover {
+        opacity: 0.8;
+        transform: translateY(-2px);
+      }
+
+      /* Toggle Arrow */
+      .toggle-icon {
+        transition: transform 0.3s ease;
+      }
+      .section-closed .toggle-icon {
+        transform: rotate(-90deg);
+      }
+
+      /* Collapsible Content */
+      .collapsible-content {
+        overflow: hidden;
+        transition:
+          max-height 0.3s ease,
+          opacity 0.3s ease;
+        max-height: 2000px; /* Arbitrary large height */
+        opacity: 1;
+      }
+      .section-closed + .collapsible-content {
+        max-height: 0;
+        opacity: 0;
+        padding-bottom: 0 !important;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
         }
-        .profile-img-lg {
-            width: 100px;
-            height: 100px;
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      /* Toggle Switch CSS */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--primary-color);
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- Loading State (Visible by default) -->
+      <div id="auth-loading" style="text-align: center; padding: 60px 20px">
+        <div
+          class="loading-skeleton"
+          style="
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            border-radius: 50%;
-            background: var(--border-color);
-            margin: 0 auto 15px;
-            margin: 0 auto 15px;
-            overflow: hidden;
-            border: 4px solid var(--card-bg);
-            box-shadow: 0 8px 16px var(--shadow-color);
-        }
-        .profile-img-lg img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .profile-name {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-            color: var(--text-main);
-        }
-        .profile-email {
-            color: var(--text-sub);
-            font-size: 0.9rem;
-        }
-        
-        .section-title {
-            padding: 0 20px;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-main);
-        }
+            margin: 0 auto 20px;
+          "
+        ></div>
+        <p style="color: var(--text-sub)">Loading account...</p>
+      </div>
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 0 20px 20px;
-        }
-        .stat-card {
+      <!-- Authenticated User Content -->
+      <div id="auth-content" style="display: none">
+        <div id="profile-area">
+          <!-- Loaded by JS -->
+          <div class="profile-header">
+            <div class="profile-img-lg loading-skeleton"></div>
+            <div
+              class="profile-name loading-skeleton"
+              style="width: 150px; height: 30px; margin: 0 auto"
+            ></div>
+            <div
+              class="profile-email loading-skeleton"
+              style="width: 200px; height: 20px; margin: 10px auto 0"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Favorites Section -->
+        <div id="favorites-section" style="margin-top: 10px">
+          <h3 class="section-title section-closed" id="favorites-toggle">
+            <span style="display: flex; align-items: center">
+              🌟 お気に入り
+              <span id="fav-count-badge" class="header-count-badge">0</span>
+            </span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+          </h3>
+          <div class="collapsible-content">
+            <div id="favorites-list" style="padding: 0 20px 20px">
+              <div
+                style="
+                  text-align: center;
+                  padding: 20px;
+                  color: var(--text-sub);
+                  background: var(--card-bg);
+                  border-radius: 16px;
+                  border: 1px dashed var(--border-color);
+                "
+              >
+                お気に入り機能は準備中です
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order History Section -->
+        <div id="order-history-section" style="margin-top: 10px">
+          <h3 class="section-title section-closed" id="order-history-toggle">
+            <span style="display: flex; align-items: center">
+              📦 注文履歴
+              <span id="order-count-badge" class="header-count-badge">-</span>
+            </span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+          </h3>
+          <div class="collapsible-content">
+            <div id="order-list" style="padding: 0 20px 20px">
+              <!-- Orders will be injected here -->
+              <div
+                class="loading-skeleton"
+                style="height: 100px; margin-bottom: 10px"
+              ></div>
+              <div
+                class="loading-skeleton"
+                style="height: 100px; margin-bottom: 10px"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 20px">⚙️ 設定</h3>
+        <div
+          class="menu-list"
+          style="
             background: var(--card-bg);
-            padding: 20px;
             border-radius: 20px;
+            padding: 10px 20px;
+            margin: 0 20px 20px;
+          "
+        >
+          <div class="menu-item" style="justify-content: space-between">
+            <div style="display: flex; align-items: center">
+              <i class="bi bi-bell"></i> 呼び出し通知
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notification-toggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="menu-item" onclick="window.location.href = 'terms.html'">
+            <i class="bi bi-file-text"></i> 利用規約
+          </div>
+          <!-- Delete Account Button -->
+          <div
+            class="menu-item"
+            id="btn-delete-account"
+            style="
+              color: #ff4757;
+              cursor: pointer;
+              border-bottom: none;
+              margin-top: 10px;
+            "
+          >
+            <i class="bi bi-trash"></i> アカウント削除
+          </div>
+          <button class="logout-btn" id="btn-logout">
+            <i class="bi bi-box-arrow-right" style="color: #ff4757"></i>
+            ログアウト
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest Content -->
+      <div id="guest-content" style="display: none; padding: 60px 20px">
+        <!-- Login Screen (Synced with mobile-order.html, No Bootstrap) -->
+        <style>
+          .guest-flex-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            box-shadow: 0 4px 10px var(--shadow-color);
-            transition: transform 0.2s;
-        }
-        .stat-card:active { transform: scale(0.98); }
-        .stat-num {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--primary-color);
-            line-height: 1;
-        }
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-top: 5px;
-            font-weight: bold;
-        }
-        .stat-card {
-             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-             cursor: default;
-        }
-        .stat-card[id="card-order-count"] { cursor: pointer; }
-        .stat-card:hover {
-             transform: translateY(-5px);
-             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
-        }
-
-        .menu-list {
-            padding: 0 20px 40px;
-        }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-main);
-            font-weight: 500;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
-            cursor: pointer;
-        }
-        .menu-item:hover {
-            transform: translateX(6px);
-            color: var(--primary-color);
-        }
-        .menu-item i {
-            width: 30px;
-            text-align: center;
-            margin-right: 15px;
-            color: var(--primary-color);
-            transition: color 0.2s ease;
-        }
-        .menu-item:hover i {
-             color: var(--brand-color);
-        }
-        .menu-item:last-child { border-bottom: none; }
-        
-        .logout-btn {
-            color: #ff4757;
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            padding: 15px 0;
-            font-size: 1rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            transition: transform 0.2s ease;
-            cursor: pointer;
-        }
-        .logout-btn:hover {
-             transform: translateX(6px);
-        }
-        
-        /* Loading State */
-        .loading-skeleton {
-            animation: pulse 1.5s infinite;
-            background: var(--border-color);
-            color: transparent !important;
-            border-radius: 4px;
-        }
-
-        /* Order History Styles */
-        .order-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px var(--shadow-color);
-            border: 1px solid var(--border-color);
-        }
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        .store-name {
-            font-weight: bold;
-            color: var(--text-main);
-            font-size: 1rem;
-        }
-        .order-date {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-        }
-        .order-items {
-            flex: 1;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-        .order-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .order-price {
-            font-weight: 900;
-            font-size: 1.1rem;
-            color: var(--text-main);
-        }
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .header-count-badge {
+            min-height: 50vh;
+          }
+          .btn-primary-custom {
             background: var(--primary-color);
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
+            border: none;
+            padding: 18px;
+            border-radius: 20px; /* --radius-lg */
             font-weight: 700;
-            margin-left: 8px;
-        }
-        
-        .guest-icon-box {
-            background: var(--border-color); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 3rem;
-            color: var(--text-sub);
-        }
-        .btn-login-trigger {
-            margin-top: 20px; 
-            background: var(--primary-color); 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 20px; 
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
-        .btn-login-trigger:active { opacity: 0.8; }
-        
-        .section-title {
-            padding: 0 20px;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            font-weight: 800;
+            width: 100%;
+            max-width: 350px;
+            font-size: 1.05rem;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+            transition:
+              transform 0.2s,
+              box-shadow 0.2s;
+            letter-spacing: 0.05em;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            color: var(--text-main);
-            cursor: pointer;
-            user-select: none;
-            transition: opacity 0.2s, transform 0.2s;
-        }
-        .section-title:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
-        }
-        
-        /* Toggle Arrow */
-        .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-        .section-closed .toggle-icon {
-            transform: rotate(-90deg);
-        }
+            justify-content: center;
+            margin: 0 auto;
+            text-decoration: none; /* Reset anchor styles if any */
+          }
+          .btn-primary-custom:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+          .login-hero {
+            margin-bottom: 40px;
+          }
+        </style>
 
-        /* Collapsible Content */
-        .collapsible-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-            max-height: 2000px; /* Arbitrary large height */
-            opacity: 1;
-        }
-        .section-closed + .collapsible-content {
-            max-height: 0;
-            opacity: 0;
-            padding-bottom: 0 !important;
-        }
-
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-
-        /* Toggle Switch CSS */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; width: 18px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--primary-color); }
-        input:checked + .slider:before { transform: translateX(20px); }
-    </style>
-</head>
-<body>
-    
-    <main>
-        <!-- Loading State (Visible by default) -->
-        <div id="auth-loading" style="text-align: center; padding: 60px 20px;">
-            <div class="loading-skeleton" style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 20px;"></div>
-            <p style="color: var(--text-sub);">Loading account...</p>
-        </div>
-
-        <!-- Authenticated User Content -->
-        <div id="auth-content" style="display: none;">
-            <div id="profile-area">
-                <!-- Loaded by JS -->
-                <div class="profile-header">
-                    <div class="profile-img-lg loading-skeleton"></div>
-                    <div class="profile-name loading-skeleton" style="width: 150px; height: 30px; margin: 0 auto;"></div>
-                    <div class="profile-email loading-skeleton" style="width: 200px; height: 20px; margin: 10px auto 0;"></div>
-                </div>
-            </div>
-
-            <!-- Favorites Section -->
-            <div id="favorites-section" style="margin-top: 10px;">
-                <h3 class="section-title section-closed" id="favorites-toggle">
-                    <span style="display: flex; align-items: center;">
-                        🌟 お気に入り
-                        <span id="fav-count-badge" class="header-count-badge">0</span>
-                    </span>
-                    <i class="bi bi-chevron-down toggle-icon"></i>
-                </h3>
-                <div class="collapsible-content">
-                    <div id="favorites-list" style="padding: 0 20px 20px;">
-                        <div style="text-align:center; padding: 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 16px; border: 1px dashed var(--border-color);">
-                            お気に入り機能は準備中です
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order History Section -->
-            <div id="order-history-section" style="margin-top: 10px;">
-                <h3 class="section-title section-closed" id="order-history-toggle">
-                    <span style="display: flex; align-items: center;">
-                        📦 注文履歴
-                        <span id="order-count-badge" class="header-count-badge">-</span>
-                    </span>
-                    <i class="bi bi-chevron-down toggle-icon"></i>
-                </h3>
-                <div class="collapsible-content">
-                    <div id="order-list" style="padding: 0 20px 20px;">
-                        <!-- Orders will be injected here -->
-                        <div class="loading-skeleton" style="height: 100px; margin-bottom: 10px;"></div>
-                        <div class="loading-skeleton" style="height: 100px; margin-bottom: 10px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="section-title" style="margin-top: 20px">⚙️ 設定</h3>
-            <div class="menu-list" style="background: var(--card-bg); border-radius: 20px; padding: 10px 20px; margin: 0 20px 20px;">
-                <div class="menu-item" style="justify-content: space-between;">
-                    <div style="display:flex; align-items:center;">
-                        <i class="bi bi-bell"></i> 呼び出し通知
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="notification-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="menu-item" onclick="window.location.href='terms.html'">
-                    <i class="bi bi-file-text"></i> 利用規約
-                </div>
-                <!-- Delete Account Button -->
-                <div class="menu-item" id="btn-delete-account" style="color: #ff4757; cursor: pointer; border-bottom: none; margin-top: 10px;">
-                    <i class="bi bi-trash"></i> アカウント削除
-                </div>
-                <button class="logout-btn" id="btn-logout">
-                    <i class="bi bi-box-arrow-right" style="color: #ff4757"></i> ログアウト
-                </button>
-            </div>
-        </div>
-
-        <!-- Guest Content -->
-        <div id="guest-content" style="display: none; padding: 60px 20px;">
-            <!-- Login Screen (Synced with mobile-order.html, No Bootstrap) -->
-            <style>
-              .guest-flex-wrapper {
-                  display: flex; 
-                  flex-direction: column;
-                  justify-content: center;
-                  align-items: center;
-                  text-align: center;
-                  min-height: 50vh; 
-              }
-              .btn-primary-custom {
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                padding: 18px;
-                border-radius: 20px; /* --radius-lg */
+        <div class="guest-flex-wrapper">
+          <div class="login-hero">
+            <p
+              style="
+                color: var(--text-sub);
+                margin-bottom: 8px;
+                font-weight: 500;
+              "
+            >
+              南陵祭2026
+            </p>
+            <h1
+              style="
+                font-size: 2.5rem;
                 font-weight: 700;
-                width: 100%;
-                max-width: 350px;
-                font-size: 1.05rem;
-                box-shadow: 0 8px 15px rgba(0,0,0,0.15);
-                transition: transform 0.2s, box-shadow 0.2s;
-                letter-spacing: 0.05em;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto;
-                text-decoration: none; /* Reset anchor styles if any */
-              }
-              .btn-primary-custom:active {
-                transform: scale(0.96);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-              }
-              .login-hero {
-                  margin-bottom: 40px;
-              }
-            </style>
-            
-            <div class="guest-flex-wrapper">
-                <div class="login-hero">
-                    <p style="color: var(--text-sub); margin-bottom: 8px; font-weight: 500;">南陵祭2026</p>
-                    <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0 0 24px; color: var(--text-main);">マイページ</h1>
-                    <p style="color: var(--text-sub); font-size: 0.875rem; line-height: 1.6; margin: 0;">
-                        マイページ機能を使うには<br>
-                        ログインしてください
-                    </p>
-                </div>
+                margin: 0 0 24px;
+                color: var(--text-main);
+              "
+            >
+              マイページ
+            </h1>
+            <p
+              style="
+                color: var(--text-sub);
+                font-size: 0.875rem;
+                line-height: 1.6;
+                margin: 0;
+              "
+            >
+              マイページ機能を使うには<br />
+              ログインしてください
+            </p>
+          </div>
 
-                <button id="btn-login-account" onclick="window.triggerLogin()" class="btn-primary-custom">
-                    <!-- SVG for Google Icon to avoid Bootstrap Icons dependency if any, but bi-google usually works if css loads. 
+          <button
+            id="btn-login-account"
+            onclick="window.triggerLogin()"
+            class="btn-primary-custom"
+          >
+            <!-- SVG for Google Icon to avoid Bootstrap Icons dependency if any, but bi-google usually works if css loads. 
                          However, BI css IS NOT loaded in account.html based on my read. 
                          Wait, mobile-order uses CDN for BI. account.html has no BI link. 
                          So I need to import BI or use SVG. I'll import BI CDN to be safe. -->
-                    <i class="bi bi-google" style="margin-right: 8px;"></i> Google でログイン
-                </button>
+            <i class="bi bi-google" style="margin-right: 8px"></i> Google
+            でログイン
+          </button>
 
-                <!-- Disclaimer Box -->
-                <div style="margin-top: 24px; padding: 20px; border-radius: 12px; text-align: left; background: var(--item-fill); font-size: 0.85rem; border: 1px solid var(--border-color); width: 100%; max-width: 350px;">
-                    <strong style="color: #ff4757; display: block; margin-bottom: 8px; font-size: 0.95rem;">⚠️ 推奨ブラウザについて</strong>
-                    <p style="margin: 0 0 12px; color: var(--text-main); line-height: 1.5;">本システムの利用には、以下のブラウザを推奨しています。</p>
-                    
-                    <p style="font-weight: 700; margin: 0 0 4px; color: var(--text-main);">✅ 推奨ブラウザ</p>
-                    <ul style="margin: 0 0 16px 0; padding-left: 1.5rem; color: var(--text-main);">
-                        <li>Google Chrome</li>
-                    </ul>
+          <!-- Disclaimer Box -->
+          <div
+            style="
+              margin-top: 24px;
+              padding: 20px;
+              border-radius: 12px;
+              text-align: left;
+              background: var(--item-fill);
+              font-size: 0.85rem;
+              border: 1px solid var(--border-color);
+              width: 100%;
+              max-width: 350px;
+            "
+          >
+            <strong
+              style="
+                color: #ff4757;
+                display: block;
+                margin-bottom: 8px;
+                font-size: 0.95rem;
+              "
+              >⚠️ 推奨ブラウザについて</strong
+            >
+            <p
+              style="
+                margin: 0 0 12px;
+                color: var(--text-main);
+                line-height: 1.5;
+              "
+            >
+              本システムの利用には、以下のブラウザを推奨しています。
+            </p>
 
-                    <p style="margin: 0; color: var(--text-sub); font-size: 0.8rem; line-height: 1.4;">※ その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。</p>
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                        <span style="font-size: 0.8rem;">動作しない場合は <a href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header" id="bug-report-link" target="_blank" style="color: #4dabf7; text-decoration: underline;">不具合報告フォーム</a> までご連絡ください。</span>
-                    </div>
-                </div>
+            <p
+              style="font-weight: 700; margin: 0 0 4px; color: var(--text-main)"
+            >
+              ✅ 推奨ブラウザ
+            </p>
+            <ul
+              style="
+                margin: 0 0 16px 0;
+                padding-left: 1.5rem;
+                color: var(--text-main);
+              "
+            >
+              <li>Google Chrome</li>
+            </ul>
+
+            <p
+              style="
+                margin: 0;
+                color: var(--text-sub);
+                font-size: 0.8rem;
+                line-height: 1.4;
+              "
+            >
+              ※
+              その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
+            </p>
+            <div
+              style="
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <span style="font-size: 0.8rem"
+                >動作しない場合は
+                <a
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
+                  id="bug-report-link"
+                  target="_blank"
+                  style="color: #4dabf7; text-decoration: underline"
+                  >不具合報告フォーム</a
+                >
+                までご連絡ください。</span
+              >
             </div>
+          </div>
         </div>
+      </div>
     </main>
 
     <script>
-        window.CURRENT_PAGE = 'account';
+      window.CURRENT_PAGE = "account";
     </script>
     <script type="module" src="app-shell.js"></script>
 
     <!-- Account Page specific logic -->
     <script type="module">
-        import { watchUser, logout, db, app, auth } from './auth.js';
-        import { collection, query, where, getCountFromServer, getDocs, getDoc, orderBy, limit, updateDoc, doc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
-        import { deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        
-        const profileArea = document.getElementById('profile-area');
-        const logoutBtn = document.getElementById('btn-logout');
+      import { watchUser, logout, db, app, auth } from "./auth.js";
+      import {
+        collection,
+        query,
+        where,
+        getCountFromServer,
+        getDocs,
+        getDoc,
+        orderBy,
+        limit,
+        updateDoc,
+        doc,
+        arrayUnion,
+        arrayRemove,
+        deleteDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getMessaging,
+        getToken,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+      import { deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        const orderHistorySection = document.getElementById('order-history-section');
-        const orderList = document.getElementById('order-list');
-        const orderHistoryToggle = document.getElementById('order-history-toggle');
-        const favoritesToggle = document.getElementById('favorites-toggle');
-        
-        // Generalized Toggle Logic
-        [orderHistoryToggle, favoritesToggle].forEach(toggle => {
-            if(toggle) {
-                toggle.addEventListener('click', () => {
-                    toggle.classList.toggle('section-closed');
-                });
-            }
-        });
+      const profileArea = document.getElementById("profile-area");
+      const logoutBtn = document.getElementById("btn-logout");
 
-        // Notification Logic
-        const notificationToggle = document.getElementById('notification-toggle');
-        const messaging = getMessaging(app);
-        const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po"; 
+      const orderHistorySection = document.getElementById(
+        "order-history-section",
+      );
+      const orderList = document.getElementById("order-list");
+      const orderHistoryToggle = document.getElementById(
+        "order-history-toggle",
+      );
+      const favoritesToggle = document.getElementById("favorites-toggle");
 
-        // Check permission and Device support on load
-        const isIOSorMac = /iPhone|iPad|iPod/i.test(navigator.userAgent) || /Macintosh/i.test(navigator.userAgent);
+      // Generalized Toggle Logic
+      [orderHistoryToggle, favoritesToggle].forEach((toggle) => {
+        if (toggle) {
+          toggle.addEventListener("click", () => {
+            toggle.classList.toggle("section-closed");
+          });
+        }
+      });
 
-        if (isIOSorMac) {
-            notificationToggle.disabled = true;
-            notificationToggle.parentElement.parentElement.title = "この端末は通知に対応していません";
-            // Optional: Add visual label
-            const label = notificationToggle.parentElement.previousElementSibling;
-            if(label) label.innerHTML += ' <span style="font-size:0.75rem; color:var(--status-unpaid);">(非対応)</span>';
-        } else if (Notification.permission === 'granted') {
-            notificationToggle.checked = true;
+      // Notification Logic
+      const notificationToggle = document.getElementById("notification-toggle");
+      const messaging = getMessaging(app);
+      const VAPID_KEY =
+        "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+
+      // Check permission and Device support on load
+      const isIOSorMac =
+        /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        /Macintosh/i.test(navigator.userAgent);
+
+      if (isIOSorMac) {
+        notificationToggle.disabled = true;
+        notificationToggle.parentElement.parentElement.title =
+          "この端末は通知に対応していません";
+        // Optional: Add visual label
+        const label = notificationToggle.parentElement.previousElementSibling;
+        if (label)
+          label.innerHTML +=
+            ' <span style="font-size:0.75rem; color:var(--status-unpaid);">(非対応)</span>';
+      } else if (Notification.permission === "granted") {
+        notificationToggle.checked = true;
+      }
+
+      notificationToggle.addEventListener("change", async (e) => {
+        const user = window.CURRENT_USER_OBJ;
+        if (!user) {
+          alert("ログインが必要です");
+          e.target.checked = false;
+          return;
         }
 
-        notificationToggle.addEventListener('change', async (e) => {
-            const user = window.CURRENT_USER_OBJ;
-            if (!user) {
-                alert('ログインが必要です');
-                e.target.checked = false;
-                return;
-            }
-
-            if (e.target.checked) {
-                // Request Permission
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        await saveToken(user);
-                    } else {
-                        alert('通知権限が拒否されました');
-                        e.target.checked = false;
-                    }
-                } catch (err) {
-                    console.error('Notification Error:', err);
-                    alert('エラーが発生しました: ' + err.message);
-                    e.target.checked = false;
-                }
+        if (e.target.checked) {
+          // Request Permission
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+              await saveToken(user);
             } else {
-                alert('通知をオフにしました（完全に無効化するにはブラウザの設定も変更してください）');
+              alert("通知権限が拒否されました");
+              e.target.checked = false;
             }
-        });
-
-        async function saveToken(user) {
-            try {
-                // Register Service Worker first (Required for onMessage in background)
-                const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-                
-                // Wait for the service worker to be ready (active) to avoid "no active Service Worker" errors
-                const swReg = await navigator.serviceWorker.ready;
-
-                const token = await getToken(messaging, { 
-                    vapidKey: VAPID_KEY, 
-                    serviceWorkerRegistration: swReg 
-                });
-
-                if (token) {
-                    await updateDoc(doc(db, "users", user.uid), {
-                        fcmTokens: arrayUnion(token),
-                        notificationEnabled: true
-                    });
-                     // Success feedback
-                     // alert('通知設定をオンにしました'); // Optional: Toggle is visual enough
-                } else {
-                    console.warn('No registration token available.');
-                    alert('トークンの取得に失敗しました');
-                    notificationToggle.checked = false;
-                }
-            } catch (error) {
-                console.error('An error occurred while retrieving token. ', error);
-                alert('通知設定のエラー: ' + error.message);
-                notificationToggle.checked = false;
-            }
+          } catch (err) {
+            console.error("Notification Error:", err);
+            alert("エラーが発生しました: " + err.message);
+            e.target.checked = false;
+          }
+        } else {
+          alert(
+            "通知をオフにしました（完全に無効化するにはブラウザの設定も変更してください）",
+          );
         }
+      });
 
-        // Store user globally for access in event listeners
-        window.CURRENT_USER_OBJ = null;
+      async function saveToken(user) {
+        try {
+          // Register Service Worker first (Required for onMessage in background)
+          const registration = await navigator.serviceWorker.register(
+            "./firebase-messaging-sw.js",
+          );
 
-        // Cache stores
-        let storesCache = {};
-        
-        // Loader Element
-        const authLoader = document.getElementById('auth-loading');
+          // Wait for the service worker to be ready (active) to avoid "no active Service Worker" errors
+          const swReg = await navigator.serviceWorker.ready;
 
-        // Fallback Timeout: If auth takes too long (e.g. In-App Browser blocked), show Guest
-        const authTimeout = setTimeout(() => {
-            if (authLoader.style.display !== 'none') {
-                console.warn("Auth timeout - forcing guest view");
-                authLoader.style.display = 'none';
-                document.getElementById('guest-content').style.display = 'block';
-            }
-        }, 2500);
+          const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+          });
 
-        import { login } from './auth.js';
-
-        // UI Update Logic extracted for manual trigger
-        function handleUserUpdate(user) {
-            clearTimeout(authTimeout); 
-            authLoader.style.display = 'none';
-            
-            window.CURRENT_USER_OBJ = user;
-            if (user) {
-                document.getElementById('auth-content').style.display = 'block';
-                document.getElementById('guest-content').style.display = 'none';
-                
-                renderProfile(user);
-                fetchOrderCount(user.uid);
-                fetchOrderHistory(user.uid);
-            } else {
-                document.getElementById('auth-content').style.display = 'none';
-                document.getElementById('guest-content').style.display = 'block';
-            }
+          if (token) {
+            await updateDoc(doc(db, "users", user.uid), {
+              fcmTokens: arrayUnion(token),
+              notificationEnabled: true,
+            });
+            // Success feedback
+            // alert('通知設定をオンにしました'); // Optional: Toggle is visual enough
+          } else {
+            console.warn("No registration token available.");
+            alert("トークンの取得に失敗しました");
+            notificationToggle.checked = false;
+          }
+        } catch (error) {
+          console.error("An error occurred while retrieving token. ", error);
+          alert("通知設定のエラー: " + error.message);
+          notificationToggle.checked = false;
         }
+      }
 
-        // Initialize Listener
-        watchUser(handleUserUpdate);
+      // Store user globally for access in event listeners
+      window.CURRENT_USER_OBJ = null;
 
-        // Enhanced Login Trigger
-        window.triggerLogin = async () => {
-            const btn = document.getElementById('btn-login-account');
-            const originalContent = btn.innerHTML;
-            
-            // UI Feedback
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="width: 1rem; height: 1rem; border-width: 0.15em;"></span> 処理中...';
+      // Cache stores
+      let storesCache = {};
 
-            try {
-                const user = await login(); // auth.js login handles popup params
-                
-                 // Force UI Update immediately
-                if (user) {
-                    handleUserUpdate(user); 
-                }
-            } catch (e) {
-                // Error handled in auth.js mostly, but reset button here
-                console.error("Login Trigger Error:", e);
-                // alert("ログインに失敗しました: " + e.message); // auth.js already alerts
-            } finally {
-                // Reset button (if we haven't navigated away or completely replaced the view)
-                // If we logged in, the view might switch, but it's safe to reset just in case we stay.
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-            }
-        };
+      // Loader Element
+      const authLoader = document.getElementById("auth-loading");
 
-        // --- Missing Functions Implementation ---
-
-        async function renderProfile(user) {
-            const nameEl = document.querySelector('.profile-name');
-            const emailEl = document.querySelector('.profile-email');
-            const imgContainer = document.querySelector('.profile-img-lg');
-            
-            if(nameEl) {
-                nameEl.classList.remove('loading-skeleton');
-                nameEl.removeAttribute('style'); // Clear fixed width/height from skeleton
-            }
-            if(emailEl) {
-                emailEl.classList.remove('loading-skeleton');
-                emailEl.removeAttribute('style'); // Clear fixed width/height from skeleton
-            }
-            if(imgContainer) imgContainer.classList.remove('loading-skeleton'); 
-            
-            if(nameEl) nameEl.textContent = user.displayName || "ゲストユーザー";
-            if(emailEl) emailEl.textContent = user.email || "";
-
-            if (imgContainer) {
-                if (user.photoURL) {
-                    imgContainer.innerHTML = `<img src="${user.photoURL}" alt="Profile">`;
-                } else {
-                     imgContainer.innerHTML = `<i class="bi bi-person-fill" style="font-size: 60px; color: #ccc; display: flex; align-items: center; justify-content: center; height: 100%;"></i>`;
-                }
-            }
+      // Fallback Timeout: If auth takes too long (e.g. In-App Browser blocked), show Guest
+      const authTimeout = setTimeout(() => {
+        if (authLoader.style.display !== "none") {
+          console.warn("Auth timeout - forcing guest view");
+          authLoader.style.display = "none";
+          document.getElementById("guest-content").style.display = "block";
         }
+      }, 2500);
 
-        async function fetchOrderCount(uid) {
-             try {
-                const q = query(collection(db, "orders"), where("userId", "==", uid));
-                const snapshot = await getCountFromServer(q);
-                const count = snapshot.data().count;
-                const badge = document.getElementById('order-count-badge');
-                if(badge) badge.textContent = count;
-             } catch (e) {
-                console.error("Order Count Error:", e);
-             }
+      import { login } from "./auth.js";
+
+      // UI Update Logic extracted for manual trigger
+      function handleUserUpdate(user) {
+        clearTimeout(authTimeout);
+        authLoader.style.display = "none";
+
+        window.CURRENT_USER_OBJ = user;
+        if (user) {
+          document.getElementById("auth-content").style.display = "block";
+          document.getElementById("guest-content").style.display = "none";
+
+          renderProfile(user);
+          fetchOrderCount(user.uid);
+          fetchOrderHistory(user.uid);
+        } else {
+          document.getElementById("auth-content").style.display = "none";
+          document.getElementById("guest-content").style.display = "block";
         }
+      }
 
-        async function fetchOrderHistory(uid) {
-            const list = document.getElementById('order-list');
-            if(!list) return;
-            
-            try {
-                const q = query(
-                    collection(db, "orders"), 
-                    where("userId", "==", uid), 
-                    orderBy("createdAt", "desc"), 
-                    limit(10)
-                );
-                
-                const snap = await getDocs(q);
-                list.innerHTML = ""; 
-                
-                if (snap.empty) {
-                    list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">注文履歴がありません</div>`;
-                    return;
-                }
+      // Initialize Listener
+      watchUser(handleUserUpdate);
 
-                for (const d of snap.docs) {
-                    const data = d.data();
-                    const orderId = d.id;
-                    const date = data.createdAt ? data.createdAt.toDate().toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '---';
-                    const total = data.totalPrice;
-                    const statusText = translateStatus(data.status);
-                    const statusColor = getStatusColor(data.status);
-                    
-                    // Fetch Store Name
-                    let storeName = "読み込み中...";
-                    if (storesCache[data.storeId]) {
-                        storeName = storesCache[data.storeId];
-                    } 
-                    
-                    const el = document.createElement('div');
-                    el.className = 'order-card animate__animated animate__fadeIn';
-                    // Link to Status Page
-                    el.onclick = () => {
-                        window.location.href = `../pos/status.html?orderId=${orderId}`;
-                    };
-                    el.style.cursor = "pointer";
+      // Enhanced Login Trigger
+      window.triggerLogin = async () => {
+        const btn = document.getElementById("btn-login-account");
+        const originalContent = btn.innerHTML;
 
-                    // Items Summary
-                    const itemNames = (data.items || []).map(i => `${i.name} x${i.quantity}`).join('、');
+        // UI Feedback
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="width: 1rem; height: 1rem; border-width: 0.15em;"></span> 処理中...';
 
-                    el.innerHTML = `
+        try {
+          const user = await login(); // auth.js login handles popup params
+
+          // Force UI Update immediately
+          if (user) {
+            handleUserUpdate(user);
+          }
+        } catch (e) {
+          // Error handled in auth.js mostly, but reset button here
+          console.error("Login Trigger Error:", e);
+          // alert("ログインに失敗しました: " + e.message); // auth.js already alerts
+        } finally {
+          // Reset button (if we haven't navigated away or completely replaced the view)
+          // If we logged in, the view might switch, but it's safe to reset just in case we stay.
+          btn.disabled = false;
+          btn.innerHTML = originalContent;
+        }
+      };
+
+      // --- Missing Functions Implementation ---
+
+      async function renderProfile(user) {
+        const nameEl = document.querySelector(".profile-name");
+        const emailEl = document.querySelector(".profile-email");
+        const imgContainer = document.querySelector(".profile-img-lg");
+
+        if (nameEl) {
+          nameEl.classList.remove("loading-skeleton");
+          nameEl.removeAttribute("style"); // Clear fixed width/height from skeleton
+        }
+        if (emailEl) {
+          emailEl.classList.remove("loading-skeleton");
+          emailEl.removeAttribute("style"); // Clear fixed width/height from skeleton
+        }
+        if (imgContainer) imgContainer.classList.remove("loading-skeleton");
+
+        if (nameEl) nameEl.textContent = user.displayName || "ゲストユーザー";
+        if (emailEl) emailEl.textContent = user.email || "";
+
+        if (imgContainer) {
+          if (user.photoURL) {
+            imgContainer.innerHTML = `<img src="${user.photoURL}" alt="Profile">`;
+          } else {
+            imgContainer.innerHTML = `<i class="bi bi-person-fill" style="font-size: 60px; color: #ccc; display: flex; align-items: center; justify-content: center; height: 100%;"></i>`;
+          }
+        }
+      }
+
+      async function fetchOrderCount(uid) {
+        try {
+          const q = query(collection(db, "orders"), where("userId", "==", uid));
+          const snapshot = await getCountFromServer(q);
+          const count = snapshot.data().count;
+          const badge = document.getElementById("order-count-badge");
+          if (badge) badge.textContent = count;
+        } catch (e) {
+          console.error("Order Count Error:", e);
+        }
+      }
+
+      async function fetchOrderHistory(uid) {
+        const list = document.getElementById("order-list");
+        if (!list) return;
+
+        try {
+          const q = query(
+            collection(db, "orders"),
+            where("userId", "==", uid),
+            orderBy("createdAt", "desc"),
+            limit(10),
+          );
+
+          const snap = await getDocs(q);
+          list.innerHTML = "";
+
+          if (snap.empty) {
+            list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">注文履歴がありません</div>`;
+            return;
+          }
+
+          for (const d of snap.docs) {
+            const data = d.data();
+            const orderId = d.id;
+            const date = data.createdAt
+              ? data.createdAt
+                  .toDate()
+                  .toLocaleString("ja-JP", {
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+              : "---";
+            const total = data.totalPrice;
+            const statusText = translateStatus(data.status);
+            const statusColor = getStatusColor(data.status);
+
+            // Fetch Store Name
+            let storeName = "読み込み中...";
+            if (storesCache[data.storeId]) {
+              storeName = storesCache[data.storeId];
+            }
+
+            const el = document.createElement("div");
+            el.className = "order-card animate__animated animate__fadeIn";
+            // Link to Status Page
+            el.onclick = () => {
+              window.location.href = `../pos/status.html?orderId=${orderId}`;
+            };
+            el.style.cursor = "pointer";
+
+            // Items Summary
+            const itemNames = (data.items || [])
+              .map((i) => `${i.name} x${i.quantity}`)
+              .join("、");
+
+            el.innerHTML = `
                         <div class="order-header">
                             <span class="store-name" id="store-name-${orderId}">${storeName}</span>
                             <span class="order-date">${date}</span>
@@ -729,53 +961,55 @@
                             <span class="status-badge" style="background: ${statusColor}; color: white;">${statusText}</span>
                         </div>
                     `;
-                    list.appendChild(el);
-                    
-                    if (!storesCache[data.storeId]) {
-                        fetchStoreName(data.storeId, `store-name-${orderId}`);
-                    }
-                }
-            } catch (e) {
-                console.error("History Error:", e);
-                list.innerHTML = `<div style="color:red; text-align:center;">読み込みエラー</div>`;
+            list.appendChild(el);
+
+            if (!storesCache[data.storeId]) {
+              fetchStoreName(data.storeId, `store-name-${orderId}`);
             }
+          }
+        } catch (e) {
+          console.error("History Error:", e);
+          list.innerHTML = `<div style="color:red; text-align:center;">読み込みエラー</div>`;
         }
-        
-        async function fetchStoreName(storeId, elementId) {
-             if (storesCache[storeId]) {
-                 const el = document.getElementById(elementId);
-                 if(el) el.textContent = storesCache[storeId];
-                 return;
-             }
-             try {
-                 const snap = await getDoc(doc(db, "stores", storeId));
-                 if (snap.exists()) {
-                     const name = snap.data().name;
-                     storesCache[storeId] = name;
-                     const el = document.getElementById(elementId);
-                     if(el) el.textContent = name;
-                 } else {
-                    storesCache[storeId] = "不明な店舗"; // Cache failed lookup to avoid loops
-                 }
-             } catch(e) { console.warn(e); }
-        }
+      }
 
-        function translateStatus(s) {
-            if (s === 'ready_for_pickup') return '呼出中';
-            if (s === 'completed_at_store' || s === 'completed_online') return '受取完了';
-            if (s === 'cancelled') return 'キャンセル';
-            if (s === 'abandoned_and_paid') return '期限切れ';
-            return '調理中'; 
+      async function fetchStoreName(storeId, elementId) {
+        if (storesCache[storeId]) {
+          const el = document.getElementById(elementId);
+          if (el) el.textContent = storesCache[storeId];
+          return;
         }
-        
-        function getStatusColor(s) {
-             if (s === 'ready_for_pickup') return '#f59e0b'; // Warning/Attention
-             if (s === 'completed_at_store' || s === 'completed_online') return '#10b981'; // Success
-             if (s === 'cancelled' || s === 'abandoned_and_paid') return '#9ca3af'; // Grey
-             return '#3b82f6'; // Blue (Cooking)
+        try {
+          const snap = await getDoc(doc(db, "stores", storeId));
+          if (snap.exists()) {
+            const name = snap.data().name;
+            storesCache[storeId] = name;
+            const el = document.getElementById(elementId);
+            if (el) el.textContent = name;
+          } else {
+            storesCache[storeId] = "不明な店舗"; // Cache failed lookup to avoid loops
+          }
+        } catch (e) {
+          console.warn(e);
         }
+      }
 
+      function translateStatus(s) {
+        if (s === "ready_for_pickup") return "呼出中";
+        if (s === "completed_at_store" || s === "completed_online")
+          return "受取完了";
+        if (s === "cancelled") return "キャンセル";
+        if (s === "abandoned_and_paid") return "期限切れ";
+        return "調理中";
+      }
 
+      function getStatusColor(s) {
+        if (s === "ready_for_pickup") return "#f59e0b"; // Warning/Attention
+        if (s === "completed_at_store" || s === "completed_online")
+          return "#10b981"; // Success
+        if (s === "cancelled" || s === "abandoned_and_paid") return "#9ca3af"; // Grey
+        return "#3b82f6"; // Blue (Cooking)
+      }
     </script>
-</body>
+  </body>
 </html>
