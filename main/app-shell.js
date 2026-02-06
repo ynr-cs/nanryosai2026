@@ -268,9 +268,9 @@ const AppShell = {
 
                     <div style="margin-top: auto;">
                         <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-bottom: 20px;">
-                            <a href="${this.resolvePath("about-us.html")}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px; background: var(--bg-color); border-radius: 12px; text-decoration: none; color: var(--text-main); border: 1px solid var(--border-color); transition: background 0.2s;">
-                                <i class="bi bi-lightning-charge-fill" style="color: var(--primary-color);"></i>
-                                <span style="font-weight: 700; font-family: var(--font-gothic); font-size: 0.9rem;">Powered By コンピュータ科学部</span>
+                            <a href="${this.resolvePath("about-us.html")}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 10px; background: var(--bg-color); border-radius: 12px; text-decoration: none; color: var(--text-main); border: 1px solid var(--border-color); transition: background 0.2s; flex-wrap: wrap;">
+                                <i class="bi bi-lightning-charge-fill" style="color: var(--primary-color); flex-shrink: 0;"></i>
+                                <span style="font-weight: 700; font-size: 0.85rem; text-align: center;">Powered By コンピュータ科学部</span>
                             </a>
                         </div>
                     </div>
