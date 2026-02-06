@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nanryosai 2026
  * Version: 0.1.0
  * Last Modified: 2026-02-05
@@ -584,10 +584,10 @@ function createBuildings() {
   updateDragControls();
 }
 
-// 道路作成・更新
-function createRoads() {
+function _old_createRoads() {
   roadMeshes.forEach((mesh) => {
     scene.remove(mesh);
+    // Groupの場合はtraverseしてdisposeが必要
     if (mesh.isGroup) {
       mesh.traverse((c) => {
         if (c.geometry) c.geometry.dispose();
@@ -609,88 +609,95 @@ function createRoads() {
   });
 }
 
-function createRoadMesh(road) {
-  // v0.4.0: Node/Segment Mode
-  if (!road.nodes || !road.segments) {
-    if (road.path && road.path.length >= 2) return null; // Legacy check
-    return null;
+function addNewRoad() {
+  // v0.4.0: Node/Segment Init
+  const id = "road-" + Date.now();
+  const n1 = { id: 1, x: -10, z: 0, kind: "node" };
+  const n2 = { id: 2, x: 10, z: 0, kind: "node" };
+
+  const road = {
+    id: id,
+    width: 6,
+    nodes: [n1, n2],
+    segments: [{ from: 1, to: 2, control: null }],
+  };
+
+  roads.push(road);
+  createRoads();
+
+  // find mesh
+  const mesh = roadMeshes.find((m) => m.userData.roadId === id);
+  if (mesh) {
+    selectRoad(road, mesh);
+    // 自動的に編集モードへ
+    setRoadTool(RoadTool.LINE);
+    // document.getElementById("road-tools").style.display = "block"; // selectRoadでやるべき
   }
+}
+
+function _old_createRoadMesh(road) {
+  if (!road.path || road.path.length < 2) return null;
 
   const width = road.width || 4.0;
   const halfWidth = width / 2;
-  const group = new THREE.Group();
+  const points = road.path;
+
+  const vertices = [];
+  const indices = [];
+
+  // 単純なリボン生成 (マイター結合などの高度な処理は省略し、セグメントごとに生成)
+  // より綺麗にするなら曲線補間や結合処理が必要だが、まずは直線の連結で実装
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+
+    const dx = p2.x - p1.x;
+    const dz = p2.z - p1.z;
+    const len = Math.sqrt(dx * dx + dz * dz);
+    if (len === 0) continue;
+
+    // 法線ベクトル
+    const nx = -dz / len;
+    const nz = dx / len;
+
+    // 4頂点 (Y=0.02 で地面より少し上)
+    const y = 0.02;
+
+    // p1 left, p1 right, p2 left, p2 right
+    // 頂点バッファに追加 (重複頂点は許容)
+    // 0: p1-L
+    vertices.push(p1.x + nx * halfWidth, y, p1.z + nz * halfWidth);
+    // 1: p1-R
+    vertices.push(p1.x - nx * halfWidth, y, p1.z - nz * halfWidth);
+    // 2: p2-L
+    vertices.push(p2.x + nx * halfWidth, y, p2.z + nz * halfWidth);
+    // 3: p2-R
+    vertices.push(p2.x - nx * halfWidth, y, p2.z - nz * halfWidth);
+
+    const baseIndex = i * 4;
+    // face 1 (0, 2, 1)
+    indices.push(baseIndex + 0, baseIndex + 2, baseIndex + 1);
+    // face 2 (1, 2, 3)
+    indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
 
   const material = new THREE.MeshBasicMaterial({
     color: road.color || 0x555555,
     side: THREE.DoubleSide,
   });
 
-  road.segments.forEach((seg) => {
-    const n1 = road.nodes.find((n) => n.id === seg.from);
-    const n2 = road.nodes.find((n) => n.id === seg.to);
-    if (!n1 || !n2) return;
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.userData = { roadId: road.id, type: "road" };
 
-    const curveGrid = 12;
-    const pathPoints = [];
-    if (seg.control) {
-      const c = road.nodes.find((n) => n.id === seg.control);
-      if (c) {
-        const curve = new THREE.QuadraticBezierCurve3(
-          new THREE.Vector3(n1.x, 0, n1.z),
-          new THREE.Vector3(c.x, 0, c.z),
-          new THREE.Vector3(n2.x, 0, n2.z),
-        );
-        pathPoints.push(...curve.getPoints(curveGrid));
-      } else {
-        pathPoints.push(new THREE.Vector3(n1.x, 0, n1.z));
-        pathPoints.push(new THREE.Vector3(n2.x, 0, n2.z));
-      }
-    } else {
-      pathPoints.push(new THREE.Vector3(n1.x, 0, n1.z));
-      pathPoints.push(new THREE.Vector3(n2.x, 0, n2.z));
-    }
-
-    const vertices = [];
-    const indices = [];
-
-    for (let i = 0; i < pathPoints.length - 1; i++) {
-      const p1 = pathPoints[i];
-      const p2 = pathPoints[i + 1];
-
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const len = Math.sqrt(dx * dx + dz * dz);
-      if (len === 0) continue;
-
-      const nx = -dz / len;
-      const nz = dx / len;
-
-      const y = 0.02;
-      p1.y = y;
-      p2.y = y;
-
-      const baseIndex = i * 4;
-      vertices.push(p1.x + nx * halfWidth, y, p1.z + nz * halfWidth);
-      vertices.push(p1.x - nx * halfWidth, y, p1.z - nz * halfWidth);
-      vertices.push(p2.x + nx * halfWidth, y, p2.z + nz * halfWidth);
-      vertices.push(p2.x - nx * halfWidth, y, p2.z - nz * halfWidth);
-
-      indices.push(baseIndex + 0, baseIndex + 2, baseIndex + 1);
-      indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
-
-    const mesh = new THREE.Mesh(geo, material);
-    mesh.userData = { roadId: road.id, type: "road", segment: seg };
-    group.add(mesh);
-  });
-
-  group.userData = { roadId: road.id, type: "road" };
-  return group;
+  return mesh;
 }
 
 function createBuildingMesh(building) {
@@ -1141,6 +1148,30 @@ function addNewBuilding() {
   autoSave();
 
   updateStatus(`「${name}」を追加しました`);
+}
+
+function addNewRoad() {
+  const id = "road_" + Date.now();
+  // 画面中央付近にデフォルトパスを作成
+  const newRoad = {
+    id: id,
+    width: 4.0,
+    path: [
+      { x: -10, z: 0 },
+      { x: 10, z: 0 },
+    ],
+    color: 0x555555,
+  };
+
+  roads.push(newRoad);
+  const mesh = createRoadMesh(newRoad);
+  scene.add(mesh);
+  roadMeshes.push(mesh);
+
+  // 選択状態にする (まだ実装してないのでログだけ)
+  console.log("New road created:", newRoad);
+  updateStatus("新しい道路を追加しました");
+  autoSave();
 }
 
 function deleteSelectedBuilding() {
@@ -1752,7 +1783,6 @@ function toggleVertexEditMode() {
   }
 
   vertexEditMode = !vertexEditMode;
-  isRoadEditMode = vertexEditMode;
   const btn = document.getElementById("btn-edit-vertex");
 
   if (vertexEditMode) {
@@ -1795,7 +1825,18 @@ function createVertexHandles() {
   const handleMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
 
   if (selectedRoad) {
-    updateRoadHelpers();
+    const r = selectedRoad;
+    r.path.forEach((pt, index) => {
+      const handle = new THREE.Mesh(handleGeo.clone(), handleMat.clone());
+      handle.position.set(pt.x, 0.5, pt.z); // 地面より少し上
+      handle.userData = {
+        type: "vertex",
+        index: index,
+        roadId: r.id,
+      };
+      scene.add(handle);
+      vertexHandles.push(handle);
+    });
     return;
   }
 
@@ -2684,303 +2725,3 @@ function animate() {
 // 起動
 // ===================================
 document.addEventListener("DOMContentLoaded", init);
-
-// ==========================================
-// 道路ツール制御・インタラクション (v0.4.0)
-// ==========================================
-
-function addNewRoad() {
-  const id = "road-" + Date.now();
-  // 初期状態: 2頂点の直線道路
-  const n1 = { id: 1, x: -10, z: 0, kind: "node" };
-  const n2 = { id: 2, x: 10, z: 0, kind: "node" };
-  const road = {
-    id: id,
-    width: 6,
-    nodes: [n1, n2],
-    segments: [{ from: 1, to: 2, control: null }],
-    color: 0x555555,
-  };
-
-  roads.push(road);
-  createRoads();
-
-  const mesh = roadMeshes.find((m) => m.userData.roadId === id);
-  if (mesh) {
-    selectRoad(road, mesh);
-    setRoadTool(RoadTool.LINE);
-    setCameraView("2d");
-    updateStatus("新規道路: 直線ツール選択中 (2D視点モード)");
-
-    if (selectedRoad) {
-      document.getElementById("prop-width").value = selectedRoad.width || 6;
-    }
-  }
-}
-
-function setRoadTool(tool) {
-  currentRoadTool = tool;
-
-  document
-    .getElementById("btn-tool-line")
-    .classList.toggle("active", tool === RoadTool.LINE);
-  document
-    .getElementById("btn-tool-curve")
-    .classList.toggle("active", tool === RoadTool.CURVE);
-  document
-    .getElementById("btn-tool-edit")
-    .classList.toggle("active", tool === RoadTool.EDIT);
-
-  roadEditState = 0;
-  roadActiveStartNode = null;
-  roadCurveStartNode = null;
-  roadCurveEndNode = null;
-  roadCurveControlNode = null;
-  roadHoverItem = null;
-  roadDraggingItem = null;
-
-  if (roadPreviewMesh) {
-    scene.remove(roadPreviewMesh);
-    roadPreviewMesh = null;
-  }
-
-  updateRoadHelpers();
-  updateStatus(`道路ツール: ${tool}モード`);
-}
-
-function setCameraView(mode) {
-  const btn2d = document.getElementById("btn-view-2d");
-  const btn3d = document.getElementById("btn-view-3d");
-
-  if (mode === "2d") {
-    const target = controls.target.clone();
-    camera.position.set(target.x, 200, target.z);
-    camera.lookAt(target);
-    controls.enableRotate = false;
-    btn2d.style.display = "none";
-    btn3d.style.display = "flex";
-    if (gridHelper) gridHelper.visible = true;
-    updateStatus("2D視点: 平面編集モード");
-  } else {
-    const target = controls.target.clone();
-    camera.position.set(target.x, 100, target.z + 100);
-    camera.lookAt(target);
-    controls.enableRotate = true;
-    btn2d.style.display = "flex";
-    btn3d.style.display = "none";
-    updateStatus("3D視点に戻りました");
-  }
-}
-
-function updateRoadHelpers() {
-  roadHelpers.forEach((h) => scene.remove(h));
-  roadHelpers = [];
-
-  if (!selectedRoad) return;
-
-  selectedRoad.nodes.forEach((node) => {
-    const color = node.kind === "node" ? 0x63b3ff : 0xffcc66;
-    const size = node.kind === "node" ? 1.0 : 0.8;
-
-    const g = new THREE.SphereGeometry(size, 8, 8);
-    const m = new THREE.MeshBasicMaterial({ color: color, depthTest: false });
-    const mesh = new THREE.Mesh(g, m);
-    mesh.position.set(node.x, 0.5, node.z);
-    mesh.userData = { type: "road-helper", kind: node.kind, node: node };
-    mesh.renderOrder = 999;
-    scene.add(mesh);
-    roadHelpers.push(mesh);
-  });
-
-  selectedRoad.segments.forEach((seg) => {
-    if (!seg.control) return;
-    const n1 = selectedRoad.nodes.find((n) => n.id === seg.from);
-    const n2 = selectedRoad.nodes.find((n) => n.id === seg.to);
-    const c = selectedRoad.nodes.find((n) => n.id === seg.control);
-    if (!n1 || !n2 || !c) return;
-
-    const pts = [
-      new THREE.Vector3(n1.x, 0.2, n1.z),
-      new THREE.Vector3(c.x, 0.2, c.z),
-      new THREE.Vector3(n2.x, 0.2, n2.z),
-    ];
-    const g = new THREE.BufferGeometry().setFromPoints(pts);
-    const m = new THREE.LineBasicMaterial({
-      color: 0xffcc66,
-      opacity: 0.5,
-      transparent: true,
-    });
-    const line = new THREE.Line(g, m);
-    scene.add(line);
-    roadHelpers.push(line);
-  });
-}
-
-function setupRoadToolInteractions() {
-  const canvas = renderer.domElement;
-
-  canvas.addEventListener("pointerdown", onRoadPointerDown);
-  canvas.addEventListener("pointermove", onRoadPointerMove);
-  canvas.addEventListener("pointerup", onRoadPointerUp);
-
-  function getSnapPosition(x, z) {
-    if (!snapEnabled) return { x, z };
-    return {
-      x: Math.round(x / snapSize) * snapSize,
-      z: Math.round(z / snapSize) * snapSize,
-    };
-  }
-
-  function getMouseGroundPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(
-      scene.getObjectByName("ground"),
-    );
-    if (intersects.length > 0) {
-      return intersects[0].point;
-    }
-    return null;
-  }
-
-  function onRoadPointerDown(e) {
-    if (!selectedRoad || !isRoadEditMode) return;
-    if (e.button !== 0) return;
-
-    const p = getMouseGroundPos(e);
-    if (!p) return;
-
-    const { x, z } = getSnapPosition(p.x, p.z);
-
-    if (currentRoadTool === RoadTool.EDIT) {
-      let best = null;
-      let minDist = 2.0;
-
-      selectedRoad.nodes.forEach((n) => {
-        const d = Math.sqrt((n.x - x) ** 2 + (n.z - z) ** 2);
-        if (d < minDist) {
-          minDist = d;
-          best = n;
-        }
-      });
-
-      if (best) {
-        roadDraggingItem = { node: best };
-        controls.enabled = false;
-        e.stopPropagation();
-      }
-      return;
-    }
-
-    if (currentRoadTool === RoadTool.LINE) {
-      if (!roadActiveStartNode) {
-        const newNode = { id: Date.now(), x, z, kind: "node" };
-        selectedRoad.nodes.push(newNode);
-        roadActiveStartNode = newNode;
-        updateRoadHelpers();
-      } else {
-        const newNode = { id: Date.now(), x, z, kind: "node" };
-        selectedRoad.nodes.push(newNode);
-        selectedRoad.segments.push({
-          from: roadActiveStartNode.id,
-          to: newNode.id,
-          control: null,
-        });
-        roadActiveStartNode = newNode;
-        refreshRoadMesh();
-        updateRoadHelpers();
-      }
-    }
-
-    if (currentRoadTool === RoadTool.CURVE) {
-      if (roadEditState === 0) {
-        const newNode = { id: Date.now(), x, z, kind: "node" };
-        selectedRoad.nodes.push(newNode);
-        roadCurveStartNode = newNode;
-        roadEditState = 1;
-        updateRoadHelpers();
-      } else if (roadEditState === 1) {
-        const newNode = { id: Date.now(), x, z, kind: "node" };
-        selectedRoad.nodes.push(newNode);
-        roadCurveEndNode = newNode;
-
-        const cx = (roadCurveStartNode.x + newNode.x) / 2;
-        const cz = (roadCurveStartNode.z + newNode.z) / 2;
-        const cNode = { id: Date.now() + 1, x: cx, z: cz, kind: "control" };
-        selectedRoad.nodes.push(cNode);
-        roadCurveControlNode = cNode;
-
-        roadEditState = 2;
-        updateRoadHelpers();
-      } else if (roadEditState === 2) {
-        selectedRoad.segments.push({
-          from: roadCurveStartNode.id,
-          to: roadCurveEndNode.id,
-          control: roadCurveControlNode.id,
-        });
-        roadCurveStartNode = roadCurveEndNode;
-        roadEditState = 1;
-        roadCurveEndNode = null;
-        roadCurveControlNode = null;
-        refreshRoadMesh();
-        updateRoadHelpers();
-      }
-    }
-  }
-
-  function onRoadPointerMove(e) {
-    if (!selectedRoad || !isRoadEditMode) return;
-    const p = getMouseGroundPos(e);
-    if (!p) return;
-
-    if (currentRoadTool === RoadTool.EDIT && roadDraggingItem) {
-      const { x, z } = getSnapPosition(p.x, p.z);
-      roadDraggingItem.node.x = x;
-      roadDraggingItem.node.z = z;
-      refreshRoadMesh();
-      updateRoadHelpers();
-      return;
-    }
-
-    if (
-      currentRoadTool === RoadTool.CURVE &&
-      roadEditState === 2 &&
-      roadCurveControlNode
-    ) {
-      roadCurveControlNode.x = p.x;
-      roadCurveControlNode.z = p.z;
-      updateRoadHelpers();
-      refreshRoadMesh();
-    }
-  }
-
-  function onRoadPointerUp(e) {
-    if (roadDraggingItem) {
-      roadDraggingItem = null;
-      controls.enabled = true;
-      saveToLocalStorage();
-    }
-  }
-
-  function refreshRoadMesh() {
-    if (!selectedRoad) return;
-    const index = roadMeshes.findIndex(
-      (m) => m.userData.roadId === selectedRoad.id,
-    );
-    if (index >= 0) {
-      scene.remove(roadMeshes[index]);
-    }
-    const newMesh = createRoadMesh(selectedRoad);
-    if (newMesh) {
-      scene.add(newMesh);
-      if (index >= 0) roadMeshes[index] = newMesh;
-      else roadMeshes.push(newMesh);
-      selectedRoadMesh = newMesh;
-    }
-  }
-}
-
-// 初期化
-setupRoadToolInteractions();

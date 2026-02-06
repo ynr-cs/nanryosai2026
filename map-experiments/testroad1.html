@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>2D Road Tool Prototype (Canvas / Vanilla JS)</title>
+    <style>
+      :root {
+        --bg: #0f1420;
+        --panel: #141c2b;
+        --panel2: #101829;
+        --text: #e8eefc;
+        --muted: #9fb0d0;
+        --accent: #63b3ff;
+        --accent2: #7cffb2;
+        --warn: #ffcc66;
+        --danger: #ff6b7a;
+        --grid1: rgba(255, 255, 255, 0.06);
+        --grid2: rgba(255, 255, 255, 0.1);
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Noto Sans JP",
+          sans-serif;
+      }
+      #topbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: linear-gradient(
+          to bottom,
+          rgba(20, 28, 43, 0.95),
+          rgba(20, 28, 43, 0.75)
+        );
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(6px);
+        z-index: 10;
+        user-select: none;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(16, 24, 41, 0.7);
+        color: var(--text);
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      .btn:hover {
+        border-color: rgba(99, 179, 255, 0.5);
+      }
+      .btn.active {
+        border-color: rgba(99, 179, 255, 0.9);
+        box-shadow: 0 0 0 2px rgba(99, 179, 255, 0.15) inset;
+      }
+      .sep {
+        width: 1px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 2px;
+      }
+      #hint {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.25;
+      }
+      #hint code {
+        color: #dbe7ff;
+      }
+      canvas {
+        display: block;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #legend {
+        position: fixed;
+        right: 12px;
+        top: 58px;
+        background: rgba(20, 28, 43, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 10px 12px;
+        max-width: 360px;
+        z-index: 9;
+        font-size: 12px;
+        color: var(--muted);
+        user-select: none;
+      }
+      #legend b {
+        color: var(--text);
+      }
+      #legend .k {
+        display: inline-block;
+        min-width: 130px;
+        color: #cfe0ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="topbar">
+      <button id="btnLine" class="btn active">直線モード</button>
+      <button id="btnCurve" class="btn">曲線モード</button>
+      <button id="btnEdit" class="btn">編集モード</button>
+      <div class="sep"></div>
+      <div id="hint">
+        <div>
+          <b>操作</b>：クリックで確定 / ドラッグで移動（編集） /
+          <code>Esc</code> でキャンセル / 右クリックでもキャンセル
+        </div>
+        <div>
+          スナップ：近い既存ノードに吸着（<code>Shift</code> 押しながらで無効）
+        </div>
+      </div>
+    </div>
+
+    <div id="legend">
+      <div style="margin-bottom: 6px"><b>表示</b></div>
+      <div><span class="k">白太線</span>確定した道路</div>
+      <div>
+        <span class="k" style="color: #c8ffd9">緑のゴースト</span>プレビュー
+      </div>
+      <div>
+        <span class="k" style="color: #cfe0ff">青ノード</span
+        >道路の始点/終点（ジャンクション）
+      </div>
+      <div>
+        <span class="k" style="color: #ffd7a8">橙ハンドル</span
+        >カーブ制御点（編集可能）
+      </div>
+    </div>
+
+    <canvas id="c"></canvas>
+
+    <script>
+      (() => {
+        /** =========================
+         *  Canvas setup (HiDPI)
+         *  ========================= */
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+          const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+          const w = Math.floor(window.innerWidth * dpr);
+          const h = Math.floor(window.innerHeight * dpr);
+          canvas.width = w;
+          canvas.height = h;
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = window.innerHeight + "px";
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+        }
+        window.addEventListener("resize", resize, { passive: true });
+        resize();
+
+        /** =========================
+         *  Data structures
+         *  Node: point with position
+         *  Segment: line or quadratic bezier (1 control)
+         *  ========================= */
+        let nextId = 1;
+
+        class Node {
+          constructor(x, y, kind = "node") {
+            this.id = nextId++;
+            this.x = x;
+            this.y = y;
+            this.kind = kind; // 'node' (junction) or 'control'
+          }
+        }
+
+        class Segment {
+          // If control is null => straight line
+          constructor(a, b, control = null) {
+            this.a = a; // Node (junction)
+            this.b = b; // Node (junction)
+            this.control = control; // Node (control) or null
+          }
+          isCurve() {
+            return !!this.control;
+          }
+        }
+
+        /** All nodes (junction + control). Junction nodes are used for snapping. */
+        const nodes = [];
+        const segments = [];
+
+        /** =========================
+         *  Tool states
+         *  ========================= */
+        const Tool = Object.freeze({
+          LINE: "line",
+          CURVE: "curve",
+          EDIT: "edit",
+        });
+        let tool = Tool.LINE;
+
+        // Common pointer positions:
+        const pointer = {
+          rawX: 0,
+          rawY: 0, // latest pointer in canvas space
+          targetX: 0,
+          targetY: 0, // after snapping
+          smoothX: 0,
+          smoothY: 0, // damped position for "吸い付く" feel
+          down: false,
+          shift: false,
+          button: 0,
+        };
+
+        // LINE tool: click start -> preview -> click end -> confirm (repeat)
+        let lineState = 0; // 0 waiting start, 1 placing end
+        let activeStart = null;
+
+        // CURVE tool: click start -> click end -> move to set control -> click confirm (repeat)
+        let curveState = 0; // 0 waiting start, 1 placing end, 2 adjusting control
+        let curveStart = null;
+        let curveEnd = null;
+        let curveControl = null;
+
+        // EDIT tool drag:
+        let dragging = null; // { node, kind:'node'|'control', ox, oy }
+        let hover = null; // { node, dist }
+
+        /** =========================
+         *  UX helpers (snapping + smoothing)
+         *  ========================= */
+        const SNAP_R = 14; // px
+        const HIT_R_NODE = 12; // px (edit hit test)
+        const HIT_R_CTRL = 10; // px
+
+        function dist2(ax, ay, bx, by) {
+          const dx = ax - bx,
+            dy = ay - by;
+          return dx * dx + dy * dy;
+        }
+
+        function lerp(a, b, t) {
+          return a + (b - a) * t;
+        }
+
+        // Find nearest junction node (kind==='node') within radius
+        function findSnapNode(x, y, radius = SNAP_R) {
+          const r2 = radius * radius;
+          let best = null;
+          let bestD2 = r2;
+          for (const n of nodes) {
+            if (n.kind !== "node") continue;
+            const d2 = dist2(x, y, n.x, n.y);
+            if (d2 <= bestD2) {
+              bestD2 = d2;
+              best = n;
+            }
+          }
+          return best;
+        }
+
+        // Hit test nodes for editing (prefer junction nodes first, then control points)
+        function hitTestAny(x, y) {
+          let best = null;
+
+          // 1) Junction nodes
+          let bestD2 = HIT_R_NODE * HIT_R_NODE;
+          for (const n of nodes) {
+            if (n.kind !== "node") continue;
+            const d2 = dist2(x, y, n.x, n.y);
+            if (d2 <= bestD2) {
+              bestD2 = d2;
+              best = n;
+            }
+          }
+          if (best) return { node: best, kind: "node", d2: bestD2 };
+
+          // 2) Control nodes
+          best = null;
+          bestD2 = HIT_R_CTRL * HIT_R_CTRL;
+          for (const n of nodes) {
+            if (n.kind !== "control") continue;
+            const d2 = dist2(x, y, n.x, n.y);
+            if (d2 <= bestD2) {
+              bestD2 = d2;
+              best = n;
+            }
+          }
+          if (best) return { node: best, kind: "control", d2: bestD2 };
+
+          return null;
+        }
+
+        // Create or reuse a junction node at (x,y) based on snap (unless shift pressed)
+        function getOrCreateJunction(x, y) {
+          if (!pointer.shift) {
+            const s = findSnapNode(x, y, SNAP_R);
+            if (s) return s;
+          }
+          const n = new Node(x, y, "node");
+          nodes.push(n);
+          return n;
+        }
+
+        /** =========================
+         *  UI: tool buttons
+         *  ========================= */
+        const btnLine = document.getElementById("btnLine");
+        const btnCurve = document.getElementById("btnCurve");
+        const btnEdit = document.getElementById("btnEdit");
+
+        function setTool(t) {
+          tool = t;
+          btnLine.classList.toggle("active", tool === Tool.LINE);
+          btnCurve.classList.toggle("active", tool === Tool.CURVE);
+          btnEdit.classList.toggle("active", tool === Tool.EDIT);
+
+          // Cancel any in-progress placement/drag for clean transitions
+          cancelPlacement();
+          dragging = null;
+        }
+
+        btnLine.addEventListener("click", () => setTool(Tool.LINE));
+        btnCurve.addEventListener("click", () => setTool(Tool.CURVE));
+        btnEdit.addEventListener("click", () => setTool(Tool.EDIT));
+
+        function cancelPlacement() {
+          lineState = 0;
+          activeStart = null;
+          curveState = 0;
+          curveStart = null;
+          curveEnd = null;
+          curveControl = null;
+        }
+
+        /** =========================
+         *  Pointer / keyboard events
+         *  ========================= */
+        function canvasPosFromEvent(e) {
+          // Canvas is full-screen in CSS pixels; ctx is already scaled for DPR.
+          return { x: e.clientX, y: e.clientY };
+        }
+
+        window.addEventListener(
+          "pointermove",
+          (e) => {
+            const p = canvasPosFromEvent(e);
+            pointer.rawX = p.x;
+            pointer.rawY = p.y;
+            pointer.shift = e.shiftKey;
+
+            // While dragging in edit mode, update immediately (snappy)
+            if (tool === Tool.EDIT && dragging) {
+              const tx = p.x - dragging.ox;
+              const ty = p.y - dragging.oy;
+
+              // Optional snapping for junction nodes (not controls)
+              if (dragging.kind === "node" && !pointer.shift) {
+                const s = findSnapNode(tx, ty, SNAP_R);
+                if (s && s !== dragging.node) {
+                  dragging.node.x = s.x;
+                  dragging.node.y = s.y;
+                  return;
+                }
+              }
+              dragging.node.x = tx;
+              dragging.node.y = ty;
+            }
+          },
+          { passive: true },
+        );
+
+        window.addEventListener("pointerdown", (e) => {
+          // Right click used for cancel; prevent context menu
+          if (e.button === 2) e.preventDefault();
+
+          const p = canvasPosFromEvent(e);
+          pointer.rawX = p.x;
+          pointer.rawY = p.y;
+          pointer.down = true;
+          pointer.button = e.button;
+          pointer.shift = e.shiftKey;
+
+          if (e.button === 2) {
+            // right click => cancel placement/drag
+            cancelPlacement();
+            dragging = null;
+            return;
+          }
+
+          if (tool === Tool.EDIT) {
+            const hit = hitTestAny(p.x, p.y);
+            hover = hit;
+            if (hit) {
+              // Store offset to keep relative grab position
+              dragging = {
+                node: hit.node,
+                kind: hit.kind,
+                ox: p.x - hit.node.x,
+                oy: p.y - hit.node.y,
+              };
+            }
+            return;
+          }
+
+          if (tool === Tool.LINE) {
+            handleLineClick(p.x, p.y);
+            return;
+          }
+
+          if (tool === Tool.CURVE) {
+            handleCurveClick(p.x, p.y);
+            return;
+          }
+        });
+
+        window.addEventListener(
+          "pointerup",
+          () => {
+            pointer.down = false;
+            pointer.button = 0;
+            dragging = null;
+          },
+          { passive: true },
+        );
+
+        window.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        window.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            cancelPlacement();
+            dragging = null;
+          }
+        });
+
+        /** =========================
+         *  Tool logic
+         *  ========================= */
+        function handleLineClick(x, y) {
+          // Apply snap on click by using getOrCreateJunction()
+          if (lineState === 0) {
+            activeStart = getOrCreateJunction(x, y);
+            lineState = 1;
+          } else {
+            const end = getOrCreateJunction(x, y);
+            // Avoid zero-length segment
+            if (end !== activeStart) {
+              segments.push(new Segment(activeStart, end, null));
+              activeStart = end; // chain creation: next segment starts at previous end
+            }
+            lineState = 1;
+          }
+        }
+
+        function handleCurveClick(x, y) {
+          if (curveState === 0) {
+            curveStart = getOrCreateJunction(x, y);
+            curveState = 1;
+            curveEnd = null;
+            curveControl = null;
+          } else if (curveState === 1) {
+            curveEnd = getOrCreateJunction(x, y);
+            if (curveEnd === curveStart) return;
+
+            // Create a default control point (midpoint) first, then user adjusts in state 2
+            const mx = (curveStart.x + curveEnd.x) * 0.5;
+            const my = (curveStart.y + curveEnd.y) * 0.5;
+            curveControl = new Node(mx, my, "control");
+            nodes.push(curveControl);
+
+            curveState = 2;
+          } else if (curveState === 2) {
+            // Confirm curve segment with current control point location
+            segments.push(new Segment(curveStart, curveEnd, curveControl));
+
+            // Chain creation: next curve begins at last end
+            curveStart = curveEnd;
+            curveEnd = null;
+
+            // New control will be created after next end click
+            curveControl = null;
+            curveState = 1;
+          }
+        }
+
+        /** =========================
+         *  Curve control dynamics (preview)
+         *  =========================
+         * We use a 2nd click to fix end, then mouse movement sets the control handle.
+         * This gives a "Cities: Skylines-ish" feeling: endpoints are stable, curvature is adjusted.
+         */
+        function updateCurveControlFromPointer() {
+          if (tool !== Tool.CURVE) return;
+          if (curveState !== 2 || !curveControl || !curveStart || !curveEnd)
+            return;
+
+          // Control follows the smoothed pointer (no snapping by default; Shift keeps as-is too)
+          curveControl.x = pointer.smoothX;
+          curveControl.y = pointer.smoothY;
+        }
+
+        /** =========================
+         *  Drawing helpers
+         *  ========================= */
+        function drawGrid() {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          ctx.save();
+          ctx.clearRect(0, 0, w, h);
+
+          // background
+          ctx.fillStyle = "#0f1420";
+          ctx.fillRect(0, 0, w, h);
+
+          // grid (minor/major)
+          const minor = 24;
+          const major = 120;
+
+          ctx.beginPath();
+          for (let x = 0; x <= w; x += minor) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+          }
+          for (let y = 0; y <= h; y += minor) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+          }
+          ctx.strokeStyle = "rgba(255,255,255,0.05)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.beginPath();
+          for (let x = 0; x <= w; x += major) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+          }
+          for (let y = 0; y <= h; y += major) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+          }
+          ctx.strokeStyle = "rgba(255,255,255,0.09)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        function strokeRoadPath(pathFn, style) {
+          ctx.save();
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.strokeStyle = style.stroke || "#eaf2ff";
+          ctx.lineWidth = style.width || 10;
+          ctx.globalAlpha = style.alpha ?? 1;
+
+          if (style.dash) ctx.setLineDash(style.dash);
+          else ctx.setLineDash([]);
+          if (style.shadow) {
+            ctx.shadowColor = style.shadow.color;
+            ctx.shadowBlur = style.shadow.blur;
+          } else {
+            ctx.shadowBlur = 0;
+          }
+
+          ctx.beginPath();
+          pathFn(ctx);
+          ctx.stroke();
+
+          // Inner line for road lane highlight
+          if (style.inner) {
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = (style.alpha ?? 1) * 0.85;
+            ctx.strokeStyle = style.inner.stroke;
+            ctx.lineWidth = style.inner.width;
+            ctx.setLineDash(style.inner.dash ?? []);
+            ctx.beginPath();
+            pathFn(ctx);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+
+        function segmentPathFn(seg) {
+          return (g) => {
+            g.moveTo(seg.a.x, seg.a.y);
+            if (seg.isCurve()) {
+              g.quadraticCurveTo(
+                seg.control.x,
+                seg.control.y,
+                seg.b.x,
+                seg.b.y,
+              );
+            } else {
+              g.lineTo(seg.b.x, seg.b.y);
+            }
+          };
+        }
+
+        function drawSegments() {
+          // Draw confirmed roads
+          for (const seg of segments) {
+            strokeRoadPath(segmentPathFn(seg), {
+              width: 12,
+              stroke: "rgba(235,244,255,0.95)",
+              shadow: { color: "rgba(0,0,0,0.45)", blur: 8 },
+              inner: { width: 4, stroke: "rgba(20,28,43,0.55)" },
+            });
+          }
+        }
+
+        function drawGhost() {
+          // Preview "ghost" depending on current tool/state
+          const gx = pointer.smoothX,
+            gy = pointer.smoothY;
+
+          if (tool === Tool.LINE) {
+            if (lineState === 1 && activeStart) {
+              const end = !pointer.shift
+                ? findSnapNode(pointer.rawX, pointer.rawY) || { x: gx, y: gy }
+                : { x: gx, y: gy };
+              strokeRoadPath(
+                (g) => {
+                  g.moveTo(activeStart.x, activeStart.y);
+                  g.lineTo(end.x, end.y);
+                },
+                {
+                  width: 12,
+                  stroke: "rgba(124,255,178,0.55)",
+                  dash: [10, 10],
+                  inner: {
+                    width: 4,
+                    stroke: "rgba(10,18,28,0.35)",
+                    dash: [6, 10],
+                  },
+                },
+              );
+            }
+          }
+
+          if (tool === Tool.CURVE) {
+            if (curveState === 1 && curveStart) {
+              // Start fixed, end is pointer. Show "default" curve with control at midpoint.
+              const end = !pointer.shift
+                ? findSnapNode(pointer.rawX, pointer.rawY) || { x: gx, y: gy }
+                : { x: gx, y: gy };
+              const cx = (curveStart.x + end.x) * 0.5;
+              const cy = (curveStart.y + end.y) * 0.5;
+              strokeRoadPath(
+                (g) => {
+                  g.moveTo(curveStart.x, curveStart.y);
+                  g.quadraticCurveTo(cx, cy, end.x, end.y);
+                },
+                {
+                  width: 12,
+                  stroke: "rgba(124,255,178,0.55)",
+                  dash: [10, 10],
+                  inner: {
+                    width: 4,
+                    stroke: "rgba(10,18,28,0.35)",
+                    dash: [6, 10],
+                  },
+                },
+              );
+
+              // Show a faint handle point at default control
+              drawPoint(cx, cy, 6, "rgba(255,215,168,0.55)", "rgba(0,0,0,0.0)");
+            }
+
+            if (curveState === 2 && curveStart && curveEnd && curveControl) {
+              strokeRoadPath(
+                (g) => {
+                  g.moveTo(curveStart.x, curveStart.y);
+                  g.quadraticCurveTo(
+                    curveControl.x,
+                    curveControl.y,
+                    curveEnd.x,
+                    curveEnd.y,
+                  );
+                },
+                {
+                  width: 12,
+                  stroke: "rgba(124,255,178,0.55)",
+                  dash: [10, 10],
+                  inner: {
+                    width: 4,
+                    stroke: "rgba(10,18,28,0.35)",
+                    dash: [6, 10],
+                  },
+                },
+              );
+
+              // draw handle lines
+              drawHandle(curveStart, curveControl, "rgba(255,215,168,0.35)");
+              drawHandle(curveEnd, curveControl, "rgba(255,215,168,0.35)");
+            }
+          }
+        }
+
+        function drawHandle(a, b, color) {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 6]);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function drawPoint(x, y, r, fill, stroke) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = fill;
+          ctx.fill();
+          if (stroke && stroke !== "rgba(0,0,0,0.0)") {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = stroke;
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function drawNodesAndControls() {
+          // Draw control handles for curve segments
+          for (const seg of segments) {
+            if (!seg.isCurve()) continue;
+            drawHandle(seg.a, seg.control, "rgba(255,215,168,0.22)");
+            drawHandle(seg.b, seg.control, "rgba(255,215,168,0.22)");
+          }
+
+          // Draw all nodes (junctions + controls)
+          for (const n of nodes) {
+            if (n.kind === "node") {
+              drawPoint(
+                n.x,
+                n.y,
+                6.5,
+                "rgba(99,179,255,0.95)",
+                "rgba(10,18,28,0.9)",
+              );
+            } else {
+              drawPoint(
+                n.x,
+                n.y,
+                5.5,
+                "rgba(255,204,102,0.92)",
+                "rgba(10,18,28,0.85)",
+              );
+            }
+          }
+
+          // Hover/selection emphasis in edit mode
+          if (tool === Tool.EDIT) {
+            const hit = hitTestAny(pointer.rawX, pointer.rawY);
+            hover = hit;
+            if (hit?.node) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(
+                hit.node.x,
+                hit.node.y,
+                hit.kind === "node" ? 14 : 12,
+                0,
+                Math.PI * 2,
+              );
+              ctx.strokeStyle = "rgba(99,179,255,0.35)";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+              ctx.restore();
+            }
+            if (dragging?.node) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(dragging.node.x, dragging.node.y, 16, 0, Math.PI * 2);
+              ctx.strokeStyle =
+                dragging.kind === "node"
+                  ? "rgba(99,179,255,0.55)"
+                  : "rgba(255,204,102,0.55)";
+              ctx.lineWidth = 3;
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+        }
+
+        function drawCursorMarker() {
+          // Visual feedback at pointer position + snap hint
+          const x = pointer.smoothX,
+            y = pointer.smoothY;
+
+          // Snap candidate
+          let snap = null;
+          if (!pointer.shift && tool !== Tool.EDIT) {
+            snap = findSnapNode(pointer.rawX, pointer.rawY, SNAP_R);
+          } else if (
+            !pointer.shift &&
+            tool === Tool.EDIT &&
+            dragging?.kind === "node"
+          ) {
+            snap = findSnapNode(
+              pointer.rawX - dragging.ox,
+              pointer.rawY - dragging.oy,
+              SNAP_R,
+            );
+          }
+
+          ctx.save();
+
+          // Outer ring
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Center
+          ctx.beginPath();
+          ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,0.45)";
+          ctx.fill();
+
+          // Snap ring highlight
+          if (snap) {
+            ctx.beginPath();
+            ctx.arc(snap.x, snap.y, 16, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(124,255,178,0.40)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+
+        /** =========================
+         *  Main loop (requestAnimationFrame)
+         *  ========================= */
+        function updatePointerSmoothing() {
+          // Build target position: snapped (for placement tools) -> smooth for "吸い付く" feel
+          let tx = pointer.rawX,
+            ty = pointer.rawY;
+
+          // For placement tools, apply magnetic snapping to junction nodes
+          if (tool === Tool.LINE || tool === Tool.CURVE) {
+            if (!pointer.shift) {
+              const s = findSnapNode(pointer.rawX, pointer.rawY, SNAP_R);
+              if (s) {
+                tx = s.x;
+                ty = s.y;
+              }
+            }
+          }
+
+          pointer.targetX = tx;
+          pointer.targetY = ty;
+
+          // Damped cursor: makes preview follow smoothly (very important for "ghost" feel)
+          const t = 0.32; // smoothing factor (0..1); smaller = more floaty
+          pointer.smoothX = lerp(pointer.smoothX, pointer.targetX, t);
+          pointer.smoothY = lerp(pointer.smoothY, pointer.targetY, t);
+        }
+
+        function tick() {
+          updatePointerSmoothing();
+          updateCurveControlFromPointer();
+
+          drawGrid();
+          drawSegments();
+          drawGhost();
+          drawNodesAndControls();
+          drawCursorMarker();
+
+          requestAnimationFrame(tick);
+        }
+        // Initialize smoothing cursor at center
+        pointer.rawX = window.innerWidth * 0.5;
+        pointer.rawY = window.innerHeight * 0.5;
+        pointer.targetX = pointer.rawX;
+        pointer.targetY = pointer.rawY;
+        pointer.smoothX = pointer.rawX;
+        pointer.smoothY = pointer.rawY;
+        requestAnimationFrame(tick);
+
+        /** =========================
+         *  Small quality-of-life: start states per tool
+         *  ========================= */
+        // If user switches tool while mid-curve, allow keeping start for chaining? Here we reset for clarity.
+        // (You can change this behavior if you want a more advanced UX.)
+      })();
+    </script>
+  </body>
+</html>

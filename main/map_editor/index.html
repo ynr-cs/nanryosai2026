@@ -77,6 +77,42 @@
           </div>
         </section>
 
+        <!-- 道路ツールサブメニュー (道路編集時のみ表示) -->
+        <div
+          id="road-tools"
+          class="tool-panel"
+          style="
+            display: none;
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+          "
+        >
+          <div class="tool-label">道路ツール</div>
+          <div class="tool-buttons">
+            <button
+              id="btn-tool-line"
+              class="btn-tool active"
+              title="直線モード"
+            >
+              <span class="material-icons">timeline</span>
+            </button>
+            <button id="btn-tool-curve" class="btn-tool" title="曲線モード">
+              <span class="material-icons">gesture</span>
+            </button>
+            <button id="btn-tool-edit" class="btn-tool" title="編集モード">
+              <span class="material-icons">edit_road</span>
+            </button>
+          </div>
+          <div class="tool-label" style="margin-top: 5px">視点</div>
+          <button id="btn-view-2d" class="btn-full">
+            <span class="material-icons">map</span> 2D視点 (真上)
+          </button>
+          <button id="btn-view-3d" class="btn-full" style="display: none">
+            <span class="material-icons">3d_rotation</span> 3D視点に戻る
+          </button>
+        </div>
+
         <!-- プロパティパネル -->
         <section class="panel" id="property-panel">
           <div class="panel-header">

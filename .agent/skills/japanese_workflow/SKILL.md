@@ -149,7 +149,7 @@ description: 日本語でのタスク管理と実装計画作成を強制する�
 
 ### メタ情報
 
-- **AIモデル**: (ここでのモデルとは、Gemini 3 Proなどの名称ではなく、Gemini,GPT,ClaudeなどのLLMを指す)
+- **AIモデル**: {Gemini | GPT | Claude} ※バージョンやモデルタイプ（Pro, Sonnet, 4o等）は含めず、主要名称のみを記述してください。
 - **筆者**: [AI or User]
 
 ### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
