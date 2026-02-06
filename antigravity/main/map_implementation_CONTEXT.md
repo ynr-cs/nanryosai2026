@@ -68,6 +68,12 @@ v0.2.9にてUI表示の堅牢性が向上しています。
   - **Chaining**: 終点が次の始点になる連続モード。
   - **Trace**: Shiftキーでスナップ無効化。
   - **Merge**: 既存ノードにスナップしてクリックした場合、新しいノードを作らす既存ノードのIDを再利用し、交差点を形成します。
+  - **Deletion (v0.5.1 / v0.2.20 Fix)**:
+    - **Robust Selection**: `getRoadIdFromHitObject` により、白線などの子要素クリックから親の道路IDを特定。
+    - **Visual Sync**: ベジェ曲線をポリライン近似して距離判定 (`getDistanceToRoadSegment`) を行い、曲線の見た目通りの位置で削除可能。
+    - **Threshold**: 道路幅に応じた動的な閾値 (`road.width / 2 + 1.0`) を採用。
+    - **Range Deletion**: 矩形が道路セグメントを横切る場合も削除されるよう、線分と矩形の交差判定を導入。
+    - **Safety**: `segments` 配列の存在チェックを厳格化し、Legacyデータ混在時のクラッシュを防止。
 
 ### 📐 座標系とPivot管理 (Critical Logic)
 

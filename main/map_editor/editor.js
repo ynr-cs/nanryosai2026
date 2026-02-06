@@ -1,7 +1,7 @@
 /**
  * Nanryosai 2026
- * Version: 0.1.0
- * Last Modified: 2026-02-05
+ * Version: 0.2.21
+ * Last Modified: 2026-02-07
  * Author: Nanryosai 2026 Project Team
  *
  * 3Dマップエディタ - メインスクリプト（押し出し機能改良版）
@@ -209,12 +209,31 @@ class RoadToolManager {
   handleEvent(type, event) {
     if (this.mode === RoadTool.EDIT) return false;
 
-    if (type === "pointerdown") this.onPointerDown(event);
-    if (type === "pointermove") this.onPointerMove(event);
-    if (type === "pointerup") this.onPointerUp(event);
-    if (type === "click" && this.mode !== RoadTool.DELETE) this.onClick(event);
-    if (type === "contextmenu") this.onRightClick(event);
-    return true;
+    if (type === "pointerdown") {
+      this.onPointerDown(event);
+      return this.mode === RoadTool.DELETE;
+    }
+    if (type === "pointermove") {
+      this.onPointerMove(event);
+      return this.mode !== RoadTool.EDIT;
+    }
+    if (type === "pointerup") {
+      this.onPointerUp(event);
+      return this.mode === RoadTool.DELETE;
+    }
+
+    // DELETEモードでもクリック（選択/解除）は透過させる
+    if (type === "click") {
+      if (this.mode === RoadTool.DELETE) return false; // クリックは上位(onClick)に任せる
+      this.onClick(event);
+      return true;
+    }
+
+    if (type === "contextmenu") {
+      this.onRightClick(event);
+      return true;
+    }
+    return false;
   }
 
   onPointerDown(event) {
@@ -230,23 +249,28 @@ class RoadToolManager {
   onPointerUp(event) {
     if (this.mode !== RoadTool.DELETE || this.state !== "selecting") return;
 
-    const pos = this.getRaycastPosition(event);
-    if (pos && this.dragStartPos) {
-      const dist = Math.hypot(
-        pos.x - this.dragStartPos.x,
-        pos.z - this.dragStartPos.z,
-      );
-      if (dist < 1.0) {
-        // 単体クリック削除
-        this.deleteRoadAt(pos);
-      } else {
-        // 範囲削除
-        this.deleteRoadsInRange(this.dragStartPos, pos);
+    try {
+      const pos = this.getRaycastPosition(event);
+      if (pos && this.dragStartPos) {
+        const dist = Math.hypot(
+          pos.x - this.dragStartPos.x,
+          pos.z - this.dragStartPos.z,
+        );
+        if (dist < 1.0) {
+          // 単体クリック削除
+          this.deleteRoadAt(pos);
+        } else {
+          // 範囲削除
+          this.deleteRoadsInRange(this.dragStartPos, pos);
+        }
       }
+    } catch (e) {
+      console.error("Road Deletion Error:", e);
+      updateStatus(`エラー: ${e.message}`);
+    } finally {
+      this.resetState();
+      controls.enabled = true;
     }
-
-    this.resetState();
-    controls.enabled = true;
   }
 
   onPointerMove(event) {
@@ -456,8 +480,14 @@ class RoadToolManager {
 
   onClick(event) {
     const rawPos = this.getRaycastPosition(event);
+
+    // 道路作成中（終点待ち）でない「待機中」かつ「編集モード」なら選択処理を行うが
+    // handleEvent で EDIT時は return false しているので、ここには通常来ない。
+    // LINE/CURVEモード時は建設を優先するため、建物・道路の選択処理（遮断）を削除。
+
     if (!rawPos) return;
 
+    // ... (以下、道路作成ロジック)
     const snapResult = this.calculateSnap(rawPos, event.shiftKey);
 
     if (this.state === "idle") {
@@ -686,33 +716,64 @@ class RoadToolManager {
   }
 
   deleteRoadAt(pos) {
-    // クリック位置に最も近いセグメントを探して削除
-    const threshold = 2.0;
-    let deleted = false;
+    let deletedAny = false;
 
     roads.forEach((road) => {
-      const remainingSegments = road.segments.filter((seg) => {
+      // Legacyデータ防御
+      if (!road || !road.segments || !road.nodes) return;
+
+      // 道路幅に応じた閾値 (デフォルト 4.0m)
+      const roadWidth = road.width ?? 4.0;
+      const threshold = roadWidth / 2 + 1.0; // 端 + 1m の余裕
+
+      const initialCount = road.segments.length;
+      road.segments = road.segments.filter((seg) => {
         const n1 = road.nodes.find((n) => n.id === seg.from);
         const n2 = road.nodes.find((n) => n.id === seg.to);
-        if (!n1 || !n2) return false;
+        if (!n1 || !n2) return false; // 壊れたセグメントは削除
 
-        // 線分と点の距離
-        const dist = this.pointToSegmentDistance(pos, n1, n2);
-        if (dist < threshold) {
-          deleted = true;
-          return false; // 削除
+        let dist;
+        if (seg.control) {
+          const c = road.nodes.find((n) => n.id === seg.control);
+          dist = this.getDistanceToRoadSegment(pos, n1, n2, c);
+        } else {
+          dist = this.getDistanceToRoadSegment(pos, n1, n2, null);
+        }
+
+        // <= に変更 (等価も消す)
+        if (dist <= threshold) {
+          deletedAny = true;
+          return false;
         }
         return true;
       });
 
-      if (road.segments.length !== remainingSegments.length) {
-        road.segments = remainingSegments;
+      if (road.segments.length !== initialCount) {
         this.cleanupOrphanNodes(road);
-        this.refreshRoadMesh(road);
       }
     });
 
-    if (deleted) {
+    if (deletedAny) {
+      // セグメントが空になった道路を完全に削除
+      // セグメントが空になった道路を完全に削除
+      for (let i = roads.length - 1; i >= 0; i--) {
+        const r = roads[i];
+        const segs = r && Array.isArray(r.segments) ? r.segments : null;
+
+        // Legacyデータは本来マイグレーションすべきだが、ここでは「触らぬ神に祟りなし」でスキップ
+        if (!segs) continue;
+
+        if (segs.length === 0) {
+          if (selectedRoad === r) {
+            selectedRoad = null;
+            selectedRoadMesh = null; // グローバル変数
+            const toolsPanel = document.getElementById("road-tools");
+            if (toolsPanel) toolsPanel.style.display = "none";
+          }
+          roads.splice(i, 1);
+        }
+      }
+      createRoads(); // 全体を再描画
       this.saveState();
       updateStatus("道路を削除しました");
     }
@@ -723,31 +784,58 @@ class RoadToolManager {
     const maxX = Math.max(p1.x, p2.x);
     const minZ = Math.min(p1.z, p2.z);
     const maxZ = Math.max(p1.z, p2.z);
-
     let deletedAny = false;
 
     roads.forEach((road) => {
+      // Legacyデータ防御
+      if (!road || !road.segments || !road.nodes) return;
+
       const initialCount = road.segments.length;
       road.segments = road.segments.filter((seg) => {
         const n1 = road.nodes.find((n) => n.id === seg.from);
         const n2 = road.nodes.find((n) => n.id === seg.to);
         if (!n1 || !n2) return false;
 
-        // セグメントの両端または一方が範囲内なら削除（より直感的なCities風）
+        // 端点が範囲内なら削除
         const inRange = (p) =>
           p.x >= minX && p.x <= maxX && p.z >= minZ && p.z <= maxZ;
-        if (inRange(n1) || inRange(n2)) return false;
+
+        if (inRange(n1) || inRange(n2)) {
+          deletedAny = true;
+          return false;
+        }
+
+        // セグメントが矩形を横切るかの判定 (Liang-Barsky簡易版)
+        if (this.segmentIntersectsRect(n1, n2, minX, minZ, maxX, maxZ)) {
+          deletedAny = true;
+          return false;
+        }
         return true;
       });
 
       if (road.segments.length !== initialCount) {
-        deletedAny = true;
         this.cleanupOrphanNodes(road);
-        this.refreshRoadMesh(road);
       }
     });
 
     if (deletedAny) {
+      // セグメントが空になった道路を完全に削除
+      for (let i = roads.length - 1; i >= 0; i--) {
+        const r = roads[i];
+        const segs = r && Array.isArray(r.segments) ? r.segments : null;
+        if (!segs) continue;
+
+        if (segs.length === 0) {
+          if (selectedRoad === r) {
+            selectedRoad = null;
+            selectedRoadMesh = null;
+            const toolsPanel = document.getElementById("road-tools");
+            if (toolsPanel) toolsPanel.style.display = "none";
+          }
+          roads.splice(i, 1);
+        }
+      }
+      createRoads(); // 全体を再描画
       this.saveState();
       updateStatus("範囲内の道路を削除しました");
     }
@@ -764,36 +852,66 @@ class RoadToolManager {
     );
   }
 
+  // 曲線対応: ベジェ曲線の点列に対して距離を判定
+  getDistanceToRoadSegment(pos, n1, n2, controlNode) {
+    if (!controlNode) {
+      return this.pointToSegmentDistance(pos, n1, n2);
+    }
+
+    // 曲線の場合、ポリライン近似して最短距離を求める
+    const curve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(n1.x, 0, n1.z),
+      new THREE.Vector3(controlNode.x, 0, controlNode.z),
+      new THREE.Vector3(n2.x, 0, n2.z),
+    );
+    const points = curve.getPoints(10); // 10分割
+    let minDist = Infinity;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const d = this.pointToSegmentDistance(pos, points[i], points[i + 1]);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+
+  // 線分と矩形の交差判定 (Cohen-Sutherland簡易版)
+  segmentIntersectsRect(p1, p2, minX, minZ, maxX, maxZ) {
+    // 4辺との交差をチェック
+    const lineIntersectsLine = (a, b, c, d) => {
+      const denom = (d.z - c.z) * (b.x - a.x) - (d.x - c.x) * (b.z - a.z);
+      if (Math.abs(denom) < 1e-10) return false;
+      const ua =
+        ((d.x - c.x) * (a.z - c.z) - (d.z - c.z) * (a.x - c.x)) / denom;
+      const ub =
+        ((b.x - a.x) * (a.z - c.z) - (b.z - a.z) * (a.x - c.x)) / denom;
+      return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+    };
+
+    const corners = [
+      { x: minX, z: minZ },
+      { x: maxX, z: minZ },
+      { x: maxX, z: maxZ },
+      { x: minX, z: maxZ },
+    ];
+
+    // 4辺との交差チェック
+    for (let i = 0; i < 4; i++) {
+      if (lineIntersectsLine(p1, p2, corners[i], corners[(i + 1) % 4])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   cleanupOrphanNodes(road) {
-    // どのセグメントにも使われていないノードを削除
+    if (!road.nodes) return;
     const usedNodeIds = new Set();
     road.segments.forEach((seg) => {
       usedNodeIds.add(seg.from);
       usedNodeIds.add(seg.to);
+      if (seg.control) usedNodeIds.add(seg.control);
     });
     road.nodes = road.nodes.filter((n) => usedNodeIds.has(n.id));
-  }
-
-  refreshRoadMesh(road) {
-    const index = roads.indexOf(road);
-    if (index === -1) return;
-
-    if (roadMeshes[index]) {
-      scene.remove(roadMeshes[index]);
-      roadMeshes[index].geometry.dispose();
-      roadMeshes[index].material.dispose();
-    }
-
-    if (road.segments.length === 0) {
-      // 全削除された場合は配列からも消す
-      roads.splice(index, 1);
-      roadMeshes.splice(index, 1);
-      if (selectedRoad === road) selectedRoad = null;
-    } else {
-      const newMesh = createRoadMesh(road);
-      scene.add(newMesh);
-      roadMeshes[index] = newMesh;
-    }
   }
 
   saveState() {
@@ -805,7 +923,7 @@ class RoadToolManager {
   createSegment(n1, n2) {
     let targetRoad = selectedRoad;
     // 既存道路が選択されていない、あるいは選択中オブジェクトが道路でない場合は新規作成
-    if (!targetRoad || !targetRoad.type === "road") {
+    if (!targetRoad || targetRoad.type !== "road") {
       targetRoad = {
         id: "road_" + Date.now(),
         type: "road",
@@ -938,11 +1056,12 @@ const DEFAULT_BUILDINGS = [
 // 初期化
 // ===================================
 function init() {
-  loadFromLocalStorage();
-
   initThreeJS();
   initControls();
   initEventListeners();
+
+  // シーン初期化後にロードしないと add でコケる
+  loadFromLocalStorage();
 
   createEnvironment();
   createBuildings();
@@ -1251,7 +1370,22 @@ function initEventListeners() {
   document
     .getElementById("btn-add-building")
     .addEventListener("click", showNewBuildingModal);
-  document.getElementById("btn-add-road").addEventListener("click", addNewRoad);
+
+  // addNewRoad は削除されたがイベントリスナーで参照されていたため、
+  // 匿名関数または新しいヘルパーでラップする
+  document.getElementById("btn-add-road").addEventListener("click", () => {
+    // 建物選択解除
+    selectBuilding(null, null);
+    selectRoad(null, null);
+    // ツールパネル表示 (roadTool.setMode 内で制御されるべきだが念のため)
+    const toolsPanel = document.getElementById("road-tools");
+    if (toolsPanel) toolsPanel.style.display = "block";
+
+    if (roadTool) {
+      roadTool.setMode(RoadTool.LINE);
+      updateStatus("道路作成: 始点をクリックしてください");
+    }
+  });
 
   // 道路ツール (v0.4.0)
   document
@@ -1704,58 +1838,54 @@ function selectBuilding(building, mesh) {
 }
 
 function selectRoad(road, mesh) {
-  if (selectedMesh && selectedMesh !== mesh) {
-    if (selectedMesh.userData.type === "road") {
-      // 古い道路の選択解除 (あり得ないかもしれないが念のため)
-      const color = (selectedRoad && selectedRoad.color) || 0x555555;
-      selectedMesh.children.forEach((child) => {
-        if (child.material) child.material.color.setHex(color);
+  // 選択解除: 既存のハイライトを戻す
+  // (現在は createRoads() で再描画されるため、ここでの色戻しは必須ではないが安全策)
+  if (selectedRoadMesh) {
+    if (selectedRoadMesh.children) {
+      selectedRoadMesh.children.forEach((child) => {
+        if (child.material && child.userData.originalColor !== undefined) {
+          child.material.color.setHex(child.userData.originalColor);
+        }
       });
-    } else {
-      // 建物の選択解除
-      if (selectedMesh.material) {
-        selectedMesh.material.emissive = new THREE.Color(0x000000);
-      }
     }
-  }
-
-  // 建物の選択解除（論理）
-  if (selectedBuilding) {
-    const bMesh = buildingMeshes.find(
-      (m) => m.userData.buildingId === selectedBuilding.id,
-    );
-    if (bMesh && bMesh.material) {
-      bMesh.material.emissive = new THREE.Color(0x000000);
-    }
-    selectedBuilding = null;
   }
 
   selectedRoad = road;
-  selectedMesh = mesh;
+  selectedRoadMesh = mesh;
 
+  // UIパネル表示切り替え
   const toolsPanel = document.getElementById("road-tools");
   if (toolsPanel) {
     toolsPanel.style.display = road ? "block" : "none";
   }
 
-  if (mesh) {
-    // 道路のハイライト: 目立つ黄色に (v0.2.11)
+  if (road && mesh) {
+    updateStatus(`道路を選択: ${road.id}`);
+
+    // ハイライト処理
     mesh.children.forEach((child) => {
       if (child.material && child.material.isMesh) {
-        child.material.emissive = new THREE.Color(0x444400); // 少し発行させる
+        // 元の色を保存していない場合は保存 (簡易的)
+        if (child.userData.originalColor === undefined) {
+          child.userData.originalColor = child.material.color.getHex();
+        }
+        child.material.emissive = new THREE.Color(0x444400);
         child.material.color.setHex(0xffeb3b);
       }
     });
-  }
 
-  if (vertexEditMode && selectedRoad) {
-    updateRoadHelpers(); // ヘルパーを表示
-  } else if (!selectedRoad) {
-    removeVertexHandles(); // ヘルパー削除
-    vertexEditMode = false;
-    document.getElementById("btn-edit-vertex").classList.remove("active");
-    document.getElementById("btn-edit-vertex").innerHTML =
-      '<span class="material-icons">edit</span>頂点編集モード';
+    if (vertexEditMode) updateRoadHelpers();
+  } else {
+    if (vertexEditMode) {
+      removeVertexHandles();
+      vertexEditMode = false;
+      const btn = document.getElementById("btn-edit-vertex");
+      if (btn) {
+        btn.classList.remove("active");
+        btn.innerHTML =
+          '<span class="material-icons">edit</span>頂点編集モード';
+      }
+    }
   }
 
   updatePropertyPanel();
@@ -1864,26 +1994,43 @@ function onClick(event) {
 
   raycaster.setFromCamera(mouse, camera);
 
-  // 1. 道路の判定
-  const roadIntersects = raycaster.intersectObjects(roadMeshes);
-  if (roadIntersects.length > 0) {
-    const mesh = roadIntersects[0].object;
-    const road = roads.find((r) => r.id === mesh.userData.roadId);
-    selectRoad(road, mesh);
-    return;
+  // 1. 建物の判定 (手前にあるものを優先したい場合もあるが、まずは建物)
+  const buildingIntersects = raycaster.intersectObjects(buildingMeshes);
+  if (buildingIntersects.length > 0) {
+    const hit = buildingIntersects[0].object;
+    const bId = hit.userData.buildingId;
+    const building = buildings.find((b) => b.id === bId);
+    if (building) {
+      selectBuilding(building, hit);
+      selectRoad(null, null);
+      if (typeof updatePropertyPanel === "function") updatePropertyPanel();
+      return;
+    }
   }
 
-  // 2. 建物の判定
-  const intersects = raycaster.intersectObjects(buildingMeshes);
-  if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    const building = buildings.find((b) => b.id === mesh.userData.buildingId);
-    selectBuilding(building, mesh);
-  } else {
-    // どちらも選択解除
-    selectBuilding(null, null);
-    selectRoad(null, null);
+  // 2. 道路の判定 (再帰的にチェック)
+  const roadIntersects = raycaster.intersectObjects(roadMeshes, true);
+  if (roadIntersects.length > 0) {
+    // ヒットしたオブジェクトの親を遡って RoadID を探す
+    const hit = roadIntersects[0].object;
+    const roadId = window.getRoadIdFromHitObject(hit);
+
+    if (roadId) {
+      const road = roads.find((r) => r.id === roadId);
+      // roadMeshes から該当のグループを探す (ハイライト用)
+      const group = roadMeshes.find((g) => g.userData.roadId === roadId);
+
+      selectRoad(road, group);
+      selectBuilding(null, null);
+      if (typeof updatePropertyPanel === "function") updatePropertyPanel();
+      return;
+    }
   }
+
+  // 3. どちらもなければ選択解除
+  selectBuilding(null, null);
+  selectRoad(null, null);
+  if (typeof updatePropertyPanel === "function") updatePropertyPanel();
 }
 
 function onDragStart(event) {
@@ -2529,16 +2676,6 @@ function loadFromLocalStorage() {
         if (data.roads && Array.isArray(data.roads)) {
           roads = data.roads;
           createRoads();
-        }
-
-        if (data.roads && Array.isArray(data.roads)) {
-          roads = data.roads;
-          createRoads();
-        }
-
-        // 背景画像の復元 (あれば)
-        if (data.background) {
-          restoreBackgroundSettings(data.background);
         }
 
         return;
@@ -3603,27 +3740,17 @@ function animate() {
 document.addEventListener("DOMContentLoaded", init);
 
 // ==========================================
-// 道路ツール制御・インタラクション (v0.5.0 Compatible)
+// 道路ツール制御・インタラクション (Modified)
 // ==========================================
 
-function addNewRoad() {
-  selectBuilding(null, null);
-  selectRoad(null, null);
+// グローバル関数は RoadToolManager へ委譲または削除
+// 互換性のため残す場合は roadTool 経由で呼び出す
 
-  const toolsPanel = document.getElementById("road-tools");
-  if (toolsPanel) toolsPanel.style.display = "block";
-
-  if (roadTool) {
-    roadTool.setMode(RoadTool.LINE);
-    updateStatus("道路作成: 始点をクリックしてください");
-  }
-}
-
-function setRoadTool(mode) {
+window.setRoadTool = function (mode) {
   if (roadTool) roadTool.setMode(mode);
-}
+};
 
-function setCameraView(mode) {
+window.setCameraView = function (mode) {
   const btn2d = document.getElementById("btn-view-2d");
   const btn3d = document.getElementById("btn-view-3d");
 
@@ -3645,8 +3772,14 @@ function setCameraView(mode) {
     btn3d.style.display = "none";
     updateStatus("3D視点に戻りました");
   }
-}
+};
 
-function setupRoadToolInteractions() {
-  console.log("Legacy setupRoadToolInteractions is removed.");
-}
+// ヘルパー: ヒットしたオブジェクトの親を遡って RoadID を取得
+window.getRoadIdFromHitObject = function (obj) {
+  let cur = obj;
+  while (cur) {
+    if (cur.userData && cur.userData.roadId) return cur.userData.roadId;
+    cur = cur.parent;
+  }
+  return null;
+};
