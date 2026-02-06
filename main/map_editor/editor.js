@@ -1,10 +1,10 @@
 /**
  * Nanryosai 2026
- * Version: 0.2.21
+ * Version: 0.2.22
  * Last Modified: 2026-02-07
  * Author: Nanryosai 2026 Project Team
  *
- * 3Dマップエディタ - メインスクリプト（押し出し機能改良版）
+ * 3Dマップエディタ - メインスクリプト（ベジェ曲線対応）
  */
 
 // ===================================
@@ -40,10 +40,15 @@ let roadTool;
 class RoadToolManager {
   constructor() {
     this.state = "idle"; // idle, dragging
-    this.mode = RoadTool.LINE; // line, curve, edit
+    this.mode = RoadTool.EDIT; // 初期モードをEDITに変更
     this.startNode = null;
     this.endNode = null;
     this.tempSegment = null; // ゴースト表示用
+
+    // ベジェ曲線モード用 (v0.2.22: Cities Skylinesスタイル)
+    this.curveState = "idle"; // idle, start, control, end
+    this.controlNode = null; // 制御点 (P1)
+    this.lastTangent = null; // 既存道路からの接線ベクトル（滑らか接続用）
 
     // スナップ設定
     this.snapDistance = 2.0; // ノードへの吸着距離
@@ -53,6 +58,8 @@ class RoadToolManager {
     this.cursorMesh = null;
     this.ghostMesh = null;
     this.tooltip = null;
+    this.guideLine = null; // ベジェ用ガイドライン（点線）
+    this.mouseDownScreenPos = new THREE.Vector2(); // クリック誤爆防止用
   }
 
   init() {
@@ -133,6 +140,21 @@ class RoadToolManager {
     this.selectionBoxMesh.visible = false;
     scene.add(this.selectionBoxMesh);
 
+    // ベジェ曲線用ガイドライン（点線）
+    const guideGeo = new THREE.BufferGeometry();
+    const guideMat = new THREE.LineDashedMaterial({
+      color: 0x3b82f6,
+      dashSize: 1.0,
+      gapSize: 0.5,
+      transparent: true,
+      opacity: 0.8,
+      depthTest: false,
+    });
+    this.guideLine = new THREE.Line(guideGeo, guideMat);
+    this.guideLine.visible = false;
+    this.guideLine.renderOrder = 998;
+    scene.add(this.guideLine);
+
     // ツールチップ
     this.tooltip = document.createElement("div");
     this.tooltip.id = "road-tooltip";
@@ -197,10 +219,15 @@ class RoadToolManager {
     this.startNode = null;
     this.endNode = null;
     this.dragStartPos = null;
+    // ベジェ曲線用の状態リセット
+    this.curveState = "idle";
+    this.controlNode = null;
+    this.lastTangent = null;
     if (this.ghostMesh) this.ghostMesh.visible = false;
     if (this.cursorMesh) this.cursorMesh.visible = false;
     if (this.nodeSnapMesh) this.nodeSnapMesh.visible = false;
     if (this.selectionBoxMesh) this.selectionBoxMesh.visible = false;
+    if (this.guideLine) this.guideLine.visible = false;
     if (this.tooltip) this.tooltip.style.display = "none";
     if (this.angleLabel) this.angleLabel.style.display = "none";
     this.clearAngleGuide();
@@ -237,8 +264,12 @@ class RoadToolManager {
   }
 
   onPointerDown(event) {
+    // クリック誤爆防止用の座標記録（全モード共通）
+    this.mouseDownScreenPos.set(event.clientX, event.clientY);
+
     if (this.mode !== RoadTool.DELETE) return;
     const pos = this.getRaycastPosition(event);
+
     if (!pos) return;
 
     this.dragStartPos = pos;
@@ -278,6 +309,7 @@ class RoadToolManager {
     if (!rawPos) {
       this.cursorMesh.visible = false;
       this.nodeSnapMesh.visible = false;
+      this.guideLine.visible = false;
       this.tooltip.style.display = "none";
       this.angleLabel.style.display = "none";
       this.clearAngleGuide();
@@ -330,6 +362,72 @@ class RoadToolManager {
     let msg = `POS: ${Math.round(x)}, ${Math.round(z)}`;
     if (snapResult.type) msg += ` [${snapResult.type}]`;
 
+    // === 曲線モード専用の表示処理 ===
+    if (this.mode === RoadTool.CURVE) {
+      if (this.curveState === "start" && this.startNode) {
+        // State 1待機中: 制御点決定
+        let targetX = x;
+        let targetZ = z;
+
+        // 接線拘束 (Cities Skylinesスタイル)
+        if (this.lastTangent && !event.shiftKey) {
+          const t = this.lastTangent;
+          const len = Math.hypot(t.x, t.z);
+          if (len > 0.01) {
+            const dx = x - this.startNode.x;
+            const dz = z - this.startNode.z;
+            const proj = (dx * t.x + dz * t.z) / (len * len);
+            // 進行方向のみに拘束 (proj > 0)
+            const clampedProj = Math.max(0.1, proj);
+            targetX = this.startNode.x + (t.x / len) * (clampedProj * len);
+            targetZ = this.startNode.z + (t.z / len) * (clampedProj * len);
+          }
+        }
+
+        this.updateGuideLine(this.startNode, { x: targetX, z: targetZ });
+        const dist = Math.hypot(
+          targetX - this.startNode.x,
+          targetZ - this.startNode.z,
+        );
+        msg += `\n直線(接線)長: ${dist.toFixed(1)}m`;
+        if (this.lastTangent) msg += " [接線拘束]";
+
+        this.ghostMesh.visible = false;
+        // 角度表示
+        this.updateAngleVisualization(this.startNode, {
+          x: targetX,
+          z: targetZ,
+        });
+      } else if (
+        this.curveState === "control" &&
+        this.startNode &&
+        this.controlNode
+      ) {
+        // State 2待機中: ベジェ曲線のリアルタイムプレビュー
+        this.updateCurveGhost(this.startNode, this.controlNode, { x, z });
+        // State 2でも制御点からマウス位置へのガイドラインを表示して視認性向上
+        this.updateGuideLine(this.controlNode, { x, z });
+
+        const curveLen = this.estimateBezierLength(
+          this.startNode,
+          this.controlNode,
+          { x, z },
+        );
+        msg += `\n曲線長: ${curveLen.toFixed(1)}m`;
+
+        // 角度表示 (制御点付近の角度)
+        this.updateAngleVisualization(this.controlNode, { x, z });
+      } else {
+        this.guideLine.visible = false;
+        this.ghostMesh.visible = false;
+        this.angleLabel.style.display = "none";
+        this.clearAngleGuide();
+      }
+      this.tooltip.innerText = msg;
+      return;
+    }
+
+    // === 直線モードの表示処理 ===
     if (this.state === "dragging" && this.startNode) {
       this.updateGhost(this.startNode, { x, z });
       const dx = x - this.startNode.x;
@@ -479,20 +577,34 @@ class RoadToolManager {
   }
 
   onClick(event) {
+    // ドラッグ操作（視点移動など）の後の誤判定を防止
+    if (this.mouseDownScreenPos) {
+      const dist = Math.hypot(
+        event.clientX - this.mouseDownScreenPos.x,
+        event.clientY - this.mouseDownScreenPos.y,
+      );
+      if (dist > 5) return; // 5px以上動いていたら「ドラッグ」とみなして無視
+    }
+
     const rawPos = this.getRaycastPosition(event);
-
-    // 道路作成中（終点待ち）でない「待機中」かつ「編集モード」なら選択処理を行うが
-    // handleEvent で EDIT時は return false しているので、ここには通常来ない。
-    // LINE/CURVEモード時は建設を優先するため、建物・道路の選択処理（遮断）を削除。
-
     if (!rawPos) return;
 
-    // ... (以下、道路作成ロジック)
+    // 曲線モード: 3ステップ入力 (Cities Skylinesスタイル)
+    if (this.mode === RoadTool.CURVE) {
+      this.onCurveClick(rawPos, event.shiftKey);
+      return;
+    }
+
+    // 直線モード: 2ステップ入力
     const snapResult = this.calculateSnap(rawPos, event.shiftKey);
 
     if (this.state === "idle") {
       this.startNode = this.resolveNode(snapResult);
       this.state = "dragging";
+      // 接線情報を取得（既存ノードにスナップした場合）
+      if (snapResult.targetNode) {
+        this.lastTangent = this.calculateTangentFromNode(snapResult.targetNode);
+      }
       updateStatus("道路作成: 終点をクリック (右クリックで待機に戻る)");
     } else if (this.state === "dragging") {
       const endNode = this.resolveNode(snapResult);
@@ -506,14 +618,95 @@ class RoadToolManager {
     }
   }
 
+  // ベジェ曲線モード専用クリックハンドラ (3ステップ入力)
+  onCurveClick(rawPos, isShiftPressed) {
+    const snapResult = this.calculateSnap(rawPos, isShiftPressed);
+
+    if (this.curveState === "idle") {
+      // State 0: 始点決定
+      this.startNode = this.resolveNode(snapResult);
+      this.curveState = "start";
+      // 接線情報を取得（既存ノードにスナップした場合）
+      if (snapResult.targetNode) {
+        this.lastTangent = this.calculateTangentFromNode(snapResult.targetNode);
+      }
+      updateStatus("曲線: 制御点をクリック（曲がり具合を決定）");
+    } else if (this.curveState === "start") {
+      // State 1: 制御点決定
+      let targetSnap = snapResult;
+
+      // 接線拘束 (Cities Skylinesスタイル)
+      if (this.lastTangent && !isShiftPressed && !snapResult.targetNode) {
+        const t = this.lastTangent;
+        const len = Math.hypot(t.x, t.z);
+        if (len > 0.01) {
+          const dx = rawPos.x - this.startNode.x;
+          const dz = rawPos.z - this.startNode.z;
+          const proj = (dx * t.x + dz * t.z) / (len * len);
+          const clampedProj = Math.max(0.1, proj);
+          targetSnap = {
+            x: this.startNode.x + (t.x / len) * (clampedProj * len),
+            z: this.startNode.z + (t.z / len) * (clampedProj * len),
+            type: "TANGENT Constraint",
+            targetNode: null,
+          };
+        }
+      }
+
+      this.controlNode = this.resolveNode(targetSnap);
+      if (this.startNode.id === this.controlNode.id) return; // 同じノードは無視
+      this.curveState = "control";
+      updateStatus("曲線: 終点をクリック（右クリックで1つ戻る）");
+    } else if (this.curveState === "control") {
+      // State 2: 終点決定 → セグメント作成
+      const endNode = this.resolveNode(snapResult);
+      if (
+        this.startNode.id === endNode.id ||
+        this.controlNode.id === endNode.id
+      )
+        return;
+
+      this.createCurveSegment(this.startNode, this.controlNode, endNode);
+
+      // 連続建設モード: 終点を次の始点に
+      this.startNode = endNode;
+      this.controlNode = null;
+      this.curveState = "start";
+      // 新しい接線を取得
+      this.lastTangent = this.calculateTangentFromNode(endNode);
+      updateStatus("曲線: 続けて制御点をクリック（右クリックで終了）");
+    }
+  }
+
   onRightClick(event) {
     event.preventDefault();
+
+    // 曲線モードの場合、状態を1つ戻す
+    if (this.mode === RoadTool.CURVE) {
+      if (this.curveState === "control") {
+        this.curveState = "start";
+        this.controlNode = null;
+        this.ghostMesh.visible = false;
+        updateStatus("曲線: 制御点をクリック（曲がり具合を決定）");
+      } else if (this.curveState === "start") {
+        this.curveState = "idle";
+        this.startNode = null;
+        this.guideLine.visible = false;
+        updateStatus("曲線: 始点をクリック");
+      } else {
+        this.setMode(RoadTool.EDIT);
+        updateStatus("道路ツール: 終了 (編集モード)");
+      }
+      return;
+    }
+
+    // 直線モード
     if (this.state === "dragging") {
       this.resetState();
-      updateStatus("道路作成: 待機中");
+      updateStatus("道路作成: 入力をリセットしました");
     } else {
-      this.setMode(RoadTool.EDIT);
-      updateStatus("道路ツール: 終了 (編集モード)");
+      // 自動でEDITモードに戻さない（ユーザーの要求）
+      updateStatus("道路作成: 待機中");
     }
   }
 
@@ -666,6 +859,7 @@ class RoadToolManager {
       end.x + nx * halfWidth,
       y,
       end.z + nz * halfWidth,
+
       end.x + nx * halfWidth,
       y,
       end.z + nz * halfWidth,
@@ -676,10 +870,16 @@ class RoadToolManager {
       y,
       end.z - nz * halfWidth,
     ];
-    this.ghostMesh.geometry.setAttribute(
+
+    // 新しいジオメトリを作成して置換（曲線モードのインデックスが残るのを防ぐ）
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(vertices, 3),
     );
+
+    this.ghostMesh.geometry.dispose();
+    this.ghostMesh.geometry = geometry;
     this.ghostMesh.geometry.computeBoundingSphere();
     this.ghostMesh.geometry.computeBoundingBox();
     this.ghostMesh.visible = true;
@@ -945,6 +1145,193 @@ class RoadToolManager {
 
     createRoads(); // 再描画
     autoSave();
+  }
+
+  // ベジェ曲線セグメントを作成 (v0.2.22)
+  createCurveSegment(n0, nControl, n1) {
+    let targetRoad = selectedRoad;
+    // 既存道路が選択されていない、あるいは選択中オブジェクトが道路でない場合は新規作成
+    if (!targetRoad || targetRoad.type !== "road") {
+      targetRoad = {
+        id: "road_" + Date.now(),
+        type: "road",
+        width: 4.0,
+        nodes: [],
+        segments: [],
+      };
+      roads.push(targetRoad);
+      selectedRoad = targetRoad;
+    }
+
+    // ノード追加（重複チェック）
+    if (!targetRoad.nodes.find((n) => n.id === n0.id))
+      targetRoad.nodes.push(n0);
+    if (!targetRoad.nodes.find((n) => n.id === nControl.id))
+      targetRoad.nodes.push(nControl);
+    if (!targetRoad.nodes.find((n) => n.id === n1.id))
+      targetRoad.nodes.push(n1);
+
+    // control フィールドに制御点のノードIDを設定
+    targetRoad.segments.push({
+      from: n0.id,
+      to: n1.id,
+      control: nControl.id,
+    });
+
+    createRoads(); // 再描画
+    autoSave();
+    updateStatus("曲線道路を作成しました");
+  }
+
+  // ガイドライン（点線）を更新
+  updateGuideLine(start, end) {
+    const positions = [start.x, 0.15, start.z, end.x, 0.15, end.z];
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+
+    this.guideLine.geometry.dispose();
+    this.guideLine.geometry = geometry;
+    this.guideLine.computeLineDistances(); // 点線の描画に必要
+    this.guideLine.visible = true;
+  }
+
+  // ベジェ曲線のゴーストプレビューを更新
+  updateCurveGhost(p0, p1, p2) {
+    const width = 4.0;
+    const segments = 16; // 曲線の分割数
+
+    const geometry = this.createBezierMeshGeometry(p0, p1, p2, width, segments);
+    if (!geometry) {
+      this.ghostMesh.visible = false;
+      return;
+    }
+
+    this.ghostMesh.geometry.dispose();
+    this.ghostMesh.geometry = geometry;
+    this.ghostMesh.geometry.computeBoundingSphere();
+    this.ghostMesh.geometry.computeBoundingBox();
+    this.ghostMesh.visible = true;
+  }
+
+  // ベジェ曲線に沿った帯状メッシュを生成
+  createBezierMeshGeometry(p0, p1, p2, width, segments) {
+    const halfWidth = width / 2;
+    const y = 0.1; // Z-fighting防止
+
+    // ベジェ曲線上の点を取得
+    const curve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(p0.x, 0, p0.z),
+      new THREE.Vector3(p1.x, 0, p1.z),
+      new THREE.Vector3(p2.x, 0, p2.z),
+    );
+    const points = curve.getPoints(segments);
+
+    if (points.length < 2) return null;
+
+    const vertices = [];
+    const indices = [];
+
+    // 各点で幅を持った頂点を生成
+    for (let i = 0; i < points.length; i++) {
+      // 接線ベクトルを計算
+      let tangent;
+      if (i === 0) {
+        tangent = points[1].clone().sub(points[0]).normalize();
+      } else if (i === points.length - 1) {
+        tangent = points[i]
+          .clone()
+          .sub(points[i - 1])
+          .normalize();
+      } else {
+        tangent = points[i + 1]
+          .clone()
+          .sub(points[i - 1])
+          .normalize();
+      }
+
+      // 法線ベクトル（XZ平面上で90度回転）
+      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+
+      // 左右の頂点
+      const left = points[i]
+        .clone()
+        .add(normal.clone().multiplyScalar(halfWidth));
+      const right = points[i]
+        .clone()
+        .add(normal.clone().multiplyScalar(-halfWidth));
+
+      vertices.push(left.x, y, left.z);
+      vertices.push(right.x, y, right.z);
+    }
+
+    // インデックスを生成（三角形ストリップ）
+    for (let i = 0; i < points.length - 1; i++) {
+      const v0 = i * 2;
+      const v1 = i * 2 + 1;
+      const v2 = (i + 1) * 2;
+      const v3 = (i + 1) * 2 + 1;
+
+      indices.push(v0, v1, v2);
+      indices.push(v1, v3, v2);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+    return geometry;
+  }
+
+  // ベジェ曲線の長さを推定
+  estimateBezierLength(p0, p1, p2) {
+    const curve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(p0.x, 0, p0.z),
+      new THREE.Vector3(p1.x, 0, p1.z),
+      new THREE.Vector3(p2.x, 0, p2.z),
+    );
+    return curve.getLength();
+  }
+
+  // ノードに接続するセグメントから接線ベクトルを取得
+  calculateTangentFromNode(node) {
+    for (const road of roads) {
+      if (!road.segments) continue;
+      for (const seg of road.segments) {
+        if (seg.from === node.id) {
+          const other = road.nodes.find((n) => n.id === seg.to);
+          if (other) {
+            if (seg.control) {
+              // 曲線の場合: 始点での接線は P1 - P0
+              const ctrl = road.nodes.find((n) => n.id === seg.control);
+              if (ctrl) return { x: ctrl.x - node.x, z: ctrl.z - node.z };
+            }
+            // 直線の場合: node -> other 方向のベクトル
+            return { x: other.x - node.x, z: other.z - node.z };
+          }
+        }
+        if (seg.to === node.id) {
+          const other = road.nodes.find((n) => n.id === seg.from);
+          if (other) {
+            if (seg.control) {
+              // 曲線の場合: 終点での接線は P2 - P1 (延長方向)
+              const ctrl = road.nodes.find((n) => n.id === seg.control);
+              if (ctrl) return { x: node.x - ctrl.x, z: node.z - ctrl.z };
+            }
+            // 直線の場合: other -> node 方向のベクトル（延長線上）
+            return { x: node.x - other.x, z: node.z - other.z };
+          }
+        }
+      }
+    }
+    return null;
   }
 
   toScreenPosition(x, y, z) {
@@ -2931,6 +3318,31 @@ function initVertexDragListeners() {
       mouse.y = -((event.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
+
+      // 頂点削除 (右クリック)
+      if (event.button === 2 && selectedBuilding) {
+        const intersects = raycaster.intersectObjects(vertexHandles);
+        if (intersects.length > 0) {
+          const handle = intersects[0].object;
+          if (handle.userData.type === "vertex") {
+            const b = selectedBuilding;
+            if (b.path.length <= 3) {
+              updateStatus("頂点削除: これ以上削除できません (最低3頂点必要)");
+              return;
+            }
+
+            const index = handle.userData.index;
+            b.path.splice(index, 1);
+
+            updateBuildingBounds(b);
+            rebuildSelectedBuilding();
+            createVertexHandles();
+            autoSave();
+            updateStatus(`頂点${index}を削除しました`);
+            return;
+          }
+        }
+      }
 
       // 押し出しプレビュー中のクリック → 確定
       if (extrudeState === "preview") {
