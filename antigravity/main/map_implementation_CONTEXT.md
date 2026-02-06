@@ -45,28 +45,28 @@ v0.2.0 (2026-02-05) より、建物の表現形式を「単純な矩形」から
 }
 ```
 
-### 🛣️ Road Object Schema (v0.4.0)
+### 🛣️ Road Object Schema (v0.5.0 / Road Tool Integration)
 
-v0.4.0 (2026-02-05) 追加。道路は「ノード (Node)」と「セグメント (Segment)」の組み合わせで表現され、2次ベジェ曲線による滑らかな曲線をサポートします。
+v0.4.0で導入された構造を維持しつつ、v0.5.0（Road Toolの高度化）により建設UXを大幅に改善しました。
 
 ```json
 {
   "id": "road-main-street",
-  "width": 6.0, // 道路幅 (メートル)
-  "color": 5592405, // (0x555555) グレー
+  "type": "road",
+  "width": 6.0,
   "nodes": [
-    { "id": 1, "x": 10.0, "z": 50.0, "kind": "node" },
-    { "id": 2, "x": 100.0, "z": 50.0, "kind": "node" },
-    { "id": 3, "x": 55.0, "z": 0.0, "kind": "control" } // 制御点
+    { "id": "node_1", "x": 10.0, "z": 50.0 },
+    { "id": "node_2", "x": 100.0, "z": 50.0 }
   ],
-  "segments": [
-    { "from": 1, "to": 2, "control": 3 } // 1から2へ、3を制御点とするベジェ曲線
-  ]
+  "segments": [{ "from": "node_1", "to": "node_2" }]
 }
 ```
 
-- **Node Kind**: `node` (頂点) または `control` (ベジェ制御点)。
-- **Segment**: `control` が `null` の場合は直線、IDが指定されている場合はそのノードを通る2次ベジェ曲線として描画されます。
+- **建設ロジック (RoadToolManager)**:
+  - **Snapping**: 1. Node (2m) > 2. Angle (90/180 deg) > 3. Grid (1m)。
+  - **Chaining**: 終点が次の始点になる連続モード。
+  - **Trace**: Shiftキーでスナップ無効化。
+  - **Merge**: 既存ノードにスナップしてクリックした場合、新しいノードを作らす既存ノードのIDを再利用し、交差点を形成します。
 
 ### 📐 座標系とPivot管理 (Critical Logic)
 
