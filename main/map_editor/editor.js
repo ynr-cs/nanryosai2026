@@ -29,7 +29,12 @@ let selectedRoad = null;
 let selectedRoadMesh = null;
 
 // 道路ツール制御 (v0.5.0: RoadTool Class Integration)
-const RoadTool = { LINE: "line", CURVE: "curve", EDIT: "edit" };
+const RoadTool = {
+  LINE: "line",
+  CURVE: "curve",
+  EDIT: "edit",
+  DELETE: "delete",
+};
 let roadTool;
 
 class RoadToolManager {
@@ -67,9 +72,9 @@ class RoadToolManager {
     // ゴーストメッシュ（半透明の道路）
     const ghostGeo = new THREE.BufferGeometry();
     const ghostMat = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
+      color: 0x00ffff,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.6,
       side: THREE.DoubleSide,
       depthTest: false,
     });
@@ -78,20 +83,71 @@ class RoadToolManager {
     this.ghostMesh.renderOrder = 1; // 地面より手前
     scene.add(this.ghostMesh);
 
+    // ノードスナップ用のマーカー (鮮やかな黄色、小さく強調)
+    const snapGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const snapMat = new THREE.MeshBasicMaterial({
+      color: 0xffeb3b,
+      transparent: true,
+      opacity: 1.0,
+      depthTest: false,
+    });
+    this.nodeSnapMesh = new THREE.Mesh(snapGeo, snapMat);
+    this.nodeSnapMesh.visible = false;
+    this.nodeSnapMesh.renderOrder = 2000; // 常に最前面
+    scene.add(this.nodeSnapMesh);
+
+    // アングル用ラベル
+    this.angleLabel = document.createElement("div");
+    this.angleLabel.id = "road-angle-label";
+    Object.assign(this.angleLabel.style, {
+      position: "absolute",
+      backgroundColor: "rgba(59, 130, 246, 0.9)",
+      color: "white",
+      padding: "2px 8px",
+      borderRadius: "12px",
+      fontSize: "12px",
+      fontWeight: "bold",
+      pointerEvents: "none",
+      display: "none",
+      zIndex: "1001",
+      border: "1px solid white",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+      fontFamily: "monospace",
+    });
+    document.body.appendChild(this.angleLabel);
+
+    // アングル表示用の3Dオブジェクト（円弧など）
+    this.angleGuideGroup = new THREE.Group();
+    scene.add(this.angleGuideGroup);
+
+    // 範囲選択用のボックス (赤)
+    const selectGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(1, 0, 1),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, 0),
+    ]);
+    const selectMat = new THREE.LineBasicMaterial({ color: 0xff4444 });
+    this.selectionBoxMesh = new THREE.Line(selectGeo, selectMat);
+    this.selectionBoxMesh.visible = false;
+    scene.add(this.selectionBoxMesh);
+
     // ツールチップ
     this.tooltip = document.createElement("div");
     this.tooltip.id = "road-tooltip";
     Object.assign(this.tooltip.style, {
       position: "absolute",
-      backgroundColor: "rgba(0,0,0,0.7)",
+      backgroundColor: "rgba(0,0,0,0.8)",
       color: "white",
-      padding: "4px 8px",
+      padding: "6px 10px",
       borderRadius: "4px",
       fontSize: "12px",
       pointerEvents: "none",
       display: "none",
       zIndex: "1000",
       whiteSpace: "pre-line", // 改行対応
+      fontFamily: "monospace",
     });
     document.body.appendChild(this.tooltip);
   }
@@ -105,25 +161,34 @@ class RoadToolManager {
     document
       .querySelectorAll(".btn-tool")
       .forEach((b) => b.classList.remove("active"));
-    const btnId =
-      mode === RoadTool.LINE
-        ? "btn-tool-line"
-        : mode === RoadTool.CURVE
-          ? "btn-tool-curve"
-          : "btn-tool-edit";
-    const btn = document.getElementById(btnId);
+    const btnIdMap = {
+      [RoadTool.LINE]: "btn-tool-line",
+      [RoadTool.CURVE]: "btn-tool-curve",
+      [RoadTool.EDIT]: "btn-tool-edit",
+      [RoadTool.DELETE]: "btn-tool-delete",
+    };
+    const btn = document.getElementById(btnIdMap[mode]);
     if (btn) btn.classList.add("active");
 
-    if (mode === RoadTool.EDIT) {
+    if (mode === RoadTool.EDIT || mode === RoadTool.DELETE) {
       this.cursorMesh.visible = false;
+      this.nodeSnapMesh.visible = false;
       this.ghostMesh.visible = false;
       this.tooltip.style.display = "none";
+      this.angleLabel.style.display = "none";
+      this.clearAngleGuide();
+    }
+    if (mode === RoadTool.DELETE) {
+      this.cursorMesh.material.color.setHex(0xff4444);
+    } else {
+      this.cursorMesh.material.color.setHex(0x3b82f6);
     }
   }
 
   getModeName(mode) {
     if (mode === RoadTool.LINE) return "直線モード";
     if (mode === RoadTool.CURVE) return "曲線モード";
+    if (mode === RoadTool.DELETE) return "削除モード";
     return "編集モード";
   }
 
@@ -131,23 +196,77 @@ class RoadToolManager {
     this.state = "idle";
     this.startNode = null;
     this.endNode = null;
+    this.dragStartPos = null;
     if (this.ghostMesh) this.ghostMesh.visible = false;
     if (this.cursorMesh) this.cursorMesh.visible = false;
+    if (this.nodeSnapMesh) this.nodeSnapMesh.visible = false;
+    if (this.selectionBoxMesh) this.selectionBoxMesh.visible = false;
     if (this.tooltip) this.tooltip.style.display = "none";
+    if (this.angleLabel) this.angleLabel.style.display = "none";
+    this.clearAngleGuide();
   }
 
   handleEvent(type, event) {
-    if (this.mode === RoadTool.EDIT) return false; // 編集モードは既存ロジックへ
+    if (this.mode === RoadTool.EDIT) return false;
 
-    if (type === "mousemove") this.onMouseMove(event);
-    if (type === "click") this.onClick(event);
+    if (type === "pointerdown") this.onPointerDown(event);
+    if (type === "pointermove") this.onPointerMove(event);
+    if (type === "pointerup") this.onPointerUp(event);
+    if (type === "click" && this.mode !== RoadTool.DELETE) this.onClick(event);
     if (type === "contextmenu") this.onRightClick(event);
-    return true; // イベント処理済み
+    return true;
   }
 
-  onMouseMove(event) {
+  onPointerDown(event) {
+    if (this.mode !== RoadTool.DELETE) return;
+    const pos = this.getRaycastPosition(event);
+    if (!pos) return;
+
+    this.dragStartPos = pos;
+    this.state = "selecting";
+    controls.enabled = false; // カメラ操作を止める
+  }
+
+  onPointerUp(event) {
+    if (this.mode !== RoadTool.DELETE || this.state !== "selecting") return;
+
+    const pos = this.getRaycastPosition(event);
+    if (pos && this.dragStartPos) {
+      const dist = Math.hypot(
+        pos.x - this.dragStartPos.x,
+        pos.z - this.dragStartPos.z,
+      );
+      if (dist < 1.0) {
+        // 単体クリック削除
+        this.deleteRoadAt(pos);
+      } else {
+        // 範囲削除
+        this.deleteRoadsInRange(this.dragStartPos, pos);
+      }
+    }
+
+    this.resetState();
+    controls.enabled = true;
+  }
+
+  onPointerMove(event) {
     const rawPos = this.getRaycastPosition(event);
     if (!rawPos) {
+      this.cursorMesh.visible = false;
+      this.nodeSnapMesh.visible = false;
+      this.tooltip.style.display = "none";
+      this.angleLabel.style.display = "none";
+      this.clearAngleGuide();
+      return;
+    }
+
+    // 範囲選択ボックスの更新
+    if (
+      this.mode === RoadTool.DELETE &&
+      this.state === "selecting" &&
+      this.dragStartPos
+    ) {
+      this.updateSelectionBox(this.dragStartPos, rawPos || rawPos); // rawPosを利用
       this.cursorMesh.visible = false;
       this.tooltip.style.display = "none";
       return;
@@ -156,28 +275,183 @@ class RoadToolManager {
     const snapResult = this.calculateSnap(rawPos, event.shiftKey);
     const { x, z } = snapResult;
 
-    // カーソル更新
-    this.cursorMesh.position.set(x, 0, z);
-    this.cursorMesh.visible = true;
+    // 削除モード中はカーソルを赤く
+    if (this.mode === RoadTool.DELETE) {
+      this.cursorMesh.position.set(x, 0, z);
+      this.cursorMesh.visible = true;
+      this.nodeSnapMesh.visible = false;
+      return;
+    }
 
-    // ツールチップ更新
+    // ノードスナップ時は専用マーカーを表示
+    if (
+      snapResult.type === "NODE Snap" ||
+      snapResult.type === "ANGLE Snap (Rel)"
+    ) {
+      this.cursorMesh.visible = false;
+      this.nodeSnapMesh.position.set(x, 0, z);
+      this.nodeSnapMesh.visible = true;
+    } else {
+      this.nodeSnapMesh.visible = false;
+      this.cursorMesh.position.set(x, 0, z);
+      this.cursorMesh.visible = true;
+    }
+
+    // ツールチップ更新 (Cities Skylines風: 座標と距離のみ)
     const screenPos = this.toScreenPosition(x, 0, z);
-    this.tooltip.style.left = screenPos.x + 15 + "px";
-    this.tooltip.style.top = screenPos.y + 15 + "px";
+    this.tooltip.style.left = screenPos.x + 20 + "px";
+    this.tooltip.style.top = screenPos.y + 20 + "px";
     this.tooltip.style.display = "block";
 
-    let msg = `X: ${Math.round(x)}, Z: ${Math.round(z)}`;
-    if (snapResult.type) msg += `\n(${snapResult.type})`;
+    let msg = `POS: ${Math.round(x)}, ${Math.round(z)}`;
+    if (snapResult.type) msg += ` [${snapResult.type}]`;
 
     if (this.state === "dragging" && this.startNode) {
       this.updateGhost(this.startNode, { x, z });
-      const dist = Math.hypot(x - this.startNode.x, z - this.startNode.z);
-      msg += `\n長さ: ${dist.toFixed(1)}m\nコスト: ¥${Math.round(dist * 1000).toLocaleString()}`;
+      const dx = x - this.startNode.x;
+      const dz = z - this.startNode.z;
+      const dist = Math.hypot(dx, dz);
+
+      msg += `\nLength: ${dist.toFixed(1)}m`;
+
+      // 角度ガイドの更新 (Cities Skylines風)
+      this.updateAngleVisualization(this.startNode, { x, z });
     } else {
       this.ghostMesh.visible = false;
+      this.angleLabel.style.display = "none";
+      this.clearAngleGuide();
     }
 
     this.tooltip.innerText = msg;
+  }
+
+  updateAngleVisualization(start, end) {
+    this.clearAngleGuide();
+
+    // 基準となるセグメント（既存道路）を探索
+    const refVector = this.findReferenceSegment(start);
+    if (!refVector) {
+      this.angleLabel.style.display = "none";
+      return;
+    }
+
+    // Cities Skylinesスタイル:
+    // vRef: startから既存道路のもう一方の端へ向かうベクトル
+    // vCurr: startからマウス位置へ向かうベクトル
+    const vRef = new THREE.Vector2(refVector.x, refVector.z).normalize();
+    const vCurr = new THREE.Vector2(
+      end.x - start.x,
+      end.z - start.z,
+    ).normalize();
+
+    // 内角を表示 (0~180度)
+    const dot = vRef.dot(vCurr);
+    const angleRad = Math.acos(Math.max(-1, Math.min(1, dot)));
+    const angleDeg = Math.round((angleRad * 180) / Math.PI);
+
+    if (isNaN(angleDeg)) return;
+
+    // 3Dアーク（円弧）の描画
+    const radius = 5; // 半径を少し小さくしてカーソルに近づける
+    const startAngle = Math.atan2(vRef.y, vRef.x);
+    const endAngle = Math.atan2(vCurr.y, vCurr.x);
+
+    // 最短距離の角度差を計算
+    let diff = endAngle - startAngle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+
+    const curve = new THREE.EllipseCurve(
+      0,
+      0,
+      radius,
+      radius,
+      0,
+      diff,
+      diff < 0,
+      0,
+    );
+
+    const points = curve.getPoints(24);
+    const geometry = new THREE.BufferGeometry().setFromPoints(
+      points.map((p) => new THREE.Vector3(p.x, 0, p.y)),
+    );
+    const material = new THREE.LineDashedMaterial({
+      color: 0x3b82f6,
+      dashSize: 0.5,
+      gapSize: 0.3,
+    });
+    const arc = new THREE.Line(geometry, material);
+    arc.computeLineDistances();
+    // atan2は+Xから反時計回りを想定。Three.jsのXZ平面回転に合わせる
+    arc.rotation.y = -startAngle;
+
+    this.angleGuideGroup.position.set(start.x, 0.15, start.z);
+    this.angleGuideGroup.add(arc);
+
+    // 延長線（点線）の表示: 基準線（既存道路の延長）を可視化
+    const extensionLen = radius + 2;
+    const extGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(extensionLen, 0, 0),
+    ]);
+    const extLine = new THREE.Line(
+      extGeo,
+      new THREE.LineDashedMaterial({
+        color: 0x888888,
+        dashSize: 0.5,
+        gapSize: 0.5,
+        opacity: 0.5,
+        transparent: true,
+      }),
+    );
+    extLine.computeLineDistances();
+    extLine.rotation.y = -startAngle; // vRef (Start->Extension)
+    this.angleGuideGroup.add(extLine);
+
+    // ラベルの位置調整 (円弧上の角度位置に配置)
+    const midAngle = startAngle + diff / 2;
+    // 半径位置より少しだけ外側
+    const labelRadius = radius + 1.0;
+    const labelX = start.x + Math.cos(midAngle) * labelRadius;
+    const labelZ = start.z + Math.sin(midAngle) * labelRadius;
+
+    const screenPos = this.toScreenPosition(labelX, 0, labelZ);
+    // ラベルの中心が位置に合うようにオフセット調整
+    this.angleLabel.style.left = screenPos.x + "px";
+    this.angleLabel.style.top = screenPos.y + "px";
+    this.angleLabel.style.transform = "translate(-50%, -50%)"; // 中心揃え
+    this.angleLabel.style.display = "block";
+    this.angleLabel.innerText = `${angleDeg}°`;
+  }
+
+  findReferenceSegment(node) {
+    // 最後に操作したセグメントがあればそれを優先したいが、
+    // 現状は接続されているセグメントのうち最初に見つかったものを利用
+    for (const road of roads) {
+      if (!road.segments) continue;
+      for (const seg of road.segments) {
+        if (seg.from === node.id) {
+          const other = road.nodes.find((n) => n.id === seg.to);
+          // startNode(node) -> previousNode(other) へのベクトルを返す
+          if (other) return { x: other.x - node.x, z: other.z - node.z };
+        }
+        if (seg.to === node.id) {
+          const other = road.nodes.find((n) => n.id === seg.from);
+          if (other) return { x: other.x - node.x, z: other.z - node.z };
+        }
+      }
+    }
+    return null;
+  }
+
+  clearAngleGuide() {
+    while (this.angleGuideGroup.children.length > 0) {
+      const child = this.angleGuideGroup.children[0];
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+      this.angleGuideGroup.remove(child);
+    }
   }
 
   onClick(event) {
@@ -229,21 +503,54 @@ class RoadToolManager {
       };
     }
 
-    // 2. 角度スナップ
+    // 2. 角度スナップ (相対角度固定)
     if (this.startNode) {
       const dx = rawPos.x - this.startNode.x;
       const dz = rawPos.z - this.startNode.z;
       const dist = Math.hypot(dx, dz);
+
       if (dist > 1.0) {
-        const angle = Math.atan2(dz, dx);
-        const snappedAngle =
-          Math.round(angle / this.angleSnapStep) * this.angleSnapStep;
-        if (Math.abs(angle - snappedAngle) < 0.15) {
-          // ~8.5度
+        let baseAngle = 0; // デフォルトは東(X+)
+        let isRelative = false;
+
+        // 基準となるセグメントを探して、その「延長線上」を0度とする
+        const refVector = this.findReferenceSegment(this.startNode);
+        if (refVector) {
+          // startNodeから離れる方向のベクトル
+          // findReferenceSegmentは {x: other->node} (入ってくるベクトル) を返しているか確認
+          // 実装上: startNodeから見て「前のノード」への方向を返していた (other - start)
+          // 延長線はその逆ベクトル (start - other) つまり (node - other)
+          // しかし findReferenceSegment は {x: other.x - node.x ...} を返しているので
+          // これは "StartからPreviousへ向かうベクトル"
+          // 延長線上の角度 = atan2(-ref.z, -ref.x)
+          // Three.jsの座標系(Z手前)での角度計算: atan2(z, x)
+          // current vector: (dx, dz)
+
+          // ここでは「内角」ではなく「延長線からの角度」でスナップさせたい
+          // 延長線 = Previous -> Start のベクトル
+          // refVector = Previous - Start (findReferenceSegmentの戻り値)
+          // したがって 延長線ベクトル = -refVector = Start - Previous
+
+          baseAngle = Math.atan2(-refVector.z, -refVector.x);
+          isRelative = true;
+        }
+
+        const currentAngle = Math.atan2(dz, dx);
+
+        // baseAngleからの相対角
+        let diff = currentAngle - baseAngle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+
+        const snappedDiff =
+          Math.round(diff / this.angleSnapStep) * this.angleSnapStep;
+
+        if (Math.abs(diff - snappedDiff) < 0.15) {
+          const finalAngle = baseAngle + snappedDiff;
           return {
-            x: this.startNode.x + Math.cos(snappedAngle) * dist,
-            z: this.startNode.z + Math.sin(snappedAngle) * dist,
-            type: "ANGLE Snap",
+            x: this.startNode.x + Math.cos(finalAngle) * dist,
+            z: this.startNode.z + Math.sin(finalAngle) * dist,
+            type: isRelative ? "ANGLE Snap (Rel)" : "ANGLE Snap",
             targetNode: null,
           };
         }
@@ -317,7 +624,7 @@ class RoadToolManager {
 
     const nx = -dz / len;
     const nz = dx / len;
-    const y = 0.05; // Z-fighting防止
+    const y = 0.1; // Z-fighting防止、少し高める
 
     const vertices = [
       start.x + nx * halfWidth,
@@ -343,7 +650,156 @@ class RoadToolManager {
       "position",
       new THREE.Float32BufferAttribute(vertices, 3),
     );
+    this.ghostMesh.geometry.computeBoundingSphere();
+    this.ghostMesh.geometry.computeBoundingBox();
     this.ghostMesh.visible = true;
+  }
+
+  updateSelectionBox(start, end) {
+    const minX = Math.min(start.x, end.x);
+    const maxX = Math.max(start.x, end.x);
+    const minZ = Math.min(start.z, end.z);
+    const maxZ = Math.max(start.z, end.z);
+
+    const positions = [
+      minX,
+      0.2,
+      minZ,
+      maxX,
+      0.2,
+      minZ,
+      maxX,
+      0.2,
+      maxZ,
+      minX,
+      0.2,
+      maxZ,
+      minX,
+      0.2,
+      minZ,
+    ];
+    this.selectionBoxMesh.geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    this.selectionBoxMesh.visible = true;
+  }
+
+  deleteRoadAt(pos) {
+    // クリック位置に最も近いセグメントを探して削除
+    const threshold = 2.0;
+    let deleted = false;
+
+    roads.forEach((road) => {
+      const remainingSegments = road.segments.filter((seg) => {
+        const n1 = road.nodes.find((n) => n.id === seg.from);
+        const n2 = road.nodes.find((n) => n.id === seg.to);
+        if (!n1 || !n2) return false;
+
+        // 線分と点の距離
+        const dist = this.pointToSegmentDistance(pos, n1, n2);
+        if (dist < threshold) {
+          deleted = true;
+          return false; // 削除
+        }
+        return true;
+      });
+
+      if (road.segments.length !== remainingSegments.length) {
+        road.segments = remainingSegments;
+        this.cleanupOrphanNodes(road);
+        this.refreshRoadMesh(road);
+      }
+    });
+
+    if (deleted) {
+      this.saveState();
+      updateStatus("道路を削除しました");
+    }
+  }
+
+  deleteRoadsInRange(p1, p2) {
+    const minX = Math.min(p1.x, p2.x);
+    const maxX = Math.max(p1.x, p2.x);
+    const minZ = Math.min(p1.z, p2.z);
+    const maxZ = Math.max(p1.z, p2.z);
+
+    let deletedAny = false;
+
+    roads.forEach((road) => {
+      const initialCount = road.segments.length;
+      road.segments = road.segments.filter((seg) => {
+        const n1 = road.nodes.find((n) => n.id === seg.from);
+        const n2 = road.nodes.find((n) => n.id === seg.to);
+        if (!n1 || !n2) return false;
+
+        // セグメントの両端または一方が範囲内なら削除（より直感的なCities風）
+        const inRange = (p) =>
+          p.x >= minX && p.x <= maxX && p.z >= minZ && p.z <= maxZ;
+        if (inRange(n1) || inRange(n2)) return false;
+        return true;
+      });
+
+      if (road.segments.length !== initialCount) {
+        deletedAny = true;
+        this.cleanupOrphanNodes(road);
+        this.refreshRoadMesh(road);
+      }
+    });
+
+    if (deletedAny) {
+      this.saveState();
+      updateStatus("範囲内の道路を削除しました");
+    }
+  }
+
+  pointToSegmentDistance(p, a, b) {
+    const l2 = (a.x - b.x) ** 2 + (a.z - b.z) ** 2;
+    if (l2 === 0) return Math.hypot(p.x - a.x, p.z - a.z);
+    let t = ((p.x - a.x) * (b.x - a.x) + (p.z - a.z) * (b.z - a.z)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(
+      p.x - (a.x + t * (b.x - a.x)),
+      p.z - (a.z + t * (b.z - a.z)),
+    );
+  }
+
+  cleanupOrphanNodes(road) {
+    // どのセグメントにも使われていないノードを削除
+    const usedNodeIds = new Set();
+    road.segments.forEach((seg) => {
+      usedNodeIds.add(seg.from);
+      usedNodeIds.add(seg.to);
+    });
+    road.nodes = road.nodes.filter((n) => usedNodeIds.has(n.id));
+  }
+
+  refreshRoadMesh(road) {
+    const index = roads.indexOf(road);
+    if (index === -1) return;
+
+    if (roadMeshes[index]) {
+      scene.remove(roadMeshes[index]);
+      roadMeshes[index].geometry.dispose();
+      roadMeshes[index].material.dispose();
+    }
+
+    if (road.segments.length === 0) {
+      // 全削除された場合は配列からも消す
+      roads.splice(index, 1);
+      roadMeshes.splice(index, 1);
+      if (selectedRoad === road) selectedRoad = null;
+    } else {
+      const newMesh = createRoadMesh(road);
+      scene.add(newMesh);
+      roadMeshes[index] = newMesh;
+    }
+  }
+
+  saveState() {
+    if (typeof saveToLocalStorage === "function") {
+      saveToLocalStorage();
+    }
   }
 
   createSegment(n1, n2) {
@@ -714,9 +1170,29 @@ function initEventListeners() {
   const container = document.getElementById("canvas-container");
   container.addEventListener("click", onClick);
   // 道路ツール用のイベントリスナー
-  container.addEventListener("mousemove", (e) => {
-    if (roadTool) roadTool.handleEvent("mousemove", e);
+  container.addEventListener("pointermove", (e) => {
+    if (roadTool) roadTool.handleEvent("pointermove", e);
   });
+
+  // 削除モード(ドラッグ選択)や描画操作が OrbitControls と競合しないようにキャプチャする
+  container.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (roadTool) {
+        // 削除モード時はカメラ操作を完全にブロックして選択操作を優先
+        if (roadTool.mode === RoadTool.DELETE) {
+          e.stopImmediatePropagation();
+        }
+        roadTool.handleEvent("pointerdown", e);
+      }
+    },
+    { capture: true },
+  );
+
+  container.addEventListener("pointerup", (e) => {
+    if (roadTool) roadTool.handleEvent("pointerup", e);
+  });
+
   container.addEventListener("contextmenu", (e) => {
     if (roadTool) roadTool.handleEvent("contextmenu", e);
   });
@@ -787,6 +1263,9 @@ function initEventListeners() {
   document
     .getElementById("btn-tool-edit")
     .addEventListener("click", () => roadTool.setMode(RoadTool.EDIT));
+  document
+    .getElementById("btn-tool-delete")
+    .addEventListener("click", () => roadTool.setMode(RoadTool.DELETE));
   document
     .getElementById("btn-view-2d")
     .addEventListener("click", () => setCameraView("2d"));
@@ -871,6 +1350,12 @@ function initEventListeners() {
 // 環境作成
 // ===================================
 function createEnvironment() {
+  // RoadToolの初期化 (ここで確実にインスタンス生成)
+  if (!roadTool) {
+    roadTool = new RoadToolManager();
+    roadTool.init();
+  }
+
   const groundGeo = new THREE.PlaneGeometry(20000, 20000); // 300 -> 20000
   const groundMat = new THREE.MeshLambertMaterial({ color: 0x2a3f5f });
   const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -974,8 +1459,9 @@ function createRoadMesh(road) {
   const halfWidth = width / 2;
   const group = new THREE.Group();
 
-  const material = new THREE.MeshBasicMaterial({
-    color: road.color || 0x555555,
+  // 道路の基本マテリアル (アスファルト色 + ライティング対応)
+  const material = new THREE.MeshLambertMaterial({
+    color: road.color || 0x333333,
     side: THREE.DoubleSide,
   });
 
@@ -1006,6 +1492,8 @@ function createRoadMesh(road) {
 
     const vertices = [];
     const indices = [];
+    const edgeVertices = []; // 外枠用
+    const centerVertices = []; // 中央線用
 
     for (let i = 0; i < pathPoints.length - 1; i++) {
       const p1 = pathPoints[i];
@@ -1019,11 +1507,12 @@ function createRoadMesh(road) {
       const nx = -dz / len;
       const nz = dx / len;
 
-      const y = 0.02;
-      p1.y = y;
-      p2.y = y;
+      const y = 0.02; // 地面より少し上
+      const yEdge = y + 0.01;
+      const yCenter = y + 0.02;
 
       const baseIndex = i * 4;
+      // 道路本体の頂点
       vertices.push(p1.x + nx * halfWidth, y, p1.z + nz * halfWidth);
       vertices.push(p1.x - nx * halfWidth, y, p1.z - nz * halfWidth);
       vertices.push(p2.x + nx * halfWidth, y, p2.z + nz * halfWidth);
@@ -1031,16 +1520,57 @@ function createRoadMesh(road) {
 
       indices.push(baseIndex + 0, baseIndex + 2, baseIndex + 1);
       indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
+
+      // 外枠用座標
+      edgeVertices.push(p1.x + nx * halfWidth, yEdge, p1.z + nz * halfWidth);
+      edgeVertices.push(p2.x + nx * halfWidth, yEdge, p2.z + nz * halfWidth);
+      edgeVertices.push(p1.x - nx * halfWidth, yEdge, p1.z - nz * halfWidth);
+      edgeVertices.push(p2.x - nx * halfWidth, yEdge, p2.z - nz * halfWidth);
+
+      // 中央線用座標 (0.5m幅)
+      const cw = 0.2;
+      centerVertices.push(p1.x + nx * cw, yCenter, p1.z + nz * cw);
+      centerVertices.push(p1.x - nx * cw, yCenter, p1.z - nz * cw);
+      centerVertices.push(p2.x + nx * cw, yCenter, p2.z + nz * cw);
+      centerVertices.push(p2.x - nx * cw, yCenter, p2.z - nz * cw);
     }
 
+    // 1. 道路本体
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
     geo.setIndex(indices);
     geo.computeVertexNormals();
-
     const mesh = new THREE.Mesh(geo, material);
+    mesh.receiveShadow = true;
     mesh.userData = { roadId: road.id, type: "road", segment: seg };
     group.add(mesh);
+
+    // 2. 外枠 (LineSegments)
+    const edgeGeo = new THREE.BufferGeometry();
+    edgeGeo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(edgeVertices, 3),
+    );
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0x888888 });
+    const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+    group.add(edgeLines);
+
+    // 3. 中央線 (Mesh)
+    const centerIndices = [];
+    for (let i = 0; i < pathPoints.length - 1; i++) {
+      const b = i * 4;
+      centerIndices.push(b + 0, b + 2, b + 1);
+      centerIndices.push(b + 1, b + 2, b + 3);
+    }
+    const centerGeo = new THREE.BufferGeometry();
+    centerGeo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(centerVertices, 3),
+    );
+    centerGeo.setIndex(centerIndices);
+    const centerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const centerMesh = new THREE.Mesh(centerGeo, centerMat);
+    group.add(centerMesh);
   });
 
   group.userData = { roadId: road.id, type: "road" };
@@ -1130,9 +1660,12 @@ function selectBuilding(building, mesh) {
   if (selectedMesh && selectedMesh !== mesh) {
     if (selectedMesh.userData.type === "road") {
       // 道路の選択解除: 元の色に戻す
-      const color = (selectedRoad && selectedRoad.color) || 0x555555;
+      const color = (selectedRoad && selectedRoad.color) || 0x333333;
       selectedMesh.children.forEach((child) => {
-        if (child.material) child.material.color.setHex(color);
+        if (child.material && child.material.isMesh) {
+          child.material.emissive = new THREE.Color(0x000000);
+          child.material.color.setHex(color);
+        }
       });
     } else {
       // 建物の選択解除
@@ -1206,9 +1739,12 @@ function selectRoad(road, mesh) {
   }
 
   if (mesh) {
-    // 道路のハイライト: 明るいグレーor黄色に
+    // 道路のハイライト: 目立つ黄色に (v0.2.11)
     mesh.children.forEach((child) => {
-      if (child.material) child.material.color.setHex(0xaaaaaa);
+      if (child.material && child.material.isMesh) {
+        child.material.emissive = new THREE.Color(0x444400); // 少し発行させる
+        child.material.color.setHex(0xffeb3b);
+      }
     });
   }
 
@@ -3071,7 +3607,16 @@ document.addEventListener("DOMContentLoaded", init);
 // ==========================================
 
 function addNewRoad() {
-  if (roadTool) roadTool.setMode(RoadTool.LINE);
+  selectBuilding(null, null);
+  selectRoad(null, null);
+
+  const toolsPanel = document.getElementById("road-tools");
+  if (toolsPanel) toolsPanel.style.display = "block";
+
+  if (roadTool) {
+    roadTool.setMode(RoadTool.LINE);
+    updateStatus("道路作成: 始点をクリックしてください");
+  }
 }
 
 function setRoadTool(mode) {
