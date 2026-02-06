@@ -518,13 +518,20 @@
           padding: 15px 20px;
         }
       }
-      /* Hide Scrollbar */
-      body::-webkit-scrollbar {
-        display: none;
-      }
+      /* Hide Scrollbar - Force Override */
+      html,
       body {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        overflow-y: auto !important;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar,
+      *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
       }
     </style>
   </head>
