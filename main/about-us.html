@@ -1,0 +1,821 @@
+<!--
+  Nanryosai 2026
+  Version: 0.3.0
+  Last Modified: 2026-02-07
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;500;700;900&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Local overrides */
+        --bg-color: #030303;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+
+        /* Override Global Variables for Hamburger Menu compatibility */
+        --card-bg: #111;
+        --text-main: #e0e0e0;
+        --text-sub: #a0a0a0;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --glass-bg: rgba(20, 20, 20, 0.9);
+
+        --accent-color: #00f0ff;
+        --accent-secondary: #7000ff;
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --font-mincho: "Shippori Mincho", serif;
+        --font-gothic: "Zen Kaku Gothic New", sans-serif;
+        --font-mono: "Share Tech Mono", monospace;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        font-family: var(--font-gothic);
+        margin: 0;
+        overflow-x: hidden;
+      }
+
+      /* Digital Background */
+      .bg-grid {
+        position: fixed;
+        width: 200vw;
+        height: 200vh;
+        top: -50%;
+        left: -50%;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg);
+        z-index: -2;
+        pointer-events: none;
+        animation: grid-move 20s linear infinite;
+      }
+
+      @keyframes grid-move {
+        0% {
+          transform: perspective(500px) rotateX(60deg) translateY(0);
+        }
+        100% {
+          transform: perspective(500px) rotateX(60deg) translateY(50px);
+        }
+      }
+
+      .scanline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0),
+          rgba(255, 255, 255, 0) 50%,
+          rgba(0, 0, 0, 0.1) 50%,
+          rgba(0, 0, 0, 0.1)
+        );
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 999;
+        opacity: 0.3;
+      }
+
+      /* Orbs */
+      .bg-orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.3;
+        z-index: -1;
+      }
+      .orb-1 {
+        top: 10%;
+        right: 10%;
+        width: 40vw;
+        height: 40vw;
+        background: radial-gradient(
+          circle,
+          var(--accent-secondary),
+          transparent
+        );
+        animation: pulse 8s ease-in-out infinite alternate;
+      }
+      .orb-2 {
+        bottom: 20%;
+        left: -10%;
+        width: 50vw;
+        height: 50vw;
+        background: radial-gradient(circle, #0044ff, transparent);
+        animation: pulse 12s ease-in-out infinite alternate-reverse;
+      }
+      @keyframes pulse {
+        from {
+          opacity: 0.2;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0.4;
+          transform: scale(1.1);
+        }
+      }
+
+      /* Layout & Typography */
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 24px 120px;
+      }
+
+      .page-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 24px;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+        pointer-events: none;
+      }
+      .page-header > * {
+        pointer-events: auto;
+      }
+
+      .back-link {
+        color: white;
+        text-decoration: none;
+        font-family: var(--font-mono);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        border: 1px solid var(--glass-border);
+        padding: 8px 16px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+      }
+      .back-link:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+      }
+
+      /* Glitch Effect - Stabilized */
+      .glitch {
+        position: relative;
+        display: inline-block;
+        color: white;
+      }
+      /* Removed aggressive clip animation that causes disappearance */
+      .glitch::before,
+      .glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.8;
+      }
+      .glitch::before {
+        left: 2px;
+        text-shadow: -1px 0 red;
+        clip-path: inset(0 0 0 0); /* Visible by default */
+        animation: glitch-anim-1 4s infinite linear alternate-reverse;
+      }
+      .glitch::after {
+        left: -2px;
+        text-shadow: -1px 0 blue;
+        clip-path: inset(0 0 0 0);
+        animation: glitch-anim-2 4s infinite linear alternate-reverse;
+      }
+      /* Simplified keyframes to avoid text disappearing */
+      @keyframes glitch-anim-1 {
+        0%,
+        95% {
+          clip-path: inset(0 0 0 0);
+          transform: translate(0);
+        }
+        96% {
+          clip-path: inset(20% 0 80% 0);
+          transform: translate(-2px, 2px);
+        }
+        98% {
+          clip-path: inset(60% 0 10% 0);
+          transform: translate(2px, -2px);
+        }
+        100% {
+          clip-path: inset(40% 0 50% 0);
+          transform: translate(-2px, 0);
+        }
+      }
+      @keyframes glitch-anim-2 {
+        0%,
+        95% {
+          clip-path: inset(0 0 0 0);
+          transform: translate(0);
+        }
+        96% {
+          clip-path: inset(10% 0 60% 0);
+          transform: translate(2px, 2px);
+        }
+        98% {
+          clip-path: inset(80% 0 5% 0);
+          transform: translate(-2px, -2px);
+        }
+        100% {
+          clip-path: inset(30% 0 40% 0);
+          transform: translate(2px, 0);
+        }
+      }
+
+      /* Hero */
+      .hero {
+        min-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+      }
+
+      .hero-label {
+        font-family: var(--font-mono);
+        color: var(--accent-color);
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadein 1s forwards 0.2s;
+      }
+      .hero-label::before {
+        content: "// ";
+      }
+
+      .hero-title {
+        font-family: var(--font-gothic);
+        font-size: clamp(2.5rem, 8vw, 5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 32px;
+        letter-spacing: -0.03em;
+        opacity: 0;
+        animation: fadein 1s forwards 0.4s;
+      }
+
+      .hero-desc {
+        font-family: var(--font-mincho);
+        font-size: 1.2rem;
+        line-height: 2;
+        color: var(--text-secondary);
+        max-width: 600px;
+        opacity: 0;
+        animation: fadein 1s forwards 0.6s;
+        border-left: 1px solid var(--accent-color);
+        padding-left: 20px;
+      }
+
+      /* Section Common */
+      section {
+        margin-bottom: 160px;
+        position: relative;
+      }
+
+      .section-header {
+        margin-bottom: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .section-en {
+        font-family: var(--font-mono);
+        color: var(--accent-color);
+        font-size: 0.9rem;
+      }
+      .section-en::after {
+        content: "";
+        display: inline-block;
+        width: 100px;
+        height: 1px;
+        background: var(--accent-color);
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      .section-jp {
+        font-family: var(--font-mincho);
+        font-size: 2.2rem;
+        font-weight: 700;
+      }
+
+      /* Story Text */
+      .story-block {
+        font-size: 1.1rem;
+        line-height: 2.2;
+        letter-spacing: 0.05em;
+      }
+      .story-block p {
+        margin-bottom: 2em;
+      }
+
+      /* Timeline */
+      .timeline {
+        position: relative;
+        padding-left: 30px;
+        border-left: 1px dashed var(--glass-border);
+      }
+
+      .timeline-item {
+        position: relative;
+        margin-bottom: 60px;
+      }
+
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -35px;
+        top: 5px;
+        width: 11px;
+        height: 11px;
+        background: var(--bg-color);
+        border: 2px solid var(--accent-color);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--accent-color);
+      }
+
+      .timeline-date {
+        font-family: var(--font-mono);
+        color: var(--accent-color);
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .timeline-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: white;
+      }
+
+      .timeline-desc {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      /* Tech & Q&A Grids (reusing some glass styles) */
+      .grid-box {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.01)
+        );
+        border: 1px solid var(--glass-border);
+        padding: 30px;
+        transition: 0.3s;
+      }
+      .grid-box:hover {
+        border-color: var(--accent-color);
+        background: rgba(0, 240, 255, 0.05);
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .qa-grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .qa-q {
+        font-weight: 700;
+        color: white;
+        margin-bottom: 10px;
+        display: flex;
+        gap: 10px;
+      }
+      .qa-q span {
+        color: var(--accent-color);
+        font-family: var(--font-mono);
+      }
+      .qa-a {
+        padding-left: 2em;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      /* Footer */
+      .footer-cta {
+        text-align: center;
+        padding: 100px 0;
+        border-top: 1px solid var(--glass-border);
+        background: linear-gradient(
+          to top,
+          rgba(0, 240, 255, 0.05),
+          transparent
+        );
+      }
+
+      .primary-btn {
+        display: inline-block;
+        background: transparent;
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+        padding: 15px 40px;
+        font-family: var(--font-mono);
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .primary-btn:hover {
+        background: var(--accent-color);
+        color: #000;
+        box-shadow: 0 0 30px var(--accent-color);
+      }
+
+      @keyframes fadein {
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 768px) {
+        .hero-title {
+          font-size: clamp(2rem, 10vw, 3.5rem);
+          word-break: keep-all; /* Preserve Japanese word breaks */
+          overflow-wrap: break-word;
+        }
+        .hero-desc {
+          font-size: 1rem;
+          line-height: 1.8;
+        }
+
+        /* Stack grids on mobile */
+        .tech-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-header {
+          margin-bottom: 40px;
+        }
+        .section-jp {
+          font-size: 1.8rem;
+        }
+
+        /* Adjust timeline for smaller screens */
+        .timeline {
+          padding-left: 20px;
+        }
+        .timeline-item::before {
+          left: -26px;
+        }
+
+        /* Reduce spacing */
+        section {
+          margin-bottom: 100px;
+        }
+        .container {
+          padding-bottom: 80px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hero-title span {
+          display: inline-block; /* Prevent inline glitch breaks */
+        }
+        .container {
+          padding: 0 20px 100px;
+        }
+        .qa-q {
+          flex-direction: column;
+          gap: 4px;
+        }
+        .primary-btn {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 15px 20px;
+        }
+      }
+      /* Hide Scrollbar */
+      body::-webkit-scrollbar {
+        display: none;
+      }
+      body {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scanline"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <header class="page-header">
+      <a href="account.html" class="back-link">
+        <i class="bi bi-chevron-left"></i> SYSTEM.BACK
+      </a>
+      <div
+        style="
+          font-family: var(--font-mono);
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+        "
+      >
+        VER 0.3.1
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-label">YNR_COMPUTER_SCIENCE_CLUB</div>
+        <h1 class="hero-title">
+          文化祭の体験を、<br />
+          <span class="glitch" data-text="アップデートする。"
+            >アップデートする。</span
+          >
+        </h1>
+        <p class="hero-desc">
+          私たちは、ITの力で南陵祭をより便利に、より楽しくすることを目指すプロジェクトチームです。<br />
+          来場者と運営、双方にとって快適な環境を構築します。
+        </p>
+      </section>
+
+      <!-- CONCEPT -->
+      <section>
+        <div class="section-header">
+          <span class="section-en">01_CONCEPT</span>
+          <span class="section-jp">活動の目的</span>
+        </div>
+        <div class="story-block">
+          <p>
+            「今、どこに行けば一番楽しい？」<br />
+            その答えを、もっと簡単に見つけられるようにしたい。
+          </p>
+          <p>
+            広大な校舎、数え切れない企画の中で、<br />
+            移動や情報の確認にかかる時間を減らし、<br />
+            <span
+              style="color: white; border-bottom: 1px solid var(--accent-color)"
+              >本当に楽しむための時間</span
+            >を最大化する。
+          </p>
+          <p>
+            これは単なる「案内サイト」ではなく、<br />
+            南陵祭をスムーズに巡るための<br />
+            デジタルプラットフォームです。
+          </p>
+        </div>
+      </section>
+
+      <!-- HISTORY / TIMELINE -->
+      <section>
+        <div class="section-header">
+          <span class="section-en">02_TIMELINE</span>
+          <span class="section-jp">開発の軌跡</span>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="timeline-date">2025.09</span>
+            <div class="timeline-title">Project Kickoff</div>
+            <div class="timeline-desc">
+              25年度南陵祭の結果を分析。「もっとこうしたい」というアイデアを出し合い、次年度へ向けた新機能の構想を開始。
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-date">2025.10</span>
+            <div class="timeline-title">Implementation Start</div>
+            <div class="timeline-desc">
+              技術構成（Tech
+              Stack）がほぼ確定。Firebaseを中心としたアーキテクチャで、本格的な実装フェーズへ突入。
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-date">2026.01</span>
+            <div class="timeline-title">Mobile Order Alpha</div>
+            <div class="timeline-desc">
+              モバイルオーダーシステムの主要機能がほぼ完成。数ヶ月の集中的な開発により、決済フローの基盤が整う。
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-date">2026.02</span>
+            <div class="timeline-title">Map & Main Site</div>
+            <div class="timeline-desc">
+              メインサイトおよび3Dマップ（Three.js）の開発に着手。Webサイトとしての「顔」を作り上げる新たなフェーズへ。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TECH -->
+      <section>
+        <div class="section-header">
+          <span class="section-en">03_ENGINEERING</span>
+          <span class="section-jp">採用技術</span>
+        </div>
+        <div class="tech-grid">
+          <div class="grid-box">
+            <div
+              style="
+                font-family: var(--font-mono);
+                color: var(--text-secondary);
+                margin-bottom: 5px;
+              "
+            >
+              DB / INFRA
+            </div>
+            <div
+              style="
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: white;
+                margin-bottom: 10px;
+              "
+            >
+              Firebase
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary)">
+              Googleのクラウド基盤。リアルタイム同期と堅牢なセキュリティ。
+            </div>
+          </div>
+          <div class="grid-box">
+            <div
+              style="
+                font-family: var(--font-mono);
+                color: var(--text-secondary);
+                margin-bottom: 5px;
+              "
+            >
+              VISUALIZATION
+            </div>
+            <div
+              style="
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: white;
+                margin-bottom: 10px;
+              "
+            >
+              Three.js
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary)">
+              Webブラウザ上で動作する高性能3Dエンジン。
+            </div>
+          </div>
+          <div class="grid-box">
+            <div
+              style="
+                font-family: var(--font-mono);
+                color: var(--text-secondary);
+                margin-bottom: 5px;
+              "
+            >
+              CO-PILOT
+            </div>
+            <div
+              style="
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: white;
+                margin-bottom: 10px;
+              "
+            >
+              AI Agents
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary)">
+              開発サポートとしてAIを活用し、品質とスピードを向上。
+            </div>
+          </div>
+          <div class="grid-box">
+            <div
+              style="
+                font-family: var(--font-mono);
+                color: var(--text-secondary);
+                margin-bottom: 5px;
+              "
+            >
+              PLATFORM
+            </div>
+            <div
+              style="
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: white;
+                margin-bottom: 10px;
+              "
+            >
+              PWA
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary)">
+              閲覧環境を選ばない、Web標準技術によるアプリ体験。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Q&A -->
+      <section>
+        <div class="section-header">
+          <span class="section-en">04_FAQ</span>
+          <span class="section-jp">Q&A</span>
+        </div>
+        <div class="qa-grid">
+          <div class="qa-item">
+            <div class="qa-q"><span>Q.</span> こだわったポイントは？</div>
+            <div class="qa-a">
+              「3Dマップ」です。平面図では伝わりにくい校舎の構造や距離感を、直感的に把握できるような表現を目指しました。
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q"><span>Q.</span> AIの活用について</div>
+            <div class="qa-a">
+              コードの生成やエラーの解析、アイデアの壁打ちなど、開発のパートナーとして活用しています。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="footer-cta">
+        <h2
+          style="
+            font-family: var(--font-gothic);
+            font-size: 2rem;
+            margin-bottom: 20px;
+          "
+        >
+          その声を、次のコードへ。
+        </h2>
+        <p style="color: var(--text-secondary); margin-bottom: 40px">
+          バグ報告、機能リクエスト、応援メッセージ。<br />お待ちしています。
+        </p>
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSf_QdSMyrFXiZ28U50DlPoK0umuMXnkFDGzu8gWKDY8KUKqRg/viewform?usp=header"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="primary-btn"
+        >
+          CONTACT US_
+        </a>
+        <div
+          style="
+            margin-top: 80px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+          "
+        >
+          COPYRIGHT 2026 YNR_COMPUTER_SCIENCE_CLUB
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="app-shell.js"></script>
+    <script>
+      // Simple entry animation trigger
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+
+      document.querySelectorAll("section").forEach((section) => {
+        section.style.opacity = "0";
+        section.style.transform = "translateY(20px)";
+        section.style.transition = "all 0.8s ease";
+        observer.observe(section);
+      });
+      window.CURRENT_PAGE = "account";
+    </script>
+  </body>
+</html>

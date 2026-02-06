@@ -1630,6 +1630,8 @@
         const list = document.getElementById("store-list");
         list.innerHTML = "";
         try {
+          // NOTE(重要): Firestore stores.name は「団体名」、stores.teamName は「店名(企画名)」として運用している。
+          // 直感と逆なので、変更する場合は admin_sync / docs を同時に修正すること。
           const snap = await getDocs(collection(db, "stores"));
           if (snap.empty) {
             list.innerHTML = "<p>店舗が見つかりません</p>";

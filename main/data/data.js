@@ -15,10 +15,15 @@ const projectData = [
   {
     id: "301",
     loginId: "class301",
+    // Firestore: stores.name (団体名)
     groupName: "3年1組",
+    // Firestore: stores.teamName (店名/企画名)
     name: "やきそばスター",
     place: "中庭テントA",
     floor: 1,
+
+    // [2026年度メモ] mapX, mapY (地図座標)は要件定義待ちのため、現在はデータ定義から除外しています。
+    // 必要になった場合は、2D/3Dどちらの方式になるか確定後に再定義してください。
     description:
       "秘伝のソースが決め手！行列必至の焼きそば専門店です。目玉焼きトッピングがおすすめ！",
     catchphrase: "星3つの味をあなたに",

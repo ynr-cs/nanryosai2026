@@ -274,6 +274,10 @@
         </button>
 
         <button class="btn btn-primary" id="btn-sync-stores">
+          <!-- 
+            NOTE(重要): Firestore stores.name は「団体名」、stores.teamName は「店名(企画名)」として運用している。
+            直感と逆なので、変更する場合は mobile-order / status / portal / docs を同時に修正すること。
+          -->
           <i class="fas fa-cloud-upload-alt"></i> Firestore同期 (店舗情報)
         </button>
         <button class="btn btn-success" id="btn-sync-items">

@@ -24,6 +24,13 @@
 - **コレクション構成**:
   - `users/{uid}`: プロフィール + `cart` サブコレクション。
   - `stores/{storeId}`: 店舗メタデータ。
+    - **Field Mappings** (Comparison with `data.js`):
+      | Firestore Field | Meaning | Source in `data.js` |
+      | :--- | :--- | :--- |
+      | `name` | 団体名 (e.g. 3年1組) | `groupName` |
+      | `teamName` | 店名・企画名 (e.g. やきそば屋) | `name` |
+      | `description` | 説明文 | `description` |
+      | - | 座標 (mapX/mapY) | **除外** (2026地図方式未定のため保留) |
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
   - `counters/receipt`: レシート番号生成用アトミックカウンタ。

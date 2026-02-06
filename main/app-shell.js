@@ -268,12 +268,11 @@ const AppShell = {
 
                     <div style="margin-top: auto;">
                         <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-bottom: 20px;">
-                            <a href="${this.resolvePath("about-us.html")}" style="display: block; padding: 15px; background: var(--card-bg); border-radius: 15px; text-decoration: none; color: var(--text-main); font-weight: bold; border: 1px solid var(--border-color);">
-                                <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px;">Created by</div>
-                                💻 Computer Science Club
+                            <a href="${this.resolvePath("about-us.html")}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px; background: var(--bg-color); border-radius: 12px; text-decoration: none; color: var(--text-main); border: 1px solid var(--border-color); transition: background 0.2s;">
+                                <i class="bi bi-lightning-charge-fill" style="color: var(--primary-color);"></i>
+                                <span style="font-weight: 700; font-family: var(--font-gothic); font-size: 0.9rem;">Powered By コンピュータ科学部</span>
                             </a>
                         </div>
-                        <p style="font-size: 0.8rem; color: var(--text-sub); text-align: center;">© Nanryosai Exe 2026</p>
                     </div>
                 </div>
             </div>
