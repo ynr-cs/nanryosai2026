@@ -1,51 +1,50 @@
 import { Composition } from "remotion";
-import { HelloWorld, myCompSchema } from "./HelloWorld";
-import { Logo, myCompSchema2 } from "./HelloWorld/Logo";
-import { Tutorial } from "./Tutorial/Main";
-
-// Each <Composition> is an entry in the sidebar!
+import { MainVideo } from "./MainVideo";
+import { Phase1History } from "./scenes/Phase1_History";
+import { Phase2WholePicture } from "./scenes/Phase2_WholePicture";
+import { Phase3OrderFlow } from "./scenes/Phase3_OrderFlow";
+import { Conclusion } from "./scenes/Conclusion";
+import "./styles/global.css";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
-        // You can take the "id" to render a video:
-        // npx remotion render HelloWorld
-        id="HelloWorld"
-        component={HelloWorld}
-        durationInFrames={150}
+        id="MainVideo"
+        component={MainVideo}
+        durationInFrames={(5 * 60 + 25) * 30} // 5m 25s
         fps={30}
         width={1920}
         height={1080}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
-        schema={myCompSchema}
-        defaultProps={{
-          titleText: "Welcome to Remotion",
-          titleColor: "#000000",
-          logoColor1: "#91EAE4",
-          logoColor2: "#86A8E7",
-        }}
       />
-
-      {/* Mount any React component to make it show up in the sidebar and work on it individually! */}
       <Composition
-        id="OnlyLogo"
-        component={Logo}
-        durationInFrames={150}
+        id="Phase1-History"
+        component={Phase1History}
+        durationInFrames={38 * 30}
         fps={30}
         width={1920}
         height={1080}
-        schema={myCompSchema2}
-        defaultProps={{
-          logoColor1: "#91dAE2" as const,
-          logoColor2: "#86A8E7" as const,
-        }}
       />
       <Composition
-        id="Tutorial"
-        component={Tutorial}
-        durationInFrames={30 * 60 * 6} // 6 minutes
+        id="Phase2-WholePicture"
+        component={Phase2WholePicture}
+        durationInFrames={40 * 30}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="Phase3-OrderFlow"
+        component={Phase3OrderFlow}
+        durationInFrames={187 * 30}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="Conclusion"
+        component={Conclusion}
+        durationInFrames={57 * 30}
         fps={30}
         width={1920}
         height={1080}

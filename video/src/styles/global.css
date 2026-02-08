@@ -1,0 +1,38 @@
+/* video/src/styles/global.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap");
+
+:root {
+  /* Brand Colors */
+  --primary-color: #6a11cb;
+  --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  --accent-color: #ff0080;
+  --accent-glow: 0 0 15px rgba(255, 0, 128, 0.4);
+
+  /* Semantic Colors (Light Mode Default) */
+  --bg-color: #f0f2f5;
+  --card-bg: #ffffff;
+  --text-main: #1a1a1a;
+  --text-sub: #636e72;
+  --border-color: #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.04);
+
+  /* Animation Specific */
+  --stick-stroke: #374151;
+  --item-fill: #eff6ff;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.5);
+
+  /* Video Specific */
+  --screen-width: 1920px;
+  --screen-height: 1080px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans JP", "Inter", "Zen Kaku Gothic New", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
