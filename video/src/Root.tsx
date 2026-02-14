@@ -1,9 +1,9 @@
 import { Composition } from "remotion";
 import { MainVideo } from "./MainVideo";
 import { Phase1History } from "./scenes/Phase1_History";
-import { Phase2WholePicture } from "./scenes/Phase2_WholePicture";
+import { Phase2ThreeElements } from "./scenes/Phase2_ThreeElements";
 import { Phase3OrderFlow } from "./scenes/Phase3_OrderFlow";
-import { Conclusion } from "./scenes/Conclusion";
+import { Phase4Closing } from "./scenes/Phase4_Closing";
 import "./styles/global.css";
 
 export const RemotionRoot: React.FC = () => {
@@ -26,9 +26,9 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
       />
       <Composition
-        id="Phase2-WholePicture"
-        component={Phase2WholePicture}
-        durationInFrames={40 * 30}
+        id="Phase2-ThreeElements"
+        component={Phase2ThreeElements}
+        durationInFrames={41 * 30}
         fps={30}
         width={1920}
         height={1080}
@@ -42,9 +42,9 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
       />
       <Composition
-        id="Conclusion"
-        component={Conclusion}
-        durationInFrames={57 * 30}
+        id="Phase4-Closing"
+        component={Phase4Closing}
+        durationInFrames={58 * 30}
         fps={30}
         width={1920}
         height={1080}

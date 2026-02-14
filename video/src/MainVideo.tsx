@@ -1,9 +1,9 @@
 import React from "react";
 import { Series, Audio, staticFile } from "remotion";
 import { Phase1History } from "./scenes/Phase1_History";
-import { Phase2WholePicture } from "./scenes/Phase2_WholePicture";
+import { Phase2ThreeElements } from "./scenes/Phase2_ThreeElements";
 import { Phase3OrderFlow } from "./scenes/Phase3_OrderFlow";
-import { Conclusion } from "./scenes/Conclusion";
+import { Phase4Closing } from "./scenes/Phase4_Closing";
 import "./styles/global.css";
 
 export const MainVideo: React.FC = () => {
@@ -12,25 +12,24 @@ export const MainVideo: React.FC = () => {
       <Audio src={staticFile("bgm.mp3")} />
 
       <Series>
-        {/* Phase 1: History & Mission (0:00 - 0:38) [38s] */}
+        {/* Phase 1: Intro & History (0:00 - 0:38) [38s] */}
         <Series.Sequence durationInFrames={38 * 30}>
           <Phase1History />
         </Series.Sequence>
 
-        {/* Phase 2: Whole Picture (0:39 - 1:19) [40s] */}
-        <Series.Sequence durationInFrames={40 * 30}>
-          <Phase2WholePicture />
+        {/* Phase 2: The 3 Elements (0:38 - 1:19) [41s] */}
+        <Series.Sequence durationInFrames={41 * 30}>
+          <Phase2ThreeElements />
         </Series.Sequence>
 
         {/* Phase 3: Order Flow (1:20 - 4:27) [187s] */}
-        {/* 1:20 is 80s start. Duration = 267s end - 80s start = 187s */}
         <Series.Sequence durationInFrames={187 * 30}>
           <Phase3OrderFlow />
         </Series.Sequence>
 
-        {/* Conclusion (4:28 - 5:25) [57s] */}
-        <Series.Sequence durationInFrames={57 * 30}>
-          <Conclusion />
+        {/* Phase 4: Closing (4:27 - 5:25) [58s] */}
+        <Series.Sequence durationInFrames={58 * 30}>
+          <Phase4Closing />
         </Series.Sequence>
       </Series>
     </>

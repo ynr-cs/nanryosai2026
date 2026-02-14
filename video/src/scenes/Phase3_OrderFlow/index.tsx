@@ -6,261 +6,448 @@ import {
   Sequence,
   interpolate,
   spring,
+  Img,
 } from "remotion";
+import { MockPhone } from "../../components/Mock/Phone";
+import { MockTablet } from "../../components/Mock/Tablet";
 import { MockButton } from "../../components/Mock/Button";
 import { MockOrderCard } from "../../components/Mock/OrderCard";
-import { Smartphone, Check } from "lucide-react";
+import {
+  Check,
+  CreditCard,
+  ShoppingBag,
+  Utensils,
+  Bell,
+  ChevronRight,
+  TrendingUp,
+  ToggleRight,
+} from "lucide-react";
 import "../../styles/global.css";
 
-const PhoneFrame: React.FC<{
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}> = ({ children, style }) => {
-  return (
-    <div
-      style={{
-        width: "375px",
-        height: "812px",
-        background: "white",
-        borderRadius: "40px",
-        border: "12px solid #333",
-        overflow: "hidden",
-        position: "relative",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
-        ...style,
-      }}
-    >
-      {/* Notch */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "150px",
-          height: "30px",
-          background: "#333",
-          borderBottomLeftRadius: "20px",
-          borderBottomRightRadius: "20px",
-          zIndex: 10,
-        }}
-      />
-      {children}
-    </div>
-  );
-};
-
-const LaunchButton: React.FC<{ onClick?: () => void }> = () => {
-  const frame = useCurrentFrame();
-
-  // Pulse animation
-  const scale = 1 + Math.sin(frame / 10) * 0.05;
-
-  return (
-    <div style={{ transform: `scale(${scale})` }}>
-      <MockButton text="注文を確定する" />
-    </div>
-  );
-};
+const TitleText: React.FC<{ text: string }> = ({ text }) => (
+  <div
+    style={{
+      fontFamily: "var(--font-main)",
+      fontSize: "60px",
+      fontWeight: "bold",
+      marginBottom: "40px",
+      textAlign: "center",
+      color: "#333",
+    }}
+  >
+    {text}
+  </div>
+);
 
 export const Phase3OrderFlow: React.FC = () => {
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
+  const frame = useCurrentFrame();
 
   return (
     <AbsoluteFill style={{ background: "var(--bg-color)" }}>
-      {/* 3-1. Launch (1:20 - 1:37) [17s] */}
-      <Sequence from={0} durationInFrames={17 * fps}>
+      {/* 3-1. Ready (1:20 - 1:26) [6s] */}
+      <Sequence from={0} durationInFrames={6 * fps}>
         <AbsoluteFill
           style={{ justifyContent: "center", alignItems: "center" }}
         >
+          <TitleText text="System Ready" />
           <div
             style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "50px",
-              fontWeight: "bold",
-              marginBottom: "40px",
+              fontSize: "100px",
+              color: "var(--success-color)",
+              fontWeight: "900",
             }}
           >
-            準備は整った
+            ALL GREEN
           </div>
-          <PhoneFrame>
-            <div
-              style={{
-                height: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                background: "#f9fafb",
-              }}
-            >
-              <LaunchButton />
-            </div>
-          </PhoneFrame>
         </AbsoluteFill>
       </Sequence>
 
-      {/* 3-2. Liftoff (1:38 - 1:57) [19s] */}
-      <Sequence from={17 * fps} durationInFrames={19 * fps}>
+      {/* 3-2. Order (1:26 - 1:36) [10s] */}
+      <Sequence from={6 * fps} durationInFrames={10 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <MockPhone>
+            <div style={{ padding: 20 }}>
+              <div
+                style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}
+              >
+                Menu
+              </div>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                <div
+                  style={{
+                    padding: 10,
+                    border: "1px solid #ddd",
+                    borderRadius: 8,
+                  }}
+                >
+                  Yakisoba - ¥500
+                </div>
+                <div
+                  style={{
+                    padding: 10,
+                    border: "1px solid #ddd",
+                    borderRadius: 8,
+                    background: "#eef2ff",
+                  }}
+                >
+                  Tapioca - ¥300 (Selected)
+                </div>
+              </div>
+              <div style={{ marginTop: 240, textAlign: "center" }}>
+                <MockButton text="注文を確定する" />
+              </div>
+            </div>
+          </MockPhone>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-3. Transfer & Arrive (1:36 - 1:55) [19s] */}
+      <Sequence from={16 * fps} durationInFrames={19 * fps}>
         <AbsoluteFill
           style={{
             justifyContent: "center",
             alignItems: "center",
-            background: "#111827",
+            background: "#0f172a",
+          }}
+        >
+          <div style={{ color: "white", fontSize: 24 }}>
+            Data Transfer Encryption...
+          </div>
+          {/* Simple particle flowing animation could be added here */}
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-4. Display (1:55 - 2:00) [5s] */}
+      <Sequence from={35 * fps} durationInFrames={5 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <MockTablet>
+            <div
+              style={{
+                padding: 40,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 80,
+                  fontWeight: "bold",
+                  color: "var(--primary-color)",
+                }}
+              >
+                New Order!
+              </div>
+            </div>
+          </MockTablet>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-5. Cooking (2:00 - 2:10) [10s] */}
+      <Sequence from={40 * fps} durationInFrames={10 * fps}>
+        <AbsoluteFill
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 50,
+          }}
+        >
+          <MockTablet style={{ transform: "scale(0.6)" }}>
+            <div style={{ padding: 20 }}>
+              <h3>Kitchen View</h3>
+              <div
+                style={{
+                  background: "#fef3c7",
+                  padding: 20,
+                  borderRadius: 10,
+                  border: "2px solid var(--warning-color)",
+                }}
+              >
+                Status: Cooking
+              </div>
+            </div>
+          </MockTablet>
+          <MockPhone style={{ transform: "scale(0.6)" }}>
+            <div style={{ padding: 20, textAlign: "center", paddingTop: 100 }}>
+              Status:{" "}
+              <span
+                style={{ color: "var(--warning-color)", fontWeight: "bold" }}
+              >
+                調理中...
+              </span>
+            </div>
+          </MockPhone>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-6. Cook Done (2:10 - 2:30) [20s] */}
+      <Sequence from={50 * fps} durationInFrames={20 * fps}>
+        <AbsoluteFill
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 50,
+          }}
+        >
+          {/* Simulation of tapping 'Done' */}
+          <MockTablet style={{ transform: "scale(0.6)" }}>
+            <div style={{ padding: 20 }}>
+              <h3>Kitchen View</h3>
+              <MockButton
+                text="調理完了"
+                style={{ background: "var(--success-color)" }}
+              />
+            </div>
+          </MockTablet>
+          <MockPhone style={{ transform: "scale(0.6)" }}>
+            <div style={{ padding: 20, textAlign: "center", paddingTop: 100 }}>
+              Status:{" "}
+              <span
+                style={{ color: "var(--success-color)", fontWeight: "bold" }}
+              >
+                調理完了
+              </span>
+            </div>
+          </MockPhone>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-7. Presenter (2:30 - 2:45) [15s] */}
+      <Sequence from={70 * fps} durationInFrames={15 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <MockTablet>
+            <div
+              style={{
+                padding: 20,
+                textAlign: "center",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <h2>Presenter View</h2>
+              <p>Picking items...</p>
+              <MockButton
+                text="準備完了 (Call)"
+                style={{ background: "var(--primary-color)", width: 300 }}
+              />
+            </div>
+          </MockTablet>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-8. Call (2:45 - 3:00) [15s] */}
+      <Sequence from={85 * fps} durationInFrames={15 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 100,
+              fontSize: 40,
+              fontWeight: "bold",
+            }}
+          >
+            Notification Burst!
+          </div>
+          <div style={{ display: "flex", gap: 40 }}>
+            <MockPhone style={{ transform: "scale(0.8)" }}>
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.8)",
+                  margin: 10,
+                  padding: 15,
+                  borderRadius: 10,
+                  color: "white",
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <Bell size={20} /> Order Ready!
+              </div>
+            </MockPhone>
+            <div
+              style={{
+                width: 400,
+                height: 300,
+                background: "black",
+                border: "10px solid #333",
+                borderRadius: 20,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                color: "white",
+                fontSize: 80,
+                fontWeight: "bold",
+              }}
+            >
+              A-001
+            </div>
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-9. Approach (3:00 - 3:15) [15s] */}
+      <Sequence from={100 * fps} durationInFrames={15 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <MockTablet orientation="landscape">
+            <div style={{ padding: 40, textAlign: "center" }}>
+              <h2>Monitor Display</h2>
+              <div
+                style={{
+                  border: "2px solid #ccc",
+                  padding: 20,
+                  fontSize: 40,
+                  width: 300,
+                  margin: "20px auto",
+                }}
+              >
+                Input No.
+              </div>
+            </div>
+          </MockTablet>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-10. Confirm (3:15 - 3:35) [20s] */}
+      <Sequence from={115 * fps} durationInFrames={20 * fps}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
+          <MockTablet orientation="landscape">
+            <div style={{ padding: 40 }}>
+              <h2>Confirm Order</h2>
+              <div style={{ fontSize: 24, marginBottom: 20 }}>
+                Tapioca (Milk Tea) x1
+              </div>
+              <div
+                style={{
+                  fontSize: 40,
+                  fontWeight: "bold",
+                  textAlign: "right",
+                  margin: "40px 0",
+                }}
+              >
+                ¥300
+              </div>
+              <MockButton
+                text="決済を確定する"
+                style={{ width: "100%", background: "var(--accent-color)" }}
+              />
+            </div>
+          </MockTablet>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* 3-11. Payment (3:35 - 3:55) [20s] */}
+      <Sequence from={135 * fps} durationInFrames={20 * fps}>
+        <AbsoluteFill
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            background: "white",
           }}
         >
           <div
             style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "60px",
+              fontSize: 80,
               fontWeight: "bold",
-              color: "white",
-              marginBottom: "50px",
+              color: "var(--accent-color)",
+              marginBottom: 20,
             }}
           >
-            安全に、確実に
+            au PAY
           </div>
-          {/* Abstract Rocket/Data Animation would go here */}
-          <div
-            style={{
-              width: "20px",
-              height: "20px",
-              borderRadius: "50%",
-              background: "var(--primary-color)",
-              boxShadow: "0 0 20px var(--primary-color)",
-            }}
+          <div style={{ fontSize: 40, color: "#333" }}>
+            Payment Processing...
+          </div>
+          <Check
+            size={120}
+            color="var(--success-color)"
+            style={{ marginTop: 40 }}
           />
         </AbsoluteFill>
       </Sequence>
 
-      {/* 3-3. Orbit Insertion (1:58 - 2:30) [32s] */}
-      <Sequence from={(17 + 19) * fps} durationInFrames={32 * fps}>
+      {/* 3-12. Freedom (3:55 - 4:09) [14s] */}
+      <Sequence from={155 * fps} durationInFrames={14 * fps}>
         <AbsoluteFill
-          style={{ justifyContent: "center", alignItems: "center" }}
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            background: "#e0f2fe",
+          }}
         >
-          <div
-            style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "50px",
-              fontWeight: "bold",
-              marginBottom: "40px",
-            }}
-          >
-            光の速さで、厨房へ
-          </div>
-          <div style={{ display: "flex", gap: "40px" }}>
-            <MockOrderCard
-              orderId="A001"
-              items={["焼きそば", "フランクフルト"]}
-              status="waiting"
-            />
-            <MockOrderCard
-              orderId="A002"
-              items={["タピオカ"]}
-              status="waiting"
-            />
+          <TitleText text="No More Lines." />
+          <div style={{ display: "flex", gap: 20 }}>
+            <ShoppingBag size={60} />
+            <Utensils size={60} />
+            <div style={{ fontSize: 60 }}>😊</div>
           </div>
         </AbsoluteFill>
       </Sequence>
 
-      {/* 3-4. Status Update (2:31 - 2:46) [15s] */}
-      <Sequence from={(17 + 19 + 32) * fps} durationInFrames={15 * fps}>
+      {/* 3-13. Admin (4:09 - 4:27) [18s] */}
+      <Sequence from={169 * fps} durationInFrames={18 * fps}>
         <AbsoluteFill
           style={{ justifyContent: "center", alignItems: "center" }}
         >
-          <div
-            style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "50px",
-              fontWeight: "bold",
-              marginBottom: "40px",
-            }}
-          >
-            リアルタイム同期
-          </div>
-          <div style={{ display: "flex", gap: "100px", alignItems: "center" }}>
-            {/* Store View */}
-            <div>
-              <h3>Store</h3>
-              <MockOrderCard
-                orderId="A001"
-                items={["焼きそば"]}
-                status="ready"
-              />
-            </div>
-            {/* User View */}
-            <div>
-              <h3>Guest</h3>
-              <PhoneFrame style={{ transform: "scale(0.8)" }}>
-                <div style={{ padding: "20px", paddingTop: "60px" }}>
-                  <div
-                    style={{
-                      background: "#10b981",
-                      color: "white",
-                      padding: "20px",
-                      borderRadius: "12px",
-                      textAlign: "center",
-                      fontWeight: "bold",
-                      fontSize: "24px",
-                    }}
-                  >
-                    調理完了！
-                  </div>
+          <MockTablet>
+            <div style={{ padding: 20 }}>
+              <h2>Admin Dashboard</h2>
+              <div style={{ display: "flex", gap: 20, marginBottom: 20 }}>
+                <div
+                  style={{
+                    padding: 20,
+                    background: "#f3f4f6",
+                    borderRadius: 10,
+                    flex: 1,
+                  }}
+                >
+                  <TrendingUp /> Sales: ¥120,000
                 </div>
-              </PhoneFrame>
+                <div
+                  style={{
+                    padding: 20,
+                    background: "#f3f4f6",
+                    borderRadius: 10,
+                    flex: 1,
+                  }}
+                >
+                  TC: 450
+                </div>
+              </div>
+              <div
+                style={{
+                  padding: 10,
+                  borderBottom: "1px solid #eee",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>Yakisoba</span>
+                <ToggleRight color="var(--success-color)" />
+              </div>
             </div>
-          </div>
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* 3-5. Calling & Arrival (2:46 - 3:52) [66s] */}
-      <Sequence from={(17 + 19 + 32 + 15) * fps} durationInFrames={66 * fps}>
-        <AbsoluteFill
-          style={{ justifyContent: "center", alignItems: "center" }}
-        >
-          <div
-            style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "50px",
-              fontWeight: "bold",
-            }}
-          >
-            待たせない。逃さない。
-          </div>
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* 3-6. Handover (3:53 - 4:27) [34s] */}
-      <Sequence
-        from={(17 + 19 + 32 + 15 + 66) * fps}
-        durationInFrames={34 * fps}
-      >
-        <AbsoluteFill
-          style={{ justifyContent: "center", alignItems: "center" }}
-        >
-          <div
-            style={{
-              fontFamily: "Noto Sans JP",
-              fontSize: "50px",
-              fontWeight: "bold",
-              marginBottom: "20px",
-            }}
-          >
-            体験を持ち帰ろう
-          </div>
-          <div
-            style={{
-              width: "200px",
-              height: "200px",
-              background: "white",
-              borderRadius: "20px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-            }}
-          >
-            <Check size={100} color="#10b981" />
-          </div>
+          </MockTablet>
         </AbsoluteFill>
       </Sequence>
     </AbsoluteFill>

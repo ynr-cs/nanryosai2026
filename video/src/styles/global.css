@@ -27,12 +27,35 @@
   /* Video Specific */
   --screen-width: 1920px;
   --screen-height: 1080px;
+  /* UI Elements */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: "Noto Sans JP", "Inter", "Zen Kaku Gothic New", sans-serif;
+  font-family: var(--font-main);
   background-color: var(--bg-color);
   color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Utilities */
+.text-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.font-heading {
+  font-family: var(--font-main);
+  font-weight: 900;
+}
+
+.font-body {
+  font-family: var(--font-main);
+  font-weight: 500;
 }

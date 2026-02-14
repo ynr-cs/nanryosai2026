@@ -3,160 +3,315 @@ import {
   AbsoluteFill,
   useCurrentFrame,
   interpolate,
-  spring,
   useVideoConfig,
+  Sequence,
+  Img,
+  staticFile,
 } from "remotion";
+import { User, ArrowRight, FileText } from "lucide-react";
 import "../../styles/global.css";
 
-const SubTitle: React.FC<{
+const TitleText: React.FC<{
   text: string;
-  delay: number;
-  style?: React.CSSProperties;
-}> = ({ text, delay, style }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const opacity = interpolate(frame, [delay, delay + 15], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  const translateY = interpolate(frame, [delay, delay + 15], [20, 0], {
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <div
-      style={{
-        opacity,
-        transform: `translateY(${translateY}px)`,
-        fontFamily: "Noto Sans JP",
-        fontWeight: "bold",
-        fontSize: "60px",
-        color: "#333",
-        ...style,
-      }}
-    >
-      {text}
-    </div>
-  );
-};
+  y: number;
+  opacity: number;
+  scale?: number;
+}> = ({ text, y, opacity, scale = 1 }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: y,
+      left: "50%",
+      transform: `translateX(-50%) scale(${scale})`,
+      fontFamily: "var(--font-main)",
+      fontWeight: 900,
+      fontSize: "80px",
+      color: "white",
+      opacity,
+      whiteSpace: "nowrap",
+      textAlign: "center",
+    }}
+  >
+    {text}
+  </div>
+);
 
 export const Phase1History: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Scene 1: The Problem (0:00 - 0:13)
-  // 13 seconds * 30fps = 390 frames
-  const problemDuration = 13 * fps;
+  // 0:00 - 0:17 : The 2025 Era
+  const scene1Duration = 17 * fps;
 
-  // Scene 2: The Mission (0:14 - 0:38)
-  // Starts at frame 390
-
-  const isProblemScene = frame < problemDuration;
-
-  // Noise effect for problem scene (simulated with opacity flicker)
-  const noiseOpacity = Math.random() * 0.1;
-
-  // Main Title Animation (Mission)
-  const titleSpring = spring({
-    frame: frame - problemDuration,
-    fps,
-    config: { damping: 200 },
-  });
-
-  const scale = interpolate(frame - problemDuration, [0, 30], [0.8, 1], {
-    extrapolateRight: "clamp",
-  });
+  // 0:17 - 0:38 : The 2026 Revolution
+  const scene2Start = 17 * fps;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "white" }}>
-      {isProblemScene ? (
-        <AbsoluteFill
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            filter: "grayscale(100%) contrast(1.2)",
-            backgroundColor: "#e5e5e5",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: `rgba(0,0,0,${noiseOpacity})`,
-              pointerEvents: "none",
-            }}
-          />
+    <AbsoluteFill style={{ backgroundColor: "black" }}>
+      {/* 2025 Sequence */}
+      <Sequence durationInFrames={scene1Duration}>
+        <AbsoluteFill>
+          {/* "2025" Text (0-6s) */}
+          <Sequence durationInFrames={6 * fps}>
+            <AbsoluteFill
+              style={{ justifyContent: "center", alignItems: "center" }}
+            >
+              <TitleText
+                text="2025"
+                y={500}
+                opacity={interpolate(frame, [30, 120, 150, 180], [0, 1, 1, 0])}
+              />
+            </AbsoluteFill>
+          </Sequence>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "40px",
-              alignItems: "center",
-            }}
-          >
-            {/* Text appears sequentially */}
-            <SubTitle text="混雑" delay={30} />
-            <SubTitle text="行列" delay={90} />
-            <SubTitle
-              text="集計ミス"
-              delay={150}
-              style={{ color: "#d32f2f" }}
-            />
-          </div>
+          {/* Website Simple Display (6-12s) */}
+          <Sequence from={6 * fps} durationInFrames={6 * fps}>
+            <AbsoluteFill
+              style={{ justifyContent: "center", alignItems: "center" }}
+            >
+              <Img
+                src={staticFile("2025_website.png")}
+                style={{
+                  width: "70%",
+                  borderRadius: "10px",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
+                  opacity: interpolate(frame - 6 * fps, [0, 12], [0, 1]),
+                }}
+              />
+            </AbsoluteFill>
+          </Sequence>
+
+          {/* Paper -> Web Transition (12-17s) */}
+          <Sequence from={12 * fps}>
+            <AbsoluteFill
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#0a0a0a",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "60px",
+                  width: "100%",
+                  opacity: interpolate(frame - 12 * fps, [0, 10], [0, 1]),
+                }}
+              >
+                {/* Paper Icon */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "160px",
+                      height: "220px",
+                      background: "#fff",
+                      borderRadius: "5px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      boxShadow: "0 5px 15px rgba(255,255,255,0.1)",
+                    }}
+                  >
+                    <FileText size={90} color="#333" />
+                  </div>
+                  <span
+                    style={{
+                      color: "white",
+                      fontSize: "24px",
+                      fontFamily: "var(--font-main)",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    紙のパンフレット
+                  </span>
+                </div>
+
+                {/* Arrow (Static/Stable) */}
+                <div
+                  style={{
+                    opacity: interpolate(frame - 12 * fps, [10, 20], [0, 1]),
+                  }}
+                >
+                  <ArrowRight size={80} color="var(--primary-color)" />
+                </div>
+
+                {/* Web Image */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "20px",
+                    opacity: interpolate(frame - 12 * fps, [25, 40], [0, 1]),
+                    transform: `scale(${interpolate(frame - 12 * fps, [25, 40], [0.9, 1], { extrapolateRight: "clamp" })})`,
+                  }}
+                >
+                  <Img
+                    src={staticFile("2025_website.png")}
+                    style={{
+                      width: "320px",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "white",
+                      fontSize: "24px",
+                      fontFamily: "var(--font-main)",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ウェブサイト
+                  </span>
+                </div>
+              </div>
+            </AbsoluteFill>
+          </Sequence>
         </AbsoluteFill>
-      ) : (
-        <AbsoluteFill
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            background: "var(--bg-color)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "30px",
-              transform: `scale(${scale})`,
-              opacity: interpolate(frame - problemDuration, [0, 20], [0, 1]),
-            }}
+      </Sequence>
+
+      {/* 2026 Sequence */}
+      <Sequence from={scene2Start}>
+        <AbsoluteFill style={{ backgroundColor: "black" }}>
+          {/* Logo & Text (17s - 38s) */}
+          <AbsoluteFill
+            style={{ justifyContent: "center", alignItems: "center" }}
           >
             <div
               style={{
-                fontSize: "80px",
-                fontWeight: 900,
-                background: "var(--primary-gradient)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                textAlign: "center",
-                lineHeight: 1.2,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "20px",
+                transform: "translateY(-60px)",
               }}
             >
-              南陵祭2026
-              <br />
-              モバイルオーダー
+              <div
+                style={{
+                  fontFamily: "var(--font-main)",
+                  fontWeight: 900,
+                  fontSize: "200px",
+                  background: "var(--primary-gradient)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  // Fade out before NEXT DIMENSION (30s mark = 13s from scene2Start)
+                  opacity: interpolate(
+                    frame - scene2Start,
+                    [0, 20, 12 * fps, 13 * fps],
+                    [0, 1, 1, 0],
+                  ),
+                }}
+              >
+                2026
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-main)",
+                  fontWeight: 700,
+                  fontSize: "60px",
+                  color: "white",
+                  letterSpacing: "0.2em",
+                  // Fade out before NEXT DIMENSION
+                  opacity: interpolate(
+                    frame - scene2Start,
+                    [15, 35, 12 * fps, 13 * fps],
+                    [0, 1, 1, 0],
+                  ),
+                }}
+              >
+                モバイルオーダー
+              </div>
             </div>
+          </AbsoluteFill>
 
-            <div
-              style={{
-                fontSize: "40px",
-                color: "var(--text-sub)",
-                fontWeight: 700,
-                letterSpacing: "0.2em",
-                marginTop: "20px",
-              }}
+          {/* Queue Animation (24s - 28s) */}
+          <Sequence from={7 * fps} durationInFrames={4 * fps}>
+            <AbsoluteFill
+              style={{ justifyContent: "center", alignItems: "center" }}
             >
-              行列のない世界へ
-            </div>
-          </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "15px",
+                  position: "absolute",
+                  bottom: "180px",
+                  opacity: interpolate(
+                    frame - scene2Start - 7 * fps,
+                    [0, 5, 20, 30],
+                    [0, 1, 1, 0],
+                  ),
+                }}
+              >
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      opacity: interpolate(
+                        frame - scene2Start - 7 * fps,
+                        [20, 30],
+                        [1, 0],
+                      ),
+                      transform: `scale(${interpolate(frame - scene2Start - 7 * fps, [20, 30], [1, 1.5], { extrapolateRight: "clamp" })})`,
+                      filter: `blur(${interpolate(frame - scene2Start - 7 * fps, [20, 30], [0, 10])}px)`,
+                    }}
+                  >
+                    <User size={50} color="white" />
+                  </div>
+                ))}
+              </div>
+            </AbsoluteFill>
+          </Sequence>
+
+          {/* Title Display at the end (30-38s) */}
+          <Sequence from={13 * fps}>
+            <AbsoluteFill
+              style={{ justifyContent: "center", alignItems: "center" }}
+            >
+              <div
+                style={{
+                  textAlign: "center",
+                  opacity: interpolate(
+                    frame - scene2Start - 13 * fps,
+                    [0, 20],
+                    [0, 1],
+                  ),
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "40px",
+                    color: "var(--text-sub)",
+                    marginBottom: "20px",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  革命の始まり
+                </div>
+                <div
+                  style={{
+                    fontSize: "100px",
+                    fontWeight: 900,
+                    color: "white",
+                    textShadow: "0 0 30px rgba(255,255,255,0.4)",
+                  }}
+                >
+                  NEXT DIMENSION
+                </div>
+              </div>
+            </AbsoluteFill>
+          </Sequence>
         </AbsoluteFill>
-      )}
+      </Sequence>
     </AbsoluteFill>
   );
 };
