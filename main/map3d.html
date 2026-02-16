@@ -404,7 +404,7 @@
 
       // 建物設定（ユーザー提供の配置図に基づく）
       // 概要: 校庭(右上) - 体育館(生徒棟の上) - 生徒棟(中央コの字) - 武道場/職員室(下) - 健康福祉棟(最下部斜め)
-      const BUILDINGS = {
+      const DEFAULT_BUILDINGS = {
         // 生徒棟（コの字型、中央配置）
         student: {
           x: 0,
@@ -454,10 +454,16 @@
         },
       };
 
+      let buildingsConfig = JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+      let roads = [];
+      let areas = [];
+
       init();
       animate();
 
       function init() {
+        loadFromLocalStorage(); // データ読み込み
+
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xd4e5f7);
 
@@ -514,6 +520,8 @@
         mouse = new THREE.Vector2();
 
         createEnvironment();
+        createRoads();
+        createAreas();
         createCampus();
 
         window.addEventListener("resize", onResize);
@@ -607,7 +615,7 @@
       }
 
       function createBuilding(buildingId, numFloors) {
-        const building = BUILDINGS[buildingId];
+        const building = buildingsConfig[buildingId];
         if (!building) return;
 
         for (let f = 1; f <= numFloors; f++) {
@@ -651,7 +659,7 @@
       }
 
       function createStudentBuildingRooms(floorData, y, floorNum) {
-        const building = BUILDINGS.student;
+        const building = buildingsConfig.student;
         const group = floorData.group;
         const roomY = y + 0.5;
 
@@ -707,7 +715,7 @@
       }
 
       function createStaffBuildingRooms(floorData, y, floorNum) {
-        const building = BUILDINGS.staff;
+        const building = buildingsConfig.staff;
         const group = floorData.group;
         const roomY = y + 0.5;
 
@@ -754,7 +762,7 @@
       }
 
       function createBudoRooms(floorData, y) {
-        const building = BUILDINGS.budo;
+        const building = buildingsConfig.budo;
         const group = floorData.group;
         const roomY = y + 0.5;
 
@@ -780,7 +788,7 @@
       }
 
       function createHealthRooms(floorData, y) {
-        const building = BUILDINGS.health;
+        const building = buildingsConfig.health;
         const group = floorData.group;
         const roomY = y + 0.5;
 
@@ -805,7 +813,7 @@
       }
 
       function createGymRooms(floorData, y) {
-        const building = BUILDINGS.gym;
+        const building = buildingsConfig.gym;
         const group = floorData.group;
         const roomY = y + 0.5;
 
@@ -1098,7 +1106,7 @@
           controls.target.set(0, 0, 0);
           camera.zoom = 1;
         } else {
-          const building = BUILDINGS[buildingId];
+          const building = buildingsConfig[buildingId];
           if (building) {
             controls.target.set(building.x, 0, building.z);
             camera.zoom = 1.5;
@@ -1130,6 +1138,187 @@
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);
+      }
+
+      // ===================================
+      // データロード & エリア描画
+      // ===================================
+      function loadFromLocalStorage() {
+        const saved = localStorage.getItem("mapEditorData");
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            if (data.buildings && Array.isArray(data.buildings)) {
+              data.buildings.forEach((b) => {
+                if (buildingsConfig[b.id]) {
+                  // Object.assign(buildingsConfig[b.id], b); // 直接マージすると古いプロパティが残るかも
+                  // 重要な座標などを更新
+                  const target = buildingsConfig[b.id];
+                  target.x = b.x;
+                  target.z = b.z;
+                  target.width = b.width;
+                  target.depth = b.depth;
+                  target.floors = b.floors;
+                  target.rotation = b.rotation;
+                }
+              });
+            }
+            if (data.roads) roads = data.roads;
+            if (data.areas) areas = data.areas;
+            console.log("LocalStorage loaded:", data);
+          } catch (e) {
+            console.error("Failed to load map data", e);
+          }
+        }
+      }
+
+      function createRoads() {
+        roads.forEach((road) => {
+          const mesh = createRoadMesh(road);
+          if (mesh) {
+            mesh.position.y = -0.8; // 地面より少し上
+            scene.add(mesh);
+          }
+        });
+      }
+
+      function createRoadMesh(road) {
+        if (!road.nodes || road.nodes.length < 2) return null;
+        const width = road.width || 4.0;
+        const halfWidth = width / 2;
+        const points = road.nodes.map((n) => new THREE.Vector3(n.x, 0, n.z));
+
+        const vertices = [];
+        const indices = [];
+
+        const segments = [];
+        // Bezier support? Viewer simple impl: linear for now unless road.segments exist?
+        // If road.segments (bezier) exists, use it? Too complex for now to port bezier logic.
+        // Editor saves `nodes` (control points).
+        // For simplicity in viewer, just draw linear segments between nodes for now.
+        // Or if it's curve, we need bezier logic.
+        // Let's assume linear for this iteration.
+
+        for (let i = 0; i < points.length - 1; i++) {
+          const p1 = points[i];
+          const p2 = points[i + 1];
+
+          const dir = p2.clone().sub(p1).normalize();
+          const normal = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(
+            halfWidth,
+          );
+
+          const v1 = p1.clone().add(normal);
+          const v2 = p1.clone().sub(normal);
+          const v3 = p2.clone().add(normal);
+          const v4 = p2.clone().sub(normal);
+
+          const baseIndex = vertices.length / 3;
+          vertices.push(v1.x, 0, v1.z);
+          vertices.push(v2.x, 0, v2.z);
+          vertices.push(v3.x, 0, v3.z);
+          vertices.push(v4.x, 0, v4.z);
+
+          indices.push(baseIndex, baseIndex + 1, baseIndex + 2);
+          indices.push(baseIndex + 1, baseIndex + 3, baseIndex + 2);
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(vertices, 3),
+        );
+        geometry.setIndex(indices);
+        geometry.computeVertexNormals();
+
+        const material = new THREE.MeshLambertMaterial({ color: 0x555555 });
+        return new THREE.Mesh(geometry, material);
+      }
+
+      function createAreas() {
+        areas.forEach((area) => {
+          const mesh = createAreaMesh(area);
+          if (mesh) {
+            // mesh.position.y = -0.75; // Roadより上? 下? Areaの上にRoad?
+            // Editor: Road=0.02, Area=0.05 (Area is ON TOP of road?? No, AreaToolManager default)
+            // Wait, "Road(0.02)より少し上" comment in editor.js implies Area is above Road.
+            // But usually Road (center line) is on top of Area (Pavement).
+            // Let's set Area=-0.85 (below Road=-0.8).
+            // Ground is -1.
+            mesh.position.y = -0.85;
+            scene.add(mesh);
+          }
+        });
+      }
+
+      function createAreaMesh(area) {
+        if (!area.nodes || area.nodes.length < 2) return null;
+        const width = area.width || 4.0;
+        const halfWidth = width / 2;
+
+        let color = 0x555555;
+        if (area.subType === "public_road") color = 0x333333;
+        if (area.subType === "campus_walkway") color = 0xaaaaaa;
+        if (area.subType === "flat_area") color = 0x8d6e63;
+
+        const material = new THREE.MeshLambertMaterial({
+          color: color,
+          side: THREE.DoubleSide,
+        });
+        let geometry;
+
+        if (area.drawMode === "draw_polygon" || area.subType === "flat_area") {
+          const shape = new THREE.Shape();
+          shape.moveTo(area.nodes[0].x, -area.nodes[0].z);
+          for (let i = 1; i < area.nodes.length; i++) {
+            shape.lineTo(area.nodes[i].x, -area.nodes[i].z);
+          }
+          shape.closePath();
+          geometry = new THREE.ShapeGeometry(shape);
+          geometry.rotateX(-Math.PI / 2);
+        } else {
+          // Path
+          const points = area.nodes.map((n) => new THREE.Vector3(n.x, 0, n.z));
+          const vertices = [];
+          const indices = [];
+          for (let i = 0; i < points.length - 1; i++) {
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const dir = p2.clone().sub(p1).normalize();
+            const normal = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(
+              halfWidth,
+            );
+            const v1 = p1.clone().add(normal);
+            const v2 = p1.clone().sub(normal);
+            const v3 = p2.clone().add(normal);
+            const v4 = p2.clone().sub(normal);
+            const baseIndex = vertices.length / 3;
+            vertices.push(v1.x, 0, v1.z);
+            vertices.push(v2.x, 0, v2.z);
+            vertices.push(v3.x, 0, v3.z);
+            vertices.push(v4.x, 0, v4.z);
+            indices.push(baseIndex, baseIndex + 1, baseIndex + 2);
+            indices.push(baseIndex + 1, baseIndex + 3, baseIndex + 2);
+          }
+          geometry = new THREE.BufferGeometry();
+          geometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(vertices, 3),
+          );
+          geometry.setIndex(indices);
+          geometry.computeVertexNormals();
+        }
+
+        const mesh = new THREE.Mesh(geometry, material);
+        if (area.subType === "public_road") {
+          const lineGeo = new THREE.BufferGeometry().setFromPoints(
+            area.nodes.map((n) => new THREE.Vector3(n.x, 0.05, n.z)),
+          );
+          const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+          const line = new THREE.Line(lineGeo, lineMat);
+          mesh.add(line);
+        }
+        return mesh;
       }
     </script>
   </body>

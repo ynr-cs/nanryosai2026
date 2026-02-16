@@ -28,6 +28,21 @@ let roadMeshes = [];
 let selectedRoad = null;
 let selectedRoadMesh = null;
 
+// エリアデータ
+let areas = [];
+let areaMeshes = [];
+let selectedArea = null;
+
+// エリアツール制御
+const AreaTool = {
+  DRAW_PATH: "draw_path",
+  DRAW_POLYGON: "draw_polygon",
+  EDIT: "edit",
+  DELETE: "delete",
+  IDLE: "idle",
+};
+let areaTool;
+
 // 道路ツール制御 (v0.5.0: RoadTool Class Integration)
 const RoadTool = {
   LINE: "line",
@@ -1346,6 +1361,434 @@ class RoadToolManager {
 }
 let currentRoadTool = RoadTool.LINE; // Legacy support (for checks)
 
+// ===================================
+// エリアツール (AreaToolManager)
+// ===================================
+class AreaToolManager {
+  constructor() {
+    this.mode = AreaTool.IDLE;
+    this.subType = "public_road"; // public_road, campus_walkway, flat_area
+    this.drawMode = AreaTool.DRAW_PATH; // path, polygon
+
+    this.nodes = []; // 現在作成中のノード
+    this.tempArea = null; // プレビュー用
+
+    // Visuals
+    this.cursorMesh = null;
+    this.ghostMesh = null;
+    this.nodeSnapMesh = null;
+
+    // Snapping
+    this.snapDistance = 2.0;
+  }
+
+  init() {
+    // 1. カーソル (緑色)
+    const cursorGeo = new THREE.SphereGeometry(1.5, 16, 16);
+    const cursorMat = new THREE.MeshBasicMaterial({
+      color: 0x4caf50,
+      transparent: true,
+      opacity: 0.8,
+      depthTest: false,
+    });
+    this.cursorMesh = new THREE.Mesh(cursorGeo, cursorMat);
+    this.cursorMesh.visible = false;
+    this.cursorMesh.renderOrder = 999;
+    scene.add(this.cursorMesh);
+
+    // 2. スナップマーカー (オレンジ)
+    const snapGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const snapMat = new THREE.MeshBasicMaterial({
+      color: 0xff9800,
+      transparent: true,
+      opacity: 1.0,
+      depthTest: false,
+    });
+    this.nodeSnapMesh = new THREE.Mesh(snapGeo, snapMat);
+    this.nodeSnapMesh.visible = false;
+    this.nodeSnapMesh.renderOrder = 2000;
+    scene.add(this.nodeSnapMesh);
+
+    // 3. ゴーストメッシュ
+    const ghostGeo = new THREE.BufferGeometry();
+    const ghostMat = new THREE.MeshBasicMaterial({
+      color: 0x81c784,
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+      depthTest: false,
+    });
+    this.ghostMesh = new THREE.Mesh(ghostGeo, ghostMat);
+    this.ghostMesh.visible = false;
+    this.ghostMesh.renderOrder = 1;
+    scene.add(this.ghostMesh);
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    this.resetState();
+    updateStatus(`エリアツール: ${this.getModeName(mode)}`);
+
+    // UIボタンのハイライト更新
+    const areaMap = {
+      "btn-area-public": { type: "public_road", mode: AreaTool.DRAW_PATH },
+      "btn-area-walkway": { type: "campus_walkway", mode: AreaTool.DRAW_PATH },
+      "btn-area-flat": { type: "flat_area", mode: AreaTool.DRAW_POLYGON },
+    };
+
+    // リセット
+    Object.keys(areaMap).forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove("active");
+    });
+
+    // 現在のサブタイプに対応するボタンをアクティブ化
+    if (
+      this.mode === AreaTool.DRAW_PATH ||
+      this.mode === AreaTool.DRAW_POLYGON
+    ) {
+      if (this.subType === "public_road")
+        document.getElementById("btn-area-public")?.classList.add("active");
+      if (this.subType === "campus_walkway")
+        document.getElementById("btn-area-walkway")?.classList.add("active");
+      if (this.subType === "flat_area")
+        document.getElementById("btn-area-flat")?.classList.add("active");
+    }
+
+    // 編集・削除ボタン
+    document.getElementById("btn-area-edit")?.classList.remove("active");
+    document.getElementById("btn-area-delete")?.classList.remove("active");
+
+    if (this.mode === AreaTool.EDIT)
+      document.getElementById("btn-area-edit")?.classList.add("active");
+    if (this.mode === AreaTool.DELETE)
+      document.getElementById("btn-area-delete")?.classList.add("active");
+  }
+
+  setSubType(type) {
+    this.subType = type;
+    if (type === "flat_area") this.drawMode = AreaTool.DRAW_POLYGON;
+    else this.drawMode = AreaTool.DRAW_PATH;
+
+    updateStatus(`エリアタイプ変更: ${type}`);
+  }
+
+  setSnap(enabled) {
+    // Global snapEnabled used? Or internal?
+    // For now use global snapEnabled
+  }
+
+  getModeName(mode) {
+    switch (mode) {
+      case AreaTool.DRAW_PATH:
+        return "パス作成";
+      case AreaTool.DRAW_POLYGON:
+        return "ポリゴン作成";
+      case AreaTool.EDIT:
+        return "編集モード";
+      case AreaTool.DELETE:
+        return "削除モード";
+      default:
+        return "待機中";
+    }
+  }
+
+  resetState() {
+    this.nodes = [];
+    if (this.ghostMesh) this.ghostMesh.visible = false;
+    if (this.cursorMesh) this.cursorMesh.visible = false;
+    if (this.nodeSnapMesh) this.nodeSnapMesh.visible = false;
+  }
+
+  handleEvent(type, event) {
+    if (this.mode === AreaTool.IDLE) return false;
+
+    if (type === "pointermove") {
+      this.onPointerMove(event);
+      return true;
+    }
+    if (type === "pointerdown") {
+      return this.onPointerDown(event);
+    }
+    if (type === "click") {
+      // return true only if handled
+      return false;
+    }
+    if (type === "contextmenu") {
+      this.onRightClick(event);
+      return true;
+    }
+    return false;
+  }
+
+  onPointerMove(event) {
+    const pos = this.getRaycastPosition(event);
+    if (!pos) return;
+
+    const snap = this.calculateSnap(pos);
+    const { x, z } = snap;
+
+    this.cursorMesh.position.set(x, 0, z);
+    this.cursorMesh.visible = true;
+
+    if (snap.type === "NODE") {
+      this.nodeSnapMesh.position.set(x, 0, z);
+      this.nodeSnapMesh.visible = true;
+      this.cursorMesh.visible = false;
+    } else {
+      this.nodeSnapMesh.visible = false;
+    }
+
+    // ゴースト更新
+    if (this.nodes.length > 0) {
+      const currentNodes = [...this.nodes, { x, z }];
+      this.updateGhost(currentNodes);
+    }
+  }
+
+  onPointerDown(event) {
+    if (event.button !== 0) return false; // 左クリックのみ
+
+    const pos = this.getRaycastPosition(event);
+    if (!pos) return false;
+
+    // DELETEモード
+    if (this.mode === AreaTool.DELETE) {
+      this.deleteAreaAt(pos);
+      return true;
+    }
+
+    const snap = this.calculateSnap(pos);
+
+    // ノード追加
+    this.nodes.push({
+      x: snap.x,
+      z: snap.z,
+      id: snap.targetNode ? snap.targetNode.id : null,
+    });
+
+    updateStatus(`エリアノード追加: ${this.nodes.length}点目`);
+
+    // ポリゴンモードで始点に戻ったら完了
+    if (this.drawMode === AreaTool.DRAW_POLYGON && this.nodes.length > 2) {
+      const first = this.nodes[0];
+      const last = this.nodes[this.nodes.length - 1];
+      const dist = Math.hypot(first.x - last.x, first.z - last.z);
+      if (dist < 1.0) {
+        // 始点付近をクリック
+        this.nodes.pop(); // 重複削除
+        this.createArea();
+        return true;
+      }
+    }
+    return true;
+  }
+
+  deleteAreaAt(pos) {
+    const canvas = renderer.domElement;
+
+    let targetIndex = -1;
+
+    for (let i = 0; i < areas.length; i++) {
+      const area = areas[i];
+      if (!area.nodes || area.nodes.length < 2) continue;
+
+      if (
+        area.drawMode === AreaTool.DRAW_POLYGON ||
+        area.subType === "flat_area"
+      ) {
+        // Point in Polygon
+        if (this.isPointInPolygon(pos, area.nodes)) {
+          targetIndex = i;
+          break;
+        }
+      } else {
+        // Path Logic
+        for (let j = 0; j < area.nodes.length - 1; j++) {
+          const d = this.pointToSegmentDistance(
+            pos,
+            area.nodes[j],
+            area.nodes[j + 1],
+          );
+          if (d < area.width / 2 + 1.0) {
+            targetIndex = i;
+            break;
+          }
+        }
+        if (targetIndex !== -1) break;
+      }
+    }
+
+    if (targetIndex !== -1) {
+      areas.splice(targetIndex, 1);
+      createAreas();
+      updateStatus("エリアを削除しました");
+      saveToLocalStorage();
+    }
+  }
+
+  isPointInPolygon(p, polygon) {
+    let isInside = false;
+    let minX = polygon[0].x,
+      maxX = polygon[0].x;
+    let minZ = polygon[0].z,
+      maxZ = polygon[0].z;
+
+    for (let n = 1; n < polygon.length; n++) {
+      const q = polygon[n];
+      minX = Math.min(q.x, minX);
+      maxX = Math.max(q.x, maxX);
+      minZ = Math.min(q.z, minZ);
+      maxZ = Math.max(q.z, maxZ);
+    }
+    if (p.x < minX || p.x > maxX || p.z < minZ || p.z > maxZ) {
+      return false;
+    }
+
+    let i = 0,
+      j = polygon.length - 1;
+    for (i, j; i < polygon.length; j = i++) {
+      if (
+        polygon[i].z > p.z !== polygon[j].z > p.z &&
+        p.x <
+          ((polygon[j].x - polygon[i].x) * (p.z - polygon[i].z)) /
+            (polygon[j].z - polygon[i].z) +
+            polygon[i].x
+      ) {
+        isInside = !isInside;
+      }
+    }
+    return isInside;
+  }
+
+  pointToSegmentDistance(p, a, b) {
+    const l2 = (a.x - b.x) ** 2 + (a.z - b.z) ** 2;
+    if (l2 === 0) return Math.hypot(p.x - a.x, p.z - a.z);
+    let t = ((p.x - a.x) * (b.x - a.x) + (p.z - a.z) * (b.z - a.z)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(
+      p.x - (a.x + t * (b.x - a.x)),
+      p.z - (a.z + t * (b.z - a.z)),
+    );
+  }
+
+  onRightClick(event) {
+    event.preventDefault();
+
+    // 完了またはキャンセル
+    if (this.nodes.length >= 2) {
+      this.createArea();
+    } else {
+      this.resetState();
+      updateStatus("エリア作成キャンセル");
+    }
+  }
+
+  createArea() {
+    if (this.nodes.length < 2) return;
+
+    const newArea = {
+      id: "area_" + Date.now(),
+      type: "area",
+      subType: this.subType,
+      drawMode: this.drawMode,
+      width: this.subType === "campus_walkway" ? 3.0 : 8.0,
+      nodes: this.nodes.map((n) => ({
+        x: n.x,
+        z: n.z,
+        id: n.id || "node_" + Date.now() + "_" + Math.random(),
+      })),
+      properties: {
+        name: "新規エリア",
+      },
+    };
+
+    areas.push(newArea);
+
+    // メッシュ作成 (global function call)
+    if (typeof createAreaMesh === "function") {
+      createAreaMesh(newArea);
+    } else {
+      console.warn("createAreaMesh is not defined");
+    }
+
+    this.resetState();
+    updateStatus("エリアを作成しました");
+
+    if (typeof autoSave === "function") autoSave();
+  }
+
+  updateGhost(nodes) {
+    // 簡易的なライン描画
+    if (nodes.length < 2) {
+      this.ghostMesh.visible = false;
+      return;
+    }
+
+    const points = nodes.map((n) => new THREE.Vector3(n.x, 0.2, n.z)); // 少し浮かせる
+
+    if (this.drawMode === AreaTool.DRAW_POLYGON) {
+      // ポリゴン描画
+      const shape = new THREE.Shape();
+      shape.moveTo(nodes[0].x, -nodes[0].z);
+      for (let i = 1; i < nodes.length; i++)
+        shape.lineTo(nodes[i].x, -nodes[i].z);
+
+      // 閉じていないので最後の点から最初の点へは引かない（プレビュー段階）
+      // ただしShapeGeometryにするなら閉じる必要がある
+      // ここではラインで枠を表示するだけにするか、薄い面を表示するか。
+      // ShapeGeometryは閉じている前提。
+
+      const geo = new THREE.ShapeGeometry(shape);
+      geo.rotateX(-Math.PI / 2);
+      geo.translate(0, 0.2, 0); // 浮かす
+
+      this.ghostMesh.geometry.dispose();
+      this.ghostMesh.geometry = geo;
+
+      // Update: ポリゴンプレビューで頂点が更新されない問題への対処
+      // ShapeGeometryは作成時に頂点を固定するため、毎回再生成が必要（現状の実装でOK）
+      // ただし、3点目以降でShapeが不正になるケース（交差など）はThree.jsが警告を出すかも
+    } else {
+      // Path描画
+      const geo = new THREE.BufferGeometry().setFromPoints(points);
+      this.ghostMesh.geometry.dispose();
+      this.ghostMesh.geometry = geo;
+    }
+    this.ghostMesh.visible = true;
+  }
+
+  getRaycastPosition(event) {
+    if (roadTool) return roadTool.getRaycastPosition(event); // Reuse RoadTool's logic
+    return null;
+  }
+
+  calculateSnap(pos) {
+    if (roadTool) {
+      // Reuse RoadTool's snap logic
+      const nodeSnap = roadTool.findClosestNode(pos, this.snapDistance);
+      if (nodeSnap) {
+        return {
+          x: nodeSnap.x,
+          z: nodeSnap.z,
+          type: "NODE",
+          targetNode: nodeSnap,
+        };
+      }
+    }
+
+    // Default Grid Snap
+    if (snapEnabled) {
+      return {
+        x: Math.round(pos.x / snapSize) * snapSize,
+        z: Math.round(pos.z / snapSize) * snapSize,
+        type: "GRID",
+      };
+    }
+    return { x: pos.x, z: pos.z, type: "RAW" };
+  }
+}
+
 // 頂点編集モード
 let vertexEditMode = false;
 let vertexHandles = [];
@@ -1487,6 +1930,10 @@ function initThreeJS() {
   // 道路ツール初期化
   roadTool = new RoadToolManager();
   roadTool.init();
+
+  // エリアツール初期化
+  areaTool = new AreaToolManager();
+  areaTool.init();
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambient);
@@ -1675,8 +2122,9 @@ function initEventListeners() {
 
   const container = document.getElementById("canvas-container");
   container.addEventListener("click", onClick);
-  // 道路ツール用のイベントリスナー
+  // 道路・エリアツール用のイベントリスナー
   container.addEventListener("pointermove", (e) => {
+    if (areaTool && areaTool.handleEvent("pointermove", e)) return;
     if (roadTool) roadTool.handleEvent("pointermove", e);
   });
 
@@ -1684,6 +2132,13 @@ function initEventListeners() {
   container.addEventListener(
     "pointerdown",
     (e) => {
+      if (areaTool) {
+        if (areaTool.mode === AreaTool.DELETE) {
+          e.stopImmediatePropagation();
+        }
+        if (areaTool.handleEvent("pointerdown", e)) return;
+      }
+
       if (roadTool) {
         // 削除モード時はカメラ操作を完全にブロックして選択操作を優先
         if (roadTool.mode === RoadTool.DELETE) {
@@ -1696,10 +2151,12 @@ function initEventListeners() {
   );
 
   container.addEventListener("pointerup", (e) => {
+    if (areaTool && areaTool.handleEvent("pointerup", e)) return;
     if (roadTool) roadTool.handleEvent("pointerup", e);
   });
 
   container.addEventListener("contextmenu", (e) => {
+    if (areaTool && areaTool.handleEvent("contextmenu", e)) return;
     if (roadTool) roadTool.handleEvent("contextmenu", e);
   });
 
@@ -1860,11 +2317,82 @@ function initEventListeners() {
 
   // ESCキーで押し出しモードをキャンセル
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && extrudeState !== "idle") {
-      cancelExtrudeMode();
-      updateStatus("押し出しをキャンセルしました");
+    if (e.key === "Escape") {
+      if (extrudeState !== "idle") {
+        cancelExtrudeMode();
+        updateStatus("押し出しをキャンセルしました");
+      }
+      // エリアツールのキャンセルなど
+      if (areaTool && areaTool.mode !== AreaTool.IDLE) {
+        // 必要ならハンドリング
+      }
     }
   });
+
+  // Area Tool Event Listeners
+  if (document.getElementById("btn-add-area")) {
+    document.getElementById("btn-add-area").addEventListener("click", () => {
+      selectBuilding(null, null);
+      selectRoad(null, null);
+
+      // ツールパネル切り替え
+      const roadTools = document.getElementById("road-tools");
+      if (roadTools) roadTools.style.display = "none";
+
+      const areaTools = document.getElementById("area-tools");
+      if (areaTools) areaTools.style.display = "block";
+
+      // ボタンのアクティブ状態管理 (CSSクラスで制御)
+      document.getElementById("btn-add-building").classList.remove("active");
+      document.getElementById("btn-add-road").classList.remove("active");
+      document.getElementById("btn-add-area").classList.add("active");
+
+      // RoadToolを無効化（モードをIDLEに）
+      if (roadTool) roadTool.setMode(RoadTool.IDLE);
+
+      if (areaTool) {
+        // デフォルトでパブリックロード、PATHモード
+        areaTool.setSubType("public_road");
+        areaTool.setMode(AreaTool.DRAW_PATH);
+      }
+    });
+  }
+
+  const areaMap = {
+    "btn-area-public": { type: "public_road", mode: AreaTool.DRAW_PATH },
+    "btn-area-walkway": { type: "campus_walkway", mode: AreaTool.DRAW_PATH },
+    "btn-area-flat": { type: "flat_area", mode: AreaTool.DRAW_POLYGON },
+  };
+
+  Object.keys(areaMap).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("click", () => {
+        if (areaTool) {
+          areaTool.setSubType(areaMap[id].type);
+          areaTool.setMode(areaMap[id].mode);
+        }
+      });
+    }
+  });
+
+  if (document.getElementById("btn-area-edit")) {
+    document.getElementById("btn-area-edit").addEventListener("click", () => {
+      if (areaTool) areaTool.setMode(AreaTool.EDIT);
+    });
+  }
+
+  if (document.getElementById("btn-area-delete")) {
+    document.getElementById("btn-area-delete").addEventListener("click", () => {
+      if (areaTool) areaTool.setMode(AreaTool.DELETE);
+    });
+  }
+
+  if (document.getElementById("opt-area-snap")) {
+    document.getElementById("opt-area-snap").addEventListener("change", (e) => {
+      if (areaTool) areaTool.setSnap(e.target.checked);
+    });
+  }
 }
 
 // ===================================
@@ -2157,6 +2685,124 @@ function createBuildingMesh(building) {
   return mesh;
 }
 
+// ===================================
+// エリア作成・更新
+// ===================================
+function createAreas() {
+  areaMeshes.forEach((mesh) => {
+    scene.remove(mesh);
+    if (mesh.geometry) mesh.geometry.dispose();
+    if (mesh.material) mesh.material.dispose();
+  });
+  areaMeshes = [];
+
+  areas.forEach((area) => {
+    const mesh = createAreaMesh(area);
+    if (mesh) {
+      scene.add(mesh);
+      areaMeshes.push(mesh);
+    }
+  });
+}
+
+function createAreaMesh(area) {
+  if (!area.nodes || area.nodes.length < 2) return null;
+
+  const width = area.width || 4.0;
+  const halfWidth = width / 2;
+  const y = 0.05; // Road(0.02)より少し上、Ghost(0.1)より下
+
+  // マテリアル決定
+  let color = 0x555555; // default
+  if (area.subType === "public_road") color = 0x333333; // Dark asphalt
+  if (area.subType === "campus_walkway") color = 0xaaaaaa; // Light gray/concrete
+  if (area.subType === "flat_area") color = 0x8d6e63; // Soil/Ground
+
+  // 選択状態なら色変更（簡易）
+  // if (selectedArea === area) ... (handled in selectArea)
+
+  const material = new THREE.MeshLambertMaterial({
+    color: color,
+    side: THREE.DoubleSide,
+  });
+
+  let geometry;
+
+  if (area.drawMode === "draw_polygon" || area.subType === "flat_area") {
+    // Polygon
+    const shape = new THREE.Shape();
+    shape.moveTo(area.nodes[0].x, -area.nodes[0].z);
+    for (let i = 1; i < area.nodes.length; i++) {
+      shape.lineTo(area.nodes[i].x, -area.nodes[i].z);
+    }
+    shape.closePath();
+
+    geometry = new THREE.ShapeGeometry(shape);
+    geometry.rotateX(-Math.PI / 2);
+    geometry.translate(0, y, 0);
+  } else {
+    // Path (Road-like)
+    // 簡易的にラインの帯を作る（RoadToolの方を使いたいが、ここでも再実装するか、Common関数にするか）
+    // とりあえず簡易実装で帯を作る
+    const points = area.nodes.map((n) => new THREE.Vector3(n.x, 0, n.z));
+    // Simple Strip (No curve support yet for AreaTool)
+    // Or reuse RoadToolManager.createBezierMeshGeometry if possible?
+    // But RoadToolManager instance `roadTool` makes it hard to access static method.
+    // Let's implement simple strip here.
+
+    const vertices = [];
+    const indices = [];
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+
+      const dir = p2.clone().sub(p1).normalize();
+      const normal = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(
+        halfWidth,
+      );
+
+      // Quad vertices
+      const v1 = p1.clone().add(normal);
+      const v2 = p1.clone().sub(normal);
+      const v3 = p2.clone().add(normal);
+      const v4 = p2.clone().sub(normal);
+
+      const baseIndex = vertices.length / 3;
+      vertices.push(v1.x, y, v1.z);
+      vertices.push(v2.x, y, v2.z);
+      vertices.push(v3.x, y, v3.z);
+      vertices.push(v4.x, y, v4.z);
+
+      indices.push(baseIndex, baseIndex + 1, baseIndex + 2);
+      indices.push(baseIndex + 1, baseIndex + 3, baseIndex + 2);
+    }
+
+    geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+  }
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.userData = { type: "area", id: area.id, object: area };
+
+  // Add center line for public_road
+  if (area.subType === "public_road") {
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(
+      area.nodes.map((n) => new THREE.Vector3(n.x, y + 0.01, n.z)),
+    );
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff }); // White line (dashed possible but simple for now)
+    const line = new THREE.Line(lineGeo, lineMat);
+    mesh.add(line);
+  }
+
+  return mesh;
+}
+
 function updateDragControls() {
   if (dragControls) {
     dragControls.dispose();
@@ -2282,7 +2928,7 @@ function updatePropertyPanel() {
   const form = document.getElementById("property-form");
   const noSelection = document.getElementById("no-selection-msg");
 
-  if (!selectedBuilding && !selectedRoad) {
+  if (!selectedBuilding && !selectedRoad && !selectedArea) {
     form.style.display = "none";
     noSelection.style.display = "block";
     return;
@@ -2333,6 +2979,29 @@ function updatePropertyPanel() {
     document.getElementById("prop-floors").parentElement.style.display = "none";
     document.getElementById("prop-rotation").parentElement.style.display =
       "none";
+  } else if (selectedArea) {
+    // エリアプロパティ表示
+    document.getElementById("prop-id").value = selectedArea.id;
+    document.getElementById("prop-name").value = selectedArea.properties
+      ? selectedArea.properties.name
+      : "エリア";
+
+    document.getElementById("prop-x").value = "-";
+    document.getElementById("prop-x").disabled = true;
+    document.getElementById("prop-z").value = "-";
+    document.getElementById("prop-z").disabled = true;
+
+    document.getElementById("prop-width").value = selectedArea.width || "-";
+    // 幅調整: Pathモードのみ有効
+    document.getElementById("prop-width").disabled =
+      selectedArea.drawMode === "polygon";
+
+    document.getElementById("prop-depth").value = "-";
+    document.getElementById("prop-depth").disabled = true;
+
+    document.getElementById("prop-floors").parentElement.style.display = "none";
+    document.getElementById("prop-rotation").parentElement.style.display =
+      "none";
   }
 }
 
@@ -2366,11 +3035,52 @@ function updateBuildingPalette() {
   });
 }
 
+function selectArea(area, mesh) {
+  if (selectedAreaMesh) {
+    if (selectedAreaMesh.material) {
+      // Restore color
+      let color = 0x555555;
+      if (selectedArea && selectedArea.subType === "public_road")
+        color = 0x333333;
+      if (selectedArea && selectedArea.subType === "campus_walkway")
+        color = 0xaaaaaa;
+      if (selectedArea && selectedArea.subType === "flat_area")
+        color = 0x8d6e63;
+      selectedAreaMesh.material.color.setHex(color);
+      selectedAreaMesh.material.emissive.setHex(0x000000);
+    }
+  }
+
+  selectedArea = area;
+  selectedAreaMesh = mesh;
+
+  // UI update
+  const toolsPanel = document.getElementById("road-tools"); // Reuse road tools or create area tools?
+  if (toolsPanel) toolsPanel.style.display = "none";
+
+  selectBuilding(null, null);
+  selectRoad(null, null);
+
+  if (area && mesh) {
+    updateStatus(`エリアを選択: ${area.id}`);
+    if (mesh.material) {
+      mesh.material.emissive.setHex(0x444400);
+      mesh.material.color.setHex(0xffeb3b);
+    }
+  }
+
+  updatePropertyPanel();
+}
+
 // ===================================
 // イベントハンドラー
 // ===================================
 function onClick(event) {
   if (isDragging || vertexEditMode) return;
+
+  // AreaToolが処理した場合はここで終了
+  if (areaTool && areaTool.handleEvent("click", event)) return;
+
   // RoadToolが処理した場合はここで終了
   if (roadTool && roadTool.handleEvent("click", event)) return;
 
@@ -2414,9 +3124,22 @@ function onClick(event) {
     }
   }
 
-  // 3. どちらもなければ選択解除
+  // 3. エリアの判定
+  const areaIntersects = raycaster.intersectObjects(areaMeshes);
+  if (areaIntersects.length > 0) {
+    const hit = areaIntersects[0].object;
+    const areaId = hit.userData.id; // createAreaMesh sets userData.id
+    const area = areas.find((a) => a.id === areaId);
+    if (area) {
+      selectArea(area, hit);
+      return;
+    }
+  }
+
+  // 4. どれもなければ選択解除
   selectBuilding(null, null);
   selectRoad(null, null);
+  selectArea(null, null);
   if (typeof updatePropertyPanel === "function") updatePropertyPanel();
 }
 
@@ -2471,7 +3194,8 @@ function onDragEnd(event) {
 }
 
 function onPropertyChange(event) {
-  if (!selectedBuilding || !selectedMesh) return;
+  // if (!selectedBuilding || !selectedMesh) return; // FIX: allow Road/Area selection
+  if (!selectedBuilding && !selectedRoad && !selectedArea) return;
 
   const id = event.target.id;
   const value = event.target.value;
@@ -2514,6 +3238,26 @@ function onPropertyChange(event) {
     case "prop-rotation":
       selectedBuilding.rotation = parseFloat(value) || 0;
       break;
+  }
+
+  if (selectedRoad) {
+    if (id === "prop-width") {
+      selectedRoad.width = Math.max(1, parseFloat(value) || 4.0);
+      createRoads();
+    }
+  } else if (selectedArea) {
+    if (id === "prop-width") {
+      selectedArea.width = Math.max(1, parseFloat(value) || 4.0);
+      createAreas();
+    }
+    if (id === "prop-name") {
+      if (!selectedArea.properties) selectedArea.properties = {};
+      selectedArea.properties.name = value;
+    }
+  }
+
+  if (selectedBuilding) {
+    rebuildSelectedBuilding();
   }
 
   rebuildSelectedBuilding();
@@ -2959,6 +3703,8 @@ function exportJSON() {
       category: b.category,
       path: b.path,
     })),
+    roads: roads,
+    areas: areas,
   };
 
   const json = JSON.stringify(data, null, 2);
@@ -2990,6 +3736,16 @@ function importJSON() {
         if (data.buildings && Array.isArray(data.buildings)) {
           buildings = data.buildings;
           createBuildings();
+
+          if (data.roads) {
+            roads = data.roads;
+            createRoads();
+          }
+          if (data.areas) {
+            areas = data.areas;
+            if (typeof createAreas === "function") createAreas();
+          }
+
           updateBuildingPalette();
           selectBuilding(null, null);
           saveToLocalStorage();
@@ -3015,6 +3771,7 @@ function saveToLocalStorage() {
   const data = {
     buildings: buildings,
     roads: roads,
+    areas: areas,
     savedAt: new Date().toISOString(),
     background: null,
   };
@@ -3063,6 +3820,11 @@ function loadFromLocalStorage() {
         if (data.roads && Array.isArray(data.roads)) {
           roads = data.roads;
           createRoads();
+        }
+
+        if (data.areas && Array.isArray(data.areas)) {
+          areas = data.areas;
+          if (typeof createAreas === "function") createAreas();
         }
 
         return;

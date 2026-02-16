@@ -74,6 +74,14 @@
               <span class="material-icons">add_road</span>
               新規道路
             </button>
+            <button
+              class="btn btn-add"
+              id="btn-add-area"
+              style="margin-top: 8px; background-color: #4caf50"
+            >
+              <span class="material-icons">park</span>
+              新規エリア
+            </button>
           </div>
         </section>
 
@@ -127,6 +135,56 @@
               </button>
             </div>
           </div>
+        <!-- エリアツールサブメニュー (エリア編集時のみ表示) -->
+        <div id="area-tools" class="tool-panel" style="display: none">
+          <div class="panel-header">
+            <span class="material-icons">park</span>
+            エリア作成
+          </div>
+          <div class="panel-body">
+            <div class="tool-group">
+              <label class="tool-label">エリアタイプ</label>
+              <div class="tool-buttons">
+                <button id="btn-area-public" class="btn-tool active">
+                  <span class="material-icons">add_road</span>
+                  <span class="btn-text">公道・車道</span>
+                </button>
+                <button id="btn-area-walkway" class="btn-tool">
+                  <span class="material-icons">directions_walk</span>
+                  <span class="btn-text">学内通路</span>
+                </button>
+                <button id="btn-area-flat" class="btn-tool">
+                  <span class="material-icons">crop_square</span>
+                  <span class="btn-text">広場・空地</span>
+                </button>
+              </div>
+              <p class="tool-desc">
+                公道/通路は「パス(線)」、広場は「ポリゴン(面)」で作画します。<br>
+                右クリックで決定。
+              </p>
+            </div>
+
+            <div class="tool-group" style="margin-top: 16px">
+              <label class="tool-label">編集・操作</label>
+              <div class="tool-buttons">
+                 <button id="btn-area-edit" class="btn-tool">
+                  <span class="material-icons">edit</span>
+                  <span class="btn-text">変形</span>
+                </button>
+                <button id="btn-area-delete" class="btn-tool">
+                  <span class="material-icons">delete_forever</span>
+                  <span class="btn-text">削除</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="tool-group" style="margin-top: 16px">
+               <div class="form-group checkbox-group">
+                <input type="checkbox" id="opt-area-snap" checked />
+                <label for="opt-area-snap">ノードスナップ</label>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- プロパティパネル -->
@@ -137,7 +195,7 @@
           </div>
           <div class="panel-body">
             <div class="no-selection" id="no-selection-msg">
-              建物を選択してください
+              要素を選択してください
             </div>
             <div class="property-form" id="property-form" style="display: none">
               <div class="form-group">
