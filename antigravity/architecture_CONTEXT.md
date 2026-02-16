@@ -19,25 +19,25 @@ graph TD
     %% 開発環境
     %% ---------------------------------------------------------
     subgraph "Development Environment (Local/GitHub)"
-        GitRepo[GitHub Repository<br/>(ynr-cs/nanryosai2026)]
-        DataJS[("main/data/data.js<br/>(Source of Truth)")]:::master
+        GitRepo["GitHub Repository<br/>(ynr-cs/nanryosai2026)"]
+        DataJS[("main/data/data.js<br/>#40;Source of Truth#41;")]:::master
     end
 
     %% ---------------------------------------------------------
     %% クライアントサイド
     %% ---------------------------------------------------------
     subgraph "Client Side (Web Browsers)"
-        VisitorApp[("Visitor App<br/>(main/)<br/>一般来場者向け")]:::client
-        POSApp[("POS App<br/>(pos/mobile-order)<br/>店舗運営者向け")]:::client
-        Portal[("Store Portal<br/>(pos/portal)<br/>店舗管理者向け")]:::client
-        AdminSync[("Admin Tool<br/>(main/admin_sync)<br/>実行委員向け")]:::client
+        VisitorApp[("Visitor App<br/>#40;main/#41;<br/>一般来場者向け")]:::client
+        POSApp[("POS App<br/>#40;pos/mobile-order#41;<br/>店舗運営者向け")]:::client
+        Portal[("Store Portal<br/>#40;pos/portal#41;<br/>店舗管理者向け")]:::client
+        AdminSync[("Admin Tool<br/>#40;main/admin_sync#41;<br/>実行委員向け")]:::client
     end
 
     %% ---------------------------------------------------------
     %% Firebase Backend
     %% ---------------------------------------------------------
     subgraph "Firebase Backend (nanryosai-2026-a4091)"
-        FirebaseAuth[("Authentication<br/>(Google Sign-In)")]:::firebase
+        FirebaseAuth[("Authentication<br/>#40;Google Sign-In#41;")]:::firebase
 
         subgraph Firestore["Cloud Firestore (Database)"]
             direction TB
@@ -48,7 +48,7 @@ graph TD
             SecretDB[("store_secrets")]:::firebase
         end
 
-        CloudStorage[("Cloud Storage<br/>(Product Images)")]:::storage
+        CloudStorage[("Cloud Storage<br/>#40;Product Images#41;")]:::storage
 
         subgraph Functions["Cloud Functions"]
             FuncOrder["createOnlineOrder<br/>(Transaction)"]:::firebase
@@ -158,12 +158,104 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    Staff[Store Staff] --> Portal[Portal App<br/>(pos/portal)]
-    Portal -- "1. Resize & Compress<br/>(Client Side)" --> Portal
-    Portal -- "2. Upload (.webp)" --> Storage[Cloud Storage]
+    Staff[Store Staff] --> Portal[Portal App<br/>#40;pos/portal#41;]
+    Portal -- "1. Resize & Compress<br/>#40;Client Side#41;" --> Portal
+    Portal -- "2. Upload #40;.webp#41;" --> Storage[Cloud Storage]
     Storage -- "3. Get Download URL" --> Portal
     Portal -- "4. Save URL to Item" --> Firestore[(Firestore)]
-    Firestore -. "5. Sync (Export needed)" .-> JS[data.js]
+    Firestore -. "5. Sync #40;Export needed#41;" .-> JS[data.js]
 
     style JS fill:#ffeebb,stroke:#f0ad4e,stroke-width:2px
+```
+
+## 3. コンポーネント依存関係図 (Component Dependencies)
+
+主要なHTMLファイルと、共通モジュール (`auth.js`, `app-shell.js` 等) の依存関係を示します。
+
+```mermaid
+graph TD
+    subgraph "Core Modules"
+        AuthJS[("auth.js<br/>#40;Firebase Auth#41;")]
+        ShellJS[("app-shell.js<br/>#40;Nav & UI#41;")]
+        DataJS[("data.js<br/>#40;Master Data#41;")]
+        StyleCSS[("style.css<br/>#40;Design System#41;")]
+    end
+
+    subgraph "Public Pages"
+        IndexHTML["index.html"]
+        AccountHTML["account.html"]
+    end
+
+    subgraph "POS System"
+        MobileOrderHTML["mobile-order.html<br/>#40;Visitor#41;"]
+        PortalHTML["portal.html<br/>#40;Store Admin#41;"]
+        KitchenHTML["kitchen.html"]
+        StatusHTML["status.html"]
+    end
+
+    %% Dependencies
+    AuthJS --> IndexHTML & AccountHTML & MobileOrderHTML & PortalHTML
+    ShellJS --> IndexHTML & AccountHTML
+    StyleCSS --> IndexHTML & AccountHTML & MobileOrderHTML & PortalHTML & KitchenHTML
+    DataJS --> IndexHTML & PortalHTML
+```
+
+## 4. Firestore データモデル詳細 (Detailed Data Model)
+
+Firestore の主要なコレクションとサブコレクションの構造定義です。
+
+```mermaid
+classDiagram
+    note "Collections Schema"
+
+    class User {
+        string uid
+        string displayName
+        string email
+        timestamp lastLogin
+        string fcmToken
+        string deviceType
+    }
+    class CartItem {
+        string productId
+        int quantity
+        array customizations
+    }
+    class Order {
+        string id
+        string userId
+        string storeId
+        string status
+        int totalAmount
+        timestamp createdAt
+    }
+    class Store {
+        string id
+        string name
+        string loginId
+        bool isOpen
+    }
+
+    User "1" --> "*" CartItem : subcollection: cart
+    User "1" -- "1" Order : creates
+    Store "1" -- "*" Order : receives
+```
+
+## 5. 注文ステータスマシン (Order State Machine)
+
+注文ステータスの遷移ロジックです。不正な遷移はサーバーサイドでブロックされます。
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : User creates order
+    PENDING --> COOKING : Kitchen starts cooking
+    COOKING --> READY_TO_SERVE : Cooking finished
+    READY_TO_SERVE --> READY_FOR_PICKUP : Staff calls number
+    READY_FOR_PICKUP --> COMPLETED : Handover complete
+
+    PENDING --> CANCELLED : Stock shortage / Admin
+    COOKING --> CANCELLED : Admin force cancel
+
+    COMPLETED --> [*]
+    CANCELLED --> [*]
 ```
