@@ -1,5 +1,7 @@
 # Firebase アーキテクチャ コンテキスト
 
+> **Note**: システム全体の構成図は [architecture_CONTEXT.md](architecture_CONTEXT.md) を参照してください。
+
 ## 1. プロジェクト情報
 
 - **Project ID**: `nanryosai-2026-a4091`
