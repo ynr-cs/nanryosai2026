@@ -75,9 +75,9 @@
               新規道路
             </button>
             <button
-              class="btn btn-add"
+              class="btn btn-secondary w-100"
               id="btn-add-area"
-              style="margin-top: 8px; background-color: #4caf50"
+              style="margin-top: 8px"
             >
               <span class="material-icons">park</span>
               新規エリア
@@ -135,6 +135,8 @@
               </button>
             </div>
           </div>
+        </div>
+
         <!-- エリアツールサブメニュー (エリア編集時のみ表示) -->
         <div id="area-tools" class="tool-panel" style="display: none">
           <div class="panel-header">
@@ -159,7 +161,7 @@
                 </button>
               </div>
               <p class="tool-desc">
-                公道/通路は「パス(線)」、広場は「ポリゴン(面)」で作画します。<br>
+                公道/通路は「パス(線)」、広場は「ポリゴン(面)」で作画します。<br />
                 右クリックで決定。
               </p>
             </div>
@@ -167,7 +169,7 @@
             <div class="tool-group" style="margin-top: 16px">
               <label class="tool-label">編集・操作</label>
               <div class="tool-buttons">
-                 <button id="btn-area-edit" class="btn-tool">
+                <button id="btn-area-edit" class="btn-tool">
                   <span class="material-icons">edit</span>
                   <span class="btn-text">変形</span>
                 </button>
@@ -177,9 +179,9 @@
                 </button>
               </div>
             </div>
-            
+
             <div class="tool-group" style="margin-top: 16px">
-               <div class="form-group checkbox-group">
+              <div class="form-group checkbox-group">
                 <input type="checkbox" id="opt-area-snap" checked />
                 <label for="opt-area-snap">ノードスナップ</label>
               </div>

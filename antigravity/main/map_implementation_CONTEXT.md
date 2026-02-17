@@ -63,7 +63,10 @@ v0.5.0（Road Toolの高度化）により建設UXを大幅に改善し、ノー
 ```
 
 - **建設ロジック (RoadToolManager)**:
-  - **Snapping**: 1. Node (2m) > 2. Angle (90/180 deg) > 3. Grid (1m)。
+  - **スナップ機能 (Snapping)**:
+  - 道路のノード、道路のセグメント（辺）、建物の頂点、建物の辺、他のエリアのノード・辺のすべてにスナップ可能。
+  - スナップ対象が検知された場合、ピンク色の球体マーカーが表示され、カーソルがその位置に固定される。
+  - いずれの対象も検知されない場合は、グリッドスナップ（有効な場合）または自由配置となる。
   - **相対角度拘束**: 既存道路からの連続敷設時、180度方向（直進）への自動スナップを優先。
   - **UX Design (v0.2.26)**:
     - **Initial Mode**: 起動時は `EDIT`（選択）モードをデフォルトとし、誤操作を防止。
@@ -96,10 +99,21 @@ v0.7.0（Area Toolの実装）により、道路（線）以外の「面」や�
   - `public_road`: アスファルト色。センターライン（白線）を自動描画。デフォルト幅 8.0m。
   - `campus_walkway`: コンクリート色。白線なし。デフォルト幅 4.0m。
   - `flat_area`: 自由形状のポリゴン面。広場やグラウンドに使用。
-- **描画ロジック (AreaToolManager)**:
-  - **Path Mode**: 道路と同様の形状生成。`subType` によりマテリアルとセンターラインの有無を切り替え。
-  - **Polygon Mode**: `Shape` と `ShapeGeometry` を使用した面描画。高さ（Y座標）はアスファルトの上に重なるよう微調整。
-  - **Selection (onClick)**: `editor.js` のグローバル描画ループにおいて、建物・道路に続く第3の要素として判定。
+- **Area Tool Logic (v0.2.40+)**:
+  - **Snapping**:
+    - **Vertex Snap (v0.2.40+)**: 既存のエリア頂点や道路ノードに吸着。吸着ポイントには**緑色の円形マーカー**が表示される。
+    - **Angle Snap**: 直前の頂点から 90度 / 180度 の位置にガイド表示＆吸着。建物と同様の操作感を提供。
+    - **Grid Snap**: 上記以外はグリッドへ吸着。
+    - _Note: 吸着したことを視覚的に示すため、マーカー表示を必須としている。_
+  - **Tool Cancellation (v0.2.40+)**:
+    - **Toggle**: 「新規エリア」ボタンの再クリックでモード解除可能。
+    - **Physical Key**: `Esc` キー押下で作成履歴をリセットして IDLE モードへ移行。
+  - **Editing**:
+    - `Vertex Edit Mode` に完全対応。エリア選択時に頂点ハンドルが表示され、ドラッグで形状を自由に編集可能。
+- **描画ロジック**:
+  - `DRAW_PATH`: 道路と同様のパス描画。
+  - `DRAW_POLYGON`: `ShapeGeometry` を使用した任意の多角形面描画。高さ（Y座標）はアスファルトの上に重なるよう微調整。
+  - **Selection**: `editor.js` のグローバル描画ループにおいて、第3の操作対象として判定。
 
 ### 📐 座標系とPivot管理
 
@@ -162,3 +176,57 @@ LocalStorage (`mapEditorData`) に建物、道路、背景画像の設定（キ�
 - [CHANGELOG.md](../../CHANGELOG.md): バージョンごとの技術詳細ログ
 - [editor.js](../main/map_editor/editor.js): エディタの全ロジック
 - [map3d.html](../main/map3d.html): 本番ビューア
+
+## 7. マップエディタ: 頂点編集モード (Vertex Edit Mode)
+
+`editor.js` 内に実装されている、建物・エリアの形状を詳細に編集するためのモード。
+
+### 1. モード制御
+
+- **有効化/無効化**: `toggleVertexEditMode()` 関数で切り替え。
+- **状態管理**: グローバル変数 `vertexEditMode` (boolean) で管理。
+- **UI連携**: `btn-edit-vertex` ボタンの表示切り替え、プロパティパネルの更新。
+- **他ツールとの排他**: 頂点編集モード中は `DragControls` (建物の移動) を無効化 (`dragControls.enabled = false`)。
+
+### 2. ハンドル表示 (`createVertexHandles`)
+
+選択中のオブジェクト（建物 `selectedBuilding` または エリア `selectedArea`）に対して、操作用のハンドルを表示する。
+
+- **頂点ハンドル (Vertex Handle)**:
+  - 黄色の球体 (`SphereGeometry`)。
+  - 各頂点の位置に表示。
+  - ドラッグ操作で頂点を移動可能。
+- **辺ハンドル (Edge Handle)**:
+  - 青色の円柱 (`CylinderGeometry`)。
+  - 各辺の中点に表示。
+  - クリックすることで「押し出し (Extrude)」操作を開始できる。
+
+### 3. 操作仕様 (`initVertexDragListeners`)
+
+ポインターイベント (`pointerdown`, `pointermove`, `pointerup`) を監視し、以下の操作を実現している。
+
+- **頂点移動 (Move Vertex)**:
+  - 頂点ハンドルをドラッグして移動。
+  - **スナップ機能**:
+    - **グリッドスナップ**: `snapEnabled` が有効な場合、設定された `snapSize` に吸着。
+    - **角度スナップ (`applyAngleSnap`)**: 隣接する頂点に対して直角 (90°) または直線 (180°) になる位置に吸着。
+  - **リアルタイム表示**: ドラッグ中に角度 (`calculateVertexAngle`) をツールチップに表示。
+
+- **頂点削除 (Delete Vertex)**:
+  - 頂点ハンドルを右クリック。
+  - 最低3頂点は維持する制限あり。
+
+- **押し出し (Extrude) / 辺の分割**:
+  - 辺ハンドル、または辺そのものをクリックして開始。
+  - **ステートマシン (`extrudeState`)**:
+    1.  `idle`: 待機状態。
+    2.  `ready`: 辺選択済み、始点入力待ち。
+    3.  `firstPoint`: 始点決定、終点（幅）入力待ち。
+    4.  `preview`: 幅決定、奥行き入力待ち（マウス移動でプレビュー）。
+  - **確定**: プレビュー中にクリックすると `finalizeExtrude()` が呼ばれ、形状が更新される。
+  - **仕組み**: 選択された辺の法線方向 (`calculateOutwardDirectionRobust`) に向かって、指定された幅と奥行きを持つ新しい矩形部分を追加するように頂点配列を再構築する。
+
+### 4. データ更新
+
+- 操作完了時 (`pointerup` や `finalizeExtrude`) に `updateBuildingBounds` 等を呼び出し、`width`, `depth` などのメタデータを再計算。
+- `autoSave()` により `localStorage` へ即時保存。

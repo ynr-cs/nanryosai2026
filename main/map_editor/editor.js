@@ -32,6 +32,7 @@ let selectedRoadMesh = null;
 let areas = [];
 let areaMeshes = [];
 let selectedArea = null;
+let selectedAreaMesh = null;
 
 // エリアツール制御
 const AreaTool = {
@@ -1409,12 +1410,12 @@ class AreaToolManager {
     this.nodeSnapMesh.renderOrder = 2000;
     scene.add(this.nodeSnapMesh);
 
-    // 3. ゴーストメッシュ
+    // 3. ゴーストメッシュ (面)
     const ghostGeo = new THREE.BufferGeometry();
     const ghostMat = new THREE.MeshBasicMaterial({
       color: 0x81c784,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.4,
       side: THREE.DoubleSide,
       depthTest: false,
     });
@@ -1422,6 +1423,18 @@ class AreaToolManager {
     this.ghostMesh.visible = false;
     this.ghostMesh.renderOrder = 1;
     scene.add(this.ghostMesh);
+
+    // 4. ゴーストライン (枠線)
+    const ghostLineMat = new THREE.LineBasicMaterial({
+      color: 0x4caf50,
+      linewidth: 2,
+      depthTest: false,
+    });
+    const ghostLineGeo = new THREE.BufferGeometry();
+    this.ghostLineMesh = new THREE.Line(ghostLineGeo, ghostLineMat);
+    this.ghostLineMesh.visible = false;
+    this.ghostLineMesh.renderOrder = 2;
+    scene.add(this.ghostLineMesh);
   }
 
   setMode(mode) {
@@ -1430,19 +1443,21 @@ class AreaToolManager {
     updateStatus(`エリアツール: ${this.getModeName(mode)}`);
 
     // UIボタンのハイライト更新
-    const areaMap = {
-      "btn-area-public": { type: "public_road", mode: AreaTool.DRAW_PATH },
-      "btn-area-walkway": { type: "campus_walkway", mode: AreaTool.DRAW_PATH },
-      "btn-area-flat": { type: "flat_area", mode: AreaTool.DRAW_POLYGON },
-    };
+    const areaButtons = [
+      "btn-area-public",
+      "btn-area-walkway",
+      "btn-area-flat",
+      "btn-area-edit",
+      "btn-area-delete",
+    ];
 
-    // リセット
-    Object.keys(areaMap).forEach((id) => {
+    // 全てのリセット
+    areaButtons.forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.classList.remove("active");
     });
 
-    // 現在のサブタイプに対応するボタンをアクティブ化
+    // 現在のモード/タイプに対応するボタンをアクティブ化
     if (
       this.mode === AreaTool.DRAW_PATH ||
       this.mode === AreaTool.DRAW_POLYGON
@@ -1453,16 +1468,11 @@ class AreaToolManager {
         document.getElementById("btn-area-walkway")?.classList.add("active");
       if (this.subType === "flat_area")
         document.getElementById("btn-area-flat")?.classList.add("active");
-    }
-
-    // 編集・削除ボタン
-    document.getElementById("btn-area-edit")?.classList.remove("active");
-    document.getElementById("btn-area-delete")?.classList.remove("active");
-
-    if (this.mode === AreaTool.EDIT)
+    } else if (this.mode === AreaTool.EDIT) {
       document.getElementById("btn-area-edit")?.classList.add("active");
-    if (this.mode === AreaTool.DELETE)
+    } else if (this.mode === AreaTool.DELETE) {
       document.getElementById("btn-area-delete")?.classList.add("active");
+    }
   }
 
   setSubType(type) {
@@ -1496,12 +1506,15 @@ class AreaToolManager {
   resetState() {
     this.nodes = [];
     if (this.ghostMesh) this.ghostMesh.visible = false;
+    if (this.ghostLineMesh) this.ghostLineMesh.visible = false;
     if (this.cursorMesh) this.cursorMesh.visible = false;
     if (this.nodeSnapMesh) this.nodeSnapMesh.visible = false;
   }
 
   handleEvent(type, event) {
-    if (this.mode === AreaTool.IDLE) return false;
+    // IDLE / EDIT モードではAreaToolは介入しない（グローバルonClickに委譲）
+    if (this.mode === AreaTool.IDLE || this.mode === AreaTool.EDIT)
+      return false;
 
     if (type === "pointermove") {
       this.onPointerMove(event);
@@ -1511,7 +1524,8 @@ class AreaToolManager {
       return this.onPointerDown(event);
     }
     if (type === "click") {
-      // return true only if handled
+      // 描画中（ノードが1つ以上ある）ならグローバルonClickをブロック
+      if (this.nodes.length > 0) return true;
       return false;
     }
     if (type === "contextmenu") {
@@ -1531,10 +1545,16 @@ class AreaToolManager {
     this.cursorMesh.position.set(x, 0, z);
     this.cursorMesh.visible = true;
 
-    if (snap.type === "NODE") {
+    if (snap.type === "NODE" || snap.type === "VERTEX") {
       this.nodeSnapMesh.position.set(x, 0, z);
       this.nodeSnapMesh.visible = true;
       this.cursorMesh.visible = false;
+      // スナップの種類に応じて色を変えても良いが、とりあえず共通で
+    } else if (snap.type === "ANGLE") {
+      // 角度スナップ時はカーソルを表示しつつ、ガイドを出せればベストだが
+      this.cursorMesh.position.set(x, 0, z);
+      this.cursorMesh.visible = true;
+      this.nodeSnapMesh.visible = false;
     } else {
       this.nodeSnapMesh.visible = false;
     }
@@ -1719,43 +1739,48 @@ class AreaToolManager {
   }
 
   updateGhost(nodes) {
-    // 簡易的なライン描画
     if (nodes.length < 2) {
       this.ghostMesh.visible = false;
+      this.ghostLineMesh.visible = false;
       return;
     }
 
-    const points = nodes.map((n) => new THREE.Vector3(n.x, 0.2, n.z)); // 少し浮かせる
-
+    // 1. 枠線の更新 (常に描画)
+    const linePoints = nodes.map((n) => new THREE.Vector3(n.x, 0.1, n.z));
+    // ポリゴン作成中なら閉じるように見せる
     if (this.drawMode === AreaTool.DRAW_POLYGON) {
-      // ポリゴン描画
-      const shape = new THREE.Shape();
-      shape.moveTo(nodes[0].x, -nodes[0].z);
-      for (let i = 1; i < nodes.length; i++)
-        shape.lineTo(nodes[i].x, -nodes[i].z);
-
-      // 閉じていないので最後の点から最初の点へは引かない（プレビュー段階）
-      // ただしShapeGeometryにするなら閉じる必要がある
-      // ここではラインで枠を表示するだけにするか、薄い面を表示するか。
-      // ShapeGeometryは閉じている前提。
-
-      const geo = new THREE.ShapeGeometry(shape);
-      geo.rotateX(-Math.PI / 2);
-      geo.translate(0, 0.2, 0); // 浮かす
-
-      this.ghostMesh.geometry.dispose();
-      this.ghostMesh.geometry = geo;
-
-      // Update: ポリゴンプレビューで頂点が更新されない問題への対処
-      // ShapeGeometryは作成時に頂点を固定するため、毎回再生成が必要（現状の実装でOK）
-      // ただし、3点目以降でShapeが不正になるケース（交差など）はThree.jsが警告を出すかも
-    } else {
-      // Path描画
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      this.ghostMesh.geometry.dispose();
-      this.ghostMesh.geometry = geo;
+      linePoints.push(linePoints[0]);
     }
-    this.ghostMesh.visible = true;
+
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+    this.ghostLineMesh.geometry.dispose();
+    this.ghostLineMesh.geometry = lineGeo;
+    this.ghostLineMesh.visible = true;
+
+    // 2. 面の更新 (ポリゴンモードかつ3点以上)
+    if (this.drawMode === AreaTool.DRAW_POLYGON && nodes.length >= 3) {
+      try {
+        const shape = new THREE.Shape();
+        shape.moveTo(nodes[0].x, -nodes[0].z);
+        for (let i = 1; i < nodes.length; i++) {
+          shape.lineTo(nodes[i].x, -nodes[i].z);
+        }
+        shape.closePath();
+
+        const geo = new THREE.ShapeGeometry(shape);
+        geo.rotateX(-Math.PI / 2);
+        geo.translate(0, 0.08, 0); // ラインより少し下に配置
+
+        this.ghostMesh.geometry.dispose();
+        this.ghostMesh.geometry = geo;
+        this.ghostMesh.visible = true;
+      } catch (e) {
+        // 交差などでShapeGeometryが失敗した場合
+        this.ghostMesh.visible = false;
+      }
+    } else {
+      this.ghostMesh.visible = false;
+    }
   }
 
   getRaycastPosition(event) {
@@ -1764,8 +1789,37 @@ class AreaToolManager {
   }
 
   calculateSnap(pos) {
+    let snappedPos = { x: pos.x, z: pos.z, type: "RAW" };
+    let bestDistSq = this.snapDistance * this.snapDistance;
+
+    // 1. 既存エリアの頂点へのスナップ (Vertex Snap) - 最優先
+    let nearestVertex = null;
+    let minVertexDistSq = bestDistSq;
+
+    for (const area of areas) {
+      if (!area.nodes) continue;
+      for (const node of area.nodes) {
+        const dx = pos.x - node.x;
+        const dz = pos.z - node.z;
+        const d2 = dx * dx + dz * dz;
+        if (d2 < minVertexDistSq) {
+          minVertexDistSq = d2;
+          nearestVertex = node;
+        }
+      }
+    }
+
+    if (nearestVertex) {
+      return {
+        x: nearestVertex.x,
+        z: nearestVertex.z,
+        type: "VERTEX",
+        targetNode: nearestVertex,
+      };
+    }
+
+    // 2. ノードスナップ (道路の端点との接続用)
     if (roadTool) {
-      // Reuse RoadTool's snap logic
       const nodeSnap = roadTool.findClosestNode(pos, this.snapDistance);
       if (nodeSnap) {
         return {
@@ -1777,7 +1831,42 @@ class AreaToolManager {
       }
     }
 
-    // Default Grid Snap
+    // 3. 角度スナップ
+    if (this.nodes.length > 0 && (snapEnabled || snap90Enabled)) {
+      const prev = this.nodes[this.nodes.length - 1];
+      const dx = pos.x - prev.x;
+      const dz = pos.z - prev.z;
+      const dist = Math.hypot(dx, dz);
+
+      if (dist > snapSize) {
+        let baseAngle = 0;
+        if (this.nodes.length > 1) {
+          const pp = this.nodes[this.nodes.length - 2];
+          baseAngle = Math.atan2(prev.z - pp.z, prev.x - pp.x);
+        }
+
+        const currentAngle = Math.atan2(dz, dx);
+        let diff = currentAngle - baseAngle;
+
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+
+        const step = Math.PI / 2;
+        const snappedDiff = Math.round(diff / step) * step;
+
+        if (Math.abs(diff - snappedDiff) < 0.15) {
+          const finalAngle = baseAngle + snappedDiff;
+          return {
+            x: prev.x + Math.cos(finalAngle) * dist,
+            z: prev.z + Math.sin(finalAngle) * dist,
+            type: "ANGLE",
+            targetNode: null,
+          };
+        }
+      }
+    }
+
+    // 4. グリッドスナップ
     if (snapEnabled) {
       return {
         x: Math.round(pos.x / snapSize) * snapSize,
@@ -1785,7 +1874,8 @@ class AreaToolManager {
         type: "GRID",
       };
     }
-    return { x: pos.x, z: pos.z, type: "RAW" };
+
+    return snappedPos;
   }
 }
 
@@ -2133,7 +2223,11 @@ function initEventListeners() {
     "pointerdown",
     (e) => {
       if (areaTool) {
-        if (areaTool.mode === AreaTool.DELETE) {
+        if (
+          areaTool.mode === AreaTool.DELETE ||
+          areaTool.mode === AreaTool.DRAW_PATH ||
+          areaTool.mode === AreaTool.DRAW_POLYGON
+        ) {
           e.stopImmediatePropagation();
         }
         if (areaTool.handleEvent("pointerdown", e)) return;
@@ -2324,7 +2418,15 @@ function initEventListeners() {
       }
       // エリアツールのキャンセルなど
       if (areaTool && areaTool.mode !== AreaTool.IDLE) {
-        // 必要ならハンドリング
+        areaTool.resetState();
+        areaTool.setMode(AreaTool.IDLE);
+        document.getElementById("btn-add-area").classList.remove("active");
+        updateStatus("エリアツールをキャンセルしました");
+      }
+      // 道路ツールのキャンセル
+      if (roadTool && roadTool.mode !== RoadTool.IDLE) {
+        roadTool.setMode(RoadTool.IDLE);
+        updateStatus("道路ツールをキャンセルしました");
       }
     }
   });
@@ -2332,6 +2434,20 @@ function initEventListeners() {
   // Area Tool Event Listeners
   if (document.getElementById("btn-add-area")) {
     document.getElementById("btn-add-area").addEventListener("click", () => {
+      // Toggle logic
+      if (
+        areaTool &&
+        areaTool.mode !== AreaTool.IDLE &&
+        areaTool.mode !== AreaTool.EDIT &&
+        areaTool.mode !== AreaTool.DELETE
+      ) {
+        // 既に作成モードなら解除
+        areaTool.setMode(AreaTool.IDLE);
+        document.getElementById("btn-add-area").classList.remove("active");
+        updateStatus("エリア作成モードを終了しました");
+        return;
+      }
+
       selectBuilding(null, null);
       selectRoad(null, null);
 
@@ -2342,18 +2458,19 @@ function initEventListeners() {
       const areaTools = document.getElementById("area-tools");
       if (areaTools) areaTools.style.display = "block";
 
-      // ボタンのアクティブ状態管理 (CSSクラスで制御)
+      // ボタンのアクティブ状態管理
       document.getElementById("btn-add-building").classList.remove("active");
       document.getElementById("btn-add-road").classList.remove("active");
       document.getElementById("btn-add-area").classList.add("active");
 
-      // RoadToolを無効化（モードをIDLEに）
+      // RoadToolを無効化
       if (roadTool) roadTool.setMode(RoadTool.IDLE);
 
       if (areaTool) {
         // デフォルトでパブリックロード、PATHモード
         areaTool.setSubType("public_road");
         areaTool.setMode(AreaTool.DRAW_PATH);
+        updateStatus("エリア作成モード: クリックして頂点を追加");
       }
     });
   }
@@ -3047,7 +3164,8 @@ function selectArea(area, mesh) {
       if (selectedArea && selectedArea.subType === "flat_area")
         color = 0x8d6e63;
       selectedAreaMesh.material.color.setHex(color);
-      selectedAreaMesh.material.emissive.setHex(0x000000);
+      if (selectedAreaMesh.material.emissive)
+        selectedAreaMesh.material.emissive.setHex(0x000000);
     }
   }
 
@@ -3055,8 +3173,10 @@ function selectArea(area, mesh) {
   selectedAreaMesh = mesh;
 
   // UI update
-  const toolsPanel = document.getElementById("road-tools"); // Reuse road tools or create area tools?
-  if (toolsPanel) toolsPanel.style.display = "none";
+  const roadTools = document.getElementById("road-tools");
+  if (roadTools) roadTools.style.display = "none";
+  const areaTools = document.getElementById("area-tools");
+  if (areaTools) areaTools.style.display = "block";
 
   selectBuilding(null, null);
   selectRoad(null, null);
@@ -3064,7 +3184,7 @@ function selectArea(area, mesh) {
   if (area && mesh) {
     updateStatus(`エリアを選択: ${area.id}`);
     if (mesh.material) {
-      mesh.material.emissive.setHex(0x444400);
+      if (mesh.material.emissive) mesh.material.emissive.setHex(0x444400);
       mesh.material.color.setHex(0xffeb3b);
     }
   }
@@ -3705,7 +3825,32 @@ function exportJSON() {
     })),
     roads: roads,
     areas: areas,
+    // 背景設定の保存
+    background: {
+      active: document.getElementById("opt-bg-image").checked,
+      source: currentBgData ? currentBgData : null, // Use currentBgData directly
+      width:
+        parseFloat(document.getElementById("bg-metric-width").value) || 100,
+      offsetX: parseFloat(document.getElementById("bg-offset-x").value) || 0,
+      offsetZ: parseFloat(document.getElementById("bg-offset-z").value) || 0,
+      rotation: parseFloat(document.getElementById("bg-rotation").value) || 0,
+      opacity:
+        parseFloat(document.getElementById("opt-bg-opacity").value) || 0.5,
+    },
   };
+
+  // 背景設定のエクスポート
+  if (currentBgData) {
+    data.background = {
+      active: document.getElementById("opt-bg-image").checked,
+      source: currentBgData.source,
+      width: parseFloat(document.getElementById("bg-metric-width").value),
+      offsetX: parseFloat(document.getElementById("bg-offset-x").value),
+      offsetZ: parseFloat(document.getElementById("bg-offset-z").value),
+      rotation: parseFloat(document.getElementById("bg-rotation").value),
+      opacity: parseFloat(document.getElementById("opt-bg-opacity").value),
+    };
+  }
 
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: "application/json" });
@@ -3777,7 +3922,7 @@ function saveToLocalStorage() {
   };
 
   // 背景データの保存
-  if (bgPlane && bgPlane.visible && currentBgData) {
+  if (currentBgData) {
     data.background = {
       active: document.getElementById("opt-bg-image").checked,
       source: currentBgData,
@@ -3949,8 +4094,8 @@ function pickClosestEdgeIndex(localPt, path) {
 let vertexListenersInitialized = false;
 
 function toggleVertexEditMode() {
-  if ((!selectedBuilding && !selectedRoad) || !selectedMesh) {
-    updateStatus("頂点編集: まず建物または道路を選択してください");
+  if ((!selectedBuilding && !selectedRoad && !selectedArea) || !selectedMesh) {
+    updateStatus("頂点編集: まず建物、道路、またはエリアを選択してください");
     return;
   }
 
@@ -3990,7 +4135,8 @@ function toggleVertexEditMode() {
 }
 
 function createVertexHandles() {
-  if ((!selectedBuilding && !selectedRoad) || !selectedMesh) return;
+  if ((!selectedBuilding && !selectedRoad && !selectedArea) || !selectedMesh)
+    return;
 
   removeVertexHandles();
 
@@ -3999,6 +4145,49 @@ function createVertexHandles() {
 
   if (selectedRoad) {
     updateRoadHelpers();
+    return;
+  }
+
+  if (selectedArea) {
+    const area = selectedArea;
+    const height = area.y !== undefined ? area.y : 0.05;
+
+    area.nodes.forEach((node, index) => {
+      const handle = new THREE.Mesh(handleGeo.clone(), handleMat.clone());
+      handle.position.set(node.x, height + 1, node.z); // 少し浮かせる
+      handle.userData = {
+        type: "vertex",
+        index: index,
+        areaId: area.id,
+      };
+      scene.add(handle);
+      vertexHandles.push(handle);
+    });
+
+    // 辺ハンドル用
+    const edgeHandleGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
+    const edgeHandleMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
+
+    // 辺の中央に押し出しハンドル
+    for (let i = 0; i < area.nodes.length; i++) {
+      const p1 = area.nodes[i];
+      const p2 = area.nodes[(i + 1) % area.nodes.length];
+
+      const mid = { x: (p1.x + p2.x) / 2, z: (p1.z + p2.z) / 2 };
+
+      const handle = new THREE.Mesh(
+        edgeHandleGeo.clone(),
+        edgeHandleMat.clone(),
+      );
+      handle.position.set(mid.x, height + 1, mid.z);
+      handle.userData = {
+        type: "edge",
+        index: i,
+        areaId: area.id,
+      };
+      scene.add(handle);
+      vertexHandles.push(handle);
+    }
     return;
   }
 
@@ -4073,7 +4262,11 @@ function initVertexDragListeners() {
   canvas.addEventListener(
     "pointerdown",
     (event) => {
-      if (!vertexEditMode || (!selectedBuilding && !selectedRoad)) return;
+      if (
+        !vertexEditMode ||
+        (!selectedBuilding && !selectedRoad && !selectedArea)
+      )
+        return;
 
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
@@ -4082,26 +4275,44 @@ function initVertexDragListeners() {
       raycaster.setFromCamera(mouse, camera);
 
       // 頂点削除 (右クリック)
-      if (event.button === 2 && selectedBuilding) {
+      if (event.button === 2) {
         const intersects = raycaster.intersectObjects(vertexHandles);
         if (intersects.length > 0) {
           const handle = intersects[0].object;
           if (handle.userData.type === "vertex") {
-            const b = selectedBuilding;
-            if (b.path.length <= 3) {
-              updateStatus("頂点削除: これ以上削除できません (最低3頂点必要)");
+            if (selectedBuilding) {
+              const b = selectedBuilding;
+              if (b.path.length <= 3) {
+                updateStatus(
+                  "頂点削除: これ以上削除できません (最低3頂点必要)",
+                );
+                return;
+              }
+              const index = handle.userData.index;
+              b.path.splice(index, 1);
+              updateBuildingBounds(b);
+              rebuildSelectedBuilding();
+              createVertexHandles();
+              autoSave();
+              updateStatus(`頂点${index}を削除しました`);
+              return;
+            } else if (selectedArea) {
+              const area = selectedArea;
+              if (area.nodes.length <= 3) {
+                updateStatus(
+                  "頂点削除: これ以上削除できません (最低3頂点必要)",
+                );
+                return;
+              }
+              const index = handle.userData.index;
+              area.nodes.splice(index, 1);
+              createAreas();
+              createVertexHandles();
+              updatePropertyPanel();
+              autoSave();
+              updateStatus(`頂点${index}を削除しました`);
               return;
             }
-
-            const index = handle.userData.index;
-            b.path.splice(index, 1);
-
-            updateBuildingBounds(b);
-            rebuildSelectedBuilding();
-            createVertexHandles();
-            autoSave();
-            updateStatus(`頂点${index}を削除しました`);
-            return;
           }
         }
       }
@@ -4125,19 +4336,33 @@ function initVertexDragListeners() {
 
         if (handle.userData.type === "edge") {
           // 辺ハンドルクリック
-          const b = selectedBuilding;
-          const rot = ((b.rotation || 0) * Math.PI) / 180;
-          const gw = getGroundIntersectionFromEvent(event, true); // ハンドルクリックはスナップ有効でOKだが
-          if (gw) {
-            const localPt = worldToLocal(gw.x, gw.z, b.x, b.z, rot);
-
-            // 重要：ここで投影点(Projected)を計算し、handleEdgeClickByIndexに渡すが、
-            // ステートが "ready" になるだけで、この座標は "extrudePoint1" にはならない（初回は）。
-            // そのため、投影計算自体は正しいが、handleEdgeClickByIndex側でこれを無視するロジックになる。
-            const edgeStart = b.path[handle.userData.index];
-            const edgeEnd = b.path[(handle.userData.index + 1) % b.path.length];
-            const projected = projectPointOnEdge(localPt, edgeStart, edgeEnd);
-            handleEdgeClickByIndex(handle.userData.index, projected);
+          if (selectedBuilding) {
+            const b = selectedBuilding;
+            const rot = ((b.rotation || 0) * Math.PI) / 180;
+            const gw = getGroundIntersectionFromEvent(event, true);
+            if (gw) {
+              const localPt = worldToLocal(gw.x, gw.z, b.x, b.z, rot);
+              const edgeStart = b.path[handle.userData.index];
+              const edgeEnd =
+                b.path[(handle.userData.index + 1) % b.path.length];
+              const projected = projectPointOnEdge(localPt, edgeStart, edgeEnd);
+              handleEdgeClickByIndex(handle.userData.index, projected);
+            }
+          } else if (selectedArea) {
+            // エリアの場合：ワールド座標のまま処理
+            const area = selectedArea;
+            const gw = getGroundIntersectionFromEvent(event, true);
+            if (gw) {
+              const edgeStart = area.nodes[handle.userData.index];
+              const edgeEnd =
+                area.nodes[(handle.userData.index + 1) % area.nodes.length];
+              const projected = projectPointOnEdge(
+                { x: gw.x, z: gw.z },
+                edgeStart,
+                edgeEnd,
+              );
+              handleEdgeClickByIndex(handle.userData.index, projected);
+            }
           }
           return;
         }
@@ -4149,42 +4374,57 @@ function initVertexDragListeners() {
         isDragging = true;
       } else {
         // ハンドルに当たらなかった場合：辺クリックとして扱う
-        const b = selectedBuilding;
-        if (!b || !selectedMesh) return;
+        if (selectedBuilding) {
+          const b = selectedBuilding;
+          if (!selectedMesh) return;
 
-        const rot = ((b.rotation || 0) * Math.PI) / 180;
-        let clickX, clickZ;
+          const rot = ((b.rotation || 0) * Math.PI) / 180;
+          let clickX, clickZ;
+          const meshIntersects = raycaster.intersectObject(selectedMesh, true);
 
-        // 【修正】まず建物メッシュ自体（屋根・壁・枠線）との交差をチェック
-        // これにより、高さのある建物の「上の辺」をクリックした際の視差ズレを解消
-        const meshIntersects = raycaster.intersectObject(selectedMesh, true);
+          if (meshIntersects.length > 0) {
+            clickX = meshIntersects[0].point.x;
+            clickZ = meshIntersects[0].point.z;
+          } else {
+            const gw = getGroundIntersectionFromEvent(event, false);
+            if (!gw) return;
+            clickX = gw.x;
+            clickZ = gw.z;
+          }
 
-        if (meshIntersects.length > 0) {
-          clickX = meshIntersects[0].point.x;
-          clickZ = meshIntersects[0].point.z;
-        } else {
-          // 建物から外れている場合は地面(Y=0)との交差を使用
-          // 【重要】スナップは無効(false)にして、見た目通りの位置を取得
+          const localPt = worldToLocal(clickX, clickZ, b.x, b.z, rot);
+          const picked = pickClosestEdgeIndex(localPt, b.path);
+          const EDGE_PICK_THRESHOLD = Math.max(1.5, snapSize * 1.5);
+
+          if (
+            picked.index !== -1 &&
+            picked.distSq <= EDGE_PICK_THRESHOLD * EDGE_PICK_THRESHOLD
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            controls.enabled = false;
+            handleEdgeClickByIndex(picked.index, picked.projected);
+          }
+        } else if (selectedArea) {
+          const area = selectedArea;
+          // エリアの場合、Raycasterでエリア自身との交差判定は難しい（Linesなので）
+          // マウス位置から最も近い辺を探す（閾値あり）
           const gw = getGroundIntersectionFromEvent(event, false);
           if (!gw) return;
-          clickX = gw.x;
-          clickZ = gw.z;
-        }
 
-        const localPt = worldToLocal(clickX, clickZ, b.x, b.z, rot);
-        const picked = pickClosestEdgeIndex(localPt, b.path);
+          const clickPt = { x: gw.x, z: gw.z };
+          const picked = pickClosestEdgeIndex(clickPt, area.nodes);
+          const EDGE_PICK_THRESHOLD = Math.max(1.5, snapSize * 1.5);
 
-        // 閾値を少し緩める (1.5m または スナップの1.5倍)
-        const EDGE_PICK_THRESHOLD = Math.max(1.5, snapSize * 1.5);
-
-        if (
-          picked.index !== -1 &&
-          picked.distSq <= EDGE_PICK_THRESHOLD * EDGE_PICK_THRESHOLD
-        ) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-          controls.enabled = false; // 操作中（押し出し開始候補）は視点移動無効化
-          handleEdgeClickByIndex(picked.index, picked.projected);
+          if (
+            picked.index !== -1 &&
+            picked.distSq <= EDGE_PICK_THRESHOLD * EDGE_PICK_THRESHOLD
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            controls.enabled = false;
+            handleEdgeClickByIndex(picked.index, picked.projected);
+          }
         }
       }
     },
@@ -4248,6 +4488,10 @@ function initVertexDragListeners() {
             // 道路はワールド座標でスナップ
             targetX = Math.round(targetX / snapSize) * snapSize;
             targetZ = Math.round(targetZ / snapSize) * snapSize;
+          } else if (selectedArea) {
+            // エリアもワールド座標でスナップ
+            targetX = Math.round(targetX / snapSize) * snapSize;
+            targetZ = Math.round(targetZ / snapSize) * snapSize;
           }
         }
 
@@ -4269,6 +4513,20 @@ function initVertexDragListeners() {
           x: targetX,
           z: targetZ,
         });
+
+        // エリアの場合も即時反映
+        if (selectedArea) {
+          const area = selectedArea;
+          area.nodes[dragStartVertexIndex].x = targetX;
+          area.nodes[dragStartVertexIndex].z = targetZ;
+          createAreas(); // 再描画
+          createVertexHandles(); // ハンドル位置更新
+
+          // エリアのプロパティパネル更新
+          updatePropertyPanel();
+          updateStatus(`頂点編集(エリア): 🟡ドラッグ中${snapInfo}`);
+          return;
+        }
 
         // 道路の場合は角度表示などをスキップ
         if (selectedRoad) {
@@ -4303,10 +4561,15 @@ function initVertexDragListeners() {
         selectedVertexHandle = null;
       }
 
-      if (isDragging && selectedBuilding) {
-        updateBuildingBounds(selectedBuilding);
-        updatePropertyPanel();
-        autoSave();
+      if (isDragging) {
+        if (selectedBuilding) {
+          updateBuildingBounds(selectedBuilding);
+          updatePropertyPanel();
+          autoSave();
+        } else if (selectedArea) {
+          updatePropertyPanel();
+          autoSave();
+        }
       }
 
       isDragging = false;
@@ -4436,10 +4699,22 @@ function calculateVertexAngle(vertexIndex, currentX, currentZ) {
 // 押し出し機能（改良版）
 // ===================================
 function handleEdgeClickByIndex(edgeIndex, projectedLocal) {
-  const b = selectedBuilding;
-  if (!b || !b.path) return;
+  let path = null;
+  let rot = 0;
+  let baseX = 0;
+  let baseZ = 0;
 
-  const rot = ((b.rotation || 0) * Math.PI) / 180;
+  if (selectedBuilding) {
+    path = selectedBuilding.path;
+    rot = ((selectedBuilding.rotation || 0) * Math.PI) / 180;
+    baseX = selectedBuilding.x;
+    baseZ = selectedBuilding.z;
+  } else if (selectedArea) {
+    path = selectedArea.nodes;
+    // エリアはワールド座標なので回転等は0/原点
+  }
+
+  if (!path) return;
 
   // 1. 未選択 または 別の辺を選択 -> 準備モードへ移行
   if (
@@ -4451,7 +4726,18 @@ function handleEdgeClickByIndex(edgeIndex, projectedLocal) {
     extrudeState = "ready"; // 【変更】まず準備状態にする
     extrudeEdgeIndex = edgeIndex;
 
-    extrudeOutwardDir = calculateOutwardDirectionRobust(b, edgeIndex);
+    // エリア対応：引数を一般化
+    if (selectedBuilding) {
+      extrudeOutwardDir = calculateOutwardDirectionRobust(
+        selectedBuilding.path,
+        edgeIndex,
+      );
+    } else if (selectedArea) {
+      extrudeOutwardDir = calculateOutwardDirectionRobust(
+        selectedArea.nodes,
+        edgeIndex,
+      );
+    }
 
     updateStatus("押し出し: 始点をクリックしてください");
     return;
@@ -4463,7 +4749,12 @@ function handleEdgeClickByIndex(edgeIndex, projectedLocal) {
     extrudePoint1 = projectedLocal;
 
     // マーカー表示（復活）
-    const w = localToWorld(projectedLocal, b.x, b.z, rot);
+    let w = { x: 0, z: 0 };
+    if (selectedBuilding) {
+      w = localToWorld(projectedLocal, baseX, baseZ, rot);
+    } else {
+      w = projectedLocal; // エリアはそのまま
+    }
     addExtrudeMarker(w.x, w.z, 0x22c55e); // 緑
 
     updateStatus("押し出し: 終点をクリックして幅を決定");
@@ -4487,7 +4778,12 @@ function handleEdgeClickByIndex(edgeIndex, projectedLocal) {
     extrudeState = "preview";
 
     // マーカー表示（復活）
-    const w = localToWorld(projectedLocal, b.x, b.z, rot);
+    let w = { x: 0, z: 0 };
+    if (selectedBuilding) {
+      w = localToWorld(projectedLocal, baseX, baseZ, rot);
+    } else {
+      w = projectedLocal;
+    }
     addExtrudeMarker(w.x, w.z, 0x22c55e);
 
     // p1とp2の順序を辺の方向に揃える
@@ -4525,15 +4821,15 @@ function polygonSignedAreaXZ(path) {
   return a / 2;
 }
 
-function calculateOutwardDirectionRobust(b, edgeIndex) {
-  const a = b.path[edgeIndex];
-  const c = b.path[(edgeIndex + 1) % b.path.length];
+function calculateOutwardDirectionRobust(path, edgeIndex) {
+  const a = path[edgeIndex];
+  const c = path[(edgeIndex + 1) % path.length];
 
   const dx = c.x - a.x;
   const dz = c.z - a.z;
   const len = Math.hypot(dx, dz) || 1;
 
-  const area = polygonSignedAreaXZ(b.path);
+  const area = polygonSignedAreaXZ(path);
   const isCCW = area > 0;
 
   // CCW: 外側は “右” 側、CW: 外側は “左” 側
@@ -4544,9 +4840,13 @@ function calculateOutwardDirectionRobust(b, edgeIndex) {
 }
 
 function orderExtrudePoints() {
-  const b = selectedBuilding;
-  const edgeStart = b.path[extrudeEdgeIndex];
-  const edgeEnd = b.path[(extrudeEdgeIndex + 1) % b.path.length];
+  let path = null;
+  if (selectedBuilding) path = selectedBuilding.path;
+  else if (selectedArea) path = selectedArea.nodes;
+  else return;
+
+  const edgeStart = path[extrudeEdgeIndex];
+  const edgeEnd = path[(extrudeEdgeIndex + 1) % path.length];
 
   const edgeDx = edgeEnd.x - edgeStart.x;
   const edgeDz = edgeEnd.z - edgeStart.z;
@@ -4596,8 +4896,21 @@ function addExtrudeMarker(worldX, worldZ, color) {
 function updateExtrudePreview() {
   if (extrudeState !== "preview" || !extrudePoint1 || !extrudePoint2) return;
 
-  const b = selectedBuilding;
-  const rot = ((b.rotation || 0) * Math.PI) / 180;
+  let path = null;
+  let baseX = 0;
+  let baseZ = 0;
+  let rot = 0;
+
+  if (selectedBuilding) {
+    path = selectedBuilding.path;
+    baseX = selectedBuilding.x;
+    baseZ = selectedBuilding.z;
+    rot = ((selectedBuilding.rotation || 0) * Math.PI) / 180;
+  } else if (selectedArea) {
+    path = selectedArea.nodes;
+  }
+
+  if (!path) return;
 
   raycaster.setFromCamera(mouse, camera);
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -4606,26 +4919,63 @@ function updateExtrudePreview() {
 
   let gx = p.x,
     gz = p.z;
+
   if (snapEnabled) {
-    gx = Math.round(gx / snapSize) * snapSize;
-    gz = Math.round(gz / snapSize) * snapSize;
+    if (selectedBuilding) {
+      // 建物の場合、ローカル座標系でスナップさせたいが、
+      // マウスカーソル位置自体をスナップさせるか、投影後のdepthをスナップさせるか。
+      // 既存ロジックは「マウス位置をスナップ」してから投影している。
+
+      // 一旦ローカルへ
+      const local = worldToLocal(gx, gz, baseX, baseZ, rot);
+      local.x = Math.round(local.x / snapSize) * snapSize;
+      local.z = Math.round(local.z / snapSize) * snapSize;
+
+      // ワールドへ戻す（投影計算のため）…いや、既存ロジックはmouseLocalを使ってる
+      const world = localToWorld(local, baseX, baseZ, rot);
+      gx = world.x;
+      gz = world.z;
+    } else {
+      // エリア・道路はワールド座標
+      gx = Math.round(gx / snapSize) * snapSize;
+      gz = Math.round(gz / snapSize) * snapSize;
+    }
   }
 
-  const mouseLocal = worldToLocal(gx, gz, b.x, b.z, rot);
-
   // “元の辺” に対する垂直距離でdepthを決める
-  const edgeStart = b.path[extrudeEdgeIndex];
-  const edgeEnd = b.path[(extrudeEdgeIndex + 1) % b.path.length];
-  const proj = projectPointOnEdge(mouseLocal, edgeStart, edgeEnd);
+  // 建物：ローカル座標系で計算
+  // エリア：ワールド座標系で計算
 
-  let depth =
-    (mouseLocal.x - proj.x) * extrudeOutwardDir.x +
-    (mouseLocal.z - proj.z) * extrudeOutwardDir.z;
+  let depth = 0;
+
+  if (selectedBuilding) {
+    const mouseLocal = worldToLocal(gx, gz, baseX, baseZ, rot);
+    const edgeStart = path[extrudeEdgeIndex];
+    const edgeEnd = path[(extrudeEdgeIndex + 1) % path.length];
+    const proj = projectPointOnEdge(mouseLocal, edgeStart, edgeEnd);
+
+    depth =
+      (mouseLocal.x - proj.x) * extrudeOutwardDir.x +
+      (mouseLocal.z - proj.z) * extrudeOutwardDir.z;
+  } else {
+    // エリア（ワールド座標）
+    const edgeStart = path[extrudeEdgeIndex];
+    const edgeEnd = path[(extrudeEdgeIndex + 1) % path.length];
+    const proj = projectPointOnEdge({ x: gx, z: gz }, edgeStart, edgeEnd);
+
+    depth =
+      (gx - proj.x) * extrudeOutwardDir.x + (gz - proj.z) * extrudeOutwardDir.z;
+  }
 
   // 外側だけにしたいなら負を0へ（好み）
   if (depth < 0) depth = 0;
 
-  if (snapEnabled) depth = Math.round(depth / snapSize) * snapSize;
+  if (snapEnabled && selectedBuilding) {
+    // 建物の場合は上でマウススナップしてるのでdepth目安
+    depth = Math.round(depth / snapSize) * snapSize;
+  } else if (snapEnabled) {
+    depth = Math.round(depth / snapSize) * snapSize;
+  }
 
   if (depth < 1) depth = 1; // 最低1m
 
@@ -4636,110 +4986,162 @@ function updateExtrudePreview() {
 }
 
 function updateExtrudePreviewMesh(depth) {
-  const b = selectedBuilding;
-  const rot = ((b.rotation || 0) * Math.PI) / 180;
-  const height = b.floors * 3;
+  // 既存の実装をベースに、エリアの場合はワールド座標でメッシュを作る
+  let rot = 0;
+  let baseX = 0;
+  let baseZ = 0;
+  let height = 0;
 
-  // 4つの頂点を計算（ローカル座標）
-  const p1 = extrudePoint1;
-  const p2 = extrudePoint2;
-  const p3 = {
-    x: p2.x + extrudeOutwardDir.x * depth,
-    z: p2.z + extrudeOutwardDir.z * depth,
-  };
-  const p4 = {
-    x: p1.x + extrudeOutwardDir.x * depth,
-    z: p1.z + extrudeOutwardDir.z * depth,
-  };
-
-  // ワールド座標に変換
-  const w1 = localToWorld(p1, b.x, b.z, rot);
-  const w2 = localToWorld(p2, b.x, b.z, rot);
-  const w3 = localToWorld(p3, b.x, b.z, rot);
-  const w4 = localToWorld(p4, b.x, b.z, rot);
-
-  // 既存のプレビューを削除
-  if (extrudePreviewMesh) {
-    scene.remove(extrudePreviewMesh);
-    extrudePreviewMesh.geometry.dispose();
-    extrudePreviewMesh.material.dispose();
+  if (selectedBuilding) {
+    baseX = selectedBuilding.x;
+    baseZ = selectedBuilding.z;
+    rot = ((selectedBuilding.rotation || 0) * Math.PI) / 180;
+    const FLOOR_HEIGHT = 3;
+    height = selectedBuilding.floors * FLOOR_HEIGHT;
+  } else if (selectedArea) {
+    height = selectedArea.y !== undefined ? selectedArea.y : 0.05;
   }
 
-  // プレビュー用のShape
-  const shape = new THREE.Shape();
-  shape.moveTo(w1.x, -w1.z);
-  shape.lineTo(w2.x, -w2.z);
-  shape.lineTo(w3.x, -w3.z);
-  shape.lineTo(w4.x, -w4.z);
-  shape.closePath();
+  const n1 = extrudePoint1; // local (building) or world (area)
+  const n2 = extrudePoint2;
+  const n3 = {
+    x: extrudePoint2.x + extrudeOutwardDir.x * depth,
+    z: extrudePoint2.z + extrudeOutwardDir.z * depth,
+  };
+  const n4 = {
+    x: extrudePoint1.x + extrudeOutwardDir.x * depth,
+    z: extrudePoint1.z + extrudeOutwardDir.z * depth,
+  };
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: height,
-    bevelEnabled: false,
-  });
-  geometry.rotateX(-Math.PI / 2);
+  let w1, w2, w3, w4;
+  if (selectedBuilding) {
+    w1 = localToWorld(n1, baseX, baseZ, rot);
+    w2 = localToWorld(n2, baseX, baseZ, rot);
+    w3 = localToWorld(n3, baseX, baseZ, rot);
+    w4 = localToWorld(n4, baseX, baseZ, rot);
+  } else {
+    w1 = n1;
+    w2 = n2;
+    w3 = n3;
+    w4 = n4;
+  }
 
-  const material = new THREE.MeshLambertMaterial({
-    color: 0x22c55e,
-    transparent: true,
-    opacity: 0.5,
-  });
+  const y = height + 0.5;
 
-  extrudePreviewMesh = new THREE.Mesh(geometry, material);
-  extrudePreviewMesh.position.set(0, 0, 0);
-  extrudePreviewMesh.userData.depth = depth;
-  scene.add(extrudePreviewMesh);
+  // ジオメトリ更新（LineLoopなどを使って枠線表示）
+  // 既存のextrudePreviewMeshがあれば使い回す
+  if (!extrudePreviewMesh) {
+    const geo = new THREE.BufferGeometry();
+    const mat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 2 });
+    extrudePreviewMesh = new THREE.LineLoop(geo, mat);
+    scene.add(extrudePreviewMesh);
+  }
+
+  // 4点を一筆書き
+  const vertices = new Float32Array([
+    w1.x,
+    y,
+    w1.z,
+    w2.x,
+    y,
+    w2.z,
+    w3.x,
+    y,
+    w3.z,
+    w4.x,
+    y,
+    w4.z,
+  ]);
+  extrudePreviewMesh.geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(vertices, 3),
+  );
 }
 
 function finalizeExtrude() {
-  if (
-    extrudeState !== "preview" ||
-    !extrudePreviewMesh ||
-    !extrudePoint1 ||
-    !extrudePoint2
-  )
-    return;
+  let path = null;
+  if (selectedBuilding) path = selectedBuilding.path;
+  else if (selectedArea) path = selectedArea.nodes;
 
-  const b = selectedBuilding;
-  const depth = extrudePreviewMesh.userData.depth;
+  if (!path || extrudeState !== "preview") return;
 
-  // 4つの頂点を計算
-  const p1 = { ...extrudePoint1 };
-  const p2 = { ...extrudePoint2 };
-  const p3 = {
-    x: p2.x + extrudeOutwardDir.x * depth,
-    z: p2.z + extrudeOutwardDir.z * depth,
-  };
-  const p4 = {
-    x: p1.x + extrudeOutwardDir.x * depth,
-    z: p1.z + extrudeOutwardDir.z * depth,
-  };
+  // マウス位置からdepth再計算（共通処理）
+  let depth = 0;
+  let basePath = path;
+  let baseX = 0,
+    baseZ = 0,
+    rot = 0;
 
-  // 新しいパスを構築
-  const newPath = [];
-  for (let i = 0; i < b.path.length; i++) {
-    newPath.push({ ...b.path[i] });
-    if (i === extrudeEdgeIndex) {
-      // p1, p4, p3, p2の順で挿入（時計回りまたは反時計回りを維持）
-      newPath.push({ x: p1.x, z: p1.z });
-      newPath.push({ x: p4.x, z: p4.z });
-      newPath.push({ x: p3.x, z: p3.z });
-      newPath.push({ x: p2.x, z: p2.z });
-    }
+  if (selectedBuilding) {
+    baseX = selectedBuilding.x;
+    baseZ = selectedBuilding.z;
+    rot = ((selectedBuilding.rotation || 0) * Math.PI) / 180;
   }
 
-  b.path = newPath;
+  raycaster.setFromCamera(mouse, camera);
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const p = new THREE.Vector3();
+  if (raycaster.ray.intersectPlane(plane, p)) {
+    let gx = p.x,
+      gz = p.z;
+    if (snapEnabled) {
+      if (selectedBuilding) {
+        const local = worldToLocal(gx, gz, baseX, baseZ, rot);
+        local.x = Math.round(local.x / snapSize) * snapSize;
+        local.z = Math.round(local.z / snapSize) * snapSize;
+        const world = localToWorld(local, baseX, baseZ, rot);
+        gx = world.x;
+        gz = world.z;
+      } else {
+        gx = Math.round(gx / snapSize) * snapSize;
+        gz = Math.round(gz / snapSize) * snapSize;
+      }
+    }
 
-  // クリーンアップ
+    const edgeStart = basePath[extrudeEdgeIndex];
+    const edgeEnd = basePath[(extrudeEdgeIndex + 1) % basePath.length];
+
+    let targetPt = { x: gx, z: gz };
+
+    if (selectedBuilding) {
+      targetPt = worldToLocal(gx, gz, baseX, baseZ, rot);
+    }
+
+    const proj = projectPointOnEdge(targetPt, edgeStart, edgeEnd);
+    depth =
+      (targetPt.x - proj.x) * extrudeOutwardDir.x +
+      (targetPt.z - proj.z) * extrudeOutwardDir.z;
+
+    if (depth < 0) depth = 0;
+    if (snapEnabled) depth = Math.round(depth / snapSize) * snapSize;
+    if (depth < 1) depth = 1;
+  }
+
+  // 新しい4点を計算
+  const n1 = extrudePoint1;
+  const n2 = extrudePoint2;
+  const n3 = {
+    x: extrudePoint2.x + extrudeOutwardDir.x * depth,
+    z: extrudePoint2.z + extrudeOutwardDir.z * depth,
+  };
+  const n4 = {
+    x: extrudePoint1.x + extrudeOutwardDir.x * depth,
+    z: extrudePoint1.z + extrudeOutwardDir.z * depth,
+  };
+
+  path.splice((extrudeEdgeIndex + 1) % path.length, 0, n2, n3, n4, n1);
+
+  if (selectedBuilding) {
+    updateBuildingBounds(selectedBuilding);
+    rebuildSelectedBuilding();
+  } else if (selectedArea) {
+    createAreas();
+  }
+
+  createVertexHandles(); // ハンドル再生成
   cancelExtrudeMode();
-
-  // 再構築
-  updateBuildingBounds(b);
-  rebuildSelectedBuilding();
-  createVertexHandles();
   autoSave();
-
-  updateStatus(`押し出し完了: 奥行き ${Math.round(depth)}m`);
+  updateStatus("押し出しを確定しました");
 }
 
 function cancelExtrudeMode() {
