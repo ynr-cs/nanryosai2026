@@ -2705,6 +2705,8 @@
       // Global Assign (Modules scope)
       function renderPulseChart() {
         if (!pulseDataCache) return;
+        setupTimelineInteractions();
+
         const ctxP = document
           .getElementById("chart-detailed-pulse")
           .getContext("2d");
@@ -2787,33 +2789,190 @@
         }
       }
 
+      
+      // --- Timeline Interaction Logic ---
+      let isInteractionAttached = false;
+      let isDragging = false;
+      let lastX = 0;
+      let lastTouchDist = 0;
+
+      function setupTimelineInteractions() {
+        const canvas = document.getElementById("chart-detailed-pulse");
+        if (!canvas || isInteractionAttached) return;
+
+        isInteractionAttached = true;
+        canvas.style.touchAction = "none"; // Disable browser scrolling on chart
+        canvas.style.cursor = "grab";
+
+        // --- Mouse Events ---
+        canvas.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          lastX = e.clientX;
+          canvas.style.cursor = "grabbing";
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          e.preventDefault(); // Prevent text selection
+          const deltaX = e.clientX - lastX;
+          lastX = e.clientX;
+          handlePan(deltaX);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (isDragging) {
+            isDragging = false;
+            canvas.style.cursor = "grab";
+          }
+        });
+
+        // --- Touch Events ---
+        canvas.addEventListener(
+          "touchstart",
+          (e) => {
+            if (e.touches.length === 1) {
+              isDragging = true;
+              lastX = e.touches[0].clientX;
+            } else if (e.touches.length === 2) {
+              isDragging = false; // Pinch overrides pan
+              lastTouchDist = getTouchDist(e);
+            }
+          },
+          { passive: false },
+        );
+
+        canvas.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault(); // Stop scroll
+            if (e.touches.length === 1 && isDragging) {
+              const deltaX = e.touches[0].clientX - lastX;
+              lastX = e.touches[0].clientX;
+              handlePan(deltaX);
+            } else if (e.touches.length === 2) {
+              const dist = getTouchDist(e);
+              if (lastTouchDist > 0 && dist > 0) {
+                // dist increasing -> zoom in? no, logic:
+                // spread fingers -> zoom in (range smaller) -> factor < 1
+                // pinch fingers -> zoom out (range larger) -> factor > 1
+                // factor = last / current
+                const factor = lastTouchDist / dist;
+                // Dampen the factor to avoid super fast zoom
+                // e.g. factor 0.9 -> 0.95
+                const dampened = 1 + (factor - 1) * 0.5;
+                handleZoom(dampened);
+              }
+              lastTouchDist = dist;
+            }
+          },
+          { passive: false },
+        );
+
+        canvas.addEventListener("touchend", (e) => {
+          isDragging = false;
+          lastTouchDist = 0;
+          if (e.touches.length === 0) canvas.style.cursor = "grab";
+        });
+
+        // --- Wheel Zoom ---
+        canvas.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            // Up (neg) -> Zoom In (factor < 1). Down (pos) -> Zoom Out (factor > 1)
+            // Use 1.1 or 0.9
+            const factor = e.deltaY > 0 ? 1.1 : 0.9;
+            handleZoom(factor);
+          },
+          { passive: false },
+        );
+      }
+
+      function getTouchDist(e) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function handlePan(pxDelta) {
+        const canvas = document.getElementById("chart-detailed-pulse");
+        if (!canvas) return;
+        const width = canvas.clientWidth;
+        const currentRange = pulseChartRange.end - pulseChartRange.start;
+        // pxDelta is movement of MOUSE.
+        // Mouse moves RIGHT (pos), we want to see LEFT content (earlier time).
+        // So start decreases.
+        // pxDelta / width = ratio of screen moved
+        // minutes moved = ratio * currentRange
+        const minsMoved = Math.round((pxDelta / width) * currentRange);
+
+        if (minsMoved === 0) return;
+
+        let newStart = pulseChartRange.start - minsMoved;
+        let newEnd = pulseChartRange.end - minsMoved;
+
+        // Boundary Checks (0 - 1440)
+        // Hard clamping: stop at edges
+        if (newStart < 0) {
+          const diff = 0 - newStart;
+          newStart += diff;
+          newEnd += diff;
+        }
+        if (newEnd > 1440) {
+          const diff = newEnd - 1440;
+          newStart += diff;
+          newEnd += diff;
+        }
+        // Double check start again in case range > 1440 (shouldn't happen)
+        if (newStart < 0) newStart = 0;
+
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newEnd;
+        renderPulseChart();
+      }
+
+      function handleZoom(factor) {
+        window.zoomTimeline(factor);
+      }
+
       window.zoomTimeline = (factor) => {
         const currentRange = pulseChartRange.end - pulseChartRange.start;
-        const newRange = Math.max(10, Math.round(currentRange * factor)); // min 10 mins (10 slots)
+        let newRange = Math.round(currentRange * factor);
+
+        // Constraints
+        if (newRange < 10) newRange = 10; // Min 10 mins
+        if (newRange > 1440) newRange = 1440; // Max 24 hours
+
+        if (newRange === currentRange) return;
+
         const center = (pulseChartRange.start + pulseChartRange.end) / 2;
+        let newStart = Math.round(center - newRange / 2);
+        let newEnd = newStart + newRange;
 
-        pulseChartRange.start = Math.max(0, Math.round(center - newRange / 2));
-        pulseChartRange.end = Math.min(1439, pulseChartRange.start + newRange);
-
-        // Correct start if end is hit
-        if (pulseChartRange.end === 1439) {
-          pulseChartRange.start = Math.max(0, 1439 - newRange);
+        // Clamp within 0-1440
+        if (newStart < 0) {
+          newStart = 0;
+          newEnd = newRange;
+        }
+        if (newEnd > 1440) {
+          newEnd = 1440;
+          newStart = 1440 - newRange;
         }
 
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newEnd;
         renderPulseChart();
       };
 
       window.moveTimeline = (dir) => {
         const range = pulseChartRange.end - pulseChartRange.start;
         const step = Math.max(1, Math.round(range * 0.2)) * dir;
-
         const newStart = Math.max(
           0,
           Math.min(1439 - range, pulseChartRange.start + step),
         );
         pulseChartRange.start = newStart;
         pulseChartRange.end = newStart + range;
-
         renderPulseChart();
       };
 
