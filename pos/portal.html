@@ -110,6 +110,37 @@
         border-color: #fff;
       }
 
+      /* --- Forms --- */
+      .input-field {
+        width: 100%;
+        height: 44px; /* Fixed height for consistency */
+        padding: 0 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: #f9fafb;
+        color: #1f2937; /* Force dark text */
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        line-height: normal; /* Allow flex centering */
+      }
+      input.input-field {
+        line-height: 44px; /* Ensure text centers in input */
+      }
+      select.input-field {
+        appearance: none;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background-color: #f9fafb;
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+
       /* --- App Layout --- */
       .app-container {
         display: flex;
@@ -1548,8 +1579,6 @@
         .search-form-card .input-field,
         .search-form-card select {
           font-size: 16px; /* Prevent iOS zoom on focus */
-          min-height: 44px; /* Apple HIG touch target */
-          padding: 10px 12px;
         }
 
         /* Search table: smaller text */
@@ -1649,6 +1678,72 @@
         }
         .nav-icon {
           font-size: 1.1rem;
+        }
+      }
+
+      /* --- Live Feed Styles --- */
+      .live-feed-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .live-feed-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .live-feed-item:last-child {
+        border-bottom: none;
+      }
+      .feed-icon {
+        width: 36px;
+        height: 36px;
+        background: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #6b7280;
+        margin-right: 12px;
+        flex-shrink: 0;
+      }
+      .feed-content {
+        flex: 1;
+        min-width: 0; /* for truncation */
+      }
+      .feed-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .feed-time {
+        font-size: 0.75rem;
+        color: #9ca3af;
+      }
+      .feed-amount {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1f2937;
+        margin-left: 12px;
+        white-space: nowrap;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
     </style>
@@ -1995,6 +2090,33 @@
                   <li style="color: #9ca3af">データなし</li>
                 </ul>
               </div>
+            </div>
+
+            <!-- Live Feed (New) -->
+            <div class="card" style="margin-top: 20px">
+              <h3
+                style="
+                  margin-top: 0;
+                  font-size: 1rem;
+                  color: #111827;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span>最近の注文 (Live Feed)</span>
+                <span style="font-size: 0.8rem; color: #10b981"
+                  >⚡️ Realtime</span
+                >
+              </h3>
+              <p style="color: #6b7280; font-size: 0.8rem; margin-bottom: 12px">
+                直近20件の販売履歴
+              </p>
+              <ul id="live-feed-list" class="live-feed-list">
+                <li style="color: #9ca3af; text-align: center">
+                  データ読み込み中...
+                </li>
+              </ul>
             </div>
 
             <!-- New: Timeline Inspector (Pulse Chart) -->
@@ -3118,6 +3240,54 @@
         pulseDataCache = countsByMin;
         renderPulseChart();
 
+        // --- Live Feed ---
+        const feedEl = document.getElementById("live-feed-list");
+        if (feedEl) {
+          const feedOrders = ordersData
+            .filter(
+              (o) =>
+                o.status !== "cancelled" && o.status !== "abandoned_and_paid",
+            ) // Exclude cancelled/abandoned
+            .sort(
+              (a, b) =>
+                (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
+            )
+            .slice(0, 20);
+
+          if (feedOrders.length > 0) {
+            feedEl.innerHTML = feedOrders
+              .map((o) => {
+                const time = o.createdAt
+                  ? o.createdAt.toDate().toLocaleTimeString("ja-JP", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "--:--";
+                let total = 0;
+                let title = "商品なし";
+                if (o.items && o.items.length > 0) {
+                  o.items.forEach((i) => (total += i.price * i.quantity));
+                  title = o.items[0].name;
+                  if (o.items.length > 1) title += ` 他${o.items.length - 1}点`;
+                }
+                return `
+                <li class="live-feed-item">
+                  <div class="feed-icon">🛍️</div>
+                  <div class="feed-content">
+                    <div class="feed-title">${title}</div>
+                    <div class="feed-time">${time}</div>
+                  </div>
+                  <div class="feed-amount">+¥${total.toLocaleString()}</div>
+                </li>
+              `;
+              })
+              .join("");
+          } else {
+            feedEl.innerHTML =
+              '<li style="padding: 20px; text-align: center; color: #9ca3af;">データがありません</li>';
+          }
+        }
+
         // --- Charts ---
         if (window.hourlyChart) window.hourlyChart.destroy();
         const ctxH = document.getElementById("chart-hourly").getContext("2d");
@@ -3604,22 +3774,31 @@
             maintainAspectRatio: false,
             scales: {
               x: {
-                min: pulseChartRange.start,
-                max: pulseChartRange.end,
+                min: labels[pulseChartRange.start] || labels[0],
+                max:
+                  labels[Math.min(pulseChartRange.end, 1439)] || labels[1439],
                 grid: { display: false },
                 ticks: {
                   maxRotation: 0,
-                  autoSkip: true,
+                  autoSkip: false,
                   callback: function (value, index, ticks) {
-                    const label = labels[index];
+                    const label = labels[value]; // value = absolute index in labels array
                     if (!label) return "";
                     const range = pulseChartRange.end - pulseChartRange.start;
-                    if (range > 600) return label.endsWith(":00") ? label : "";
-                    if (range > 120)
-                      return label.endsWith(":00") || label.endsWith(":30")
-                        ? label
-                        : "";
-                    return label.endsWith("0") ? label : ""; // Show every 10 mins if zoomed in
+                    const minute = value; // absolute minute position
+
+                    // Dynamic interval based on zoom range
+                    let interval = 5; // Default (Zoomed in)
+                    if (range > 600)
+                      interval = 60; // > 10 hours: Show hourly
+                    else if (range > 300)
+                      interval = 30; // > 5 hours: Show 30 mins
+                    else if (range > 120)
+                      interval = 15; // > 2 hours: Show 15 mins
+                    else if (range > 60) interval = 10; // > 1 hour: Show 10 mins
+
+                    if (minute % interval === 0) return label;
+                    return "";
                   },
                 },
               },
