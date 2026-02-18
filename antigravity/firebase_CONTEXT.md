@@ -43,6 +43,12 @@
   - `users`: 本人のみ読み書き可。
   - `store_secrets`: 読み書き完全禁止。
 
+- **インデックス (Indexes)**:
+  - **複合インデックス**: 売上ダッシュボードの前日比（DoD）機能のため、以下のインデックスが必要。
+    - コレクション: `orders`
+    - フィールド: `storeId` (Ascending), `createdAt` (Ascending)
+    - 備考: `portal.html` から前日のデータを集計する際に使用。
+
 ## 5. バックエンド (Cloud Functions)
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)

@@ -1,6 +1,6 @@
 <!--
   Nanryosai 2026
-  Version: 0.2.59
+  Version: 0.2.68
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -11,6 +11,7 @@
     <title>店舗管理ポータル | 南陵祭2026</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap"
       rel="stylesheet"
@@ -401,6 +402,92 @@
         text-align: center;
         width: 100%;
         max-width: 400px;
+      }
+
+      /* Helper Tooltip */
+      .help-container {
+        display: inline-block;
+        position: relative;
+        margin-left: 6px;
+        vertical-align: middle;
+        z-index: 50;
+      }
+      .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s;
+      }
+      .help-container.active .help-icon,
+      .help-icon:hover {
+        background: #9ca3af;
+        color: white;
+      }
+      .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        width: 220px;
+        background-color: #1f2937;
+        color: #fff;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 100;
+        bottom: 135%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.5;
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        pointer-events: none;
+        white-space: normal;
+      }
+      .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #1f2937 transparent transparent transparent;
+      }
+      .help-container.active .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(-2px);
+      }
+      /* Mobile Adjustment for Tooltip */
+      @media (max-width: 480px) {
+        .tooltip-text {
+          width: 200px;
+          left: -80px; /* Shift left to avoid screen edge */
+          transform: translateX(0);
+        }
+        .tooltip-text::after {
+          left: auto;
+          right: 20px; /* Adjust arrow position */
+          margin-left: 0;
+        }
+        .help-container.active .tooltip-text {
+          transform: translateY(-2px);
+        }
       }
 
       /* HoH Badge */
@@ -1341,24 +1428,57 @@
 
             <div class="summary-row">
               <div class="summary-card">
-                <div class="summary-title">売上</div>
+                <div class="summary-title">
+                  売上
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      期間内の売上合計金額です。<br />（キャンセルされた注文は含まれません）
+                    </div>
+                  </div>
+                </div>
                 <div class="summary-value val-money" id="sales-total">
                   ¥0
                   <span id="hoh-sales" class="hoh-badge hoh-neutral">--</span>
                 </div>
               </div>
               <div class="summary-card">
-                <div class="summary-title">注文数</div>
+                <div class="summary-title">
+                  注文数
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      完了した会計の回数です。<br />※商品点数ではなく、レジを通った回数を表します。
+                    </div>
+                  </div>
+                </div>
                 <div class="summary-value" id="sales-count">
                   0 <span id="hoh-count" class="hoh-badge hoh-neutral">--</span>
                 </div>
               </div>
               <div class="summary-card">
-                <div class="summary-title">客単価</div>
+                <div class="summary-title">
+                  客単価
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1人のお客様が1回のお会計で支払った平均金額です。<br />(売上合計
+                      ÷ 注文回数)
+                    </div>
+                  </div>
+                </div>
                 <div class="summary-value" id="sales-avg">¥0</div>
               </div>
               <div class="summary-card">
-                <div class="summary-title">セット率</div>
+                <div class="summary-title">
+                  セット率
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1 回の注文で購入された平均商品数です。<br />この数字が高いほど、セット販売や合わせ買いが成功しています。
+                    </div>
+                  </div>
+                </div>
                 <div class="summary-value" id="sales-ipt">0品</div>
               </div>
             </div>
@@ -1421,14 +1541,30 @@
             <div class="analysis-section">
               <!-- 瞬間風速 (Real-time Pace) -->
               <div class="analysis-card">
-                <h4><span>🔥</span> 直近30分の人気</h4>
+                <h4>
+                  <span>🔥</span> 直近30分の人気
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      直近30分間に売れた商品のランキングです。<br />「今」何が売れているかを把握し、調理優先度や呼び込みに活用してください。
+                    </div>
+                  </div>
+                </h4>
                 <ul class="rank-list" id="realtime-ranking">
                   <li style="color: #9ca3af">データなし</li>
                 </ul>
               </div>
               <!-- 併売分析 (Basket) -->
               <div class="analysis-card">
-                <h4><span>📊</span> 最強の組み合わせ</h4>
+                <h4>
+                  <span>📊</span> 最強の組み合わせ
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      一緒に買われることが多い商品の組み合わせランキングです。<br />セット販売の提案や、メニュー配置の参考にしてください。
+                    </div>
+                  </div>
+                </h4>
                 <ul class="rank-list" id="combo-ranking">
                   <li style="color: #9ca3af">データなし</li>
                 </ul>
@@ -1440,6 +1576,12 @@
               <div class="pulse-header">
                 <div class="pulse-title">
                   <span>📡</span> タイムライン・インスペクター (1分単位)
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1分単位の精密な売上推移グラフです。<br />マウスドラッグや拡大ボタンで、ピーク時の波を詳細に分析できます。
+                    </div>
+                  </div>
                 </div>
                 <div class="zoom-controls">
                   <button class="zoom-btn" onclick="moveTimeline(-1)">◀</button>
@@ -1857,6 +1999,29 @@
       let pulseChartRange = { start: 480, end: 1080 }; // 8:00 - 18:00 (1分単位: 60 * 8 - 60 * 18)
       let pulseDataCache = null;
 
+      // --- Tooltip Logic ---
+      window.toggleTooltip = (element) => {
+        event.stopPropagation(); // Stop bubble to document
+        const container = element;
+        const isActive = container.classList.contains("active");
+
+        // Close others
+        document.querySelectorAll(".help-container.active").forEach((el) => {
+          el.classList.remove("active");
+        });
+
+        if (!isActive) {
+          container.classList.add("active");
+        }
+      };
+
+      // Close tooltips on outside click
+      document.addEventListener("click", () => {
+        document.querySelectorAll(".help-container.active").forEach((el) => {
+          el.classList.remove("active");
+        });
+      });
+
       // --- Navigation ---
       window.switchView = (viewName) => {
         // Update Sidebar
@@ -2040,10 +2205,15 @@
 
         setupRealtimeListeners();
 
-        // Set Date Picker to today
+        // Set Date Picker to today (Local Time)
         const now = new Date();
-        document.getElementById("search-date").valueAsDate = now;
-        document.getElementById("sales-date-input").valueAsDate = now;
+        const localDate = new Date(
+          now.getTime() - now.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("search-date").value = localDate;
+        document.getElementById("sales-date-input").value = localDate;
 
         // Default view
         switchView("top");
@@ -2565,14 +2735,41 @@
         const ctxC = document
           .getElementById("chart-cumulative")
           .getContext("2d");
+
+        // Determine cut-off hour:
+        // If viewing "Today", limit to current hour.
+        // If viewing past date, show all 24h.
+
+        // This logic depends on whether 'selectedDate' in setupRealtimeListeners matches 'today'.
+        // Since we don't have global 'selectedDate' easily accessible here without refactoring,
+        // let's use the input value.
+        const dateInputVal = document.getElementById("sales-date-input").value;
+        const currentDate = new Date();
+        const todayStr = new Date(
+          currentDate.getTime() - currentDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
+
+        let showUpTo = 24;
+        if (dateInputVal === todayStr) {
+          showUpTo = currentDate.getHours() + 1; // Show up to current hour (inclusive)
+        }
+
+        const cumulativeLabels = Array.from({ length: 24 }, (_, i) => i).slice(
+          0,
+          showUpTo,
+        );
+        const cumulativeData = cumulativeSales.slice(0, showUpTo);
+
         window.cumulativeChart = new Chart(ctxC, {
           type: "line",
           data: {
-            labels: Array.from({ length: 24 }, (_, i) => i),
+            labels: cumulativeLabels,
             datasets: [
               {
                 label: "累積売上(円)",
-                data: cumulativeSales,
+                data: cumulativeData,
                 borderColor: "#10b981", // Green
                 backgroundColor: "rgba(16, 185, 129, 0.1)",
                 borderWidth: 2,
@@ -2600,6 +2797,18 @@
 
         const ctx = document.getElementById("chart-products").getContext("2d");
         if (window.productChart) window.productChart.destroy();
+        // Updated Colors for better distinction
+        const distinctColors = [
+          "#3b82f6", // Blue 500
+          "#ef4444", // Red 500
+          "#10b981", // Emerald 500
+          "#f59e0b", // Amber 500
+          "#8b5cf6", // Violet 500
+          "#ec4899", // Pink 500
+          "#6366f1", // Indigo 500
+          "#14b8a6", // Teal 500
+        ];
+
         window.productChart = new Chart(ctx, {
           type: "doughnut",
           data: {
@@ -2613,17 +2822,43 @@
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 5)
                   .map((s) => s[1]),
-                backgroundColor: [
-                  "#10b981",
-                  "#34d399",
-                  "#6ee7b7",
-                  "#a7f3d0",
-                  "#d1fae5",
-                ],
+                backgroundColor: distinctColors,
               },
             ],
           },
-          options: { maintainAspectRatio: false },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  boxWidth: 12,
+                  font: { size: 10 },
+                },
+              },
+              tooltip: {
+                enabled: false, // Disable default tooltip
+              },
+              datalabels: {
+                color: "#fff",
+                textAlign: "center",
+                font: {
+                  weight: "bold",
+                  size: 10,
+                },
+                formatter: (value, ctx) => {
+                  const total = ctx.chart._metasets[ctx.datasetIndex].total;
+                  const pct = ((value / total) * 100).toFixed(0) + "%";
+                  // Include Amount and Percentage if > 4%
+                  if (value / total <= 0.04) return "";
+                  const amount =
+                    "¥" + new Intl.NumberFormat("ja-JP").format(value);
+                  return `${amount}\n${pct}`;
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
         });
       }
 
@@ -2668,19 +2903,54 @@
               },
             ],
           },
-          options: { maintainAspectRatio: false },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  boxWidth: 12,
+                  font: { size: 10 },
+                },
+              },
+              tooltip: {
+                enabled: false, // Disable default tooltip
+              },
+              datalabels: {
+                color: "#fff",
+                textAlign: "center",
+                font: {
+                  weight: "bold",
+                  size: 10,
+                },
+                formatter: (value, ctx) => {
+                  const total = ctx.chart._metasets[ctx.datasetIndex].total;
+                  const pct = ((value / total) * 100).toFixed(0) + "%";
+                  // Include Amount and Percentage if > 4%
+                  if (value / total <= 0.04) return "";
+                  const amount =
+                    "¥" + new Intl.NumberFormat("ja-JP").format(value);
+                  return `${amount}\n${pct}`;
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
         });
       }
 
-      function renderHoHBadge(current, previous, id) {
+      function renderHoHBadge(current, previous) {
         if (previous === 0 && current === 0)
-          return `<span class="hoh-badge hoh-neutral">--</span>`;
-        if (previous === 0)
-          return `<span class="hoh-badge hoh-up">NEW ▲</span>`;
-        const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) return `<span class="hoh-badge hoh-up">+${pct}% ▲</span>`;
-        if (pct < 0) return `<span class="hoh-badge hoh-down">${pct}% ▼</span>`;
-        return `<span class="hoh-badge hoh-neutral">±0%</span>`;
+          return `<span class="hoh-badge hoh-neutral">前日比 --</span>`;
+        const pct =
+          previous === 0
+            ? current * 100
+            : Math.round(((current - previous) / previous) * 100);
+        if (pct > 0)
+          return `<span class="hoh-badge hoh-up">前日比 ${pct}% ↑</span>`;
+        if (pct < 0)
+          return `<span class="hoh-badge hoh-down">前日比 ${Math.abs(pct)}% ↓</span>`;
+        return `<span class="hoh-badge hoh-neutral">前日比 ±0%</span>`;
       }
 
       // --- Search Logic ---
@@ -2817,12 +3087,18 @@
       };
 
       // Initialize Date Change Listeners
+      const handleDateChange = (e) => {
+        const val = e.target.value;
+        document.getElementById("sales-date-input").value = val;
+        document.getElementById("search-date").value = val;
+        setupRealtimeListeners(new Date(val));
+      };
       document
         .getElementById("sales-date-input")
-        .addEventListener("change", (e) => {
-          const date = new Date(e.target.value);
-          setupRealtimeListeners(date);
-        });
+        .addEventListener("change", handleDateChange);
+      document
+        .getElementById("search-date")
+        .addEventListener("change", handleDateChange);
 
       // Global Assign (Modules scope)
       function renderPulseChart() {
