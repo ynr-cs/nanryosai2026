@@ -13,7 +13,10 @@
 | -------------- | -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
 | **Viewer**     | `main/map3d.html`                | Three.js (r128), OrbitControls                   | 一般公開用。軽量高速な表示、企画検索、ナビゲーション。     |
 | **Editor**     | `main/map_editor/`               | Three.js (r128), DragControls, TransformControls | データ作成用。多角形モデリング、背景トレース、JSON入出力。 |
+| **AreaTool**   | `main/map_editor/area_tool.js`   | AreaToolManager, AreaTool定数                    | エリア描画・編集・削除。editor.jsから分離 (v0.2.82)。      |
 | **Data**       | `main/map_editor/buildings.json` | JSON                                             | 建物形状、座標、メタデータを格納する単一の真実（SSOT）。   |
+
+> **注記**: `area_tool.js` は `editor.js` のグローバル変数（`scene`, `areas`, `areaMeshes`, `roadTool` 等）に依存するが、スクリプト読み込み順序（`area_tool.js` → `editor.js`）で定数・クラス定義を先に登録する設計。
 
 ---
 
