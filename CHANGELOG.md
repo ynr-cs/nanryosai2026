@@ -15,6 +15,36 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.75] iPad Zoom & Sales Overflow Fix - 2026-02-19
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **portal.html - iPad画面回転時のズーム防止**:
+  - viewport metaに `maximum-scale=1.0, user-scalable=no` を追加。
+- **portal.html - 売上ビューの横スクロール防止**:
+  - `.main-content` に `overflow-x: hidden` を追加。
+  - `.view-section` に `min-width: 0` と `overflow: hidden` を追加し、flexアイテムがはみ出すのを防止。
+
+## [0.2.74] Search Form iPad Layout Fix - 2026-02-19
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **portal.html - iPad/タブレットでの検索フォームレイアウト崩れを修正**:
+  - **1024px以下**: 3カラムから2カラム（キーワード全幅 + 日付/ステータス横並び）に変更。
+  - **768px以下**: 完全な1カラムスタックに変更。
+  - フォーム要素を `font-size: 16px` に設定し、iOSでのズーム問題を防止。
+  - タッチターゲットを `min-height: 44px` に拡大（Apple HIG準拠）。
+
 ## [0.2.73] Order Status Label Refinement - 2026-02-19
 
 ### メタ情報

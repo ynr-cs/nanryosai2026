@@ -7,7 +7,10 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>店舗管理ポータル | 南陵祭2026</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -154,6 +157,7 @@
         flex: 1;
         padding: 20px;
         overflow-y: auto;
+        overflow-x: hidden;
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -165,6 +169,8 @@
         flex-direction: column;
         gap: 20px;
         min-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
       }
       .view-section.active {
         display: flex;
@@ -1361,7 +1367,13 @@
       @media (max-width: 768px) {
         .search-grid {
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 10px;
+        }
+        .search-grid > .search-group:first-child {
+          grid-column: auto;
+        }
+        .search-form-card {
+          padding: 12px;
         }
 
         .modern-table thead {
@@ -1516,6 +1528,28 @@
         /* Charts: stack vertically */
         .main-content > .view-section > div[style*="display: flex; gap: 20px"] {
           flex-direction: column !important;
+        }
+
+        /* Search grid: 2-column on tablet */
+        .search-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .search-grid > .search-group:first-child {
+          grid-column: 1 / -1;
+        }
+
+        /* Search form card: tighter padding */
+        .search-form-card {
+          padding: 16px;
+        }
+
+        /* Form elements: larger touch targets */
+        .search-form-card .input-field,
+        .search-form-card select {
+          font-size: 16px; /* Prevent iOS zoom on focus */
+          min-height: 44px; /* Apple HIG touch target */
+          padding: 10px 12px;
         }
 
         /* Search table: smaller text */
