@@ -806,9 +806,48 @@
         max-width: 400px;
         z-index: 1050;
       }
+      /* --- Error Overlay --- */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
     </style>
   </head>
   <body>
+    <!-- Error Overlay -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
     <div id="app-container">
       <!-- =========================================
            Screen 1: Loading
@@ -2191,7 +2230,16 @@
         };
       }
 
-      init();
+      function checkStoreIdInit() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const storeId = urlParams.get("storeId");
+        if (!storeId) {
+          document.getElementById("error-overlay").style.display = "flex";
+          document.getElementById("app-container").style.display = "none"; // Hide app
+          return;
+        }
+      }
+      checkStoreIdInit();
     </script>
     <script>
       window.CURRENT_PAGE = "order";

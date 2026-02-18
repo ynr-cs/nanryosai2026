@@ -68,24 +68,32 @@
         margin-top: 15px;
       }
 
-      /* --- エラー画面 --- */
-      #error-screen {
+      /* --- Error Overlay --- */
+      #error-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #ffebee;
-        z-index: 10000;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
         display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        color: #c62828;
-        font-weight: bold;
-        font-size: 1.5em;
         text-align: center;
-        padding: 20px;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
       }
 
       /* --- ローダー --- */
@@ -633,10 +641,16 @@
       <div class="loading-text" id="loader-text">読み込み中...</div>
     </div>
 
-    <div id="error-screen">
-      <p>
-        店舗IDが指定されていません。<br />ポータル画面からアクセスしてください。
-      </p>
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
     </div>
 
     <div id="login-screen">
@@ -839,7 +853,7 @@
       const timerDisplay = document.getElementById("timer-display");
       const loader = document.getElementById("global-loader");
       const loaderText = document.getElementById("loader-text");
-      const errorScreen = document.getElementById("error-screen");
+      const errorScreen = document.getElementById("error-overlay"); // Renamed to errorScreen var but points to overlay
 
       // Modals
       const checkoutModal = document.getElementById("checkout-confirm-modal");

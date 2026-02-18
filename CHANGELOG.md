@@ -15,6 +15,25 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.81] Unified Store ID Error Handling - 2026-02-19
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **POS共通 - 店舗IDエラー表示の統一**:
+  - `monitor.html`, `portal.html`, `kitchen.html`, `pos.html`, `mobile-order.html`, `presenter.html` において、`storeId` が未指定の場合のエラー表示を全画面オーバーレイに統一。
+  - デザインを `monitor.html` に準拠させ、操作を完全にブロックするように変更。
+
+### 修正 (Fixed)
+
+- **mobile-order.html**:
+  - `init()` 関数の競合を解消するため、店舗IDチェック用関数を `checkStoreIdInit()` にリネーム。
+  - CSSの構文エラーを修正。
+
 ## [0.2.80] Timeline Inspector Label Data Sync Fix - 2026-02-19
 
 ### メタ情報
