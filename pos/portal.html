@@ -1226,9 +1226,197 @@
         box-shadow: 0 6px 8px -2px rgba(16, 185, 129, 0.3);
       }
 
-      /* ============================
-         Responsive: Tablet & Mobile
-         ============================ */
+      /* --- Search View Styles --- */
+      .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: 100%;
+      }
+
+      .search-form-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .search-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 16px;
+        align-items: end;
+      }
+
+      .search-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .search-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4b5563;
+      }
+
+      /* Modern Table Styles */
+      .table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9rem;
+      }
+
+      .modern-table th {
+        background: #f9fafb;
+        color: #6b7280;
+        font-weight: 600;
+        padding: 16px;
+        text-align: left;
+        border-bottom: 2px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+      }
+
+      .modern-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        color: #1f2937;
+      }
+
+      .modern-table tr:hover td {
+        background: #f9fafb;
+        cursor: pointer;
+      }
+
+      .modern-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .text-right {
+        text-align: right;
+      }
+      .font-mono {
+        font-family: "Inter", "Noto Sans JP", sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      /* Status Badges */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .badge.status-unpaid {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      .badge.status-authorized {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+      .badge.status-preparing {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .badge.status-ready {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+      .badge.status-completed {
+        background-color: #f3f4f6;
+        color: #374151;
+      }
+      .badge.status-abandoned {
+        background-color: #e5e7eb;
+        color: #6b7280;
+      }
+      .badge.status-canceled {
+        background-color: #1f2937;
+        color: #f9fafb;
+      }
+
+      /* --- Mobile Table (Card View) --- */
+      @media (max-width: 768px) {
+        .search-grid {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .modern-table thead {
+          display: none;
+        }
+
+        .modern-table,
+        .modern-table tbody,
+        .modern-table tr,
+        .modern-table td {
+          display: block;
+          width: 100%;
+        }
+
+        .modern-table tr {
+          margin-bottom: 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background: white;
+          padding: 12px;
+        }
+
+        .modern-table td {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid #f3f4f6;
+          text-align: right;
+        }
+
+        .modern-table td:last-child {
+          border-bottom: none;
+        }
+
+        .modern-table td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 0.8rem;
+          margin-right: 12px;
+          white-space: nowrap;
+        }
+
+        /* Adjust specific columns */
+        .modern-table td[data-label="商品内容"] {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .modern-table td[data-label="商品内容"]::after {
+          /* Move content to next line if needed, but flex-col handles it */
+          text-align: left;
+        }
+      }
 
       /* Use dvh (dynamic viewport height) for Safari compatibility */
       @supports (height: 100dvh) {
@@ -1822,68 +2010,90 @@
 
           <!-- 4. Search View -->
           <div id="view-search" class="view-section">
-            <div
-              class="card"
-              style="
-                flex-direction: row;
-                gap: 16px;
-                align-items: end;
-                flex-wrap: wrap;
-              "
-            >
-              <div style="flex: 1; min-width: 200px">
-                <label style="font-size: 0.8rem; font-weight: bold"
-                  >キーワード検索</label
-                >
-                <input
-                  type="text"
-                  id="search-keyword"
-                  class="input-field"
-                  placeholder="レシート番号 No..."
-                  style="margin-bottom: 0"
-                />
+            <div class="search-container">
+              <!-- Search Form -->
+              <div class="search-form-card">
+                <div class="search-grid">
+                  <div class="search-group">
+                    <label class="search-label" for="search-keyword"
+                      >キーワード検索</label
+                    >
+                    <input
+                      type="text"
+                      id="search-keyword"
+                      class="input-field"
+                      placeholder="レシート番号 No..."
+                      style="margin-bottom: 0"
+                    />
+                  </div>
+                  <div class="search-group">
+                    <label class="search-label" for="search-date">日付</label>
+                    <input
+                      type="date"
+                      id="search-date"
+                      class="input-field"
+                      style="margin-bottom: 0"
+                    />
+                  </div>
+                  <div class="search-group">
+                    <label class="search-label" for="search-status"
+                      >ステータス</label
+                    >
+                    <div style="position: relative">
+                      <select
+                        id="search-status"
+                        class="input-field"
+                        style="
+                          margin-bottom: 0;
+                          appearance: none;
+                          cursor: pointer;
+                        "
+                      >
+                        <option value="all">すべて</option>
+                        <option value="unpaid">POS注文済み (未会計)</option>
+                        <option value="active">調理中・呼出</option>
+                        <option value="completed">受取完了</option>
+                        <option value="abandoned">受取期限切れ</option>
+                        <option value="canceled">キャンセル</option>
+                      </select>
+                      <!-- Dropdown Arrow -->
+                      <div
+                        style="
+                          position: absolute;
+                          right: 12px;
+                          top: 50%;
+                          transform: translateY(-50%);
+                          pointer-events: none;
+                          color: #6b7280;
+                          font-size: 0.8rem;
+                        "
+                      >
+                        ▼
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div style="width: 150px">
-                <label style="font-size: 0.8rem; font-weight: bold">日付</label>
-                <input
-                  type="date"
-                  id="search-date"
-                  class="input-field"
-                  style="margin-bottom: 0"
-                />
-              </div>
-              <div style="width: 150px">
-                <label style="font-size: 0.8rem; font-weight: bold"
-                  >ステータス</label
-                >
-                <select
-                  id="search-status"
-                  class="input-field"
-                  style="margin-bottom: 0"
-                >
-                  <option value="all">すべて</option>
-                  <option value="unpaid">未払い</option>
-                  <option value="active">調理中・呼出</option>
-                  <option value="completed">完了</option>
-                  <option value="abandoned">期限切れ</option>
-                  <option value="canceled">取消</option>
-                </select>
-              </div>
-            </div>
 
-            <div class="table-wrapper" style="flex: 1; overflow-y: auto">
-              <table id="search-table">
-                <thead>
-                  <tr>
-                    <th>時刻</th>
-                    <th>番号</th>
-                    <th>商品内容</th>
-                    <th>ステータス</th>
-                    <th class="text-right">金額</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <!-- Results Table -->
+              <div class="table-wrapper">
+                <div style="overflow-y: auto; flex: 1">
+                  <table id="search-table" class="modern-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 120px">番号</th>
+                        <th style="width: 100px">時刻</th>
+                        <th>内容</th>
+                        <th style="width: 120px">ステータス</th>
+                        <th style="width: 100px" class="text-right">金額</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Rendered via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2109,12 +2319,13 @@
         <div class="status-select-container">
           <label class="status-label">ステータス変更</label>
           <select id="order-status-select" class="status-select">
-            <option value="unpaid_at_pos">🔴 POS未払い (受付)</option>
-            <option value="authorized">🔵 モバイル決済済 (調理中)</option>
-            <option value="ready_to_serve">🟠 配膳待ち (準備中)</option>
-            <option value="ready_for_pickup">🟢 呼び出し中</option>
+            <option value="unpaid_at_pos">🔴 POS注文済み (未会計)</option>
+            <option value="authorized">🔵 モバイルセルフ注文済み</option>
+            <option value="cooking">🔥 調理中</option>
+            <option value="ready_to_serve">🟠 調理完了 (呼び出し前)</option>
+            <option value="ready_for_pickup">🟢 お呼び出し中</option>
             <option value="completed_at_store">⚫️ 受取完了</option>
-            <option value="abandoned_and_paid">🗑️ 期限切れ (廃棄)</option>
+            <option value="abandoned_and_paid">🗑️ 受取期限切れ (廃棄)</option>
             <option value="cancelled">🚫 キャンセル</option>
           </select>
         </div>
@@ -3207,9 +3418,19 @@
           return true;
         });
 
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color:#9ca3af;">条件に一致する注文はありません</td></tr>`;
+          return;
+        }
+
+        // Sort by date desc (newest first)
+        filtered.sort(
+          (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
+        );
+
         filtered.forEach((o) => {
           const tr = document.createElement("tr");
-          tr.className = "clickable";
+          // tr.className = "clickable"; // Handled by CSS on modern-table
           tr.onclick = () => openOrderModal(o);
 
           const time = o.createdAt
@@ -3225,12 +3446,13 @@
             summary = o.items.map((i) => `${i.name}x${i.quantity}`).join(", ");
           }
 
+          // Use data-label for responsive view
           tr.innerHTML = `
-                    <td>${time}</td>
-                    <td>${o.receiptNumber}</td>
-                    <td>${summary.substring(0, 20)}...</td>
-                    <td>${getStatusBadge(o.status)}</td>
-                    <td class="text-right">¥${total.toLocaleString()}</td>
+                    <td data-label="番号" class="font-mono" style="font-weight:800; color:var(--text-color);">#${o.receiptNumber}</td>
+                    <td data-label="時刻" class="font-mono" style="color:var(--text-secondary); opacity:0.8;">${time}</td>
+                    <td data-label="内容">${summary || '<span style="color:#d1d5db">(商品なし)</span>'}</td>
+                    <td data-label="ステータス">${getStatusBadge(o.status)}</td>
+                    <td data-label="金額" class="text-right font-mono" style="font-weight:700;">¥${total.toLocaleString()}</td>
                 `;
           tbody.appendChild(tr);
         });
@@ -3238,15 +3460,20 @@
 
       function getStatusBadge(s) {
         const map = {
-          unpaid_at_pos: { l: "POS受付", c: "status-unpaid" },
-          authorized: { l: "調理中(モバイル)", c: "status-authorized" },
+          unpaid_at_pos: { l: "POS注文済み", c: "status-unpaid" },
+          authorized: { l: "モバイルセルフ注文済み", c: "status-authorized" },
           cooking: { l: "調理中", c: "status-authorized" },
-          ready_to_serve: { l: "配膳待", c: "status-preparing" },
-          ready_for_pickup: { l: "呼出中", c: "status-ready" },
-          completed_at_store: { l: "受取済", c: "status-completed" },
-          abandoned_and_paid: { l: "期限切れ", c: "status-abandoned" },
-          cancelled: { l: "取消", c: "status-canceled" },
+          ready_to_serve: { l: "調理完了(呼び出し前)", c: "status-preparing" },
+          ready_for_pickup: { l: "お呼び出し中", c: "status-ready" },
+          completed_at_store: { l: "受取完了", c: "status-completed" },
+          abandoned_and_paid: { l: "受取期限切れ", c: "status-abandoned" },
+          cancelled: { l: "キャンセル", c: "status-canceled" },
+          // fallback
+          canceled: { l: "キャンセル", c: "status-canceled" },
         };
+        // Normalize status to handle potential inconsistencies
+        if (s === "canceled") s = "cancelled";
+
         const info = map[s] || { l: s, c: "status-completed" };
         return `<span class="badge ${info.c}">${info.l}</span>`;
       }
