@@ -698,9 +698,49 @@
           box-shadow: inset 0px 0px 0px 50px var(--au-orange);
         }
       }
+
+      /* =============================================
+         Error Overlay (No Store ID)
+         ============================================= */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
     </style>
   </head>
   <body>
+    <!-- Error Overlay (Strict Mode) -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        URLに <code>?storeId=XXX</code> を含めてアクセスしてください。<br />
+        例: <code>monitor.html?storeId=101</code>
+      </div>
+    </div>
+
     <!-- 店舗ログインモーダル -->
     <div id="store-login-modal">
       <div class="store-login-card">
@@ -972,7 +1012,7 @@
 
       // URLパラメータ取得 (storeId)
       const urlParams = new URLSearchParams(window.location.search);
-      const STORE_ID = urlParams.get("storeId") || "101";
+      const STORE_ID = urlParams.get("storeId");
 
       class KioskApp {
         constructor() {
@@ -1025,6 +1065,10 @@
             });
 
           onAuthStateChanged(this.auth, (user) => {
+            if (!STORE_ID) {
+              this.showParamError();
+              return;
+            }
             if (user) {
               const uName = user.email.split("@")[0];
               // document.getElementById("display-user") was removed in favor of menu-user
@@ -1130,6 +1174,15 @@
           if (this.currentZoom < 0.5) this.currentZoom = 0.5;
           if (this.currentZoom > 2.0) this.currentZoom = 2.0;
           document.body.style.zoom = this.currentZoom;
+        }
+
+        showParamError() {
+          document.getElementById("error-overlay").style.display = "flex";
+          this.stopApp();
+          // Hide other views to be sure
+          Object.values(this.views).forEach((el) =>
+            el.classList.remove("active"),
+          );
         }
 
         startApp() {

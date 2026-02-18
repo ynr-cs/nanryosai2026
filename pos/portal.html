@@ -132,7 +132,11 @@
       /* Items Manager Specifics */
       .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
       .item-card { background: white; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
-      .item-img { width: 100%; height: 140px; object-fit: cover; background: #eee; }
+      .item-img { 
+        width: 100%; height: 140px; object-fit: cover; background: #f3f4f6; 
+        display: flex; align-items: center; justify-content: center;
+        color: #9ca3af; font-size: 0.75rem; text-align: center; padding: 10px;
+      }
       .item-body { padding: 12px; flex: 1; display:flex; flex-direction:column; }
       .item-name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
       .item-price { font-weight: 600; color: #111827; }
@@ -175,51 +179,134 @@
         
         .main-content { 
             padding: 12px;
-            padding-bottom: calc(60px + env(safe-area-inset-bottom)); /* Add extra padding for bottom nav */
+            padding-bottom: calc(70px + env(safe-area-inset-bottom));
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch;
         }
         
-        /* Layout Adjustments */
+        /* Top Bar */
         .top-bar { padding: 0 12px; height: 50px; }
-        .brand { font-size: 1rem; }
+        .brand { font-size: 0.95rem; gap: 6px; }
+        .store-badge { font-size: 0.6rem; padding: 2px 6px; }
+        .user-info { font-size: 0.7rem; gap: 8px; }
+        .logout-btn { padding: 4px 8px; font-size: 0.7rem; }
         
         /* App Grid (Top Page) */
-        .app-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } /* 2 cols for apps */
+        .app-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .app-link-card { padding: 16px; }
         .app-icon { font-size: 2rem; margin-bottom: 8px; }
         .app-title { font-size: 1rem; }
+        .app-desc { font-size: 0.75rem; }
         
         /* Items Grid */
-        .items-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-        .item-img { height: 100px; } /* Compact images */
+        .items-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .item-img { height: 100px; }
         .item-body { padding: 8px; }
-        .item-name { font-size: 0.9rem; }
+        .item-name { font-size: 0.85rem; }
+        .item-price { font-size: 0.85rem; }
+        .btn-sm { padding: 5px 8px; font-size: 0.75rem; }
         
-        /* Sales Dashboard Compact */
-        #view-sales .summary-row { gap: 8px; margin-bottom: 12px; }
-        #view-sales .summary-card { padding: 12px; min-width: 100px; }
-        #view-sales .summary-value { font-size: 1.2rem; }
-        #view-sales .card { padding: 12px; margin-bottom: 10px; min-height: fit-content; }
-        #view-sales .card canvas { min-height: 200px; max-height: 250px; }
+        /* Sales Dashboard */
+        #view-sales .summary-row { gap: 6px; margin-bottom: 12px; }
+        #view-sales .summary-card { padding: 8px; min-width: 0; flex: 1; text-align: center; }
+        #view-sales .summary-title { font-size: 0.6rem; margin-bottom: 2px; }
+        #view-sales .summary-value { font-size: 0.9rem; }
+        
+        /* Sales Date Picker */
+        #view-sales > div:first-child { flex-direction: column; align-items: stretch !important; margin-bottom: 12px; }
+        #view-sales > div:first-child h2 { font-size: 1rem; margin-bottom: 6px; }
+        #view-sales > div:first-child > div { width: 100%; justify-content: space-between; padding: 4px 10px; }
+        
+        /* Sales Charts - Better ratio */
+        #view-sales > div:last-child { flex-direction: column; gap: 12px; }
+        #view-sales .card { padding: 12px; min-height: fit-content !important; max-width: 500px; margin: 0 auto; width: 100%; }
+        #view-sales .card canvas { height: 160px !important; }
+        #view-sales .card h3 { font-size: 0.75rem; margin-bottom: 8px; }
 
-        /* Search View Compact */
-        #view-search .card { padding: 12px; gap: 8px !important; }
-        #view-search .input-field, #view-search select { font-size: 16px; /* prevent zoom on focus */ padding: 8px; }
-        
-        /* Table Compact */
-        .table-wrapper { border-radius: 8px; }
-        th, td { padding: 8px; font-size: 0.8rem; }
-        table { min-width: 500px; }
-        
-        /* Modal Adjustments */
-        .modal-content { 
-             width: 95%; max-height: 80vh; padding: 16px; 
-             margin-bottom: 80px; /* clear bottom nav */
+        /* Search View */
+        #view-search .card { 
+            flex-direction: column !important; 
+            gap: 12px !important; 
+            align-items: stretch !important; 
         }
+        #view-search .card > div { width: 100% !important; min-width: 0 !important; }
+        #view-search .input-field, 
+        #view-search select { font-size: 16px !important; padding: 10px; }
+        
+        /* Table */
+        .table-wrapper { border-radius: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { min-width: 520px; }
+        th, td { padding: 8px 6px; font-size: 0.75rem; white-space: nowrap; }
+        
+        /* Modal Full-screen on Mobile */
+        .modal-content { 
+            width: 100%; 
+            max-width: 100%;
+            max-height: calc(100vh - 70px);
+            padding: 16px; 
+            border-radius: 16px 16px 0 0;
+            margin-top: auto;
+            margin-bottom: 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
+        .modal-overlay { align-items: flex-end !important; }
+        
+        /* Training View */
+        #view-training .card { padding: 30px 16px; }
+        #view-training h2 { font-size: 1.4rem; }
+        #view-training p { font-size: 0.85rem; }
+        #view-training .btn-primary { font-size: 1rem; padding: 12px 24px; }
         
         /* Buttons */
-        .btn-primary { padding: 8px 12px; font-size: 0.85rem; }
+        .btn-primary { padding: 10px 14px; font-size: 0.85rem; }
+        
+        /* Auth Card */
+        .auth-card { padding: 24px 20px; margin: 16px; }
+      }
+
+      /* --- Extra Small Screens (< 480px) --- */
+      @media (max-width: 480px) {
+        body { font-size: 12px; }
+        
+        .main-content { padding: 8px; }
+        
+        /* Top Bar ultra-compact */
+        .top-bar { height: 44px; padding: 0 8px; }
+        .brand { font-size: 0.85rem; }
+        .store-badge { display: none; }
+        .user-info span { display: none; }
+        
+        /* App Grid: single column */
+        .app-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .app-link-card { padding: 12px; }
+        .app-icon { font-size: 1.6rem; margin-bottom: 6px; }
+        .app-title { font-size: 0.85rem; }
+        .app-desc { display: none; }
+
+        /* Items: 2 col tight */
+        .items-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .item-img { height: 80px; font-size: 0.65rem; }
+        .item-body { padding: 6px; }
+        .item-name { font-size: 0.8rem; }
+        .item-actions-row { flex-direction: column; gap: 4px; }
+        .btn-sm { width: 100%; text-align: center; padding: 6px; }
+        
+        /* Sales Summary: keep horizontal & compact */
+        #view-sales .summary-row { gap: 4px; }
+        #view-sales .summary-card { padding: 6px 4px; }
+        #view-sales .summary-value { font-size: 0.8rem; }
+        #view-sales .card canvas { height: 140px !important; }
+
+        /* Modal */
+        .modal-content { padding: 12px; }
+        .modal-content h3 { font-size: 1rem; }
+        
+        /* Bottom Nav */
+        .bottom-nav { height: 54px; }
+        .bottom-nav-item { font-size: 0.6rem; }
+        .bottom-nav-icon { font-size: 1.1rem; }
       }
 
       /* Bottom Navigation (Mobile Only) */
@@ -408,6 +495,14 @@
 
                 <!-- 3. Sales View -->
                 <div id="view-sales" class="view-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="margin:0;">売上状況</h2>
+                        <div style="display:flex; align-items:center; gap:10px; background:white; padding: 5px 12px; border-radius: 8px; box-shadow: var(--shadow);">
+                            <label style="font-size:0.8rem; font-weight:bold; color: #6b7280;">表示日:</label>
+                            <input type="date" id="sales-date-input" class="input-field" style="margin-bottom:0; border:none; padding: 5px; background: transparent; font-weight: 600;">
+                        </div>
+                    </div>
+
                     <div class="summary-row">
                         <div class="summary-card">
                             <div class="summary-title">本日の売上</div>
@@ -512,30 +607,39 @@
     <!-- Item Edit/Add Modal -->
     <div id="item-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="modal-title" style="margin-top:0;">商品編集</h3>
+            <h3 id="modal-title" style="margin-top:0; border-bottom: 2px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 20px;">商品編集</h3>
             <input type="hidden" id="edit-id">
             
-            <label style="font-weight:bold; font-size:0.85rem;">商品名</label>
-            <input type="text" id="edit-name" class="input-field">
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight:bold; font-size:0.85rem; display: block; margin-bottom: 5px;">商品名</label>
+                <input type="text" id="edit-name" class="input-field" style="margin-bottom: 0;">
+            </div>
             
-            <label style="font-weight:bold; font-size:0.85rem;">価格 (円)</label>
-            <input type="number" id="edit-price" class="input-field">
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight:bold; font-size:0.85rem; display: block; margin-bottom: 5px;">価格 (円)</label>
+                <input type="number" id="edit-price" class="input-field" style="margin-bottom: 0;">
+            </div>
             
-            <label style="font-weight:bold; font-size:0.85rem;">説明文</label>
-            <textarea id="edit-desc" class="input-field" style="height:80px;"></textarea>
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight:bold; font-size:0.85rem; display: block; margin-bottom: 5px;">説明文</label>
+                <textarea id="edit-desc" class="input-field" style="height:100px; resize: none; margin-bottom: 0;"></textarea>
+            </div>
             
-            <label style="font-weight:bold; font-size:0.85rem;">商品画像</label>
-            <input type="file" id="edit-image" class="input-field">
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight:bold; font-size:0.85rem; display: block; margin-bottom: 5px;">商品画像</label>
+                <input type="file" id="edit-image" class="input-field" style="margin-bottom: 0;">
+            </div>
             
-            <label style="font-weight:bold; font-size:0.85rem;">トッピング・オプション</label>
-            <div id="edit-toppings-container" style="margin-bottom:10px;"></div>
-            <button type="button" class="btn-sm" style="background:#17a2b8; color:white; margin-bottom:16px;" onclick="addToppingInput()">＋ トッピング枠を追加</button>
-            <br>
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight:bold; font-size:0.85rem; display: block; margin-bottom: 10px;">トッピング・オプション</label>
+                <div id="edit-toppings-container"></div>
+                <button type="button" class="btn-sm" style="background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db; margin-top: 8px; width: 100%; height: 36px; font-weight: 600;" onclick="addToppingInput()">＋ オプションを追加</button>
+            </div>
             
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button onclick="closeItemModal()" style="background:#e5e7eb; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">キャンセル</button>
-                <button id="btn-save-item" onclick="saveItem()" class="btn-primary">保存する</button>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:30px; border-top: 2px solid #f3f4f6; padding-top: 20px;">
                 <button onclick="deleteItem()" style="background:var(--danger-color); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; margin-right:auto;">削除</button>
+                <button onclick="closeItemModal()" style="background:#f3f4f6; border:1px solid #d1d5db; color:#374151; padding:10px 20px; border-radius:6px; cursor:pointer;">キャンセル</button>
+                <button id="btn-save-item" onclick="saveItem()" class="btn-primary" style="padding: 10px 30px;">保存</button>
             </div>
         </div>
     </div>
@@ -746,10 +850,23 @@
              }
         };
 
-        function startApp() {
+        async function startApp() {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
-            document.getElementById('header-store-name').innerText = `ID: ${currentStoreId}`;
+            
+            // 店舗情報の取得と表示の更新
+            try {
+                const storeDoc = await getDocs(query(collection(db, "stores"), where("__name__", "==", currentStoreId)));
+                if (!storeDoc.empty) {
+                    const data = storeDoc.docs[0].data();
+                    document.getElementById('header-store-name').innerText = `${data.teamName} - ${data.name}`;
+                } else {
+                    document.getElementById('header-store-name').innerText = `ID: ${currentStoreId}`;
+                }
+            } catch (e) {
+                console.error("Store data load error:", e);
+                document.getElementById('header-store-name').innerText = `ID: ${currentStoreId}`;
+            }
             
             // Set up Links
             document.getElementById('link-pos').href = `pos.html?storeId=${currentStoreId}`;
@@ -760,14 +877,17 @@
             setupRealtimeListeners();
             
             // Set Date Picker to today
-            document.getElementById('search-date').valueAsDate = new Date();
+            const now = new Date();
+            document.getElementById('search-date').valueAsDate = now;
+            document.getElementById('sales-date-input').valueAsDate = now;
             
             // Default view
             switchView('top');
         }
 
-        function setupRealtimeListeners() {
-            // 1. Items
+        function setupRealtimeListeners(targetDate = null) {
+            // 1. Items (Once is enough, but keep it clean)
+            if(itemsUnsubscribe) itemsUnsubscribe();
             const qItems = query(collection(db, "items"), where("storeId", "==", currentStoreId));
             itemsUnsubscribe = onSnapshot(qItems, (snap) => {
                 itemsData = [];
@@ -775,14 +895,18 @@
                 renderItems();
             });
 
-            // 2. Orders (Today)
-            const today = new Date(); today.setHours(0,0,0,0);
-            // Just fetching today's orders for dashboard/search default
-            // Ideally we'd have a more robust date query
+            // 2. Orders (By Date)
+            if(ordersUnsubscribe) ordersUnsubscribe();
+            
+            const selectedDate = targetDate || new Date();
+            const start = new Date(selectedDate); start.setHours(0,0,0,0);
+            const end = new Date(selectedDate); end.setHours(23,59,59,999);
+            
             const qOrders = query(
                 collection(db, "orders"), 
                 where("storeId", "==", currentStoreId),
-                where("createdAt", ">=", Timestamp.fromDate(today)),
+                where("createdAt", ">=", Timestamp.fromDate(start)),
+                where("createdAt", "<=", Timestamp.fromDate(end)),
                 orderBy("createdAt", "desc")
             );
             ordersUnsubscribe = onSnapshot(qOrders, (snap) => {
@@ -800,8 +924,12 @@
             itemsData.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'item-card';
+                const imgHtml = item.imageUrl 
+                    ? `<img src="${item.imageUrl}" class="item-img" alt="${item.name}">`
+                    : `<div class="item-img">画像が登録されていません</div>`;
+                
                 div.innerHTML = `
-                    <img src="${item.imageUrl || ''}" class="item-img">
+                    ${imgHtml}
                     <div class="item-body">
                         <div class="item-name">${item.name}</div>
                         <div class="item-price">¥${item.price}</div>
@@ -1156,6 +1284,12 @@
              // Open in new tab or same? Use new window to keep portal open.
              window.open(`training/index.html?storeId=${currentStoreId}`, '_blank');
         };
+
+        // Initialize Date Change Listeners
+        document.getElementById('sales-date-input').addEventListener('change', (e) => {
+            const date = new Date(e.target.value);
+            setupRealtimeListeners(date);
+        });
 
         // Global Assign (Modules scope)
         window.switchView = switchView; 
