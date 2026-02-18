@@ -164,7 +164,7 @@
         display: none;
         flex-direction: column;
         gap: 20px;
-        height: 100%;
+        min-height: 100%;
       }
       .view-section.active {
         display: flex;
@@ -586,7 +586,7 @@
 
         .main-content {
           padding: 12px;
-          padding-bottom: calc(70px + env(safe-area-inset-bottom));
+          padding-bottom: calc(100px + env(safe-area-inset-bottom));
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         }
@@ -2663,12 +2663,10 @@
           tr.onclick = () => openOrderModal(o);
 
           const time = o.createdAt
-            ? o.createdAt
-                .toDate()
-                .toLocaleTimeString("ja-JP", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
+            ? o.createdAt.toDate().toLocaleTimeString("ja-JP", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "--:--";
           let total = 0;
           let summary = "";
