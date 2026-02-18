@@ -1,7 +1,6 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Version: 0.2.59
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -476,39 +475,16 @@
         border-radius: 4px;
       }
 
-      /* Heatmap */
-      .heatmap-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        margin-top: 12px;
-      }
-      .heatmap-cell {
-        height: 40px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: white;
-        transition: background 0.3s;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      }
-      .heatmap-legend {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-        color: #6b7280;
-        margin-top: 12px;
-        font-weight: 600;
-      }
-      .heatmap-legend-box {
-        width: 16px;
-        height: 16px;
-        border-radius: 4px;
-      }
+      /* Pulse Chart (Timeline Inspector) */
+      .pulse-chart-card { background: white; border-radius: 12px; box-shadow: var(--shadow); padding: 24px; margin-top: 24px; }
+      .pulse-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+      .pulse-title { font-size: 1.1rem; font-weight: 700; color: #374151; display: flex; align-items: center; gap: 10px; }
+      .zoom-controls { display: flex; align-items: center; gap: 8px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
+      .zoom-btn { background: white; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 12px; font-size: 0.9rem; cursor: pointer; color: #374151; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+      .zoom-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+      .zoom-btn:active { background: #f3f4f6; transform: translateY(1px); }
+      .zoom-btn.primary { background: var(--accent-color); color: white; border-color: #059669; }
+      .pulse-range-label { font-size: 0.9rem; color: #6b7280; font-weight: 600; background: #f9fafb; padding: 6px 12px; border-radius: 6px; }
 
       /* Modals */
       .modal-overlay {
@@ -734,18 +710,13 @@
           padding: 12px 0;
         }
 
-        /* Heatmap Mobile */
-        .heatmap-container {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .heatmap-cell {
-          height: 44px;
-          font-size: 1rem;
-        }
-        .hoh-badge {
-          font-size: 0.9rem;
-          padding: 4px 8px;
-        }
+        /* Timeline Inspector Mobile */
+        .pulse-header { flex-direction: column; align-items: stretch; }
+        .zoom-controls { justify-content: space-between; order: 2; }
+        .pulse-title { order: 1; margin-bottom: 8px; }
+        .zoom-btn { padding: 8px 12px; font-size: 0.8rem; }
+        .pulse-range-label { order: 3; text-align: center; }
+        .hoh-badge { font-size: 0.9rem; padding: 4px 8px; }
 
         /* Search View */
         #view-search .card {
@@ -909,10 +880,6 @@
         .hoh-badge {
           font-size: 0.55rem;
           padding: 2px 3px;
-        }
-        .heatmap-cell {
-          height: 28px;
-          font-size: 0.6rem;
         }
 
         /* Modal */
@@ -1392,36 +1359,43 @@
               </div>
             </div>
 
-            <!-- Heatmap Section -->
-            <div class="card" style="margin-top: 16px">
-              <h3 style="margin-top: 0; font-size: 0.75rem; color: #6b7280">
-                🗺️ 混雑予報（10分刻み）
-              </h3>
-              <div id="heatmap-container" class="heatmap-container"></div>
-              <div class="heatmap-legend">
-                <div
-                  class="heatmap-legend-box"
-                  style="background: #dbeafe"
-                ></div>
-                暇
-                <div
-                  class="heatmap-legend-box"
-                  style="background: #fbbf24"
-                ></div>
-                普通
-                <div
-                  class="heatmap-legend-box"
-                  style="background: #f97316"
-                ></div>
-                忙
-                <div
-                  class="heatmap-legend-box"
-                  style="background: #ef4444"
-                ></div>
-                激混み
+            <!-- New: Timeline Inspector (Pulse Chart) -->
+            <div class="pulse-chart-card">
+              <div class="pulse-header">
+                <div class="pulse-title">
+                  <span>📡</span> タイムライン・インスペクター (1分単位)
+                </div>
+                <div class="zoom-controls">
+                  <button class="zoom-btn" onclick="moveTimeline(-1)">◀</button>
+                  <button class="zoom-btn" onclick="zoomTimeline(0.5)">
+                    <span>➕</span> 拡大
+                  </button>
+                  <button class="zoom-btn" onclick="zoomTimeline(2)">
+                    <span>➖</span> 縮小
+                  </button>
+                  <button class="zoom-btn" onclick="moveTimeline(1)">▶</button>
+                  <button class="zoom-btn" onclick="resetTimeline()">
+                    リセット
+                  </button>
+                </div>
+                <div id="pulse-range-label" class="pulse-range-label">
+                  8:00 - 18:00
+                </div>
               </div>
+              <div style="height: 300px; position: relative">
+                <canvas id="chart-detailed-pulse"></canvas>
+              </div>
+              <p
+                style="
+                  margin-top: 16px;
+                  color: #6b7280;
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                "
+              >
+                ※拡大ボタンで注文の「波」をズームして分析できます。左右ボタンで時間を移動します。
+              </p>
             </div>
-          </div>
 
           <!-- 4. Search View -->
           <div id="view-search" class="view-section">
@@ -1802,6 +1776,9 @@
       let hourlyChart = null;
       let productChart = null;
       let cumulativeChart = null;
+      let pulseChart = null;
+      let pulseChartRange = { start: 480, end: 1080 }; // 8:00 - 18:00 (1分単位: 60 * 8 - 60 * 18)
+      let pulseDataCache = null;
 
       // --- Navigation ---
       window.switchView = (viewName) => {
@@ -2252,8 +2229,8 @@
         let totalItems = 0;
         let salesByHour = Array(24).fill(0);
         let countsByHour = Array(24).fill(0);
-        let salesBy10min = Array(144).fill(0); // 24h * 6 slots
-        let countsBy10min = Array(144).fill(0);
+        let salesByMin = Array(1440).fill(0); // 24h * 60m
+        let countsByMin = Array(1440).fill(0);
         let productSales = {};
         let productCounts = {};
         let recentProducts = {};
@@ -2302,10 +2279,10 @@
             salesByHour[h] += orderTotal;
             countsByHour[h] += 1;
 
-            // 10-min slot
-            const slot = h * 6 + Math.floor(m / 10);
-            salesBy10min[slot] += orderTotal;
-            countsBy10min[slot] += 1;
+            // 1-min slot
+            const slot = h * 60 + m;
+            salesByMin[slot] += orderTotal;
+            countsByMin[slot] += 1;
 
             // Recent 30min products
             if (d >= thirtyMinAgo) {
@@ -2396,32 +2373,9 @@
           comboEl.innerHTML = '<li style="color:#9ca3af;">データ不足</li>';
         }
 
-        // --- Heatmap (10-min intervals) ---
-        const heatmapEl = document.getElementById("heatmap-container");
-        // Show 8:00~18:00 range (slot 48-108)
-        const startSlot = 48; // 8:00
-        const endSlot = 108; // 18:00
-        const maxCount = Math.max(
-          ...countsBy10min.slice(startSlot, endSlot),
-          1,
-        );
-        let heatmapHtml = "";
-        for (let s = startSlot; s < endSlot; s++) {
-          const h = Math.floor(s / 6);
-          const m = (s % 6) * 10;
-          const label = `${h}:${String(m).padStart(2, "0")}`;
-          const cnt = countsBy10min[s];
-          const intensity = cnt / maxCount;
-          let bg;
-          if (cnt === 0) bg = "#f3f4f6";
-          else if (intensity < 0.25) bg = "#dbeafe";
-          else if (intensity < 0.5) bg = "#fbbf24";
-          else if (intensity < 0.75) bg = "#f97316";
-          else bg = "#ef4444";
-          const textColor = cnt === 0 || intensity < 0.25 ? "#6b7280" : "#fff";
-          heatmapHtml += `<div class="heatmap-cell" style="background:${bg};color:${textColor};" title="${label} - ${cnt}件">${label}</div>`;
-        }
-        heatmapEl.innerHTML = heatmapHtml;
+        // --- Pulse Chart (Timeline Inspector) ---
+        pulseDataCache = countsByMin;
+        renderPulseChart();
 
         // --- Charts ---
         if (window.hourlyChart) window.hourlyChart.destroy();
@@ -2749,6 +2703,125 @@
         });
 
       // Global Assign (Modules scope)
+      function renderPulseChart() {
+        if (!pulseDataCache) return;
+        const ctxP = document
+          .getElementById("chart-detailed-pulse")
+          .getContext("2d");
+        const labels = Array.from({ length: 1440 }, (_, i) => {
+          const h = Math.floor(i / 60);
+          const m = i % 60;
+          return `${h}:${String(m).padStart(2, "0")}`;
+        });
+
+        if (pulseChart) pulseChart.destroy();
+        pulseChart = new Chart(ctxP, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "注文数",
+                data: pulseDataCache,
+                borderColor: "#10b981",
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: (context) =>
+                  pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0,
+                pointBackgroundColor: "#10b981",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                min: pulseChartRange.start,
+                max: pulseChartRange.end,
+                grid: { display: false },
+                ticks: {
+                  maxRotation: 0,
+                  autoSkip: true,
+                  callback: function (value, index, ticks) {
+                    const label = labels[index];
+                    if (!label) return "";
+                    const range = pulseChartRange.end - pulseChartRange.start;
+                    if (range > 600) return label.endsWith(":00") ? label : "";
+                    if (range > 120)
+                      return label.endsWith(":00") || label.endsWith(":30")
+                        ? label
+                        : "";
+                    return label.endsWith("0") ? label : ""; // Show every 10 mins if zoomed in
+                  },
+                },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1, precision: 0 },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: "rgba(17, 24, 39, 0.9)",
+                titleFont: { size: 14 },
+                bodyFont: { size: 14, weight: "bold" },
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                  title: (items) => `⏰ ${items[0].label}`,
+                  label: (item) => `注文数: ${item.formattedValue} 件`,
+                },
+              },
+            },
+          },
+        });
+
+        // Update Range Label
+        const labelEl = document.getElementById("pulse-range-label");
+        if (labelEl) {
+          labelEl.innerText = `${labels[pulseChartRange.start]} - ${labels[pulseChartRange.end]}`;
+        }
+      }
+
+      window.zoomTimeline = (factor) => {
+        const currentRange = pulseChartRange.end - pulseChartRange.start;
+        const newRange = Math.max(10, Math.round(currentRange * factor)); // min 10 mins (10 slots)
+        const center = (pulseChartRange.start + pulseChartRange.end) / 2;
+
+        pulseChartRange.start = Math.max(0, Math.round(center - newRange / 2));
+        pulseChartRange.end = Math.min(1439, pulseChartRange.start + newRange);
+
+        // Correct start if end is hit
+        if (pulseChartRange.end === 1439) {
+          pulseChartRange.start = Math.max(0, 1439 - newRange);
+        }
+
+        renderPulseChart();
+      };
+
+      window.moveTimeline = (dir) => {
+        const range = pulseChartRange.end - pulseChartRange.start;
+        const step = Math.max(1, Math.round(range * 0.2)) * dir;
+
+        const newStart = Math.max(
+          0,
+          Math.min(1439 - range, pulseChartRange.start + step),
+        );
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newStart + range;
+
+        renderPulseChart();
+      };
+
+      window.resetTimeline = () => {
+        pulseChartRange = { start: 480, end: 1080 }; // 8am - 6pm
+        renderPulseChart();
+      };
+
       window.switchView = switchView;
     </script>
   </body>
