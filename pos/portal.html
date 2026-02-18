@@ -476,15 +476,73 @@
       }
 
       /* Pulse Chart (Timeline Inspector) */
-      .pulse-chart-card { background: white; border-radius: 12px; box-shadow: var(--shadow); padding: 24px; margin-top: 24px; }
-      .pulse-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-      .pulse-title { font-size: 1.1rem; font-weight: 700; color: #374151; display: flex; align-items: center; gap: 10px; }
-      .zoom-controls { display: flex; align-items: center; gap: 8px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
-      .zoom-btn { background: white; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 12px; font-size: 0.9rem; cursor: pointer; color: #374151; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight: 600; display: flex; align-items: center; gap: 4px; }
-      .zoom-btn:hover { background: #f9fafb; border-color: #9ca3af; }
-      .zoom-btn:active { background: #f3f4f6; transform: translateY(1px); }
-      .zoom-btn.primary { background: var(--accent-color); color: white; border-color: #059669; }
-      .pulse-range-label { font-size: 0.9rem; color: #6b7280; font-weight: 600; background: #f9fafb; padding: 6px 12px; border-radius: 6px; }
+      .pulse-chart-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+        margin-top: 24px;
+      }
+      .pulse-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .pulse-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f3f4f6;
+        padding: 4px;
+        border-radius: 8px;
+      }
+      .zoom-btn {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        color: #374151;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .zoom-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+      }
+      .zoom-btn:active {
+        background: #f3f4f6;
+        transform: translateY(1px);
+      }
+      .zoom-btn.primary {
+        background: var(--accent-color);
+        color: white;
+        border-color: #059669;
+      }
+      .pulse-range-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 600;
+        background: #f9fafb;
+        padding: 6px 12px;
+        border-radius: 6px;
+      }
 
       /* Modals */
       .modal-overlay {
@@ -711,12 +769,30 @@
         }
 
         /* Timeline Inspector Mobile */
-        .pulse-header { flex-direction: column; align-items: stretch; }
-        .zoom-controls { justify-content: space-between; order: 2; }
-        .pulse-title { order: 1; margin-bottom: 8px; }
-        .zoom-btn { padding: 8px 12px; font-size: 0.8rem; }
-        .pulse-range-label { order: 3; text-align: center; }
-        .hoh-badge { font-size: 0.9rem; padding: 4px 8px; }
+        .pulse-header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .zoom-controls {
+          justify-content: space-between;
+          order: 2;
+        }
+        .pulse-title {
+          order: 1;
+          margin-bottom: 8px;
+        }
+        .zoom-btn {
+          padding: 8px 12px;
+          font-size: 0.8rem;
+        }
+        .pulse-range-label {
+          order: 3;
+          text-align: center;
+        }
+        .hoh-badge {
+          font-size: 0.9rem;
+          padding: 4px 8px;
+        }
 
         /* Search View */
         #view-search .card {
@@ -1396,6 +1472,7 @@
                 ※拡大ボタンで注文の「波」をズームして分析できます。左右ボタンで時間を移動します。
               </p>
             </div>
+          </div>
 
           <!-- 4. Search View -->
           <div id="view-search" class="view-section">
@@ -1923,6 +2000,8 @@
         }
       };
 
+      let prevDayData = { total: 0, count: 0 };
+
       async function startApp() {
         document.getElementById("auth-overlay").style.display = "none";
         document.getElementById("app").style.display = "flex";
@@ -2005,6 +2084,52 @@
           renderSalesDashboard();
           renderSearchTable();
         });
+
+        // Fetch Previous Day stats for DoD
+        const prevDate = new Date(selectedDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        fetchPreviousDayStats(prevDate);
+      }
+
+      async function fetchPreviousDayStats(date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        const q = query(
+          collection(db, "orders"),
+          where("storeId", "==", currentStoreId),
+          where("createdAt", ">=", Timestamp.fromDate(start)),
+          where("createdAt", "<=", Timestamp.fromDate(end)),
+        );
+
+        try {
+          const snap = await getDocs(q);
+          let total = 0;
+          let count = 0;
+          snap.forEach((doc) => {
+            const o = doc.data();
+            if (
+              o.status !== "cancelled" &&
+              o.status !== "canceled" &&
+              o.status !== "abandoned"
+            ) {
+              count++;
+              if (o.items) {
+                o.items.forEach((i) => {
+                  total += i.price * i.quantity;
+                });
+              }
+            }
+          });
+          prevDayData = { total, count };
+          renderSalesDashboard();
+        } catch (e) {
+          console.error("Failed to fetch prev day stats:", e);
+          prevDayData = { total: 0, count: 0 };
+          renderSalesDashboard();
+        }
       }
 
       // --- Items Logic ---
@@ -2238,13 +2363,13 @@
 
         const now = new Date();
         const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
-        // For HoH: current hour window vs previous hour window
+
+        // HoH logic removed in favor of DoD (Daily)
+        // hohNowStart/hohPrevStart logic is kept for potential future use or just ignored
         const hohNowStart = new Date(now.getTime() - 60 * 60 * 1000);
         const hohPrevStart = new Date(now.getTime() - 120 * 60 * 1000);
         let hohCurrentSales = 0,
-          hohPrevSales = 0;
-        let hohCurrentCount = 0,
-          hohPrevCount = 0;
+          hohCurrentCount = 0; // Not used for now, but keeping local var scope clean
 
         const validOrders = ordersData.filter(
           (o) =>
@@ -2293,13 +2418,10 @@
                 });
             }
 
-            // HoH calculation
+            // HoH logic (currently inactive but placeholder left)
             if (d >= hohNowStart && d < now) {
               hohCurrentSales += orderTotal;
               hohCurrentCount += 1;
-            } else if (d >= hohPrevStart && d < hohNowStart) {
-              hohPrevSales += orderTotal;
-              hohPrevCount += 1;
             }
           }
         });
@@ -2313,15 +2435,15 @@
         }
 
         // --- Update Summary Cards ---
-        document.getElementById("sales-total").innerHTML =
-          "¥" +
-          total.toLocaleString() +
-          " " +
-          renderHoHBadge(hohCurrentSales, hohPrevSales, "hoh-sales");
-        document.getElementById("sales-count").innerHTML =
-          count +
-          " " +
-          renderHoHBadge(hohCurrentCount, hohPrevCount, "hoh-count");
+        const salesTotalEl = document.getElementById("sales-total");
+        if (salesTotalEl) {
+          salesTotalEl.innerHTML = `¥${total.toLocaleString()} ${renderHoHBadge(total, prevDayData.total)}`;
+        }
+
+        const salesCountEl = document.getElementById("sales-count");
+        if (salesCountEl) {
+          salesCountEl.innerHTML = `${count} ${renderHoHBadge(count, prevDayData.count)}`;
+        }
         document.getElementById("sales-avg").innerText =
           "¥" + (count ? Math.round(total / count) : 0).toLocaleString();
         document.getElementById("sales-ipt").innerText =
@@ -2789,7 +2911,6 @@
         }
       }
 
-      
       // --- Timeline Interaction Logic ---
       let isInteractionAttached = false;
       let isDragging = false;
@@ -2980,8 +3101,6 @@
         pulseChartRange = { start: 480, end: 1080 }; // 8am - 6pm
         renderPulseChart();
       };
-
-      window.switchView = switchView;
     </script>
   </body>
 </html>
