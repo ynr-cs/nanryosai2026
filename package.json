@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "firebase": "^12.7.0"
+    "firebase": "^12.7.0",
+    "express": "^4.21.2"
+  },
+  "scripts": {
+    "admin": "node admin-server.js"
   }
 }

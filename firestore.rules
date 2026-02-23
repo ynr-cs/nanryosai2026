@@ -89,6 +89,12 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (request.auth.token.role == 'store_admin' || request.auth.token.email == 'ynrcs1000@gmail.com');
       allow write: if false; 
     }
+
+    // 6. Metadata (同期ステータス等の管理用)
+    match /_metadata/{document=**} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
     
     // デフォルト: 全て拒否
     match /{document=**} {
