@@ -183,6 +183,61 @@ export const Phase1History: React.FC = () => {
       {/* 2026 Sequence */}
       <Sequence from={scene2Start}>
         <AbsoluteFill style={{ backgroundColor: "black" }}>
+          {/* Image Relay Animation (20s - 26s) -> 3s after scene2Start */}
+          {/* Render this before Text to keep images in background while opaque */}
+          <Sequence from={3 * fps} durationInFrames={6 * fps}>
+            <AbsoluteFill>
+              {[
+                { src: "mock_portal.png" },
+                { src: "mock_monitor.png" },
+                { src: "mock_training.png" },
+                { src: "mock_status.png" },
+                { src: "mock_presenter.png" },
+              ].map((img, i) => {
+                const displayFrames = 24; // 0.8s per image
+                const start = i * displayFrames;
+                const end = (i + 1) * displayFrames;
+                const relativeFrame = frame - scene2Start - 3 * fps;
+
+                // Sharp cut logic
+                const isVisible = relativeFrame >= start && relativeFrame < end;
+
+                // Zoom effect: scale from 1.0 to 1.1 during its own duration
+                const scale = interpolate(
+                  relativeFrame,
+                  [start, end],
+                  [1, 1.1],
+                  { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+                );
+
+                return (
+                  <Img
+                    key={i}
+                    src={staticFile(img.src)}
+                    style={{
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      opacity: isVisible ? 1 : 0, // Fully opaque when visible
+                      transform: `scale(${scale})`,
+                      transition: "none",
+                    }}
+                  />
+                );
+              })}
+            </AbsoluteFill>
+          </Sequence>
+
+          {/* Dark overlay on top of images, behind text */}
+          <Sequence from={3 * fps} durationInFrames={6 * fps}>
+            <AbsoluteFill
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+              }}
+            />
+          </Sequence>
+
           {/* Logo & Text (17s - 38s) */}
           <AbsoluteFill
             style={{ justifyContent: "center", alignItems: "center" }}
@@ -210,6 +265,8 @@ export const Phase1History: React.FC = () => {
                     [0, 20, 12 * fps, 13 * fps],
                     [0, 1, 1, 0],
                   ),
+                  zIndex: 10,
+                  textShadow: "0 10px 30px rgba(0,0,0,0.5)",
                 }}
               >
                 2026
@@ -227,6 +284,8 @@ export const Phase1History: React.FC = () => {
                     [15, 35, 12 * fps, 13 * fps],
                     [0, 1, 1, 0],
                   ),
+                  zIndex: 10,
+                  textShadow: "0 5px 15px rgba(0,0,0,0.5)",
                 }}
               >
                 モバイルオーダー
@@ -250,6 +309,7 @@ export const Phase1History: React.FC = () => {
                     [0, 5, 20, 30],
                     [0, 1, 1, 0],
                   ),
+                  zIndex: 10,
                 }}
               >
                 {Array.from({ length: 15 }).map((_, i) => (
