@@ -30,24 +30,24 @@
       main {
         position: relative;
         overflow-x: hidden;
-        min-height: calc(
-          100vh - var(--header-height) - var(--bottom-nav-height) -
-            var(--safe-area-top) - var(--safe-area-bottom)
-        );
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
       }
 
       .error-container {
         width: 100%;
+        max-width: 480px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 40px 20px;
+        padding: 32px 24px;
         z-index: 1;
+        position: relative;
       }
 
       .error-visual {
@@ -133,27 +133,27 @@
 
       /* Decorative Orbs */
       .error-decoration-orb {
-        position: absolute;
+        position: fixed;
         border-radius: 50%;
         filter: blur(80px);
-        opacity: 0.4;
-        z-index: -1;
+        opacity: 0.35;
+        z-index: 0;
         pointer-events: none;
       }
 
       .orb-404-1 {
-        width: 300px;
-        height: 300px;
+        width: 280px;
+        height: 280px;
         background: linear-gradient(135deg, #6a11cb, #2575fc);
-        top: 10%;
-        left: -10%;
+        top: 15%;
+        left: -8%;
       }
 
       .orb-404-2 {
-        width: 250px;
-        height: 250px;
+        width: 220px;
+        height: 220px;
         background: linear-gradient(135deg, #ff0080, #ff8c00);
-        bottom: 10%;
+        bottom: 20%;
         right: -5%;
       }
 
