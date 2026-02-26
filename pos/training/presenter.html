@@ -243,24 +243,22 @@
       .payment-actions {
         display: flex;
       }
-      .btn-half {
-        width: 50%;
+      .btn-full {
+        width: 100%;
         padding: 16px;
         font-size: 1.1rem;
         font-weight: 900;
         border: none;
         cursor: pointer;
         color: white;
-      }
-      .btn-half:first-child {
         border-bottom-left-radius: 6px;
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      .btn-half:last-child {
         border-bottom-right-radius: 6px;
       }
-      .btn-cash {
+      .btn-done {
         background-color: #2e7d32;
+      }
+      .btn-done:hover {
+        background-color: #1b5e20;
       }
       .btn-qr {
         background-color: #ef6c00;
@@ -429,7 +427,7 @@
           items: [{ name: "テスト商品", quantity: 1, customizations: [] }],
           status: "ready_to_serve",
           isPrepaid: isPrepaid,
-          paymentMethod: isPrepaid ? "pos" : "cash",
+          paymentMethod: isPrepaid ? "online" : "pos",
         };
 
         orders.push(order);
@@ -495,15 +493,14 @@
           // 支払い/受け渡しボタン
           if (data.isPrepaid) {
             footerHtml = `
-                    <button class="btn-action btn-cash" onclick="completeOrder('${orderId}', 'done')">
+                    <button class="btn-action btn-done" onclick="completeOrder('${orderId}', 'done')">
                         受渡完了 (支払済)
                     </button>
                  `;
           } else {
             footerHtml = `
                     <div class="payment-actions">
-                        <button class="btn-half btn-cash" onclick="completeOrder('${orderId}', 'cash')">現金 完了</button>
-                        <button class="btn-half btn-qr" onclick="completeOrder('${orderId}', 'qr')">QR 完了</button>
+                        <button class="btn-full btn-qr" onclick="completeOrder('${orderId}', 'qr')">QR決済 完了（画面確認）</button>
                     </div>
                  `;
           }

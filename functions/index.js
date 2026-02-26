@@ -763,7 +763,7 @@ exports.createPOSOrder = functions
           items: orderItems,
           totalPrice: totalPrice,
           status: "unpaid_at_pos", // POSからの注文は未払い開始
-          paymentMethod: "cash", // 仮でcash。実運用に合わせて
+          paymentMethod: "pos", // 現金を廃止し、pos（QR手動確認）とする
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           // userId は POS操作者（店員）のIDになるが、注文者としては記録しない、あるいは店員IDとして記録
           createdBy: context.auth.uid,

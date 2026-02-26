@@ -542,6 +542,9 @@
         }
       }
 
+      /* =============================================
+         Utility Classes
+         ============================================= */
       .hidden {
         display: none !important;
       }
@@ -823,8 +826,6 @@
     </div>
 
     <!-- View 1: IDLE (Monitor Mode) -->
-    <!-- View 1: IDLE (Monitor Mode) -->
-    <!-- View 1: IDLE (Monitor Mode) -->
     <div id="view-idle" class="view">
       <!-- Employee Menu Trigger -->
       <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
@@ -968,7 +969,7 @@
           d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.25 17.292l-4.5-4.5 1.762-1.766L10.75 13.76l7.5-7.5 1.766 1.766-9.266 9.266z"
         />
       </svg>
-      <div class="success-text">ありがとうございます</div>
+      <div class="success-text">Thank you</div>
       <p style="font-size: 1.5rem; color: var(--text-muted)">
         商品をお受け取りください
       </p>
@@ -1038,9 +1039,6 @@
           this.timerId = null;
           this.unsubOrderListener = null;
           this.currentZoom = 1.0;
-
-          // ... (existing code)
-
           this.views = {
             auth: document.getElementById("view-auth"),
             idle: document.getElementById("view-idle"),
@@ -1057,8 +1055,11 @@
         }
 
         init() {
-          // ... (existing init code)
+          this.setupAuthListeners();
+          this.setupUIListeners();
+        }
 
+        setupAuthListeners() {
           document
             .getElementById("btn-google-login")
             .addEventListener("click", () => {
@@ -1074,7 +1075,6 @@
             }
             if (user) {
               const uName = user.email.split("@")[0];
-              // document.getElementById("display-user") was removed in favor of menu-user
               const menuUser = document.getElementById("menu-user");
               if (menuUser) menuUser.innerText = uName;
               this.checkStoreLogin();
@@ -1085,7 +1085,9 @@
                 "none";
             }
           });
+        }
 
+        setupUIListeners() {
           // モニター画面全体のどこをタップしても入力画面へ (メニューなどを除く)
           this.views.idle.addEventListener("click", (e) => {
             // メニューやボタンクリック時は遷移しない
@@ -1190,29 +1192,25 @@
 
         startApp() {
           if (this.unsubReady || this.unsubPreparing) return;
+          this.subscribeReadyOrders();
+          this.subscribePreparingOrders();
+        }
 
-          // 1. Ready (Call) Orders
+        subscribeReadyOrders() {
           const qReady = query(
             collection(this.db, "orders"),
             where("storeId", "==", STORE_ID),
-            where("status", "==", "ready_for_pickup"),
-            // Firestore doesn't support multiple properties orderBy easily with where clause without index
-            // But we can sort on client side.
+            where("status", "==", "ready_for_pickup")
           );
 
           this.unsubReady = onSnapshot(qReady, (snapshot) => {
             const container = document.getElementById("grid-ready");
             if (container) {
-              // Get data and sort by createdAt asc (unpaid/pending -> cooking -> ready)
-              // Actually user said: "order number... pushed down".
-              // If "pushed down", it means NEWEST at BOTTOM?
-              // "1, 2, 3..." -> 1 is top, 3 is bottom.
-              // So createdAt Ascending.
               const docs = [];
               snapshot.forEach((d) => docs.push(d.data()));
+              // 新しいもの（createdAtが大きい）が下に来るように昇順ソート
               docs.sort(
-                (a, b) =>
-                  (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0),
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
               );
 
               container.innerHTML = "";
@@ -1224,8 +1222,9 @@
               });
             }
           });
+        }
 
-          // 2. Preparing Orders
+        subscribePreparingOrders() {
           const qPreparing = query(
             collection(this.db, "orders"),
             where("storeId", "==", STORE_ID),
@@ -1235,7 +1234,7 @@
               "cooking",
               "pending",
               "ready_to_serve",
-            ]),
+            ])
           );
 
           this.unsubPreparing = onSnapshot(qPreparing, (snapshot) => {
@@ -1243,10 +1242,8 @@
             if (container) {
               const docs = [];
               snapshot.forEach((d) => docs.push(d.data()));
-              // Sort by createdAt ASC
               docs.sort(
-                (a, b) =>
-                  (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0),
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
               );
 
               container.innerHTML = "";
@@ -1360,57 +1357,7 @@
               // Subscribe to this specific order
               this.unsubOrderListener = onSnapshot(
                 doc(this.db, "orders", orderId),
-                (docSnapshot) => {
-                  if (!docSnapshot.exists()) {
-                    // Document deleted?
-                    msg.innerText = "注文が見つかりません";
-                    this.transitionTo("input");
-                    return;
-                  }
-
-                  const data = docSnapshot.data();
-                  this.currentOrder = { id: docSnapshot.id, ...data };
-
-                  // Check status for auto-complete
-                  if (
-                    data.status === "completed_at_store" ||
-                    data.status === "completed_online"
-                  ) {
-                    // Presenter or user completed it
-
-                    // If we are currently running the payment demo, DO NOT transition yet.
-                    // The demo function will handle the transition after animation.
-                    if (this.processingPayment) {
-                      console.log(
-                        "Suppressing auto-transition due to active payment demo",
-                      );
-                      return;
-                    }
-
-                    // Only transition if we are currently in confirm view or trying to get there
-                    if (
-                      this.views.confirm.classList.contains("active") ||
-                      this.views.input.classList.contains("active")
-                    ) {
-                      this.transitionTo("complete");
-                    }
-                  } else if (data.status === "ready_for_pickup") {
-                    // If we are in input view, go to confirm
-                    if (this.views.input.classList.contains("active")) {
-                      this.transitionTo("confirm");
-                    } else if (
-                      this.views.confirm.classList.contains("active")
-                    ) {
-                      // Re-render in case items changed
-                      this.renderConfirmView();
-                    }
-                  } else {
-                    // Other status? e.g. cancelled
-                    msg.innerText =
-                      "ステータスが変更されました: " + data.status;
-                    // Maybe go back to idle?
-                  }
-                },
+                (docSnapshot) => this.handleOrderUpdate(docSnapshot)
               );
             } else {
               msg.innerText = "番号が見つかりません";
@@ -1420,6 +1367,39 @@
           } catch (e) {
             console.error(e);
             msg.innerText = "通信エラー";
+          }
+        }
+
+        handleOrderUpdate(docSnapshot) {
+          const msg = document.getElementById("input-msg");
+          if (!docSnapshot.exists()) {
+            msg.innerText = "注文が見つかりません";
+            this.transitionTo("input");
+            return;
+          }
+
+          const data = docSnapshot.data();
+          this.currentOrder = { id: docSnapshot.id, ...data };
+
+          if (data.status === "completed_at_store" || data.status === "completed_online") {
+            if (this.processingPayment) {
+              console.log("Suppressing auto-transition due to active payment demo");
+              return;
+            }
+            if (
+              this.views.confirm.classList.contains("active") ||
+              this.views.input.classList.contains("active")
+            ) {
+              this.transitionTo("complete");
+            }
+          } else if (data.status === "ready_for_pickup") {
+            if (this.views.input.classList.contains("active")) {
+              this.transitionTo("confirm");
+            } else if (this.views.confirm.classList.contains("active")) {
+              this.renderConfirmView();
+            }
+          } else {
+            msg.innerText = "ステータスが変更されました: " + data.status;
           }
         }
 
@@ -1449,8 +1429,8 @@
           const newBtn = btn.cloneNode(true);
           btn.parentNode.replaceChild(newBtn, btn);
 
-          // POS注文（現金）以外はすべて auPay デモ対象とする
-          if (this.currentOrder.paymentMethod !== "cash") {
+          // POS注文以外はすべてオンライン決済デモ対象とする
+          if (this.currentOrder.paymentMethod !== "pos") {
             newBtn.style.display = "block";
             // 文言を変更: 設計図に基づき「この内容で決済を確定する」へ
             newBtn.innerText = "この内容で決済を確定する";
@@ -1459,8 +1439,8 @@
           } else {
             newBtn.style.display = "none";
             msg.classList.remove("hidden");
-            // 文言を変更: 金額表示と物理QRコード (auPay) への案内。現金は削除。
-            msg.innerHTML = `お会計は <strong>¥${totalPrice.toLocaleString()}</strong> です。<br>右の auPay QRコードでお支払いください。`;
+            // 現金案内を削除し、手動のQRコード読み取りと提示を促す
+            msg.innerHTML = `お会計は <strong>¥${totalPrice.toLocaleString()}</strong> です。<br>右の auPay QRコードを読み取って決済し、<strong style="color: #c2185b;">提供口のスタッフに完了画面を提示</strong>してください。`;
           }
         }
 

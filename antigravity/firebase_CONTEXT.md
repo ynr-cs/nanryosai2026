@@ -35,6 +35,7 @@
       | - | 座標 (mapX/mapY) | **除外** (2026地図方式未定のため保留) |
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
+    - `paymentMethod`: `"online"` (アプリ決済), `"pos"` (POSでのQR手動確認). `"cash"` は廃止済み。
   - `counters/receipt`: レシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
 - **セキュリティルール**:
@@ -56,6 +57,7 @@
   - `createOnlineOrder` (OnCall): 注文作成トランザクション。在庫チェック、レシート番号発番を行う。
   - `getNextReceiptNumber` (OnCall): POS用の安全なレシート番号発番。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を送信。
+  - `mockAuPayPayment` (OnCall): auPay決済のデモ用モック処理。注文ステータスを `authorized` へ変更する。
 
 ## 6. クラウドストレージ (Cloud Storage)
 

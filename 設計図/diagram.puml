@@ -29,7 +29,6 @@ end box
 
 box "外部連携サービス" #LightCoral
     participant "au PAY API" as AuPayAPI
-    participant "メール送信サービス (SendGrid)" as MailService
 end box
 
 autonumber
@@ -175,8 +174,6 @@ group セルフオーダー - 目的: 注文で並ぶ時間削減
         alt 与信確保成功の場合
             CloudFunctions -> Firestore: 該当注文ドキュメントのstatusを'authorized'に更新、authorized_atを記録
             Firestore --> CloudFunctions: status更新完了
-            CloudFunctions -> MailService: 別のCloud Functionsがトリガーされ「注文受付完了」メール自動送信
-            MailService --> CloudFunctions: メール送信完了
             CloudFunctions -> StatusApp: 注文完了通知 (status.htmlへ遷移)
             StatusApp --> Visitor: 「調理を開始しました」と表示
         else 与信確保失敗の場合
@@ -226,7 +223,6 @@ group 調理から提供までの共通フロー
             Firestore -> MonitorDisplay: 受付番号を「お呼び出し中」として強調表示\n合成音声アナウンス「XXX番のお客様...」を再生
             alt オンライン注文の場合
                 Firestore -> StatusApp: 「商品の準備ができました。15分以内に...」とリアルタイム更新
-                CloudFunctions -> MailService: 「【南陵祭】ご注文の準備ができました」メールを自動送信
                 opt Web Push通知を許可済みの場合
                     CloudFunctions -> FCM: 「ご注文の準備ができました！」プッシュ通知を送信
                 end
@@ -252,8 +248,8 @@ group 調理から提供までの共通フロー
                 PresenterStaff -> Visitor: 画面を確認し、商品を渡す
             else 決済失敗
                 AuPayAPI --> CloudFunctions: 決済失敗レスポンス
-                CloudFunctions -> MonitorDisplay: 「決済に失敗しました。右のQRコードか現金でお支払いください。」と表示
-                note over Visitor, PresenterStaff: 来場者が代替決済(QR/現金)を実行
+                CloudFunctions -> MonitorDisplay: 「決済に失敗しました。右のQRコードでお支払いください。」と表示
+                note over Visitor, PresenterStaff: 来場者が代替決済(個別QR手動決済)を実行
                 PresenterStaff -> PresenterDisplay: **「緊急完了(手動決済)」ボタン**を押す
                 PresenterDisplay -> CloudFunctions: (トリガー)
                 CloudFunctions -> Firestore: 注文ステータスを手動で `completed_at_store` に更新
@@ -262,20 +258,16 @@ group 調理から提供までの共通フロー
 
         else 有人POS注文の場合
             Visitor -> MonitorDisplay: 自分の受付番号をタップ
-            MonitorDisplay -> Visitor: 「お会計は〇〇円です。右のQRコード、または現金でお支払いください。」と表示
+            MonitorDisplay -> Visitor: 「お会計は〇〇円です。右のQRコードでお支払いください。」と表示
             
-            alt QRコードで支払う場合
-                Visitor -> "店舗設置のQR": QRをスキャンし、金額入力・決済実行
-                Visitor -> PresenterStaff: スマホの完了画面を提示
-                PresenterStaff -> PresenterDisplay: **「QR支払い完了」ボタン**を押す
-            else 現金で支払う場合
-                Visitor -> PresenterStaff: 現金を渡す
-                PresenterStaff -> PresenterDisplay: **「現金支払い完了」ボタン**を押す
-            end
-
-            PresenterDisplay -> CloudFunctions: (いずれかのボタン押下をトリガー)
+            Visitor -> "店舗設置のQR": QRをスキャンし、金額入力・決済実行
+            Visitor -> PresenterStaff: スマホの決済完了画面を提示
+            
+            PresenterStaff -> PresenterDisplay: 完了画面を確認し、**「QR決済 完了」ボタン**を押す
+            PresenterDisplay -> CloudFunctions: (トリガー)
             CloudFunctions -> Firestore: 注文ステータスを `completed_at_store` に更新
             PresenterStaff -> Visitor: 商品を渡す
+            
             MonitorDisplay -> MonitorDisplay: 注文番号一覧画面に自動で戻る
         end
     end
@@ -300,11 +292,7 @@ group ペナルティ自動実行フロー
                 Scheduler -> AuPayAPI: **「売上確定(Capture)」リクエストを強制実行**
                 AuPayAPI --> Scheduler: 決済確定レスポンス
                 Scheduler -> Firestore: 注文ステータスを `abandoned_and_paid` (放棄・決済済) に更新
-                Scheduler -> Firestore: 注文のユーザーIDを `banned_users` コレクションに記録
-            end
-
-            group ステップ3: 事後処理
-                Scheduler -> MailService: BAN最終通告メールを自動送信\n(「規約違反により商品を廃棄、決済を確定し、アカウントを永久BANしました」)
+            Scheduler -> Firestore: 注文のユーザーIDを `banned_users` コレクションに記録
             end
         else 対象注文なし
             Scheduler -> Scheduler: 静かに終了し、次の起動を待つ
