@@ -484,12 +484,19 @@
           id="target-store-id-display"
           style="font-weight: bold; color: #555"
         ></p>
-        <input
-          type="password"
-          id="store-password-input"
-          class="store-login-input"
-          placeholder="パスワード"
-        />
+        <div class="store-password-wrapper" style="position: relative; margin: 20px 0;">
+          <input
+            type="password"
+            id="store-password-input"
+            class="store-login-input"
+            placeholder="パスワード"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            style="margin: 0; padding-right: 40px;"
+          />
+          <button type="button" id="toggle-store-pass" class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0; color: #666;"
+            >👁️</button>
+        </div>
         <button class="store-login-btn" id="store-login-btn">認証する</button>
         <p id="store-login-error" style="color: red; margin-top: 15px"></p>
       </div>
@@ -976,6 +983,25 @@
             .forEach((el) => el.classList.remove("show"));
         }
       };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('store-password-input').addEventListener('input', function(e) {
+          this.value = this.value.replace(/[０-９A-Za-z]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+          }).replace(/[^0-9A-Za-z]/g, '');
+        });
+
+        document.getElementById('toggle-store-pass').addEventListener('click', function() {
+          const input = document.getElementById('store-password-input');
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = '🙈';
+          } else {
+            input.type = 'password';
+            this.textContent = '👁️';
+          }
+        });
+      });
     </script>
   </body>
 </html>
