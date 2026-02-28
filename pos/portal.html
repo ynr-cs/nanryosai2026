@@ -1947,14 +1947,7 @@
         </div>
         <div class="user-info">
           <span id="user-email"></span>
-          <button
-            class="logout-btn"
-            id="run-bulk-btn"
-            style="background: #ef4444; border-color: #ef4444"
-            onclick="runBulk()"
-          >
-            📊一括作成
-          </button>
+
           <button class="logout-btn" onclick="logout()">ログアウト</button>
         </div>
       </div>
@@ -2696,37 +2689,6 @@
       };
 
       const app = initializeApp(firebaseConfig);
-
-      // DEBUG: TMP
-      window.firebaseFunctions = getFunctions(app, "asia-northeast1");
-      window.runBulk = async () => {
-        const btn = document.getElementById("run-bulk-btn");
-        if (btn) {
-          btn.innerText = "実行中（約1〜2分かかります）...";
-          btn.disabled = true;
-        }
-        try {
-          const fn = httpsCallable(
-            window.firebaseFunctions,
-            "bulkCreateSpreadsheets",
-          );
-          const res = await fn();
-          console.log(res);
-          alert("完了しました！\n" + JSON.stringify(res.data));
-          window.location.reload();
-        } catch (e) {
-          console.error(e);
-          alert(
-            "エラーが発生しました。\n詳細はConsoleを確認してください。\n" +
-              e.message,
-          );
-        } finally {
-          if (btn) {
-            btn.innerText = "一括バッチ実行";
-            btn.disabled = false;
-          }
-        }
-      };
 
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(

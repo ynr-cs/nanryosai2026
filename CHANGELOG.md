@@ -33,6 +33,10 @@
 - **不要ファイルと機密情報の削除**:
   - `sa-key.json`, `test_sa.json`, `test_sa.txt` などのローカルテスト・デバッグで使ったサービスアカウント秘密鍵ファイルを完全に削除。
   - プロジェクト直下の一時ログファイル (`diagnostic_check.txt`、`detailed_log.txt` など) 10点、不要なテスト用スクリプト群を削除し、プロジェクトツリーをクリーンアップ。
+- **不要なCloud Functionsコードの削除**:
+  - スプレッドシート作成の手動運用への切り替えに伴い、`functions/index.js` から不要となった `onStoreCreated` （店舗作成時のスプレッドシート自動生成）および `bulkCreateSpreadsheets` （一括作成API）のコードを削除。
+- **ポータルUIからの不要コード削除**:
+  - `pos/portal.html` 内に残っていた、店舗管理用の一括バッチ実行ボタン（`run-bulk-btn`）と対応するJavaScript関数（`runBulk`）を完全に削除。
 
 ## [0.2.92] Automatic Spreadsheet Integration (Manual Fallback) - 2026-02-28
 
