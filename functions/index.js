@@ -5,9 +5,13 @@
  * Author: Nanryosai 2026 Project Team
  */
 const functions = require("firebase-functions/v1");
-const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const {
+  onDocumentUpdated,
+  onDocumentCreated,
+} = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 const { getMessaging } = require("firebase-admin/messaging");
+const { google } = require("googleapis");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -61,7 +65,7 @@ exports.getNextReceiptNumber = functions
         const counterDoc = await transaction.get(counterRef);
         if (!counterDoc.exists) {
           throw new Error(
-            "counters/receipt ドキュメントが存在しません。Firestoreを確認してください。"
+            "counters/receipt ドキュメントが存在しません。Firestoreを確認してください。",
           );
         }
 
@@ -135,7 +139,7 @@ exports.createOnlineOrder = functions
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "ログインが必要です。"
+        "ログインが必要です。",
       );
     }
 
@@ -147,7 +151,7 @@ exports.createOnlineOrder = functions
     if (!storeId) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "店舗IDが指定されていません。"
+        "店舗IDが指定されていません。",
       );
     }
 
@@ -158,7 +162,7 @@ exports.createOnlineOrder = functions
       if (cartSnapshot.empty) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "カートが空です。"
+          "カートが空です。",
         );
       }
 
@@ -185,13 +189,13 @@ exports.createOnlineOrder = functions
       if (cartItems.length === 0) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "有効な商品がありません。"
+          "有効な商品がありません。",
         );
       }
 
       // 商品マスタを一括取得
       const itemRefs = Array.from(productIds).map((id) =>
-        db.collection("items").doc(id)
+        db.collection("items").doc(id),
       );
       const productDocs = await db.getAll(...itemRefs);
       const productMap = new Map();
@@ -216,7 +220,7 @@ exports.createOnlineOrder = functions
         if (!pData.isAvailable) {
           throw new functions.https.HttpsError(
             "failed-precondition",
-            `商品「${pData.name}」は売り切れのため注文できません。`
+            `商品「${pData.name}」は売り切れのため注文できません。`,
           );
         }
 
@@ -237,7 +241,7 @@ exports.createOnlineOrder = functions
       if (orderItems.length === 0) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "注文可能な商品がありません（店舗ID不一致または商品削除）。"
+          "注文可能な商品がありません（店舗ID不一致または商品削除）。",
         );
       }
 
@@ -292,7 +296,7 @@ exports.createOnlineOrder = functions
         if (!determinedNumber) {
           throw new functions.https.HttpsError(
             "resource-exhausted",
-            "受付番号の空きがありません (混雑中)"
+            "受付番号の空きがありません (混雑中)",
           );
         }
 
@@ -300,7 +304,7 @@ exports.createOnlineOrder = functions
         transaction.set(
           counterRef,
           { currentNumber_MOBILE: determinedNumber },
-          { merge: true }
+          { merge: true },
         );
 
         // --- B. 注文作成 ---
@@ -383,14 +387,14 @@ exports.createStoreSecret = functions
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "ログインが必要です。"
+        "ログインが必要です。",
       );
     }
     const email = context.auth.token.email;
     if (email !== "ynrcs1000@gmail.com") {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "この操作を実行する権限がありません。"
+        "この操作を実行する権限がありません。",
       );
     }
 
@@ -402,7 +406,7 @@ exports.createStoreSecret = functions
     if (!storeId || !plainPassword) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "storeId と plainPassword が必要です。"
+        "storeId と plainPassword が必要です。",
       );
     }
 
@@ -426,7 +430,7 @@ exports.createStoreSecret = functions
       console.error("createStoreSecret Error:", error);
       throw new functions.https.HttpsError(
         "internal",
-        "パスワード設定中にエラーが発生しました。"
+        "パスワード設定中にエラーが発生しました。",
       );
     }
   });
@@ -443,14 +447,14 @@ exports.batchUpdateStoreSecrets = functions
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "ログインが必要です。"
+        "ログインが必要です。",
       );
     }
     const email = context.auth.token.email;
     if (email !== "ynrcs1000@gmail.com") {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "この操作を実行する権限がありません。"
+        "この操作を実行する権限がありません。",
       );
     }
 
@@ -461,14 +465,14 @@ exports.batchUpdateStoreSecrets = functions
     if (!Array.isArray(secrets) || secrets.length === 0) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "secrets 配列が必要です。"
+        "secrets 配列が必要です。",
       );
     }
 
     if (secrets.length > 500) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "一度に更新できるのは500件までです。"
+        "一度に更新できるのは500件までです。",
       );
     }
 
@@ -500,7 +504,7 @@ exports.batchUpdateStoreSecrets = functions
       console.error("batchUpdateStoreSecrets Error:", error);
       throw new functions.https.HttpsError(
         "internal",
-        "一括更新中にエラーが発生しました。"
+        "一括更新中にエラーが発生しました。",
       );
     }
   });
@@ -517,7 +521,7 @@ exports.loginStore = functions
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "ログインが必要です。"
+        "ログインが必要です。",
       );
     }
 
@@ -529,7 +533,7 @@ exports.loginStore = functions
     if (!storeId || !password) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "店舗IDとパスワードが必要です。"
+        "店舗IDとパスワードが必要です。",
       );
     }
 
@@ -541,7 +545,7 @@ exports.loginStore = functions
       if (!secretDoc.exists) {
         throw new functions.https.HttpsError(
           "not-found",
-          "店舗が見つかりません、または認証情報が設定されていません。"
+          "店舗が見つかりません、または認証情報が設定されていません。",
         );
       }
 
@@ -562,14 +566,14 @@ exports.loginStore = functions
         // パスワード情報が何もない
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "パスワードが設定されていません。"
+          "パスワードが設定されていません。",
         );
       }
 
       if (!isValid) {
         throw new functions.https.HttpsError(
           "permission-denied",
-          "パスワードが間違っています。"
+          "パスワードが間違っています。",
         );
       }
 
@@ -596,7 +600,7 @@ exports.loginStore = functions
       if (error.code && error.details) throw error;
       throw new functions.https.HttpsError(
         "internal",
-        "ログイン処理中にエラーが発生しました。"
+        "ログイン処理中にエラーが発生しました。",
       );
     }
   });
@@ -613,7 +617,7 @@ exports.createPOSOrder = functions
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "ログインが必要です。"
+        "ログインが必要です。",
       );
     }
 
@@ -622,7 +626,7 @@ exports.createPOSOrder = functions
     if (token.role !== "store_admin" || !token.storeId) {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "店舗管理者権限が必要です。"
+        "店舗管理者権限が必要です。",
       );
     }
 
@@ -634,14 +638,14 @@ exports.createPOSOrder = functions
     if (items.length === 0) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "商品が含まれていません。"
+        "商品が含まれていません。",
       );
     }
 
     try {
       // 2. 商品情報の取得と合計金額計算
       const itemRefs = items.map((i) =>
-        db.collection("items").doc(i.productId)
+        db.collection("items").doc(i.productId),
       );
       if (itemRefs.length === 0) throw new Error("Item refs empty");
 
@@ -662,7 +666,7 @@ exports.createPOSOrder = functions
         if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
           throw new functions.https.HttpsError(
             "invalid-argument",
-            "数量が不正です (1以上の整数である必要があります)。"
+            "数量が不正です (1以上の整数である必要があります)。",
           );
         }
 
@@ -670,7 +674,7 @@ exports.createPOSOrder = functions
         if (product.storeId !== storeId) {
           throw new functions.https.HttpsError(
             "permission-denied",
-            "他店舗の商品は注文できません。"
+            "他店舗の商品は注文できません。",
           );
         }
 
@@ -678,7 +682,7 @@ exports.createPOSOrder = functions
         if (!product.isAvailable) {
           throw new functions.https.HttpsError(
             "failed-precondition",
-            `商品「${product.name}」は売り切れのため注文できません。`
+            `商品「${product.name}」は売り切れのため注文できません。`,
           );
         }
 
@@ -744,7 +748,7 @@ exports.createPOSOrder = functions
         if (!determinedNumber) {
           throw new functions.https.HttpsError(
             "resource-exhausted",
-            "受付番号の空きがありません"
+            "受付番号の空きがありません",
           );
         }
 
@@ -752,7 +756,7 @@ exports.createPOSOrder = functions
         transaction.set(
           counterRef,
           { currentNumber: determinedNumber },
-          { merge: true }
+          { merge: true },
         );
 
         // 注文作成
@@ -802,7 +806,7 @@ exports.mockAuPayPayment = functions
     if (!orderId) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "orderId が必要です。"
+        "orderId が必要です。",
       );
     }
 
@@ -812,7 +816,10 @@ exports.mockAuPayPayment = functions
       const orderDoc = await orderRef.get();
 
       if (!orderDoc.exists) {
-        throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+        throw new functions.https.HttpsError(
+          "not-found",
+          "注文が見つかりません。",
+        );
       }
 
       // 3. ステータス更新 (決済完了 -> 提供完了)
@@ -832,7 +839,7 @@ exports.mockAuPayPayment = functions
       console.error("mockAuPayPayment Error:", error);
       throw new functions.https.HttpsError(
         "internal",
-        "決済処理中にエラーが発生しました。"
+        "決済処理中にエラーが発生しました。",
       );
     }
   });
@@ -903,5 +910,514 @@ exports.sendOrderUpdateNotification = onDocumentUpdated(
     } catch (error) {
       console.error("Error sending notification:", error);
     }
-  }
+  },
 );
+
+// --- Google Sheets Integration ---
+
+/**
+ * 店舗作成時のスプレッドシート自動作成
+ */
+exports.onStoreCreated = onDocumentCreated(
+  {
+    document: "stores/{storeId}",
+    region: "asia-northeast1",
+  },
+  async (event) => {
+    const storeId = event.params.storeId;
+    const storeData = event.data.data();
+
+    // 既にスプレッドシートがある場合はスキップ
+    if (storeData.spreadsheetId) return;
+
+    try {
+      const auth = await google.auth.getClient({
+        scopes: [
+          "https://www.googleapis.com/auth/spreadsheets",
+          "https://www.googleapis.com/auth/drive",
+        ],
+      });
+      const sheets = google.sheets({ version: "v4", auth });
+      const drive = google.drive({ version: "v3", auth });
+
+      // スプレッドシート作成
+      const spreadsheet = await sheets.spreadsheets.create({
+        resource: {
+          properties: {
+            title: `[Nanryosai] ${storeData.name || storeId} 管理シート`,
+          },
+        },
+      });
+
+      const spreadsheetId = spreadsheet.data.spreadsheetId;
+      const spreadsheetUrl = spreadsheet.data.spreadsheetUrl;
+
+      // リンクを知っている全員に閲覧権限を付与
+      await drive.permissions.create({
+        fileId: spreadsheetId,
+        resource: {
+          type: "anyone",
+          role: "reader",
+        },
+      });
+
+      // ヘッダー行と注意書きをセット
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: "A1:G1",
+        valueInputOption: "RAW",
+        resource: {
+          values: [
+            [
+              "注文ID",
+              "呼出番号",
+              "状況",
+              "合計金額",
+              "支払方法",
+              "注文日時",
+              "商品詳細",
+            ],
+          ],
+        },
+      });
+
+      // 1行目を固定し、注意書きとして背景色を付ける (オプションだが視認性向上のため)
+      // 注意書きはGAS側で対応し、ここではヘッダーの日本語化のみとする
+
+      // Firestoreに保存
+      await db.collection("stores").doc(storeId).update({
+        spreadsheetId,
+        spreadsheetUrl,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log(`Spreadsheet created for store ${storeId}`);
+    } catch (error) {
+      console.error("Error creating spreadsheet for store:", storeId, error);
+    }
+  },
+);
+
+/**
+ * 既存店舗向けスプレッドシート一括作成機能 (Callable)
+ */
+exports.bulkCreateSpreadsheets = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    // 権限チェック (Super Adminのみ)
+    if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
+      throw new functions.https.HttpsError("permission-denied", "Unauthorized");
+    }
+
+    try {
+      const storesSnap = await db.collection("stores").get();
+      const auth = await google.auth.getClient({
+        scopes: [
+          "https://www.googleapis.com/auth/spreadsheets",
+          "https://www.googleapis.com/auth/drive",
+        ],
+      });
+      const sheets = google.sheets({ version: "v4", auth });
+      const drive = google.drive({ version: "v3", auth });
+
+      let createdCount = 0;
+
+      for (const doc of storesSnap.docs) {
+        const storeData = doc.data();
+        if (storeData.spreadsheetId) continue;
+
+        const spreadsheet = await sheets.spreadsheets.create({
+          resource: {
+            properties: {
+              title: `[Nanryosai] ${storeData.name || doc.id} 管理シート`,
+            },
+          },
+        });
+
+        const spreadsheetId = spreadsheet.data.spreadsheetId;
+        const spreadsheetUrl = spreadsheet.data.spreadsheetUrl;
+
+        await drive.permissions.create({
+          fileId: spreadsheetId,
+          resource: {
+            type: "anyone",
+            role: "reader",
+          },
+        });
+
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: "A1:G1",
+          valueInputOption: "RAW",
+          resource: {
+            values: [
+              [
+                "OrderId",
+                "ReceiptNumber",
+                "Status",
+                "TotalPrice",
+                "PaymentMethod",
+                "CreatedAt",
+                "Items",
+              ],
+            ],
+          },
+        });
+
+        await doc.ref.update({
+          spreadsheetId,
+          spreadsheetUrl,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        createdCount++;
+      }
+
+      return { success: true, createdCount };
+    } catch (error) {
+      console.error("bulkCreateSpreadsheets Error:", error);
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * 注文新規作成時にスプレッドシートへ追記
+ */
+exports.onOrderCreatedSpreadsheet = onDocumentCreated(
+  {
+    document: "orders/{orderId}",
+    region: "asia-northeast1",
+  },
+  async (event) => {
+    const orderId = event.params.orderId;
+    const orderData = event.data.data();
+    const storeId = orderData.storeId;
+
+    if (!storeId) return;
+
+    try {
+      const storeDoc = await db.collection("stores").doc(storeId).get();
+      const storeData = storeDoc.data();
+
+      // スプレッドシートが存在しない場合は何もしない
+      if (!storeData || !storeData.spreadsheetId) return;
+
+      const auth = await google.auth.getClient({
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+      const sheets = google.sheets({ version: "v4", auth });
+
+      const itemsStr = (orderData.items || [])
+        .map((i) => `${i.name}x${i.quantity}`)
+        .join(", ");
+
+      let createdAtStr = new Date().toLocaleString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+      });
+      if (orderData.createdAt && orderData.createdAt.toDate) {
+        createdAtStr = orderData.createdAt.toDate().toLocaleString("ja-JP", {
+          timeZone: "Asia/Tokyo",
+        });
+      }
+
+      // ステータスの日本語化
+      const statusMap = {
+        unpaid_at_pos: "未払い(POS)",
+        authorized: "決済枠確保(オンライン)",
+        paid_online: "支払済(オンライン)",
+        ready_for_pickup: "完成/呼出中",
+        completed_online: "提供済(オンライン)",
+        completed_at_store: "提供済(店頭)",
+        cancelled: "キャンセル",
+        abandoned_unpaid: "放置/未払い",
+        abandoned_and_paid: "放置/支払済",
+        refunded: "返金済",
+        payment_failed: "決済失敗",
+      };
+
+      const paymentMap = {
+        pos: "店頭決済",
+        ONLINE: "オンライン決済",
+        auPay: "auPAY",
+      };
+
+      const statusJa = statusMap[orderData.status] || orderData.status || "";
+      const paymentJa =
+        paymentMap[orderData.paymentMethod] || orderData.paymentMethod || "";
+
+      const row = [
+        orderId,
+        orderData.receiptNumber || "",
+        statusJa,
+        orderData.totalPrice || 0,
+        paymentJa,
+        createdAtStr,
+        itemsStr,
+      ];
+
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: storeData.spreadsheetId,
+        range: "A:G",
+        valueInputOption: "USER_ENTERED",
+        resource: {
+          values: [row],
+        },
+      });
+    } catch (error) {
+      console.error(`Error appending order ${orderId} to spreadsheet:`, error);
+    }
+  },
+);
+
+/**
+ * 注文更新時にスプレッドシートの行を更新
+ */
+exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
+  {
+    document: "orders/{orderId}",
+    region: "asia-northeast1",
+  },
+  async (event) => {
+    const newData = event.data.after.data();
+    const oldData = event.data.before.data();
+    const orderId = event.params.orderId;
+
+    // ステータスや支払い方法が変更された時のみ更新
+    if (
+      newData.status === oldData.status &&
+      newData.paymentMethod === oldData.paymentMethod
+    ) {
+      return;
+    }
+
+    const storeId = newData.storeId;
+    if (!storeId) return;
+
+    try {
+      const storeDoc = await db.collection("stores").doc(storeId).get();
+      const storeData = storeDoc.data();
+
+      if (!storeData || !storeData.spreadsheetId) return;
+
+      const auth = await google.auth.getClient({
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+      const sheets = google.sheets({ version: "v4", auth });
+      const spreadsheetId = storeData.spreadsheetId;
+
+      // OrderId列（A列）を取得して行番号を特定
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "A:A",
+      });
+
+      const rows = response.data.values;
+      if (!rows || rows.length === 0) return;
+
+      let rowIndex = -1;
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i] && rows[i][0] === orderId) {
+          rowIndex = i + 1; // Sheetsの行は1-indexed
+          break;
+        }
+      }
+
+      // 該当行が見つかった場合は上書き更新
+      if (rowIndex !== -1) {
+        const itemsStr = (newData.items || [])
+          .map((i) => `${i.name}x${i.quantity}`)
+          .join(", ");
+
+        let createdAtStr = new Date().toLocaleString("ja-JP", {
+          timeZone: "Asia/Tokyo",
+        });
+        if (newData.createdAt && newData.createdAt.toDate) {
+          createdAtStr = newData.createdAt.toDate().toLocaleString("ja-JP", {
+            timeZone: "Asia/Tokyo",
+          });
+        }
+
+        // ステータスの日本語化
+        const statusMap = {
+          unpaid_at_pos: "未払い(POS)",
+          authorized: "決済枠確保(オンライン)",
+          paid_online: "支払済(オンライン)",
+          ready_for_pickup: "完成/呼出中",
+          completed_online: "提供済(オンライン)",
+          completed_at_store: "提供済(店頭)",
+          cancelled: "キャンセル",
+          abandoned_unpaid: "放置/未払い",
+          abandoned_and_paid: "放置/支払済",
+          refunded: "返金済",
+          payment_failed: "決済失敗",
+        };
+
+        const paymentMap = {
+          pos: "店頭決済",
+          ONLINE: "オンライン決済",
+          auPay: "auPAY",
+        };
+
+        const statusJa = statusMap[newData.status] || newData.status || "";
+        const paymentJa =
+          paymentMap[newData.paymentMethod] || newData.paymentMethod || "";
+
+        const row = [
+          orderId,
+          newData.receiptNumber || "",
+          statusJa,
+          newData.totalPrice || 0,
+          paymentJa,
+          createdAtStr,
+          itemsStr,
+        ];
+
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `A${rowIndex}:G${rowIndex}`,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: [row],
+          },
+        });
+      }
+    } catch (error) {
+      console.error(`Error updating order ${orderId} in spreadsheet:`, error);
+    }
+  },
+);
+
+exports.bulkCreateSpreadsheets = functions
+  .runWith({ timeoutSeconds: 540, memory: "512MB" })
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "ログインが必要です",
+      );
+    }
+
+    try {
+      console.log("Bulk create: Starting process...");
+      const storesSnapshot = await db.collection("stores").get();
+      console.log(`Bulk create: Found ${storesSnapshot.size} total stores.`);
+
+      let createdCount = 0;
+      let skippedCount = 0;
+      let failedCount = 0;
+      const results = [];
+
+      // Cloud Functionsではスコープ指定なし（デフォルトのcloud-platformスコープを使用）
+      const auth = await google.auth.getClient();
+      console.log(`Bulk create: Auth client type: ${auth.constructor.name}`);
+      const sheets = google.sheets({ version: "v4", auth });
+      const drive = google.drive({ version: "v3", auth });
+
+      for (const doc of storesSnapshot.docs) {
+        const store = doc.data();
+        if (store.spreadsheetUrl) {
+          skippedCount++;
+          continue;
+        }
+
+        try {
+          console.log(`Bulk create: Processing ${store.name}...`);
+          const title = `[売上管理] ${store.teamName} - ${store.name}`;
+
+          // Create Spreadsheet
+          const response = await sheets.spreadsheets.create({
+            resource: { properties: { title } },
+          });
+          const spreadsheetId = response.data.spreadsheetId;
+          const spreadsheetUrl = response.data.spreadsheetUrl;
+
+          // Set Permissions
+          await drive.permissions.create({
+            fileId: spreadsheetId,
+            resource: { type: "anyone", role: "reader" },
+          });
+
+          // Initialize Header
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: "A1:G1",
+            valueInputOption: "USER_ENTERED",
+            resource: {
+              values: [
+                [
+                  "OrderId",
+                  "ReceiptNumber",
+                  "Status",
+                  "TotalPrice",
+                  "PaymentMethod",
+                  "CreatedAt",
+                  "Items",
+                ],
+              ],
+            },
+          });
+
+          // Formatting
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            resource: {
+              requests: [
+                {
+                  repeatCell: {
+                    range: { sheetId: 0, startRowIndex: 0, endRowIndex: 1 },
+                    cell: {
+                      userEnteredFormat: {
+                        backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                        textFormat: { bold: true },
+                      },
+                    },
+                    fields: "userEnteredFormat(backgroundColor,textFormat)",
+                  },
+                },
+              ],
+            },
+          });
+
+          // Update Firestore
+          await doc.ref.update({ spreadsheetId, spreadsheetUrl });
+
+          createdCount++;
+          console.log(`Bulk create: Success for ${store.name}`);
+        } catch (itemError) {
+          const errorDetail = {
+            message: itemError.message,
+            code: itemError.code,
+            status: itemError.response?.status,
+            statusText: itemError.response?.statusText,
+            data: itemError.response?.data,
+            errors: itemError.errors,
+          };
+          console.error(
+            `Bulk create: Failed for ${store.name}:`,
+            JSON.stringify(errorDetail),
+          );
+          failedCount++;
+          results.push({
+            store: store.name,
+            error: itemError.message,
+            detail: errorDetail,
+          });
+        }
+      }
+
+      console.log(
+        `Bulk create: Completed. Created: ${createdCount}, Skipped: ${skippedCount}, Failed: ${failedCount}`,
+      );
+      return {
+        status: "success",
+        createdCount,
+        skippedCount,
+        failedCount,
+        details: results,
+      };
+    } catch (error) {
+      console.error("Bulk create CRITICAL ERROR:", error);
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });

@@ -15,6 +15,45 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.93] Spreadsheet Localization and Cleanup - 2026-02-28
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **スプレッドシート出力の日本語対応とフォーマット修正**:
+  - `functions/index.js` の追記処理におけるヘッダー、システムステータス（`completed_at_store` → `提供済(店頭)` など）、および支払方法（`ONLINE` → `オンライン決済` など）を日本語化。
+  - 既存のスプレッドシート群に対して、データリセット、注意書き挿入、列幅調整、見出しの日本語化を行うGASスクリプト (`functions/run_gas_format.md`) を提供。
+
+### セキュリティと整理 (Removed / Security)
+
+- **不要ファイルと機密情報の削除**:
+  - `sa-key.json`, `test_sa.json`, `test_sa.txt` などのローカルテスト・デバッグで使ったサービスアカウント秘密鍵ファイルを完全に削除。
+  - プロジェクト直下の一時ログファイル (`diagnostic_check.txt`、`detailed_log.txt` など) 10点、不要なテスト用スクリプト群を削除し、プロジェクトツリーをクリーンアップ。
+
+## [0.2.92] Automatic Spreadsheet Integration (Manual Fallback) - 2026-02-28
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **注文データのスプレッドシート自動追記機能**:
+  - `functions/index.js` に Firestore の `onCreate` / `onUpdate` トリガー (`syncOrderToSpreadsheet`) を実装し、各店舗の注文が専用スプレッドシートの末尾にリアルタイムで追記されるシステムを構築。
+  - ポータル画面 (`pos/portal.html`) にリンクボタンを追加し、1クリックで店舗専用のスプレッドシートを開けるように改善。
+
+### 経緯と設計変更 (Architectural Decisions)
+
+- **「高度な保護機能プログラム (APP)」とサービスアカウントの制限への対応**:
+  - 当初、Google Drive API / Sheets API 等を使用しシステム側（Cloud Functions / ローカル Node.js スクリプト）から「各店舗のスプレッドシートを全自動一括作成」するアプローチを試みた。
+  - しかし、ユーザーアカウントの強力なセキュリティ制限（APPによる未確認アプリの完全ブロック）と、GCPの個人向け制約（サービスアカウントの無料Drive容量が0GB）という2つの壁により、プログラムによるファイル作成が不可能であることが判明。
+  - 代替案として「個人のサブアカウント（Gmail）を用いて GAS (Google Apps Script) でファイルのみ一括作成し、そのURLをシステム側のFirestoreに登録、その後ロボットアカウントに編集権限を与える」という **[手動作成＋自動紐付けフロー (`MANUAL_WORKAROUND.md`)]** へ完全に方向転換し、実運用を確立させた。
+
 ## [0.2.91] POS Password Input Improvements - 2026-02-26
 
 ### メタ情報

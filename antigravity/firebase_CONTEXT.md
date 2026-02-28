@@ -38,6 +38,11 @@
     - `paymentMethod`: `"online"` (アプリ決済), `"pos"` (POSでのQR手動確認). `"cash"` は廃止済み。
   - `counters/receipt`: レシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
+  - **Spreadsheet Integration**:
+    - **手法**: プログラムによる一括作成は高度な保護機能プログラム(APP)によりブロックされるため、別アカウント（個人のGmail）で手動で作成したスプレッドシートのURLを紐づける方式を採用。
+    - **権限設定**: 作成者アカウントから、システム用サービスアカウント（例: `nanryosai-2026-a4091@appspot...` 及びローカル開発用 `932284...`）に編集(Editor)権限を付与することで、Cloud Functionsからの自動追記を実現。
+    - `stores/{storeId}.spreadsheetId`: 作成されたGoogleスプレッドシートのID。
+    - `stores/{storeId}.spreadsheetUrl`: スプレッドシートへの直接リンク。
 - **セキュリティルール**:
   - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは管理者/本人/SuperAdminのみ。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
@@ -58,6 +63,8 @@
   - `getNextReceiptNumber` (OnCall): POS用の安全なレシート番号発番。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を送信。
   - `mockAuPayPayment` (OnCall): auPay決済のデモ用モック処理。注文ステータスを `authorized` へ変更する。
+  - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。
+  - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
 
 ## 6. クラウドストレージ (Cloud Storage)
 

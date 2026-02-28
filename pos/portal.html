@@ -1875,20 +1875,53 @@
             <option value="" disabled selected>読み込み中...</option>
           </select>
         </div>
-        <div style="position: relative; width: 100%;">
+        <div style="position: relative; width: 100%">
           <input
             type="password"
             id="store-pass"
             class="input-field"
             placeholder="パスワード"
-            style="padding-right: 40px;"
+            style="padding-right: 40px"
           />
           <button
             type="button"
             id="toggle-store-pass"
-            style="position: absolute; right: 10px; top: 22px; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 0;"
+            style="
+              position: absolute;
+              right: 10px;
+              top: 22px;
+              transform: translateY(-50%);
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: #6b7280;
+              font-size: 1.2rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0;
+            "
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+              <path
+                d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"
+              />
+              <path
+                d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"
+              />
+              <line x1="2" x2="22" y1="2" y2="22" />
+            </svg>
           </button>
         </div>
         <button
@@ -1914,6 +1947,14 @@
         </div>
         <div class="user-info">
           <span id="user-email"></span>
+          <button
+            class="logout-btn"
+            id="run-bulk-btn"
+            style="background: #ef4444; border-color: #ef4444"
+            onclick="runBulk()"
+          >
+            📊一括作成
+          </button>
           <button class="logout-btn" onclick="logout()">ログアウト</button>
         </div>
       </div>
@@ -1962,6 +2003,25 @@
                 <span class="app-icon">🎁</span>
                 <span class="app-title">プレゼンターモニター</span>
                 <span class="app-desc">商品提供口</span>
+              </a>
+              <a
+                href="#"
+                id="link-spreadsheet"
+                class="app-link-card"
+                target="_blank"
+                style="
+                  display: none;
+                  background: #ecfdf5;
+                  border-color: #10b981;
+                "
+              >
+                <span class="app-icon" style="color: #10b981">📈</span>
+                <span class="app-title" style="color: #065f46"
+                  >売上スプレッドシート</span
+                >
+                <span class="app-desc" style="color: #047857"
+                  >自動記録シートを開く</span
+                >
               </a>
             </div>
           </div>
@@ -2607,6 +2667,7 @@
         orderBy,
         onSnapshot,
         getDocs,
+        getDoc,
         doc,
         updateDoc,
         addDoc,
@@ -2636,6 +2697,37 @@
 
       const app = initializeApp(firebaseConfig);
 
+      // DEBUG: TMP
+      window.firebaseFunctions = getFunctions(app, "asia-northeast1");
+      window.runBulk = async () => {
+        const btn = document.getElementById("run-bulk-btn");
+        if (btn) {
+          btn.innerText = "実行中（約1〜2分かかります）...";
+          btn.disabled = true;
+        }
+        try {
+          const fn = httpsCallable(
+            window.firebaseFunctions,
+            "bulkCreateSpreadsheets",
+          );
+          const res = await fn();
+          console.log(res);
+          alert("完了しました！\n" + JSON.stringify(res.data));
+          window.location.reload();
+        } catch (e) {
+          console.error(e);
+          alert(
+            "エラーが発生しました。\n詳細はConsoleを確認してください。\n" +
+              e.message,
+          );
+        } finally {
+          if (btn) {
+            btn.innerText = "一括バッチ実行";
+            btn.disabled = false;
+          }
+        }
+      };
+
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
           "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
@@ -2647,6 +2739,10 @@
       const db = getFirestore(app);
       const storage = getStorage(app);
       const functions = getFunctions(app, "asia-northeast1");
+
+      // コンソールからの手動実行用 (Admin/Debug用)
+      window.firebaseFunctions = functions;
+      window.httpsCallable = httpsCallable;
 
       // State
       let currentStoreId = null;
@@ -2836,16 +2932,23 @@
 
         // 店舗情報の取得と表示の更新
         try {
-          const storeDoc = await getDocs(
-            query(
-              collection(db, "stores"),
-              where("__name__", "==", currentStoreId),
-            ),
-          );
-          if (!storeDoc.empty) {
-            const data = storeDoc.docs[0].data();
+          const storeRef = doc(db, "stores", currentStoreId);
+          const storeSnap = await getDoc(storeRef);
+
+          if (storeSnap.exists()) {
+            const data = storeSnap.data();
             document.getElementById("header-store-name").innerText =
               `${data.teamName} - ${data.name}`;
+
+            // スプレッドシートURLが存在する場合はリンクを表示
+            if (data.spreadsheetUrl) {
+              const linkSpreadsheet =
+                document.getElementById("link-spreadsheet");
+              if (linkSpreadsheet) {
+                linkSpreadsheet.href = data.spreadsheetUrl;
+                linkSpreadsheet.style.display = "block"; // CSSのデフォルトを適用
+              }
+            }
           } else {
             document.getElementById("header-store-name").innerText =
               `ID: ${currentStoreId}`;
@@ -4120,11 +4223,11 @@
         const toggleBtn = document.getElementById("toggle-store-pass");
 
         if (storePass) {
-          storePass.addEventListener("input", function(e) {
+          storePass.addEventListener("input", function (e) {
             let val = e.target.value;
             // 全角英数字を半角に変換
-            val = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
-              return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            val = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {
+              return String.fromCharCode(s.charCodeAt(0) - 0xfee0);
             });
             // 半角英数字以外を削除
             val = val.replace(/[^a-zA-Z0-9]/g, "");
