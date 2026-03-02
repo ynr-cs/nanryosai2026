@@ -34,14 +34,15 @@ const AppShell = {
   },
 
   resolvePath: function (path) {
-    const inPos = window.location.pathname.includes("/pos/");
+    // Dynamically determine the base URL using this script's location
+    // import.meta.url is absolute (e.g., https://.../main/app-shell.js)
+    const mainBaseUrl = new URL(".", import.meta.url).href;
+    const posBaseUrl = new URL("../pos/", import.meta.url).href;
 
-    if (path.includes("mobile-order")) {
-      if (inPos) return "mobile-order.html";
-      return "../pos/mobile-order.html";
+    if (path.includes("mobile-order") || path.includes("status.html")) {
+      return new URL(path, posBaseUrl).href;
     } else {
-      if (inPos) return "../main/" + path;
-      return path;
+      return new URL(path, mainBaseUrl).href;
     }
   },
 

@@ -15,6 +15,19 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.94] 404 Page Navigation Fix - 2026-03-03
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **404ページおよび深層階層でのナビゲーション不具合を修正**:
+  - `main/app-shell.js` 内の `resolvePath` 関数を改修。`window.location` に依存した相対パス計算から、`import.meta.url` を基準とした絶対URL生成方式へ移行。
+  - これにより、`https://ynr-cs.github.io/nanryosai2026/invalid-path` のような予期せぬURL階層で 404 ページが表示された際も、ロゴやメニューのリンク（`index.html` 等）が正しくメイン階層を指すように改善。
+
 ## [0.2.93] Spreadsheet Localization and Cleanup - 2026-02-28
 
 ### メタ情報
