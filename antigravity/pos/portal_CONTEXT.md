@@ -1,3 +1,10 @@
+---
+title: ポータル (pos/portal.html) コンテキスト
+tags: [pos, context, admin]
+status: active
+last_updated: 2026-03-19
+---
+
 # ポータル (`pos/portal.html`) コンテキスト
 
 ## 1. 概要
@@ -59,3 +66,7 @@
 
 - **セキュリティルール**: `firestore.rules` および `storage.rules` により、認証された `storeId` 以外のデータへのアクセスは厳格にブロックされる。
 - **ストレージ**: 画像アップロードは `image/webp` などの画像ContentTypeのみ許可。
+
+## 関連ドキュメント
+- [[firebase_CONTEXT]]: セキュリティルールとStorage構成
+- [[data_sync_CONTEXT]]: データの同期と圧縮

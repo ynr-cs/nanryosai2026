@@ -1,3 +1,10 @@
+---
+title: POS (Point of Sales) アプリケーション共通仕様
+tags: [pos, context, spec]
+status: active
+last_updated: 2026-03-19
+---
+
 # POS (Point of Sales) アプリケーション共通仕様
 
 ## エラーハンドリング

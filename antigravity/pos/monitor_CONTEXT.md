@@ -1,3 +1,10 @@
+---
+title: モニター画面 (monitor.html) 仕様
+tags: [pos, context, ui]
+status: active
+last_updated: 2026-03-19
+---
+
 # モニター画面 (monitor.html) 仕様
 
 ## 概要
@@ -50,3 +57,7 @@
     - **メッセージ**: 「お会計は **¥[金額]** 円です。<br>右の auPay QRコードでお支払いください。」
     - **重要**: **現金支払いは非対応。** QRコードは auPay を使用する。
     - 挙動: スタッフが `presenter.html` で「完了」操作を行うまで待機。
+
+## 関連ドキュメント
+- [[pos\mobile-order_status_CONTEXT]]: 注文ステータスの種類
+- [[pos\pos_CONTEXT]]: URLパラメータの共通仕様

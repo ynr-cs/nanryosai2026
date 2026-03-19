@@ -1,3 +1,10 @@
+---
+title: システムアーキテクチャ図 (System Architecture)
+tags: [infra, context, diagram]
+status: active
+last_updated: 2026-03-19
+---
+
 # システムアーキテクチャ図 (System Architecture)
 
 本ドキュメントは、南陵祭2026プロジェクトのシステム構成とデータフローを可視化したものです。

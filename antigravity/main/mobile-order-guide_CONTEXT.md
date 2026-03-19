@@ -1,3 +1,10 @@
+---
+title: Mobile Order Guide Context (Japanese Edition)
+tags: [main, guide, tech]
+status: active
+last_updated: 2026-03-19
+---
+
 # Mobile Order Guide Context (Japanese Edition)
 
 ## 概要

@@ -1,3 +1,10 @@
+---
+title: Home Page (index.html) 開発コンテキスト
+tags: [main, context, ui]
+status: active
+last_updated: 2026-03-19
+---
+
 # Home Page (`index.html`) 開発コンテキスト
 
 本ドキュメントは、トップページ (`index.html`) の開発ガイドラインです。
@@ -85,3 +92,8 @@
 - **App Shell 統合**: `app-shell.js` によりヘッダー・フッターを動的に注入。
 - **レスポンシブ**: モバイルファーストだが、PC 閲覧時も間延びしないよう `max-width` などを適切に設定。
 - **CSS**: `style.css` にて一元管理。変数を活用し、ダークモードにも完全対応する。
+
+## 関連ドキュメント
+- [[data_CONTEXT]]: 使用しているマスタデータ
+- [[design_CONTEXT]]: UIガイドライン
+- [[list_pages_CONTEXT]]: 企画一覧ページ

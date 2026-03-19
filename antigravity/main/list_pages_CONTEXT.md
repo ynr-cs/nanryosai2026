@@ -1,3 +1,10 @@
+---
+title: List Pages (projects-list.html, stage-list.html) 開発コンテキスト
+tags: [main, context, ui]
+status: active
+last_updated: 2026-03-19
+---
+
 # List Pages (`projects-list.html`, `stage-list.html`) 開発コンテキスト
 
 本ドキュメントは、企画一覧およびステージ発表一覧ページの開発ガイドラインです。
@@ -71,3 +78,7 @@
 - **フィルタセクション**:
   - 画面占有率を下げるためパディングを最小限にし、透明感を強調したパネルデザイン。
 - **ローディング**: データ取得中およびフィルタ切り替え時は、カード型のスケルトンスクリーン（シマー効果付き）を表示。
+
+## 関連ドキュメント
+- [[info_pages_CONTEXT]]: 詳細ページの仕様
+- [[pos\pos_CONTEXT]]: モバイルオーダー連携の詳細

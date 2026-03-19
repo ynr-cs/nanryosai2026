@@ -1,3 +1,10 @@
+---
+title: 新規店舗追加・同期 完全ワークフロー
+tags: [guide, pos, operation]
+status: active
+last_updated: 2026-03-19
+---
+
 # 新規店舗追加・同期 完全ワークフロー
 
 新規店舗を作成し、`data.js`（コードマスター）と Firebase（本番DB）の両方に正しく同期させるための手順書です。

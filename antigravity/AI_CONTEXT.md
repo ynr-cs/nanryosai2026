@@ -1,3 +1,10 @@
+---
+title: AI 開発コンテキスト (AI Development Context)
+tags: [infra, context]
+status: active
+last_updated: 2026-03-19
+---
+
 # AI 開発コンテキスト (AI Development Context)
 
 ## バージョニングと言語化の方針
@@ -25,3 +32,7 @@
 
 - ユーザーへの報告、ドキュメント作成は一貫して日本語で行う。
 - モバイルファースト、ダークモード対応、セキュリティルールへの準拠を常に意識する。
+
+## 関連ドキュメント
+- [[architecture_CONTEXT]]: 全体構成
+- [[CHANGELOG]]: 変更履歴

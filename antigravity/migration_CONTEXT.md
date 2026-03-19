@@ -1,3 +1,10 @@
+---
+title: v0.1.0 移行 (Migration) コンテキスト
+tags: [infra, guide]
+status: active
+last_updated: 2026-03-19
+---
+
 # v0.1.0 移行 (Migration) コンテキスト
 
 ## 概要

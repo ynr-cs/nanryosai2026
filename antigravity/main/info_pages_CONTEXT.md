@@ -1,3 +1,10 @@
+---
+title: Info Pages (`map.html`, `access.html`, `about.html`, `about-us.html`) 開発コンテキスト
+tags: ['context', 'main']
+status: active
+last_updated: 2026-03-19
+---
+
 # Info Pages (`map.html`, `access.html`, `about.html`, `about-us.html`) 開発コンテキスト
 
 本ドキュメントは、静的な情報提供ページの開発ガイドラインです。

@@ -1,6 +1,13 @@
+---
+title: Firebase アーキテクチャ コンテキスト
+tags: [infra, context]
+status: active
+last_updated: 2026-03-19
+---
+
 # Firebase アーキテクチャ コンテキスト
 
-> **Note**: システム全体の構成図は [architecture_CONTEXT.md](architecture_CONTEXT.md) を参照してください。
+> **Note**: システム全体の構成図は [[architecture_CONTEXT]] を参照してください。
 
 ## 1. プロジェクト情報
 

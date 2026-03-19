@@ -1,3 +1,10 @@
+---
+title: Mobile Order & Status 開発コンテキスト
+tags: [pos, context, mobile-order]
+status: active
+last_updated: 2026-03-19
+---
+
 # Mobile Order & Status 開発コンテキスト
 
 本ドキュメントは、モバイルオーダー機能 (`mobile-order.html`) および 注文ステータス確認機能 (`status.html`) の開発ガイドラインです。
@@ -151,5 +158,9 @@
   - ログイン・規約同意フローは通常通り維持されます。
   - 規約同意後の遷移先が、通常は「店舗選択画面」ですが、パラメータ指定時は「該当店舗のメニュー画面」に自動遷移（店舗選択画面がスキップ）されます。
 - **実装詳細**:
-  - `loadStores()` 内でパラメータ解析と自動選択を実行。
+  - `loadStores()` 内でパラメータ解析 and 自動選択を実行。
   - 同意ボタン (`btn-agree-terms`) のハンドラで `currentStoreId` の有無を確認し、画面遷移先を制御。
+
+## 関連ドキュメント
+- [[pos\pos_CONTEXT]]: POS共通仕様
+- [[main\mobile-order-guide_CONTEXT]]: 技術ガイド

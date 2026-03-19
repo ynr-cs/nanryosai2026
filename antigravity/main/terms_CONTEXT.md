@@ -1,3 +1,10 @@
+---
+title: 利用規約 (Terms of Service) コンテキスト
+tags: [main, context, legal]
+status: active
+last_updated: 2026-03-19
+---
+
 # 利用規約 (Terms of Service) コンテキスト
 
 ## 概要
@@ -30,3 +37,6 @@
 ## 今後の保守
 
 - 規約内容に変更がある場合は、`terms.html` 内の該当条文および「最終改定日」を更新してください。
+
+## 関連ドキュメント
+- [[account_CONTEXT]]: マイページ内での規約表示

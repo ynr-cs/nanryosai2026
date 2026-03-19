@@ -1,6 +1,13 @@
+---
+title: データ同期アーキテクチャ分析レポート
+tags: [infra, context, spec]
+status: active
+last_updated: 2026-03-19
+---
+
 # データ同期アーキテクチャ分析レポート
 
-本ドキュメントは、`data.js`、`admin_sync.html`、および Firebase (Firestore) 間のデータ同期メカニズムに関する詳細な分析結果です。`antigravity/main/data_CONTEXT.md` の内容も統合されています。
+本ドキュメントは、`data.js`、`admin_sync.html`、および Firebase (Firestore) 間のデータ同期メカニズムに関する詳細な分析結果です。`antigravity/main/[[data_CONTEXT]]` および [[architecture_CONTEXT]] の内容も統合されています。
 
 ## 1. 全体像と役割分担
 

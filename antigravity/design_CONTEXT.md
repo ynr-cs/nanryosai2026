@@ -1,4 +1,11 @@
-# デザインシステム・UIガイドライン (`design_CONTEXT.md`)
+---
+title: デザインシステム・UIガイドライン
+tags: [infra, context, design]
+status: active
+last_updated: 2026-03-19
+---
+
+# デザインシステム・UIガイドライン
 
 ## 1. 基本方針
 

@@ -1,3 +1,10 @@
+---
+title: data.js コンテキストドキュメント
+tags: [main, context, data]
+status: active
+last_updated: 2026-03-19
+---
+
 # data.js コンテキストドキュメント
 
 このファイルは、`main/data/data.js` 及び関連するデータ構造、同期ロジックについて、今後の開発担当者（AI 含む）に引き継ぐための重要事項をまとめたものです。
@@ -118,3 +125,7 @@ schedule: [
 - **今後の運用**:
   - 団体のメイン画像（サムネイル）は、`images/{id}.png` として配置するだけで自動的に適用される。
   - `data.js` に画像パスを記述する必要はない。
+
+## 関連ドキュメント
+- [[data_sync_CONTEXT]]: 同期メカニズムの詳細
+- [[architecture_CONTEXT]]: 全体構成
