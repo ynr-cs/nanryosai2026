@@ -1,7 +1,7 @@
 /**
  * SelectTool.js — 選択・編集・削除ツール
  * 
- * キャンバス上のオブジェクト（壁など）をクリックして選択し、
+ * キャンバス上のオブジェクト（壁、開口部、スロープなど）をクリックして選択し、
  * Deleteキーで削除する機能を提供する。
  */
 
@@ -9,12 +9,26 @@ import * as THREE from 'three';
 import { getActiveCamera } from '../core/Renderer.js';
 import { mapData } from '../core/MapData.js';
 import { wallMeshGroup } from './WallTool.js';
+import { openingMeshGroup } from './OpeningTool.js';
+import { slopeMeshGroup } from './SlopeTool.js';
 
 let _onWallDeleted = null;
+let _onOpeningDeleted = null;
+let _onSlopeDeleted = null;
 
 /** 壁削除時のコールバックを登録する */
 export function setOnWallDeleted(callback) {
   _onWallDeleted = callback;
+}
+
+/** 開口部削除時のコールバックを登録する */
+export function setOnOpeningDeleted(callback) {
+  _onOpeningDeleted = callback;
+}
+
+/** スロープ削除時のコールバックを登録する */
+export function setOnSlopeDeleted(callback) {
+  _onSlopeDeleted = callback;
 }
 
 // ============================================
@@ -52,12 +66,27 @@ export function handleSelectClick(event, container) {
   // レイキャスト更新
   raycaster.setFromCamera(mouse, getActiveCamera());
 
-  // wallMeshGroupの子要素との交差判定
-  const intersects = raycaster.intersectObjects(wallMeshGroup.children, false);
+  // 全オブジェクトグループとの交差判定
+  const allTargets = [
+    ...wallMeshGroup.children,
+    ...openingMeshGroup.children,
+    ...slopeMeshGroup.children,
+  ];
+
+  // openingMeshGroup の子は THREE.Group なので recursive=true で内部メッシュも判定
+  const intersects = raycaster.intersectObjects(allTargets, true);
 
   if (intersects.length > 0) {
-    const hitMesh = intersects[0].object;
-    selectMesh(hitMesh);
+    // ヒットしたオブジェクトから、userData.type を持つ最も近い親を探す
+    let hitObject = intersects[0].object;
+    while (hitObject && !hitObject.userData?.type) {
+      hitObject = hitObject.parent;
+    }
+    if (hitObject && hitObject.userData?.type) {
+      selectMesh(hitObject);
+    } else {
+      clearSelection();
+    }
   } else {
     clearSelection();
   }
@@ -88,18 +117,35 @@ function selectMesh(mesh) {
   clearSelection();
 
   selectedMesh = mesh;
-  originalMaterial = mesh.material;
-  mesh.material = highlightMaterial;
+
+  // グループ（Opening）の場合は最初の子メッシュのマテリアルを変更
+  if (mesh instanceof THREE.Group && mesh.children.length > 0) {
+    const panelMesh = mesh.children[0];
+    if (panelMesh instanceof THREE.Mesh) {
+      originalMaterial = panelMesh.material;
+      panelMesh.material = highlightMaterial;
+    }
+  } else if (mesh instanceof THREE.Mesh) {
+    originalMaterial = mesh.material;
+    mesh.material = highlightMaterial;
+  }
   
-  console.log(`[SelectTool] 選択: ${mesh.name || mesh.uuid}`);
+  console.log(`[SelectTool] 選択: ${mesh.name || mesh.uuid} (type: ${mesh.userData?.type})`);
 }
 
 /**
  * 選択状態を解除する
  */
 export function clearSelection() {
-  if (selectedMesh && originalMaterial) {
-    selectedMesh.material = originalMaterial;
+  if (selectedMesh) {
+    if (selectedMesh instanceof THREE.Group && selectedMesh.children.length > 0) {
+      const panelMesh = selectedMesh.children[0];
+      if (panelMesh instanceof THREE.Mesh && originalMaterial) {
+        panelMesh.material = originalMaterial;
+      }
+    } else if (selectedMesh instanceof THREE.Mesh && originalMaterial) {
+      selectedMesh.material = originalMaterial;
+    }
   }
   selectedMesh = null;
   originalMaterial = null;
@@ -111,42 +157,116 @@ export function clearSelection() {
 function deleteSelectedMesh() {
   if (!selectedMesh) return;
 
-  const { type, wallId, floorId, buildingId } = selectedMesh.userData;
+  const { type } = selectedMesh.userData;
 
   if (type === 'wall') {
-    let isDeleted = false;
+    deleteWall();
+  } else if (type === 'opening') {
+    deleteOpening();
+  } else if (type === 'slope') {
+    deleteSlope();
+  }
+}
 
-    // mapData から該当の壁データを走査して削除
-    for (const building of mapData.site.buildings) {
-      if (building.id !== buildingId) continue;
-      
-      for (const floor of building.floors) {
-        if (floor.id !== floorId) continue;
-        
-        const wallIndex = floor.elements.walls.findIndex(w => w.id === wallId);
-        if (wallIndex !== -1) {
-          floor.elements.walls.splice(wallIndex, 1);
-          isDeleted = true;
-          break;
-        }
+// ============================================
+// 削除ロジック（型別）
+// ============================================
+
+/** 壁を削除する */
+function deleteWall() {
+  const { wallId, floorId, buildingId } = selectedMesh.userData;
+  let isDeleted = false;
+
+  for (const building of mapData.site.buildings) {
+    if (building.id !== buildingId) continue;
+    for (const floor of building.floors) {
+      if (floor.id !== floorId) continue;
+      const wallIndex = floor.elements.walls.findIndex(w => w.id === wallId);
+      if (wallIndex !== -1) {
+        floor.elements.walls.splice(wallIndex, 1);
+        isDeleted = true;
+        break;
       }
-      if (isDeleted) break;
     }
+    if (isDeleted) break;
+  }
 
-    if (isDeleted) {
-      console.log(`[SelectTool] 壁データ削除: ${wallId}`);
-      
-      // Scene からメッシュを削除・メモリ解放
-      wallMeshGroup.remove(selectedMesh);
-      selectedMesh.geometry.dispose();
-      // 元のマテリアルは他の壁と共有されている可能性があるため dispose しない
-      selectedMesh = null;
-      originalMaterial = null;
+  if (isDeleted) {
+    console.log(`[SelectTool] 壁データ削除: ${wallId}`);
+    wallMeshGroup.remove(selectedMesh);
+    selectedMesh.geometry.dispose();
+    selectedMesh = null;
+    originalMaterial = null;
+    if (_onWallDeleted) _onWallDeleted();
+  } else {
+    console.warn(`[SelectTool] 削除対象の壁データが見つかりません: ${wallId}`);
+  }
+}
 
-      // コールバックを発火して UI (HierarchyTree等) を更新
-      if (_onWallDeleted) _onWallDeleted();
-    } else {
-      console.warn(`[SelectTool] 削除対象の壁データが見つかりません: ${wallId}`);
+/** 開口部を削除する */
+function deleteOpening() {
+  const { openingId, floorId, buildingId } = selectedMesh.userData;
+  let isDeleted = false;
+
+  for (const building of mapData.site.buildings) {
+    if (building.id !== buildingId) continue;
+    for (const floor of building.floors) {
+      if (floor.id !== floorId) continue;
+      if (!floor.elements.openings) continue;
+      const index = floor.elements.openings.findIndex(o => o.id === openingId);
+      if (index !== -1) {
+        floor.elements.openings.splice(index, 1);
+        isDeleted = true;
+        break;
+      }
     }
+    if (isDeleted) break;
+  }
+
+  if (isDeleted) {
+    console.log(`[SelectTool] 開口部データ削除: ${openingId}`);
+    openingMeshGroup.remove(selectedMesh);
+    // Group の子を個別に dispose
+    selectedMesh.children.forEach(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    });
+    selectedMesh = null;
+    originalMaterial = null;
+    if (_onOpeningDeleted) _onOpeningDeleted();
+  } else {
+    console.warn(`[SelectTool] 削除対象の開口部データが見つかりません: ${openingId}`);
+  }
+}
+
+/** スロープを削除する */
+function deleteSlope() {
+  const { slopeId, floorId, buildingId } = selectedMesh.userData;
+  let isDeleted = false;
+
+  for (const building of mapData.site.buildings) {
+    if (building.id !== buildingId) continue;
+    for (const floor of building.floors) {
+      if (floor.id !== floorId) continue;
+      if (!floor.elements.stairs) continue;
+      const index = floor.elements.stairs.findIndex(s => s.id === slopeId);
+      if (index !== -1) {
+        floor.elements.stairs.splice(index, 1);
+        isDeleted = true;
+        break;
+      }
+    }
+    if (isDeleted) break;
+  }
+
+  if (isDeleted) {
+    console.log(`[SelectTool] スロープデータ削除: ${slopeId}`);
+    slopeMeshGroup.remove(selectedMesh);
+    selectedMesh.geometry.dispose();
+    selectedMesh = null;
+    originalMaterial = null;
+    if (_onSlopeDeleted) _onSlopeDeleted();
+  } else {
+    console.warn(`[SelectTool] 削除対象のスロープデータが見つかりません: ${slopeId}`);
   }
 }

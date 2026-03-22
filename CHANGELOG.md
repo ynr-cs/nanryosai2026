@@ -15,6 +15,44 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.102] 3D Map Editor V2 — Phase 8 ツール統合 (UI・イベント配線) - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`ToolManager.js`**: OpeningTool/SlopeToolのキャンセル処理をツール切替時のクリーンアップに追加
+- **`SelectTool.js`**: 壁に加え、開口部(Group型メッシュ)・スロープの選択ハイライト・Delete削除に対応。`setOnOpeningDeleted`/`setOnSlopeDeleted` コールバックを追加。Raycasterの交差判定対象に3グループ全てを含めるよう拡張
+- **`HierarchyTree.js`**: ツリー表示に🚪(開口部)と🎢(スロープ)ノードを追加、バッジ合計数にopenings/stairsを含む
+- **`main.js`**: OpeningTool/SlopeToolの完全統合 — import, scene.add, 7個のコールバック登録, click/mousemove/rightclick/Escapeイベント配線
+- **`editor.css`**: `#canvas-container.tool-opening` にcrosshairカーソルを追加
+- **得られた知見**: OpeningToolは他ツールと異なりRaycasterで壁メッシュに交差検出するため、click時にMouseEventを受け取る必要がある（WallTool/SlopeToolはcurrentSnappedPosで十分）。SelectToolではGroup型メッシュの子要素マテリアルを操作するため、instanceof THREE.Group の分岐が必要
+
+## [0.2.101] 3D Map Editor V2 — Phase 8 OpeningTool・SlopeTool コア作成 - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **開口部ツール (`js/tools/OpeningTool.js`) の新規作成**:
+  - 壁をRaycasterでクリック→交点検出→壁始点からのオフセット距離を自動算出→色違い板メッシュ＋EdgesGeometry枠線で開口表現
+  - CSG不使用方式: パフォーマンスを維持しつつ、ビューア側での将来的なBake対応の余地を残す設計
+  - データは `floor.elements.openings[]` に保存（`wallId`, `offset`, `width`, `height`, `sillHeight`, `type`）
+- **スロープツール (`js/tools/SlopeTool.js`) の新規作成**:
+  - WallToolと類似の2点クリック方式で始点・終点を指定
+  - XZ平面角度(yaw)と勾配角度(pitch)の2軸回転でBoxGeometryを傾斜させるメッシュ生成ロジック
+  - データは `floor.elements.stairs[]` に保存（`start{x,y,z}`, `end{x,y,z}`, `width`, `thickness`, `type`）
+
+### 変更 (Changed)
+
+- **`MapData.js`**: `generateOpeningId()` と `generateSlopeId()` を追加
+
 ## [0.2.100] 3D Map Editor V2 — Phase 7 Zone & Select Tools - 2026-03-23
 
 ### メタ情報

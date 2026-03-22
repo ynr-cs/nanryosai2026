@@ -39,8 +39,10 @@ export function renderHierarchyTree(activeFloorId, onFloorSelect) {
   for (const building of mapData.site.buildings) {
     const totalItems = building.floors.reduce((sum, f) => {
       const wCount = f.elements.walls.length;
+      const oCount = f.elements.openings ? f.elements.openings.length : 0;
+      const sCount = f.elements.stairs ? f.elements.stairs.length : 0;
       const zCount = f.zones ? f.zones.length : 0;
-      return sum + wCount + zCount;
+      return sum + wCount + oCount + sCount + zCount;
     }, 0);
     const buildingIcon = building.id === 'b_gym' ? '🏠' : '🏢';
 
@@ -55,8 +57,10 @@ export function renderHierarchyTree(activeFloorId, onFloorSelect) {
     for (const floor of building.floors) {
       const isActive = floor.id === activeFloorId;
       const wallCount = floor.elements.walls.length;
+      const openingCount = floor.elements.openings ? floor.elements.openings.length : 0;
+      const stairCount = floor.elements.stairs ? floor.elements.stairs.length : 0;
       const zoneCount = floor.zones ? floor.zones.length : 0;
-      const totalCount = wallCount + zoneCount;
+      const totalCount = wallCount + openingCount + stairCount + zoneCount;
 
       html += `
         <div class="tree-item${isActive ? ' active-floor' : ''}"
@@ -67,9 +71,11 @@ export function renderHierarchyTree(activeFloorId, onFloorSelect) {
           ${totalCount > 0 ? `<span class="tree-badge">${totalCount}</span>` : ''}
         </div>`;
 
-      // フロアの壁・ Zone 要素をリスト表示
+      // フロアの要素をリスト表示
       if (totalCount > 0) {
         html += '<div class="tree-children">';
+
+        // 壁
         for (const wall of floor.elements.walls) {
           html += `
             <div class="tree-item" data-wall-id="${wall.id}">
@@ -77,6 +83,33 @@ export function renderHierarchyTree(activeFloorId, onFloorSelect) {
               <span class="tree-label">${wall.id} (L=${wall._length.toFixed(2)}m)</span>
             </div>`;
         }
+
+        // 開口部
+        if (floor.elements.openings) {
+          for (const opening of floor.elements.openings) {
+            html += `
+              <div class="tree-item" data-opening-id="${opening.id}">
+                <span class="tree-icon">🚪</span>
+                <span class="tree-label">${opening.id} (${opening.type}, W=${opening.width}m)</span>
+              </div>`;
+          }
+        }
+
+        // スロープ・階段
+        if (floor.elements.stairs) {
+          for (const stair of floor.elements.stairs) {
+            const hLen = stair._horizontalLength
+              ? stair._horizontalLength.toFixed(2)
+              : '?';
+            html += `
+              <div class="tree-item" data-slope-id="${stair.id}">
+                <span class="tree-icon">🎢</span>
+                <span class="tree-label">${stair.id} (L=${hLen}m)</span>
+              </div>`;
+          }
+        }
+
+        // ゾーン
         if (floor.zones) {
           for (const zone of floor.zones) {
             html += `
@@ -86,6 +119,7 @@ export function renderHierarchyTree(activeFloorId, onFloorSelect) {
               </div>`;
           }
         }
+
         html += '</div>';
       }
     }

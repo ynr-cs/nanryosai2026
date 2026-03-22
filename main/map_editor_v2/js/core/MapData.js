@@ -89,6 +89,24 @@ export function generateWallId() {
   return `w_${String(wallIdCounter).padStart(3, '0')}`;
 }
 
+// 開口部IDカウンタ
+let openingIdCounter = 0;
+
+/** 開口部IDを生成する */
+export function generateOpeningId() {
+  openingIdCounter++;
+  return `o_${String(openingIdCounter).padStart(3, '0')}`;
+}
+
+// スロープIDカウンタ
+let slopeIdCounter = 0;
+
+/** スロープIDを生成する */
+export function generateSlopeId() {
+  slopeIdCounter++;
+  return `s_${String(slopeIdCounter).padStart(3, '0')}`;
+}
+
 /** activeFloorId に対応する { building, floor } を取得 */
 export function getActiveFloor(activeFloorId) {
   for (const building of mapData.site.buildings) {

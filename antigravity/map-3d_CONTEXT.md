@@ -132,26 +132,30 @@ map_editor_v2/
 └── js/
     ├── main.js           ← エントリーポイント（状態管理・イベント配線・アニメーションループ）
     ├── core/
-    │   ├── MapData.js    ← mapDataオブジェクト、ID生成、フロア検索
+    │   ├── MapData.js    ← mapDataオブジェクト、ID生成(wall/opening/slope)、フロア検索
     │   ├── Renderer.js   ← Scene/Camera/Light/Grid/Resize
     │   └── Controls.js   ← OrbitControls, Raycaster, カメラ切替
     ├── tools/
     │   ├── ToolManager.js ← ツール選択・切替・OrbitControls連動
     │   ├── WallTool.js    ← 壁描画（プレビュー・Mesh生成・データ保存）
-    │   ├── SelectTool.js  ← 選択・編集・削除
-    │   └── ZoneTool.js    ← ゾーン（空間ボリューム）描画と生成
+    │   ├── OpeningTool.js ← 開口部（ドア/窓）配置
+    │   ├── SelectTool.js  ← 選択・編集・削除（壁/開口部/スロープ対応）
+    │   ├── ZoneTool.js    ← ゾーン（空間ボリューム）描画と生成
+    │   └── SlopeTool.js   ← スロープ・階段の2点指定生成
     └── ui/
         └── HierarchyTree.js ← 左サイドバーの階層ツリーDOM生成
 ```
 
 ### 7-3. 依存関係
 ```
-main.js → Renderer.js, Controls.js, WallTool.js, SelectTool.js, ZoneTool.js, ToolManager.js, HierarchyTree.js
+main.js → Renderer.js, Controls.js, WallTool.js, SelectTool.js, ZoneTool.js, OpeningTool.js, SlopeTool.js, ToolManager.js, HierarchyTree.js
 Controls.js → Renderer.js
 WallTool.js → Renderer.js, MapData.js, Controls.js
-SelectTool.js → Renderer.js, MapData.js, WallTool.js
+OpeningTool.js → Renderer.js, MapData.js, WallTool.js (wallMeshGroup参照)
+SelectTool.js → Renderer.js, MapData.js, WallTool.js, OpeningTool.js, SlopeTool.js
 ZoneTool.js → Renderer.js, MapData.js, Controls.js
-ToolManager.js → Controls.js, WallTool.js, SelectTool.js, ZoneTool.js
+SlopeTool.js → Renderer.js, MapData.js, Controls.js
+ToolManager.js → Controls.js, WallTool.js, SelectTool.js, ZoneTool.js, OpeningTool.js, SlopeTool.js
 HierarchyTree.js → MapData.js
 ```
 
@@ -159,3 +163,66 @@ HierarchyTree.js → MapData.js
 - **ツールはUIを直接呼ばない**: `WallTool` は壁追加後に `_onWallAdded` コールバックを発火し、`main.js` がツリー更新を委譲する
 - **カメラ参照は `getActiveCamera()` ゲッター経由**: ES Module の live binding に依存せず、安全にカメラ切替後の参照を取得
 - **状態(`state`)は `main.js` に集約**: 各モジュールは引数でstateを受け取る（グローバル状態の分散を防止）
+
+## 8. 開口部ツール (Opening Tool — Phase 8)
+
+### 8-1. 設計方針 — CSG不使用
+- CSG（Constructive Solid Geometry）による壁の物理的なくり抜きは、CDN版Three.js環境では追加ライブラリが必要でパフォーマンスも悪化するため不採用
+- **代替方式**: 壁メッシュの上に**色違いの板メッシュ + EdgesGeometry枠線**をオーバーレイ配置する
+- ビューア側での将来的なBake時にCSGを適用する設計余地は残す
+
+### 8-2. 操作フロー
+1. 「🚪 開口部」ボタン選択 → crosshairカーソル
+2. 壁をクリック → Raycaster で壁Meshとの交点を検出 → 対象壁の `wallId` と壁データを取得
+3. マウス移動 → 壁上に半透明プレビュー（板+枠線）を表示（壁表面に沿って移動）
+4. 再クリック → 確定 → `floor.elements.openings[]` に保存 → ツリー更新
+5. Escape / 右クリック / 別ツール選択でキャンセル
+
+### 8-3. データ構造 (`floor.elements.openings[]`)
+```json
+{
+  "id": "o_001",
+  "wallId": "w_003",
+  "offset": 2.5,
+  "width": 1.0,
+  "height": 2.0,
+  "sillHeight": 0.0,
+  "type": "door"
+}
+```
+- `offset`: 壁始点からの中心位置までの距離(m) — 壁の線分への射影(内積)で算出
+- `sillHeight`: 開口下端の床面からの高さ（ドア=0, 窓=1.0 など）
+
+### 8-4. 技術的知見
+- OpeningToolは他ツールと異なり、Raycasterで**壁メッシュに直接交差検出**するため、`handleOpeningClick()` は `MouseEvent` を引数に必要（WallTool等は `currentSnappedPos` で十分）
+- 開口メッシュは `THREE.Group`（板+枠線）として生成するため、SelectToolでの選択/ハイライト時は `instanceof THREE.Group` の分岐で子メッシュのマテリアルを操作する
+
+## 9. スロープ・階段ツール (Slope Tool — Phase 8)
+
+### 9-1. 操作フロー（WallToolと類似の2点方式）
+1. 「🎢 斜面」ボタン選択 → crosshairカーソル
+2. キャンバスクリック → 始点確定（XZ平面、Y = フロアの worldY）
+3. マウス移動 → 始点〜カーソル間に半透明スロープ+ガイドラインのプレビュー表示
+4. 再クリック → 終点確定 → スロープMesh生成 + `floor.elements.stairs[]` に保存
+5. Escape / 右クリックでキャンセル（連続描画なし — WallToolとの差異）
+
+### 9-2. メッシュ生成ロジック
+- `BoxGeometry(slopeLength, thickness, width)` — 斜辺の長さを使用
+- **2軸回転**: `rotation.order = 'YXZ'` で「Y軸(方位角 yaw)」→「X軸(勾配角 pitch)」の順に回転
+- 勾配角 = `Math.atan2(dy, horizontalDist)`
+- 中点 = 始点と終点の中間座標
+
+### 9-3. データ構造 (`floor.elements.stairs[]`)
+```json
+{
+  "id": "s_001",
+  "start": { "x": 10, "y": 0, "z": 5 },
+  "end": { "x": 15, "y": 3.5, "z": 5 },
+  "width": 2.0,
+  "thickness": 0.15,
+  "type": "slope"
+}
+```
+- `start.y` / `end.y`: フロアのyOffset基準のローカルY座標
+- デフォルトの `end.y` は 3.5m（1フロア分の高さ）
+

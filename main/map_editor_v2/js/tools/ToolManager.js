@@ -9,6 +9,8 @@ import { controls } from '../core/Controls.js';
 import { cancelWallDrawing, isDrawing as isWallDrawing } from '../tools/WallTool.js';
 import { clearSelection } from '../tools/SelectTool.js';
 import { cancelZoneDrawing, isDrawing as isZoneDrawing } from '../tools/ZoneTool.js';
+import { cancelOpeningPlacement, isPlacing as isOpeningPlacing } from '../tools/OpeningTool.js';
+import { cancelSlopeDrawing, isDrawing as isSlopeDrawing } from '../tools/SlopeTool.js';
 
 // ============================================
 // ツール名一覧
@@ -34,6 +36,8 @@ const TOOL_NAMES = {
 export function selectTool(btn, state, container) {
   if (isWallDrawing()) cancelWallDrawing();
   if (isZoneDrawing()) cancelZoneDrawing();
+  if (isOpeningPlacing()) cancelOpeningPlacement();
+  if (isSlopeDrawing()) cancelSlopeDrawing();
 
   // 全ツールボタンの active を解除
   document.querySelectorAll('#top-bar .tb-btn[id^="tool-"]').forEach(b => {

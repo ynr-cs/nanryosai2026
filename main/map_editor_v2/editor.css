@@ -439,13 +439,15 @@ html, body {
    ============================================ */
 #canvas-container.tool-wall,
 #canvas-container.tool-zone,
-#canvas-container.tool-slope {
+#canvas-container.tool-slope,
+#canvas-container.tool-opening {
   cursor: crosshair;
 }
 
 #canvas-container.tool-wall:active,
 #canvas-container.tool-zone:active,
-#canvas-container.tool-slope:active {
+#canvas-container.tool-slope:active,
+#canvas-container.tool-opening:active {
   cursor: crosshair;
 }
 

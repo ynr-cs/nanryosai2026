@@ -12,8 +12,10 @@ import { initControls, controls, updateMouseWorldPos, switchCamera, currentSnapp
 
 // === Tools ===
 import { wallMeshGroup, handleWallClick, updateWallPreview, cancelWallDrawing, isDrawing as isWallDrawing, setOnWallAdded } from './tools/WallTool.js';
-import { handleSelectClick, handleSelectKeyDown, clearSelection, setOnWallDeleted } from './tools/SelectTool.js';
+import { handleSelectClick, handleSelectKeyDown, clearSelection, setOnWallDeleted, setOnOpeningDeleted, setOnSlopeDeleted } from './tools/SelectTool.js';
 import { zoneMeshGroup, handleZoneClick, updateZonePreview, cancelZoneDrawing, isDrawing as isZoneDrawing, setOnZoneAdded } from './tools/ZoneTool.js';
+import { openingMeshGroup, handleOpeningClick, updateOpeningPreview, cancelOpeningPlacement, isPlacing as isOpeningPlacing, setOnOpeningAdded } from './tools/OpeningTool.js';
+import { slopeMeshGroup, handleSlopeClick, updateSlopePreview, cancelSlopeDrawing, isDrawing as isSlopeDrawing, setOnSlopeAdded } from './tools/SlopeTool.js';
 import { selectTool } from './tools/ToolManager.js';
 
 // === UI ===
@@ -44,20 +46,24 @@ function init() {
   // --- OrbitControls ---
   initControls(container);
 
-  // --- 壁/Zone Mesh グループをシーンに追加 ---
+  // --- Mesh グループをシーンに追加 ---
   scene.add(wallMeshGroup);
   scene.add(zoneMeshGroup);
+  scene.add(openingMeshGroup);
+  scene.add(slopeMeshGroup);
 
   // --- 追加・削除時のコールバック登録 ---
-  setOnWallAdded(() => {
+  const refreshTree = () => {
     renderHierarchyTree(state.activeFloorId, onFloorSelect);
-  });
-  setOnWallDeleted(() => {
-    renderHierarchyTree(state.activeFloorId, onFloorSelect);
-  });
-  setOnZoneAdded(() => {
-    renderHierarchyTree(state.activeFloorId, onFloorSelect);
-  });
+  };
+
+  setOnWallAdded(refreshTree);
+  setOnWallDeleted(refreshTree);
+  setOnZoneAdded(refreshTree);
+  setOnOpeningAdded(refreshTree);
+  setOnOpeningDeleted(refreshTree);
+  setOnSlopeAdded(refreshTree);
+  setOnSlopeDeleted(refreshTree);
 
   // --- 階層ツリー ---
   initHierarchyTree();
@@ -73,20 +79,20 @@ function init() {
   // --- アニメーション開始 ---
   animate();
 
-  console.log('[Map Editor V2] モジュール版 初期化完了');
+  console.log('[Map Editor V2] モジュール版 初期化完了 (Phase 8: Opening + Slope)');
 }
 
 // ============================================
 // イベントリスナー
 // ============================================
 function setupEventListeners() {
-  // マウス移動 → ステータスバーの座標更新 + 壁プレビュー
+  // マウス移動 → ステータスバーの座標更新 + プレビュー更新
   container.addEventListener('mousemove', onMouseMove);
 
   // キャンバスクリック → ツール別処理
   container.addEventListener('click', onCanvasClick);
 
-  // 右クリック → 壁描画キャンセル
+  // 右クリック → 描画キャンセル
   container.addEventListener('contextmenu', onCanvasRightClick);
 
   // キーボード
@@ -123,6 +129,14 @@ function onMouseMove(event) {
     if (state.activeTool === 'zone' && isZoneDrawing()) {
       updateZonePreview(worldPos.x, worldPos.z, state.activeFloorId);
     }
+    // 開口部配置中ならプレビュー更新
+    if (state.activeTool === 'opening' && isOpeningPlacing()) {
+      updateOpeningPreview(event, container, state.activeFloorId);
+    }
+    // スロープ描画中ならプレビュー更新
+    if (state.activeTool === 'slope' && isSlopeDrawing()) {
+      updateSlopePreview(worldPos.x, worldPos.z, state.activeFloorId);
+    }
   }
 }
 
@@ -138,6 +152,10 @@ function onCanvasClick(event) {
     handleSelectClick(event, container);
   } else if (state.activeTool === 'zone') {
     handleZoneClick(state.activeFloorId);
+  } else if (state.activeTool === 'opening') {
+    handleOpeningClick(event, container, state.activeFloorId);
+  } else if (state.activeTool === 'slope') {
+    handleSlopeClick(state.activeFloorId);
   }
 }
 
@@ -151,6 +169,10 @@ function onCanvasRightClick(event) {
     cancelWallDrawing();
   } else if (state.activeTool === 'zone' && isZoneDrawing()) {
     cancelZoneDrawing();
+  } else if (state.activeTool === 'opening' && isOpeningPlacing()) {
+    cancelOpeningPlacement();
+  } else if (state.activeTool === 'slope' && isSlopeDrawing()) {
+    cancelSlopeDrawing();
   }
 }
 
@@ -163,6 +185,10 @@ function onKeyDown(event) {
       cancelWallDrawing();
     } else if (state.activeTool === 'zone' && isZoneDrawing()) {
       cancelZoneDrawing();
+    } else if (state.activeTool === 'opening' && isOpeningPlacing()) {
+      cancelOpeningPlacement();
+    } else if (state.activeTool === 'slope' && isSlopeDrawing()) {
+      cancelSlopeDrawing();
     } else if (state.activeTool === 'select') {
       clearSelection();
     }
