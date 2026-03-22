@@ -15,6 +15,91 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.100] 3D Map Editor V2 — Phase 7 Zone & Select Tools - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini) / Other AI
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **選択・削除ツール (SelectTool)**:
+  - キャンバス上の壁などのオブジェクトをクリックして選択状態（オレンジ色へのハイライト）にする機能を実装。
+  - 選択状態で `Delete` または `Backspace` キーを押すと、シーン上および内部の `mapData` の両方から要素を完全に削除できる機能を実装。
+- **ゾーン定義ツール (ZoneTool)**:
+  - 物理的な壁とは独立した空間ボリュームを作成できるツールを追加。
+  - 床面上を順にクリックして多角形の頂点を設定し、始点付近のクリックまたは3点以上でのスナップによる確定操作で、高さ（デフォルト3.0m）を持つ半透明のゾーンメッシュを生成。
+  - 内部 `mapData` の `zones` 配列へ保存され、Firestore上の企画データなどと紐づけるためのUUIDを持つ。
+
+### 変更 (Changed)
+
+- **UIとの統合**:
+  - `main.js` と `HierarchyTree.js` を更新し、ゾーン追加や壁削除が行われた際に左サイドバーのツリー画面がリアルタイムに更新されるように配線（コールバックパターンの活用）。
+  - 各建物のツリーバッジに、壁とゾーンの合計数が表示されるように最適化。
+
+## [0.2.99] 3D Map Editor V2 — Phase 6 ES Moduleリファクタリング - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Gemini (Antigravity)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **エディタのモジュール化**:
+  - 肥大化した単一ファイル `editor.js` (約800行) を7つの独立したES Moduleに論理分割し、可読性とAIのコンテキスト維持性を大幅に向上。
+  - `js/main.js`: エントリーポイント、全体の状態管理とイベント配線。
+  - `js/core/MapData.js`: データマネージャー（階層構造管理、ID生成）。
+  - `js/core/Renderer.js`: Three.jsの基盤部分（Scene、Camera、Renderer、ResizeObserver）。
+  - `js/core/Controls.js`: OrbitControls、Raycastingによるスナップ座標取得、カメラ切替。
+  - `js/tools/WallTool.js`: 壁の描画ロジック全般、3Dメッシュ生成。
+  - `js/tools/ToolManager.js`: ツールの切り替えロジック。
+  - `js/ui/HierarchyTree.js`: 左サイドバーの階層ツリーレンダリング。
+
+### 追加 (Added)
+
+- **疎結合なイベント通知**:
+  - ツール（`WallTool.js`）がUI層（`HierarchyTree.js`）を直接呼ばず、コールバック（`setOnWallAdded`）を介して `main.js` がツリー更新を委譲するイベント駆動アーキテクチャを導入。
+- **安全な状態参照**:
+  - カメラ切り替え時のES Module `live binding` 挙動を確実にするため `getActiveCamera()` ゲッターを導入。
+
+### 削除 (Removed)
+
+- **旧モノリスファイルの削除**:
+  - 動作検証完了に伴い、旧 `editor.js` を削除。
+  - `editor.html` のスクリプトの参照先を `js/main.js` へ変更（対応済み）。
+
+## [0.2.98] 3D Map Editor V2 — Phase 5 状態管理と壁描画ツール - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **データマネージャー（mapData）の初期化**:
+  - `context.md` §8-3 準拠の階層型データ構造を JS メモリ上に構築（Site > Building > Floor > Elements）
+  - 初期データとして生徒棟（3階建て）、管理棟（1階）、体育館（1階）を定義
+  - `state.activeFloorId` によるアクティブフロア管理と `getActiveFloor()` ヘルパー
+
+- **壁描画ツール (Wall Tool)**:
+  - 操作フロー: 始点クリック → マウス追従プレビュー（半透明 BoxGeometry + ガイドライン）→ 終点クリック → 壁 Mesh 確定
+  - `createWallMesh()`: start/end 座標から長さ・角度を算出し、BoxGeometry(length, 3.0m, 0.2m) を動的生成。影あり。
+  - 連続描画モード: 終点が自動的に次の始点になり、連続して壁を描ける
+  - Escape / 右クリックで描画を中断
+  - 壁描画モード中は OrbitControls を無効化し、操作の競合を防止
+  - 壁データは `mapData` のアクティブフロアの `elements.walls` 配列に自動保存
+
+- **階層ツリーの動的レンダリング**:
+  - 静的 HTML プレースホルダーを廃止し、`renderHierarchyTree()` で mapData から動的生成
+  - 壁追加時にリアルタイム更新（壁ノード `🧱 w_001 (L=5.00m)` がフロア下に追加）
+  - フロアクリックで `activeFloorId` を切替、アクティブフロアを紫ボーダーで強調表示
+  - 建物・フロアに壁数バッジを表示
+
+- **CSS追加**: 壁描画時の crosshair カーソル、アクティブフロア強調スタイル、壁カウントバッジ
+
 ## [0.2.97] 3D Map Editor V2 — Phase 4 プロトタイプ初期セットアップ - 2026-03-23
 
 ### メタ情報

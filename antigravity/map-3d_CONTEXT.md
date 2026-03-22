@@ -58,9 +58,9 @@ last_updated: 2026-03-23
 ### 5-1. ファイル構成
 | ファイル | 役割 |
 |---|---|
-| `editor.html` | UIシェル（3ペイン+トップバー+ステータスバー）。Import Map でThree.js r170をCDN (esm.sh) 経由ロード |
+| `editor.html` | UIシェル（3ペイン+トップバー+ステータスバー）。Import MapでThree.jsを読み込み、`<script type="module" src="js/main.js">` を実行 |
 | `editor.css` | CSS Grid レイアウト。ダークネイビー系テーマ。CSS変数で全色管理 |
-| `editor.js` | Three.js 初期化、カメラ、コントロール、ライティング、グリッド、イベント処理 |
+| `js/main.js` | エントリーポイント。イベント配線と状態管理。ロジックは `js/core/`, `js/tools/`, `js/ui/` にモジュール分割済み |
 
 ### 5-2. Three.js インポート方式
 ```html
@@ -87,3 +87,75 @@ last_updated: 2026-03-23
 - サブグリッド（10m刻み太線）: Y = 0.006
 - AxesHelper: Y = 0.01
 
+## 6. 壁描画ツール (Wall Tool — Phase 5)
+
+### 6-1. 操作フロー
+1. ツールバー「🧱 壁描画」選択 → OrbitControls 無効化、カーソルが crosshair に変更
+2. キャンバスクリック → Raycaster で地面交点取得 → グリッドスナップ適用 → **始点確定**
+3. マウス移動 → 始点〜現在位置に半透明 BoxGeometry プレビュー + ガイドライン描画
+4. 再度クリック → **終点確定** → 壁 Mesh 生成 + mapData 保存 + ツリー更新
+5. 終点 → 次の始点（連続描画）。Escape or 右クリックで中断
+
+### 6-2. 壁 Mesh 生成ロジック (`createWallMesh`)
+- `BoxGeometry(length, height=3.0, thickness=0.2)` を動的生成
+- XZ平面上の中点に配置、`Math.atan2(dz, dx)` で Y軸回転
+- Y座標 = `building.position.y + floor.yOffset + height / 2`
+- `mesh.userData = { type: 'wall', wallId, floorId, buildingId }` で逆引き可能
+- 影(cast/receive)有効
+- 壁色: `0x8899aa`（MeshStandardMaterial, roughness: 0.7, metalness: 0.1）
+
+### 6-3. データフロー
+```
+ユーザークリック → WallTool.js: createWallData() → mapData.floor.elements.walls.push()
+                → WallTool.js: createWallMesh() → wallMeshGroup.add(mesh)
+                → main.js: _onWallAdded コールバック発火
+                → HierarchyTree.js: renderHierarchyTree() → 左サイドバー更新
+```
+
+### 6-4. 階層ツリー動的レンダリング
+- `renderHierarchyTree()` が mapData 全体を走査して HTML を生成
+- フロアクリックで `state.activeFloorId` を切替
+- 壁はフロア配下に `🧱 w_001 (L=5.00m)` のような子ノードとして表示
+- 建物・フロアに壁数バッジを表示
+
+## 7. ES Module アーキテクチャ (Phase 6)
+
+### 7-1. 背景
+- 単一ファイル(`editor.js`)が数百〜数千行に肥大化すると、AIがコンテキストを維持できずバグ修正が困難になる
+- Phase 6 で ES Module (`import/export`) を使って論理的に分割
+
+### 7-2. ファイル構成
+```
+map_editor_v2/
+├── editor.html          ← <script type="module" src="js/main.js">
+├── editor.css
+└── js/
+    ├── main.js           ← エントリーポイント（状態管理・イベント配線・アニメーションループ）
+    ├── core/
+    │   ├── MapData.js    ← mapDataオブジェクト、ID生成、フロア検索
+    │   ├── Renderer.js   ← Scene/Camera/Light/Grid/Resize
+    │   └── Controls.js   ← OrbitControls, Raycaster, カメラ切替
+    ├── tools/
+    │   ├── ToolManager.js ← ツール選択・切替・OrbitControls連動
+    │   ├── WallTool.js    ← 壁描画（プレビュー・Mesh生成・データ保存）
+    │   ├── SelectTool.js  ← 選択・編集・削除
+    │   └── ZoneTool.js    ← ゾーン（空間ボリューム）描画と生成
+    └── ui/
+        └── HierarchyTree.js ← 左サイドバーの階層ツリーDOM生成
+```
+
+### 7-3. 依存関係
+```
+main.js → Renderer.js, Controls.js, WallTool.js, SelectTool.js, ZoneTool.js, ToolManager.js, HierarchyTree.js
+Controls.js → Renderer.js
+WallTool.js → Renderer.js, MapData.js, Controls.js
+SelectTool.js → Renderer.js, MapData.js, WallTool.js
+ZoneTool.js → Renderer.js, MapData.js, Controls.js
+ToolManager.js → Controls.js, WallTool.js, SelectTool.js, ZoneTool.js
+HierarchyTree.js → MapData.js
+```
+
+### 7-4. 設計原則
+- **ツールはUIを直接呼ばない**: `WallTool` は壁追加後に `_onWallAdded` コールバックを発火し、`main.js` がツリー更新を委譲する
+- **カメラ参照は `getActiveCamera()` ゲッター経由**: ES Module の live binding に依存せず、安全にカメラ切替後の参照を取得
+- **状態(`state`)は `main.js` に集約**: 各モジュールは引数でstateを受け取る（グローバル状態の分散を防止）

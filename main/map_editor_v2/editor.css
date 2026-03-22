@@ -433,3 +433,46 @@ html, body {
   background: rgba(231, 76, 60, 0.15);
   color: #e74c3c;
 }
+
+/* ============================================
+   Tool-Specific Canvas Cursors
+   ============================================ */
+#canvas-container.tool-wall,
+#canvas-container.tool-zone,
+#canvas-container.tool-slope {
+  cursor: crosshair;
+}
+
+#canvas-container.tool-wall:active,
+#canvas-container.tool-zone:active,
+#canvas-container.tool-slope:active {
+  cursor: crosshair;
+}
+
+/* ============================================
+   Active Floor Highlight
+   ============================================ */
+.tree-item.active-floor {
+  border-left: 3px solid #6a11cb;
+  padding-left: 5px;
+  background: rgba(106, 17, 203, 0.1);
+}
+
+.tree-item.active-floor .tree-label {
+  font-weight: 700;
+  color: #b794f6;
+}
+
+/* ============================================
+   Wall Count Badge
+   ============================================ */
+.tree-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(106, 17, 203, 0.2);
+  color: #b794f6;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}

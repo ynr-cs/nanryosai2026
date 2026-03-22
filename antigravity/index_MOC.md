@@ -26,7 +26,8 @@ last_updated: 2026-03-19
 - [[main\data_CONTEXT]]: メインサイト用のデータ構造とフック
 - [[main\list_pages_CONTEXT]]: 一覧ページ（模擬店、企画など）
 - [[main\info_pages_CONTEXT]]: 詳細ページ（各店舗・企画の詳細）
-- [[main\map_implementation_CONTEXT]]: マップ・ルート案内の実装
+- [[main\map_implementation_CONTEXT]]: マップ・ルート案内の実装 (V1)
+- [[map-3d_CONTEXT]]: 3Dマップシステム アーキテクチャ (V2エディタ基盤)
 - [[main\mobile-order-guide_CONTEXT]]: モバイルオーダーの利用ガイド
 - [[main\terms_CONTEXT]]: 利用規約・プライバシーポリシー
 

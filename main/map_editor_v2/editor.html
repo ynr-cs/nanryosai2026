@@ -86,46 +86,7 @@
         <span>ヒエラルキー</span>
       </div>
       <div class="panel-content" id="hierarchy-tree">
-        <!-- ツリーのプレースホルダー：初期状態 -->
-        <div class="tree-item selected">
-          <span class="tree-icon">🌐</span>
-          <span class="tree-label">Site</span>
-          <span class="tree-visibility" title="表示切替">👁️</span>
-        </div>
-        <div class="tree-children">
-          <div class="tree-item">
-            <span class="tree-icon">🏢</span>
-            <span class="tree-label">生徒棟</span>
-            <span class="tree-visibility">👁️</span>
-          </div>
-          <div class="tree-children">
-            <div class="tree-item">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">1F (yOffset: 0)</span>
-              <span class="tree-visibility">👁️</span>
-            </div>
-            <div class="tree-item">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">2F (yOffset: 3.5)</span>
-              <span class="tree-visibility">👁️</span>
-            </div>
-            <div class="tree-item">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">3F (yOffset: 7.0)</span>
-              <span class="tree-visibility">👁️</span>
-            </div>
-          </div>
-          <div class="tree-item">
-            <span class="tree-icon">🏢</span>
-            <span class="tree-label">管理棟</span>
-            <span class="tree-visibility">👁️</span>
-          </div>
-          <div class="tree-item">
-            <span class="tree-icon">🏠</span>
-            <span class="tree-label">体育館</span>
-            <span class="tree-visibility">👁️</span>
-          </div>
-        </div>
+        <!-- mapData から動的にレンダリング -->
       </div>
     </div>
 
@@ -181,7 +142,7 @@
   </div>
 
   <!-- Editor Main Script (ES Module) -->
-  <script type="module" src="editor.js"></script>
+  <script type="module" src="js/main.js"></script>
 
 </body>
 </html>
