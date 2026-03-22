@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Map Editor V2 — 南陵祭 2026</title>
+  <link rel="stylesheet" href="editor.css">
+
+  <!-- Three.js Import Map (CDN via esm.sh, ビルドツール不使用) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.170.0",
+      "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <div id="editor-root">
+
+    <!-- ========================================
+         Top Bar (ツールバー)
+         ======================================== -->
+    <div id="top-bar">
+      <!-- ロゴ / タイトル -->
+      <div class="toolbar-title">
+        <span class="logo-dot"></span>
+        Map Editor V2
+      </div>
+
+      <!-- System セクション -->
+      <div class="toolbar-section">
+        <button class="tb-btn" id="btn-save" title="保存">
+          <span class="icon">💾</span> Save
+        </button>
+        <button class="tb-btn" id="btn-load" title="読み込み">
+          <span class="icon">📂</span> Load
+        </button>
+        <button class="tb-btn" id="btn-export" title="JSONエクスポート">
+          <span class="icon">📤</span> Export
+        </button>
+        <button class="tb-btn" id="btn-import" title="JSONインポート">
+          <span class="icon">📥</span> Import
+        </button>
+      </div>
+
+      <!-- Tools セクション -->
+      <div class="toolbar-section">
+        <button class="tb-btn active" id="tool-select" title="選択ツール">
+          <span class="icon">👆</span> 選択
+        </button>
+        <button class="tb-btn" id="tool-wall" title="壁描画ツール">
+          <span class="icon">🧱</span> 壁描画
+        </button>
+        <button class="tb-btn" id="tool-opening" title="開口部ツール">
+          <span class="icon">🚪</span> 開口部
+        </button>
+        <button class="tb-btn" id="tool-zone" title="ゾーン配置ツール">
+          <span class="icon">📦</span> ゾーン
+        </button>
+        <button class="tb-btn" id="tool-slope" title="斜面生成ツール">
+          <span class="icon">🎢</span> 斜面
+        </button>
+      </div>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Camera / View セクション -->
+      <div class="toolbar-section">
+        <button class="tb-btn active" id="view-3d" title="3Dパース表示">
+          <span class="icon">🎥</span> 3D
+        </button>
+        <button class="tb-btn" id="view-2d" title="2D平面表示 (平行投影)">
+          <span class="icon">📐</span> 2D
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================
+         Left Sidebar (階層ツリー)
+         ======================================== -->
+    <div id="left-sidebar">
+      <div class="panel-header">
+        <span>ヒエラルキー</span>
+      </div>
+      <div class="panel-content" id="hierarchy-tree">
+        <!-- ツリーのプレースホルダー：初期状態 -->
+        <div class="tree-item selected">
+          <span class="tree-icon">🌐</span>
+          <span class="tree-label">Site</span>
+          <span class="tree-visibility" title="表示切替">👁️</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-item">
+            <span class="tree-icon">🏢</span>
+            <span class="tree-label">生徒棟</span>
+            <span class="tree-visibility">👁️</span>
+          </div>
+          <div class="tree-children">
+            <div class="tree-item">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">1F (yOffset: 0)</span>
+              <span class="tree-visibility">👁️</span>
+            </div>
+            <div class="tree-item">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">2F (yOffset: 3.5)</span>
+              <span class="tree-visibility">👁️</span>
+            </div>
+            <div class="tree-item">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">3F (yOffset: 7.0)</span>
+              <span class="tree-visibility">👁️</span>
+            </div>
+          </div>
+          <div class="tree-item">
+            <span class="tree-icon">🏢</span>
+            <span class="tree-label">管理棟</span>
+            <span class="tree-visibility">👁️</span>
+          </div>
+          <div class="tree-item">
+            <span class="tree-icon">🏠</span>
+            <span class="tree-label">体育館</span>
+            <span class="tree-visibility">👁️</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================
+         Center Canvas (3D描画エリア)
+         ======================================== -->
+    <div id="canvas-container"></div>
+
+    <!-- ========================================
+         Right Sidebar (インスペクタ)
+         ======================================== -->
+    <div id="right-sidebar">
+      <div class="panel-header">
+        <span>インスペクタ</span>
+      </div>
+      <div class="panel-content" id="inspector-content">
+        <!-- 未選択時のプレースホルダー -->
+        <div class="inspector-empty">
+          <span class="empty-icon">🔍</span>
+          <span>オブジェクトを選択すると<br>プロパティが表示されます</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================
+         Status Bar (ステータスバー)
+         ======================================== -->
+    <div id="status-bar">
+      <div class="status-item">
+        <span class="status-label">カーソル:</span>
+        <span class="status-value" id="status-cursor">X: 0.00  Y: 0.00  Z: 0.00</span>
+      </div>
+
+      <div class="status-divider"></div>
+
+      <div class="status-item">
+        <span class="status-label">ツール:</span>
+        <span class="status-value" id="status-tool">選択</span>
+      </div>
+
+      <div class="status-right">
+        <div class="status-item">
+          <span class="status-label">グリッド:</span>
+          <span class="snap-badge on" id="status-grid">1m</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">スナップ:</span>
+          <span class="snap-badge on" id="status-snap">ON</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Editor Main Script (ES Module) -->
+  <script type="module" src="editor.js"></script>
+
+</body>
+</html>

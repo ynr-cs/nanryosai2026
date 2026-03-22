@@ -50,3 +50,40 @@ last_updated: 2026-03-23
     - 重なり合った床やオブジェクトの描画チラつきを防ぐため、システム内でZバッファへの微小なオフセット（あるいはY座標の自動加算0.01m等）をプログラム処理で適用する。
 *   **スライス表示（階層カット）の限定化**:
     - ビューア側で「2階の平面図を見る」処理を行った際、透過・非表示化されるのは**生徒棟のみ**とする。周囲の高台にある校庭や別棟が一緒に消えてしまう視覚バグを防ぐため。
+
+## 5. エディタ実装詳細 (Editor Implementation — Phase 4 Prototype)
+
+`main/map_editor_v2/` に以下の3ファイルで初期構成を確立。
+
+### 5-1. ファイル構成
+| ファイル | 役割 |
+|---|---|
+| `editor.html` | UIシェル（3ペイン+トップバー+ステータスバー）。Import Map でThree.js r170をCDN (esm.sh) 経由ロード |
+| `editor.css` | CSS Grid レイアウト。ダークネイビー系テーマ。CSS変数で全色管理 |
+| `editor.js` | Three.js 初期化、カメラ、コントロール、ライティング、グリッド、イベント処理 |
+
+### 5-2. Three.js インポート方式
+```html
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.170.0",
+    "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+```
+- npm/バンドラー不使用。`import * as THREE from 'three'` で直接利用可能。
+- OrbitControls, BufferGeometryUtils 等のaddonsも `three/addons/` プレフィックスで import 可能。
+
+### 5-3. カメラ構成
+- **PerspectiveCamera**: デフォルト（3Dビュー）。FOV 50°。
+- **OrthographicCamera**: 2D俯瞰ビュー。frustumSize 80。`up = (0,0,-1)` で北を上に。
+- ワンタッチ切替。OrbitControls のカメラオブジェクトを差し替えて対応。
+
+### 5-4. Z-Fighting 対策の具体値
+- 地面メッシュ: Y = 0
+- メイングリッド（1m刻み）: Y = 0.005
+- サブグリッド（10m刻み太線）: Y = 0.006
+- AxesHelper: Y = 0.01
+

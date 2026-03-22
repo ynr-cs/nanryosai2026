@@ -15,6 +15,29 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.97] 3D Map Editor V2 — Phase 4 プロトタイプ初期セットアップ - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **3Dマップエディタ V2 のスキャフォールディング (`main/map_editor_v2/`)**:
+  - `editor.html`: Import Map によるThree.js r170のCDN読み込み（esm.sh経由）。`context.md` §8-3 に準拠した3ペイン＋トップバー＋ステータスバーのUIシェルを構築。
+  - `editor.css`: CSS Grid による5領域レイアウト（TopBar / LeftSidebar / CenterCanvas / RightSidebar / StatusBar）。3Dエディタの慣例に合わせたダークネイビー系テーマ。`main/style.css` のCSS変数パターン（ブランドカラー、フォント）を踏襲。
+  - `editor.js`: Three.jsの初期セットアップ。ES Modules構成。
+    - **デュアルカメラ**: PerspectiveCamera（3Dビュー）+ OrthographicCamera（2D俯瞰）のワンタッチ切替
+    - **OrbitControls**: ダンピング付き。地面下への潜り込み防止
+    - **3灯ライティング**: AmbientLight + DirectionalLight(影あり) + HemisphereLight
+    - **地面**: MeshStandardMaterial の暗色プレーン + 200m四方のデュアルグリッド（1m刻み＋10m刻み太線）
+    - **AxesHelper**: 原点にRGB座標軸（デバッグ用）
+    - **Raycaster**: マウスの地面交点をリアルタイム計算し、ステータスバーに座標表示。スナップ対応
+    - **ツール切替**: 選択/壁描画/開口部/ゾーン/斜面のボタンUI（ロジックは未実装）
+    - **ResizeObserver**: ウィンドウリサイズ時のキャンバス追従
+  - **得られた知見**: `<script type="importmap">` + `esm.sh` の組み合わせにより、npm/バンドラー無しでThree.jsのES Modules構成を実現。OrbitControlsや将来的な`BufferGeometryUtils`等のaddonsもCDN経由で直接importできる。Z-Fighting対策として、グリッドやAxesHelperのY座標に0.005m〜0.01mの微小オフセットを適用。
+
 ## [0.2.96] 3D Map Editor Architecture Finalization - 2026-03-23
 
 ### メタ情報
