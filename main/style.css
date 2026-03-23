@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Nanryosai 2026
  * Version: 0.1.0
  * Last Modified: 2026-02-05
@@ -1186,6 +1186,40 @@ main {
   background: var(--card-bg);
   color: var(--primary-color);
   box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Menu Footer */
+.menu-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-footer-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  border-radius: 10px;
+}
+
+.menu-footer-link:active {
+  background: var(--bg-color);
+  color: var(--primary-color);
 }
 
 .menu-list {

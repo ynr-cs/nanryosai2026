@@ -15,6 +15,58 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.105] About Us Page — 共通デザイン統合 - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/about-us.html`**:
+  - 他ページと同じ共通パターン（`window.CURRENT_PAGE` 宣言 + `app-shell.js` 読み込み）に統合。
+  - 独自のナビゲーション（`.page-top-nav`）を削除し、共通のヘッダー・ボトムナビが正しく表示されるように修正。
+  - ページ固有のスタイルを `<style>` タグ内に集約し、`var(--card-bg)`, `var(--border-color)` 等の共通CSS変数を利用。
+  - 各セクションのデザインを `account.html` や `projects-list.html` と統一（角丸カード + `var(--shadow-color)`）。
+- **`main/style.css`**:
+  - 前回追加した About Us 専用スタイル（`.page-top-nav`, `.back-btn`, `.section-label` 等 約200行）を削除。
+
+## [0.2.104] About Us Page Redesign & Simplification - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/about-us.html`**:
+  - 過度なグリッチエフェクトや動的な背景アニメーション（`.scanline`, `.bg-grid`, `.bg-orb`）を削除。
+  - ファイル内の長大なインラインスタイル設定（`<style>`）を分離・削減し、全体的なコード量を大幅に削減（800行→約100行）。
+  - 技術用語の羅列を避け、「来場者への提供価値」や「プロジェクトのミッション」に焦点を当てたコンテンツ構成へ刷新。
+- **`main/style.css`**:
+  - `about-us.html` 用のスタイル（`about-container`, `about-section`, `feature-card` など）を `style.css` の末尾に追記。
+  - 共通のCSS変数（`--accent-color`, `--card-bg` など）を活用し、他のページとのデザインの統一感（Glassmorphismベース）を図った。
+
+## [0.2.103] Hamburger Menu "Powered by" Design Refinement - 2026-03-23
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/app-shell.js`**:
+  - ハンバーガーメニュー内の「Powered by コンピュータ科学部」セクションからインラインスタイルとアイコンを削除。
+  - セクション全体を `.menu-footer` クラスでラップし、リンクに `.menu-footer-link` クラスを適用。
+- **`main/style.css`**:
+  - `.menu-footer` および `.menu-footer-link` クラスを新規定義。
+  - 他のメニュー項目との視覚的整合性を保ちつつ、スマホ幅での見切れが発生しないようパディングとフォントサイズを最適化。
+  - ホバー/アクティブ時のフィードバックを追加し、シンプルかつ洗練されたデザインに刷新。
+  - **背景/原因**: 固定幅のメニュー内で大きなパディングを持つボタン形式だったため、スマホ幅で文字が見切れる問題が発生していた。また、ユーザーより「強調しすぎず、他のメニューと同様の扱いにしたい」とのフィードバックを受けたため、アイコンを廃止しデザインを簡素化した。
+
 ## [0.2.102] 3D Map Editor V2 — Phase 8 ツール統合 (UI・イベント配線) - 2026-03-23
 
 ### メタ情報
