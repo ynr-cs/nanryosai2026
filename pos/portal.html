@@ -2268,11 +2268,11 @@
             <div class="pulse-chart-card">
               <div class="pulse-header">
                 <div class="pulse-title">
-                  <span>📡</span> タイムライン・インスペクター (1分単位)
+                  <span>📡</span> 24h トレンド詳細 (1分単位)
                   <div class="help-container" onclick="toggleTooltip(this)">
                     <span class="help-icon">?</span>
                     <div class="tooltip-text">
-                      1分単位の精密な売上推移グラフです。<br />マウスドラッグや拡大ボタンで、ピーク時の波を詳細に分析できます。
+                      1分単位の精密な売上推移グラフです。<br />マウスや指で直接ドラッグして、ピーク時の波を直感的に分析できます。
                     </div>
                   </div>
                 </div>
@@ -3893,98 +3893,106 @@
         .addEventListener("change", handleDateChange);
 
       // Global Assign (Modules scope)
-      function renderPulseChart() {
+      let labelsForPulse = null; // Cache labels
+
+      function renderPulseChart(updateOnly = false) {
         if (!pulseDataCache) return;
         setupTimelineInteractions();
 
-        const ctxP = document
-          .getElementById("chart-detailed-pulse")
-          .getContext("2d");
-        const labels = Array.from({ length: 1440 }, (_, i) => {
-          const h = Math.floor(i / 60);
-          const m = i % 60;
-          return `${h}:${String(m).padStart(2, "0")}`;
-        });
+        if (!labelsForPulse) {
+          labelsForPulse = Array.from({ length: 1440 }, (_, i) => {
+            const h = Math.floor(i / 60);
+            const m = i % 60;
+            return `${h}:${String(m).padStart(2, "0")}`;
+          });
+        }
 
-        if (pulseChart) pulseChart.destroy();
-        pulseChart = new Chart(ctxP, {
-          type: "line",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "注文数",
-                data: pulseDataCache,
-                borderColor: "#10b981",
-                backgroundColor: "rgba(16, 185, 129, 0.1)",
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: (context) =>
-                  pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0,
-                pointBackgroundColor: "#10b981",
+        const minIdx = Math.max(0, pulseChartRange.start);
+        const maxIdx = Math.min(1439, pulseChartRange.end);
+        const minVal = labelsForPulse[minIdx];
+        const maxVal = labelsForPulse[maxIdx];
+
+        if (pulseChart && updateOnly) {
+          pulseChart.options.scales.x.min = minVal;
+          pulseChart.options.scales.x.max = maxVal;
+          // Dynamically adjust point radius if zoomed in
+          const range = pulseChartRange.end - pulseChartRange.start;
+          pulseChart.data.datasets[0].pointRadius = (ctx) => range < 60 ? 4 : 0;
+          pulseChart.update("none");
+        } else {
+          const ctxP = document.getElementById("chart-detailed-pulse").getContext("2d");
+          if (pulseChart) pulseChart.destroy();
+          pulseChart = new Chart(ctxP, {
+            type: "line",
+            data: {
+              labels: labelsForPulse,
+              datasets: [
+                {
+                  label: "注文数",
+                  data: pulseDataCache,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: (context) => (pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0),
+                  pointBackgroundColor: "#10b981",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false, // Performance priority
+              scales: {
+                x: {
+                  min: minVal,
+                  max: maxVal,
+                  grid: { display: false },
+                  ticks: {
+                    maxRotation: 0,
+                    autoSkip: false,
+                    callback: function (value, index, ticks) {
+                      const label = labelsForPulse[value];
+                      if (!label) return "";
+                      const range = pulseChartRange.end - pulseChartRange.start;
+                      const minute = value;
+                      let interval = 5;
+                      if (range > 600) interval = 60;
+                      else if (range > 300) interval = 30;
+                      else if (range > 120) interval = 15;
+                      else if (range > 60) interval = 10;
+                      if (minute % interval === 0) return label;
+                      return "";
+                    },
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                  ticks: { stepSize: 1, precision: 0 },
+                },
               },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: {
-                min: labels[pulseChartRange.start] || labels[0],
-                max:
-                  labels[Math.min(pulseChartRange.end, 1439)] || labels[1439],
-                grid: { display: false },
-                ticks: {
-                  maxRotation: 0,
-                  autoSkip: false,
-                  callback: function (value, index, ticks) {
-                    const label = labels[value]; // value = absolute index in labels array
-                    if (!label) return "";
-                    const range = pulseChartRange.end - pulseChartRange.start;
-                    const minute = value; // absolute minute position
-
-                    // Dynamic interval based on zoom range
-                    let interval = 5; // Default (Zoomed in)
-                    if (range > 600)
-                      interval = 60; // > 10 hours: Show hourly
-                    else if (range > 300)
-                      interval = 30; // > 5 hours: Show 30 mins
-                    else if (range > 120)
-                      interval = 15; // > 2 hours: Show 15 mins
-                    else if (range > 60) interval = 10; // > 1 hour: Show 10 mins
-
-                    if (minute % interval === 0) return label;
-                    return "";
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "rgba(17, 24, 39, 0.9)",
+                  titleFont: { size: 14 },
+                  bodyFont: { size: 14, weight: "bold" },
+                  padding: 12,
+                  displayColors: false,
+                  callbacks: {
+                    title: (items) => `⏰ ${items[0].label}`,
+                    label: (item) => `注文数: ${item.formattedValue} 件`,
                   },
                 },
               },
-              y: {
-                beginAtZero: true,
-                ticks: { stepSize: 1, precision: 0 },
-              },
             },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: "rgba(17, 24, 39, 0.9)",
-                titleFont: { size: 14 },
-                bodyFont: { size: 14, weight: "bold" },
-                padding: 12,
-                displayColors: false,
-                callbacks: {
-                  title: (items) => `⏰ ${items[0].label}`,
-                  label: (item) => `注文数: ${item.formattedValue} 件`,
-                },
-              },
-            },
-          },
-        });
+          });
+        }
 
-        // Update Range Label
         const labelEl = document.getElementById("pulse-range-label");
         if (labelEl) {
-          labelEl.innerText = `${labels[pulseChartRange.start]} - ${labels[pulseChartRange.end]}`;
+          labelEl.innerText = `${minVal} - ${maxVal}`;
         }
       }
 
@@ -4103,14 +4111,11 @@
         // pxDelta / width = ratio of screen moved
         // minutes moved = ratio * currentRange
         const minsMoved = Math.round((pxDelta / width) * currentRange);
-
         if (minsMoved === 0) return;
 
         let newStart = pulseChartRange.start - minsMoved;
         let newEnd = pulseChartRange.end - minsMoved;
 
-        // Boundary Checks (0 - 1440)
-        // Hard clamping: stop at edges
         if (newStart < 0) {
           const diff = 0 - newStart;
           newStart += diff;
@@ -4121,12 +4126,17 @@
           newStart += diff;
           newEnd += diff;
         }
-        // Double check start again in case range > 1440 (shouldn't happen)
         if (newStart < 0) newStart = 0;
 
         pulseChartRange.start = newStart;
         pulseChartRange.end = newEnd;
-        renderPulseChart();
+
+        // Use requestAnimationFrame for smooth UI update
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(() => renderPulseChart(true));
+        } else {
+          renderPulseChart(true);
+        }
       }
 
       function handleZoom(factor) {
@@ -4137,9 +4147,8 @@
         const currentRange = pulseChartRange.end - pulseChartRange.start;
         let newRange = Math.round(currentRange * factor);
 
-        // Constraints
-        if (newRange < 10) newRange = 10; // Min 10 mins
-        if (newRange > 1440) newRange = 1440; // Max 24 hours
+        if (newRange < 10) newRange = 10;
+        if (newRange > 1440) newRange = 1440;
 
         if (newRange === currentRange) return;
 
@@ -4147,7 +4156,6 @@
         let newStart = Math.round(center - newRange / 2);
         let newEnd = newStart + newRange;
 
-        // Clamp within 0-1440
         if (newStart < 0) {
           newStart = 0;
           newEnd = newRange;
@@ -4159,7 +4167,7 @@
 
         pulseChartRange.start = newStart;
         pulseChartRange.end = newEnd;
-        renderPulseChart();
+        renderPulseChart(true); // Smooth zoom
       };
 
       window.moveTimeline = (dir) => {

@@ -1,47 +1,57 @@
-<!--
-  Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
-  Author: Nanryosai 2026 Project Team
--->
 <!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>責任者/マネージャー (トレーニング) | 南陵祭2026</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Bootstrap Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
     <style>
-      /* --- ベース設定 --- */
-      body {
-        font-family: "Noto Sans JP", "Roboto", sans-serif;
-        background-color: #f8f9fa; /* Light Mode for Manual */
-        color: #333;
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
+      /* --- Base variables from portal.html --- */
+      :root {
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-color: #1f2937;
+        --text-secondary: #6b7280;
+        --accent-color: #10b981;
+        --accent-hover: #059669;
+        --danger-color: #ef4444;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --header-bg: #111827;
+        --status-unpaid: #ef4444;
+        --status-preparing: #f59e0b;
+        --status-ready: #10b981;
+        --status-completed: #6b7280;
+        --status-canceled: #1f2937;
+        --status-abandoned: #9ca3af;
+        --status-authorized: #3b82f6;
       }
 
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: "Inter", "Noto Sans JP", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        font-size: 14px;
+      }
+
+      /* --- Training Banner --- */
       .training-banner {
         background: #2e7d32;
         color: white;
         text-align: center;
-        padding: 8px;
+        padding: 7px;
         font-weight: bold;
+        font-size: 0.85rem;
+        flex-shrink: 0;
         z-index: 9999;
       }
 
-      /* --- マニュアル画面 (Light Mode) --- */
+      /* --- Manual (Intro) Section --- */
       #manual-section {
         flex: 1;
         background-color: #f8f9fa;
@@ -62,503 +72,526 @@
         border: 1px solid #ddd;
       }
       .video-placeholder {
-        width: 100%;
-        height: 300px;
-        background: #eee;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 8px;
-        margin-bottom: 25px;
-        border: 2px dashed #999;
-        color: #666;
-        font-size: 1.2em;
+        width: 100%; height: 300px;
+        background: #eee; display: flex; justify-content: center; align-items: center;
+        border-radius: 8px; margin-bottom: 25px; border: 2px dashed #999;
+        color: #666; font-size: 1.2em;
       }
-      .manual-text {
-        line-height: 1.6;
-        font-size: 1.1em;
-        margin-bottom: 30px;
-        color: #333;
-      }
+      .manual-text { line-height: 1.6; font-size: 1.1em; margin-bottom: 30px; }
+      .manual-text h4 { margin-top: 20px; margin-bottom: 8px; }
+      .manual-text ul, .manual-text ol { padding-left: 24px; }
+      .manual-text li { margin-bottom: 6px; }
       .start-training-btn {
-        width: 100%;
-        padding: 15px;
-        font-size: 1.5em;
-        font-weight: bold;
-        background: #0d47a1;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%; padding: 15px; font-size: 1.5em; font-weight: bold;
+        background: #0d47a1; color: white; border: none; border-radius: 8px;
+        cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: background 0.2s;
       }
+      .start-training-btn:hover { background: #1565c0; }
 
-      /* --- シミュレーター画面 (Mock Portal Style) --- */
+      /* --- Simulator Layout (matches portal.html) --- */
       #simulator-section {
-        display: none; /* Initially hidden */
-        flex: 1;
-        background-color: #f0f2f5;
-        color: #1f2937;
-        flex-direction: column;
-        overflow: hidden;
+        display: none; flex: 1; flex-direction: column; overflow: hidden;
       }
 
-      .sim-top-bar {
-        height: 56px;
-        background: #111827;
-        color: #fff;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 20px;
-        flex-shrink: 0;
+      .top-bar {
+        height: 56px; background: var(--header-bg); color: #fff;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 20px; flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 50;
       }
-      .sim-brand {
-        font-weight: 800;
-        font-size: 1.1rem;
-        gap: 10px;
-        display: flex;
-        align-items: center;
-      }
-      .sim-user-info {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-        font-size: 0.9rem;
-        color: #ccc;
-      }
+      .brand { font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
       .store-badge {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 0.75rem;
+        background: rgba(255, 255, 255, 0.15); padding: 3px 8px;
+        border-radius: 999px; font-size: 0.7rem; font-weight: 600;
       }
-
+      .user-info { font-size: 0.8rem; display: flex; align-items: center; gap: 12px; }
       .logout-btn {
-        background: transparent;
-        border: 1px solid #555;
-        color: #ccc;
-        padding: 4px 10px;
-        border-radius: 4px;
-        cursor: pointer;
+        background: transparent; border: 1px solid rgba(255,255,255,0.3);
+        color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+        font-size: 0.75rem; transition: all 0.2s;
       }
-      .logout-btn:hover {
-        background: #333;
-      }
+      .logout-btn:hover { background: rgba(255,255,255,0.1); }
 
-      .sim-app-container {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-      }
+      .app-container { display: flex; flex: 1; overflow: hidden; }
 
+      /* Sidebar */
       .sidebar {
-        width: 220px;
-        background: white;
-        border-right: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-        gap: 5px;
+        width: 240px; background: #fff; border-right: 1px solid #e5e7eb;
+        padding: 16px; display: flex; flex-direction: column; gap: 8px;
+        z-index: 40; overflow-y: auto;
       }
       .nav-item {
-        padding: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        color: #4b5563;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        padding: 12px; border-radius: 8px; cursor: pointer;
+        font-weight: 600; color: #4b5563; transition: all 0.2s;
+        display: flex; align-items: center; gap: 10px;
       }
-      .nav-item:hover {
-        background: #f3f4f6;
-      }
-      .nav-item.active {
-        background: #ecfdf5;
-        color: #10b981;
-      }
-      .nav-icon {
-        font-size: 1.2rem;
+      .nav-item:hover { background: #f3f4f6; }
+      .nav-item.active { background: #ecfdf5; color: var(--accent-color); }
+      .nav-icon { font-size: 1.2rem; }
+
+      /* Main Content */
+      .main-content {
+        flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden;
+        display: flex; flex-direction: column; gap: 20px;
+        background: var(--bg-color);
       }
 
-      .sim-main-content {
-        flex: 1;
-        padding: 20px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-      }
+      .view-section { display: none; flex-direction: column; gap: 20px; }
+      .view-section.active { display: flex; }
 
-      .view-section {
-        display: none;
-        flex-direction: column;
-        gap: 20px;
-        height: 100%;
+      /* Common UI Components */
+      .card {
+        background: var(--card-bg); border-radius: 10px; padding: 16px;
+        box-shadow: var(--shadow); display: flex; flex-direction: column;
       }
-      .view-section.active {
-        display: flex;
+      .input-field {
+        width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;
+        font-size: 0.9rem; background: #f9fafb; margin-bottom: 10px;
+        font-family: inherit;
       }
+      .input-field:focus { outline: none; border-color: var(--accent-color); }
+      .btn-primary {
+        background: var(--accent-color); color: white; border: none;
+        padding: 10px 16px; border-radius: 6px; font-weight: 600;
+        cursor: pointer; font-size: 0.9rem; font-family: inherit;
+        transition: background 0.2s;
+      }
+      .btn-primary:hover { background: var(--accent-hover); }
+      .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; }
+      .btn-edit { background: #e5e7eb; color: #374151; }
+      .btn-edit:hover { background: #d1d5db; }
 
-      /* Mock UI Components */
+      /* Top View Apps Grid */
       .app-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 20px;
       }
       .app-link-card {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        text-decoration: none; color: inherit; background: white;
+        padding: 24px; border-radius: 12px; box-shadow: var(--shadow);
+        text-align: center; transition: transform 0.2s, border-color 0.2s;
+        border: 2px solid transparent;
       }
-      .app-icon {
-        font-size: 2.5rem;
-        display: block;
-        margin-bottom: 10px;
-      }
-      .app-title {
-        font-weight: bold;
-        color: #333;
-      }
+      .app-icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+      .app-title { font-weight: 800; font-size: 1.2rem; display: block; color: #111827; }
+      .app-desc { font-size: 0.85rem; color: #6b7280; margin-top: 4px; display: block; }
 
+      /* Items Grid */
       .items-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
       }
       .item-card {
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: white; border-radius: 8px; box-shadow: var(--shadow);
+        overflow: hidden; display: flex; flex-direction: column;
       }
-      .btn-toggle {
-        width: 100%;
-        border: none;
-        padding: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 5px;
-        border-radius: 4px;
+      .item-img {
+        width: 100%; height: 140px; object-fit: cover;
+        background: #f3f4f6; display: flex; align-items: center;
+        justify-content: center; color: #9ca3af; font-size: 0.75rem;
       }
-      .is-active {
-        background: #d1fae5;
-        color: #065f46;
-      }
-      .is-inactive {
-        background: #fee2e2;
-        color: #991b1b;
-      }
+      .item-body { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+      .item-name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+      .item-price { font-weight: 600; color: #111827; }
+      .item-actions-row { margin-top: auto; display: flex; gap: 8px; padding-top: 10px; }
+      .btn-toggle { flex: 1; padding: 6px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+      .is-active { background: #d1fae5; color: #065f46; }
+      .is-inactive { background: #fee2e2; color: #991b1b; }
 
-      .summary-row {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
-      }
-      .summary-card {
-        flex: 1;
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .summary-title {
-        font-size: 0.8rem;
-        color: #6b7280;
-        text-transform: uppercase;
-      }
-      .summary-value {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #111827;
-      }
-      .val-money {
-        color: #10b981;
-      }
+      /* Summary Cards */
+      .summary-row { display: flex; gap: 12px; flex-wrap: wrap; }
+      .summary-card { background: white; padding: 24px; border-radius: 12px; box-shadow: var(--shadow); flex: 1; }
+      .summary-title { font-size: 1rem; color: #6b7280; font-weight: 700; margin-bottom: 8px; }
+      .summary-value { font-size: 2.2rem; font-weight: 800; color: #111827; }
+
+      /* Search & Tables */
+      .search-form-card { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); }
+      .search-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; align-items: end; }
+      .search-group { display: flex; flex-direction: column; gap: 6px; }
+      .search-label { font-size: 0.85rem; font-weight: 700; color: #4b5563; }
 
       .table-wrapper {
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;
       }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
-      }
-      th {
-        background: #f9fafb;
-        padding: 10px;
-        text-align: left;
-        color: #6b7280;
-      }
-      td {
-        padding: 10px;
-        border-bottom: 1px solid #f3f4f6;
-      }
-      .btn-cancel {
-        background: #ef4444;
-        color: white;
-        border: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        cursor: pointer;
-      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+      th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+      th { background: #f9fafb; font-weight: 600; color: #6b7280; }
+      tr.clickable:hover { background: #f9fafb; cursor: pointer; }
 
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 2000;
-        display: none;
-        justify-content: center;
-        align-items: center;
+      /* Badges */
+      .badge {
+        display: inline-flex; align-items: center; padding: 4px 10px;
+        border-radius: 999px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;
       }
+      .badge.status-completed { background: #f3f4f6; color: #374151; }
+      .badge.status-ready { background: #d1fae5; color: #065f46; }
+      .badge.status-preparing { background: #fef3c7; color: #92400e; }
+      .badge.status-canceled { background: #1f2937; color: #f9fafb; }
+      .badge.status-unpaid { background: #fee2e2; color: #991b1b; }
+      .badge.status-authorized { background: #dbeafe; color: #1e40af; }
+      .badge.status-abandoned { background: #e5e7eb; color: #6b7280; }
+
+      /* --- Modals --- */
+      .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 2000;
+        display: none; justify-content: center; align-items: center;
+      }
+      .modal-overlay.open { display: flex; }
       .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 500px;
+        background: white; padding: 28px; border-radius: 12px; width: 90%;
+        max-width: 600px; max-height: 90vh; overflow-y: auto;
+      }
+      .modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 20px;
+      }
+      .modal-title { font-size: 1.25rem; font-weight: 800; color: #111827; }
+      .modal-close {
+        background: transparent; border: none; font-size: 1.5rem; cursor: pointer;
+        color: #9ca3af; width: 32px; height: 32px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+      }
+      .modal-close:hover { background: #f3f4f6; color: #111827; }
+      .form-group { margin-bottom: 16px; }
+      .form-label { font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px; color: #374151; }
+      textarea.input-field { height: 90px; resize: vertical; }
+      .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6; }
+      .btn-danger { background: var(--danger-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: inherit; }
+      .btn-secondary { background: #f3f4f6; border: 1px solid #d1d5db; color: #374151; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-family: inherit; }
+
+      /* Order Detail Modal Specifics */
+      .receipt-number {
+        font-family: "Courier New", monospace; font-size: 1.5rem; font-weight: 900;
+        color: #111827; letter-spacing: 1px; margin-bottom: 12px; display: block; text-align: center;
+      }
+      .order-detail-list {
+        background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 8px;
+        padding: 16px; margin-bottom: 20px; font-family: "Courier New", monospace;
+      }
+      .order-item-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 6px 0; border-bottom: 1px dashed #e5e7eb;
+      }
+      .order-item-row:last-child { border-bottom: none; }
+      .status-label { font-size: 0.85rem; font-weight: 700; color: #374151; margin-bottom: 6px; display: block; }
+      .status-select {
+        width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #e5e7eb;
+        border-radius: 8px; background-color: white; color: #111827; font-weight: 600;
+        cursor: pointer; transition: all 0.2s; appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em;
+        font-family: inherit;
+      }
+      .status-select:focus { outline: none; border-color: var(--accent-color); }
+      .save-btn {
+        background: var(--accent-color); color: white; border: none; padding: 12px 24px;
+        border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; font-family: inherit;
+        transition: all 0.2s;
+      }
+      .save-btn:hover { background: var(--accent-hover); }
+
+      /* Toast notification */
+      .toast {
+        position: fixed; bottom: 24px; right: 24px; background: #111827; color: white;
+        padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+        z-index: 9999; opacity: 0; transform: translateY(8px);
+        transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+      }
+      .toast.show { opacity: 1; transform: translateY(0); }
+
+      /* Mobile Responsive */
+      @media (max-width: 1024px) {
+        .sidebar { width: 100%; flex-direction: row; border-right: none; border-top: 1px solid #e5e7eb; padding: 4px 8px; gap: 4px; order: 2; flex-shrink: 0; overflow-x: auto; justify-content: space-around; }
+        .app-container { flex-direction: column; }
+        .main-content { order: 1; padding: 16px; }
+        .nav-item { padding: 8px 12px; font-size: 0.7rem; flex-direction: column; gap: 2px; white-space: nowrap; min-width: fit-content; text-align: center; }
+        .nav-icon { font-size: 1.3rem; }
+        .search-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 768px) {
+        .items-grid { grid-template-columns: repeat(2, 1fr); }
+        .summary-row { gap: 8px; }
+        .modal-content { width: 100%; max-width: 100%; border-radius: 16px 16px 0 0; position: fixed; bottom: 0; left: 0; margin: 0; }
+        .modal-overlay.open { align-items: flex-end; }
       }
     </style>
   </head>
   <body>
-    <!-- Banner -->
+    <!-- Training Banner -->
     <div class="training-banner">
-      ⚠️ トレーニングモード (操作は保存されません)
+      ⚠️ トレーニングモード — 操作はすべてモック動作で、実際のデータには影響しません
     </div>
 
+    <!-- Manual / Intro Section -->
     <div id="manual-section">
       <div class="manual-container">
-        <h2
-          style="
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            color: #222;
-          "
-        >
+        <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; color: #222;">
           責任者/マネージャー トレーニング
         </h2>
-
         <div class="video-placeholder">
-          <div>
-            <span style="font-size: 3em; display: block; margin-bottom: 10px"
-              >🎥</span
-            >
-            <span>システム全体像 & ポータル操作解説 (準備中)</span>
+          <div style="text-align:center;">
+            <span style="font-size: 3em; display: block; margin-bottom: 10px">🎥</span>
+            <span>システム全体像 &amp; ポータル操作解説 (準備中)</span>
           </div>
         </div>
-
         <div class="manual-text">
-          <h4>
-            <i class="bi bi-diagram-3 text-primary"></i> システムの全体像
-            (Knowledge)
-          </h4>
-          <p>
-            南陵祭POSシステムは、以下の3つの画面が連携して動作します。
-            責任者はこの全体の流れを理解し、トラブル発生時にどこを確認すべきか判断する必要があります。
-          </p>
+          <h4>🏗️ システムの全体像</h4>
+          <p>南陵祭POSシステムは、以下の画面が連携して動作します。責任者として全体を理解し、トラブル発生時の対応を判断できるようにしてください。</p>
           <ul>
-            <li>
-              <strong>POS (販売)</strong>: 注文を受け付け、データを送信します。
-            </li>
-            <li>
-              <strong>Kitchen (調理)</strong>:
-              注文データを受け取り、調理完了を通知します。
-            </li>
-            <li>
-              <strong>Presenter (受渡)</strong>:
-              呼び出しを行い、提供完了ステータスに変更します。
-            </li>
+            <li><strong>POS (販売)</strong>: 注文を受け付け、データを送信します。</li>
+            <li><strong>Kitchen (調理)</strong>: 注文データを受け取り、調理完了を通知します。</li>
+            <li><strong>Presenter (受渡)</strong>: 呼び出しを行い、提供完了をステータスに反映します。</li>
           </ul>
-
-          <h4>
-            <i class="bi bi-pc-display text-primary"></i> 店舗管理ポータル
-            (Portal)
-          </h4>
-          <p>
-            責任者だけがログインできる管理画面です。以下の重要な操作を行えます。
-          </p>
+          <h4>🖥️ 店舗管理ポータルでできること</h4>
           <ol>
-            <li>
-              <strong>売上の確認</strong>:
-              リアルタイムの売上状況を把握できます。
-            </li>
-            <li>
-              <strong>商品管理</strong>: 売り切れ商品の設定 (Sold Out)
-              や、価格の修正ができます。
-            </li>
-            <li>
-              <strong>注文の修正・キャンセル</strong>:
-              間違った注文を取り消すことができます。
-            </li>
+            <li><strong>商品管理</strong>: 商品の価格・説明変更、売り切れ（Sold Out）設定、新規追加・削除</li>
+            <li><strong>売上の確認</strong>: リアルタイムの売上・注文数・客単価の把握</li>
+            <li><strong>注文の修正・キャンセル</strong>: 間違った注文の取り消しやステータス変更</li>
           </ol>
         </div>
-
         <button class="start-training-btn" onclick="startTraining()">
           ポータル・シミュレーターを起動
         </button>
       </div>
     </div>
 
-    <!-- Simulator Section (Mock Portal) -->
+    <!-- Simulator Section -->
     <div id="simulator-section">
       <!-- Top Bar -->
-      <div class="sim-top-bar">
-        <div class="sim-brand">
-          <span>店舗管理ポータル (Sim)</span>
-          <span class="store-badge">ID: TRAINING</span>
+      <div class="top-bar">
+        <div class="brand">
+          店舗管理ポータル
+          <span class="store-badge">TRAINING</span>
         </div>
-        <div class="sim-user-info">
-          <span>manager@nanryo.ed.jp</span>
-          <button class="logout-btn" onclick="location.href = './index.html'">
-            終了
-          </button>
+        <div class="user-info">
+          <span>manager@training</span>
+          <button class="logout-btn" onclick="location.href = './index.html'">終了</button>
         </div>
       </div>
 
-      <div class="sim-app-container">
+      <div class="app-container">
         <!-- Sidebar -->
         <div class="sidebar">
           <div class="nav-item active" onclick="switchView('top')">
-            <i class="bi bi-house-door nav-icon"></i> トップ
+            <span class="nav-icon">🏠</span> トップ
           </div>
           <div class="nav-item" onclick="switchView('items')">
-            <i class="bi bi-card-list nav-icon"></i> 商品管理
+            <span class="nav-icon">🍔</span> 商品管理
           </div>
           <div class="nav-item" onclick="switchView('sales')">
-            <i class="bi bi-graph-up nav-icon"></i> 売上
+            <span class="nav-icon">📊</span> 売上
           </div>
           <div class="nav-item" onclick="switchView('search')">
-            <i class="bi bi-search nav-icon"></i> 注文検索
+            <span class="nav-icon">🔍</span> 注文検索
           </div>
         </div>
 
         <!-- Main Content -->
-        <div class="sim-main-content">
-          <!-- Top View -->
+        <div class="main-content">
+
+          <!-- 1. Top View -->
           <div id="view-top" class="view-section active">
-            <h2>ページ (シミュレーション不可)</h2>
+            <h2 style="margin:0;">ページ</h2>
             <div class="app-grid">
-              <div class="app-link-card">
+              <div class="app-link-card" style="opacity:0.5; cursor:not-allowed;">
                 <span class="app-icon">📱</span>
                 <span class="app-title">POSレジ</span>
+                <span class="app-desc">注文・会計画面へ</span>
               </div>
-              <div class="app-link-card">
+              <div class="app-link-card" style="opacity:0.5; cursor:not-allowed;">
                 <span class="app-icon">👨‍🍳</span>
-                <span class="app-title">キッチン</span>
+                <span class="app-title">キッチンモニター</span>
+                <span class="app-desc">厨房モニター</span>
               </div>
-              <div class="app-link-card">
+              <div class="app-link-card" style="opacity:0.5; cursor:not-allowed;">
+                <span class="app-icon">📺</span>
+                <span class="app-title">呼び出しモニター</span>
+                <span class="app-desc">呼び出しモニター</span>
+              </div>
+              <div class="app-link-card" style="opacity:0.5; cursor:not-allowed;">
                 <span class="app-icon">🎁</span>
-                <span class="app-title">プレゼンター</span>
+                <span class="app-title">プレゼンターモニター</span>
+                <span class="app-desc">商品提供口</span>
               </div>
             </div>
-            <div class="alert alert-info mt-4">
-              ※
-              実際のリンク機能はこの画面では動作しません。左のメニューから管理機能を試してください。
+            <div style="background:#e0f2fe; color:#0369a1; padding:16px; border-radius:8px; font-weight:600; font-size:0.9rem;">
+              ℹ️ トレーニングモードでは各画面へのリンクは動作しません。左のメニューから管理機能（商品管理・注文検索）を練習してください。
             </div>
           </div>
 
-          <!-- Items View -->
+          <!-- 2. Items View -->
           <div id="view-items" class="view-section">
-            <h2>商品管理 (Sold Out 練習)</h2>
-            <p>「販売中」ボタンを押して「売切」に切り替える練習ができます。</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h2 style="margin:0;">商品管理</h2>
+              <button class="btn-primary" onclick="openItemModal()">＋ 新規商品を追加</button>
+            </div>
             <div id="items-grid" class="items-grid"></div>
           </div>
 
-          <!-- Sales View -->
+          <!-- 3. Sales View (Static Mock) -->
           <div id="view-sales" class="view-section">
-            <h2>売上 (ダッシュボード)</h2>
+            <h2 style="margin:0;">売上状況 (モック)</h2>
             <div class="summary-row">
               <div class="summary-card">
-                <div class="summary-title">本日の売上</div>
+                <div class="summary-title">売上</div>
                 <div class="summary-value val-money">¥128,500</div>
               </div>
               <div class="summary-card">
-                <div class="summary-title">総注文数</div>
+                <div class="summary-title">注文数</div>
                 <div class="summary-value">342</div>
               </div>
+              <div class="summary-card">
+                <div class="summary-title">客単価</div>
+                <div class="summary-value">¥375</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-title">セット率</div>
+                <div class="summary-value">1.4品</div>
+              </div>
             </div>
-            <div
-              style="
-                background: #333;
-                height: 200px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
-                color: #aaa;
-              "
-            >
-              [グラフ表示エリア (Mock)]
+            <div class="card" style="align-items:center; justify-content:center; height:200px; color:#9ca3af; font-size:1.1rem;">
+              📊 グラフ表示エリア (トレーニングモードでは非表示)
+            </div>
+            <div style="background:#fef3c7; color:#92400e; padding:16px; border-radius:8px; font-size:0.9rem;">
+              ℹ️ 売上ページはスタッフによる操作はほぼ不要です。数値を確認する際の見方を覚えておきましょう。
             </div>
           </div>
 
-          <!-- Search View -->
+          <!-- 4. Search View -->
           <div id="view-search" class="view-section">
-            <h2>注文検索 (キャンセル練習)</h2>
-            <div class="card p-3 mb-3">
-              <label>キーワード検索</label>
-              <input
-                type="text"
-                class="input-field"
-                placeholder="レシート番号など"
-                oninput="filterOrders(this.value)"
-              />
+            <h2 style="margin:0;">注文検索</h2>
+            <div class="search-form-card">
+              <div class="search-grid">
+                <div class="search-group">
+                  <label class="search-label" for="search-keyword">キーワード検索</label>
+                  <input type="text" id="search-keyword" class="input-field" placeholder="レシート番号 No..." style="margin-bottom:0;" oninput="renderOrders()" />
+                </div>
+                <div class="search-group">
+                  <label class="search-label" for="search-status">ステータス</label>
+                  <div style="position:relative;">
+                    <select id="search-status" class="input-field" style="margin-bottom:0; appearance:none; cursor:pointer;" onchange="renderOrders()">
+                      <option value="all">すべて</option>
+                      <option value="unpaid">POS注文済み (未会計)</option>
+                      <option value="active">調理中・呼出</option>
+                      <option value="completed">受取完了</option>
+                      <option value="abandoned">受取期限切れ</option>
+                      <option value="canceled">キャンセル</option>
+                    </select>
+                    <div style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none; color:#6b7280;">▼</div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="table-wrapper">
               <table>
                 <thead>
                   <tr>
-                    <th>Receipt #</th>
-                    <th>商品</th>
-                    <th>ステータス</th>
-                    <th>操作</th>
+                    <th style="width:120px;">番号</th>
+                    <th>内容</th>
+                    <th style="width:140px;">ステータス</th>
+                    <th style="width:90px; text-align:right;">金額</th>
                   </tr>
                 </thead>
                 <tbody id="order-table-body"></tbody>
               </table>
             </div>
+            <p style="font-size:0.8rem; color:#6b7280;">💡 行をクリックすると注文の詳細を確認し、ステータスを変更できます。</p>
           </div>
+
+        </div><!-- /main-content -->
+      </div><!-- /app-container -->
+    </div><!-- /simulator-section -->
+
+    <!-- ===== Item Edit/Add Modal ===== -->
+    <div id="item-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title" id="item-modal-title">商品の追加</div>
+          <button class="modal-close" onclick="closeItemModal()">×</button>
+        </div>
+        <input type="hidden" id="edit-id" />
+        <div class="form-group">
+          <label class="form-label">商品名</label>
+          <input type="text" id="edit-name" class="input-field" placeholder="例: 焼きそば" style="margin-bottom:0;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">価格 (円)</label>
+          <input type="number" id="edit-price" class="input-field" placeholder="例: 400" style="margin-bottom:0;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">説明文</label>
+          <textarea id="edit-desc" class="input-field" placeholder="例: 特製ソース使用" style="height:80px; resize:none; margin-bottom:0;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">商品画像 (練習用のためアップロード不可)</label>
+          <input type="file" class="input-field" style="margin-bottom:0; opacity:0.5; cursor:not-allowed;" disabled />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-danger" id="item-delete-btn" onclick="deleteItemMock()" style="margin-right:auto;">削除</button>
+          <button class="btn-secondary" onclick="closeItemModal()">キャンセル</button>
+          <button class="btn-primary" onclick="saveItemMock()">保存</button>
         </div>
       </div>
     </div>
 
-    <!-- Order Modal -->
+    <!-- ===== Order Detail Modal ===== -->
     <div id="order-modal" class="modal-overlay">
       <div class="modal-content">
-        <h3 id="modal-title">注文詳細</h3>
-        <div id="modal-body"></div>
-        <div style="margin-top: 20px; text-align: right">
-          <button onclick="closeModal()" style="padding: 8px 16px">
-            閉じる
-          </button>
+        <div class="modal-header">
+          <div class="modal-title">注文詳細</div>
+          <button class="modal-close" onclick="closeOrderModal()">×</button>
+        </div>
+        <span id="order-receipt-no" class="receipt-number">#---</span>
+        <div id="order-items-list" class="order-detail-list"></div>
+        <div>
+          <label class="status-label">ステータス変更</label>
+          <select id="order-status-select" class="status-select">
+            <option value="unpaid_at_pos">🔴 POS注文済み (未会計)</option>
+            <option value="authorized">🔵 モバイルセルフ注文済み</option>
+            <option value="cooking">🔥 調理中</option>
+            <option value="ready_to_serve">🟠 調理完了 (呼び出し前)</option>
+            <option value="ready_for_pickup">🟢 お呼び出し中</option>
+            <option value="completed_at_store">⚫️ 受取完了</option>
+            <option value="abandoned_and_paid">🗑️ 受取期限切れ (廃棄)</option>
+            <option value="cancelled">🚫 キャンセル</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closeOrderModal()">閉じる</button>
+          <button class="save-btn" onclick="saveOrderStatusMock()">変更を保存</button>
         </div>
       </div>
     </div>
 
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
     <script>
+      // ===== Mock Data =====
       let mockItems = [
-        { id: "i1", name: "焼きそば", price: 400, isAvailable: true },
-        { id: "i2", name: "フランクフルト", price: 250, isAvailable: true },
-        { id: "i3", name: "おにぎり", price: 150, isAvailable: false },
-        { id: "i4", name: "ジュース", price: 100, isAvailable: true },
+        { id: "i1", name: "焼きそば", price: 400, desc: "特製ソース使用", isAvailable: true },
+        { id: "i2", name: "フランクフルト", price: 250, desc: "ジューシーなウインナー", isAvailable: true },
+        { id: "i3", name: "おにぎり", price: 150, desc: "具材はシャケ・梅", isAvailable: false },
+        { id: "i4", name: "ジュース", price: 100, desc: "コーラ or オレンジ", isAvailable: true },
+        { id: "i5", name: "から揚げ", price: 300, desc: "醤油ベースの秘伝タレ", isAvailable: true },
       ];
 
       let mockOrders = [
-        { id: "9876", items: "焼きそばx2", status: "completed", total: 800 },
-        { id: "9877", items: "フランクフルトx1", status: "ready", total: 250 },
-        { id: "9878", items: "ジュースx2", status: "preparing", total: 200 },
+        { id: "9876", items: [{ name: "焼きそば", qty: 2, price: 400 }], status: "completed_at_store", total: 800 },
+        { id: "9877", items: [{ name: "フランクフルト", qty: 1, price: 250 }], status: "ready_for_pickup", total: 250 },
+        { id: "9878", items: [{ name: "ジュース", qty: 2, price: 100 }], status: "cooking", total: 200 },
+        { id: "9879", items: [{ name: "焼きそば", qty: 1, price: 400 }, { name: "ジュース", qty: 1, price: 100 }], status: "unpaid_at_pos", total: 500 },
+        { id: "9880", items: [{ name: "から揚げ", qty: 3, price: 300 }], status: "cancelled", total: 900 },
       ];
 
+      let currentEditItemId = null;
+      let currentViewOrderId = null;
+
+      // ===== Navigation =====
       function startTraining() {
         document.getElementById("manual-section").style.display = "none";
         document.getElementById("simulator-section").style.display = "flex";
@@ -567,82 +600,209 @@
       }
 
       function switchView(view) {
-        document
-          .querySelectorAll(".view-section")
-          .forEach((el) => el.classList.remove("active"));
-        document
-          .querySelectorAll(".nav-item")
-          .forEach((el) => el.classList.remove("active"));
-
-        document.getElementById(`view-${view}`).classList.add("active");
-        // Update nav active state (simplified)
+        document.querySelectorAll(".view-section").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+        document.getElementById("view-" + view).classList.add("active");
         const index = ["top", "items", "sales", "search"].indexOf(view);
-        if (index >= 0)
-          document.querySelectorAll(".nav-item")[index].classList.add("active");
+        if (index >= 0) document.querySelectorAll(".nav-item")[index].classList.add("active");
       }
 
+      // ===== Toast =====
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2500);
+      }
+
+      // ===== Items (商品管理) =====
       function renderItems() {
         const grid = document.getElementById("items-grid");
         grid.innerHTML = "";
-        mockItems.forEach((item) => {
+        mockItems.forEach(item => {
           const div = document.createElement("div");
           div.className = "item-card";
           const btnClass = item.isAvailable ? "is-active" : "is-inactive";
-          const btnText = item.isAvailable ? "販売中" : "売切";
-
-          div.innerHTML = `
-                  <div style="background:#eee; height:100px; width:100%;"></div>
-                  <div style="padding:10px;">
-                      <div style="font-weight:bold;">${item.name}</div>
-                      <div>¥${item.price}</div>
-                      <button class="btn-toggle ${btnClass}" onclick="toggleData('${item.id}')">${btnText}</button>
-                  </div>
-              `;
+          const btnText = item.isAvailable ? "🟢 販売中" : "🔴 売切";
+          div.innerHTML =
+            '<div class="item-img" style="font-size:2.5rem;">🍽️</div>' +
+            '<div class="item-body">' +
+              '<div class="item-name">' + item.name + '</div>' +
+              '<div class="item-price">¥' + item.price + '</div>' +
+              '<div class="item-actions-row">' +
+                '<button class="btn-sm btn-edit" onclick="openItemModal(\'' + item.id + '\')">✏️ 編集</button>' +
+                '<button class="btn-toggle ' + btnClass + '" onclick="toggleAvailability(\'' + item.id + '\')">' + btnText + '</button>' +
+              '</div>' +
+            '</div>';
           grid.appendChild(div);
         });
       }
 
-      function toggleData(id) {
-        const item = mockItems.find((i) => i.id === id);
+      function toggleAvailability(id) {
+        const item = mockItems.find(i => i.id === id);
         if (item) {
           item.isAvailable = !item.isAvailable;
           renderItems();
+          showToast(item.name + " を " + (item.isAvailable ? "販売中" : "売切") + " に切り替えました (Mock)");
         }
       }
 
-      function renderOrders(filter = "") {
+      // ===== Item Modal =====
+      function openItemModal(id) {
+        const modal = document.getElementById("item-modal");
+        const deleteBtn = document.getElementById("item-delete-btn");
+
+        if (id) {
+          // Edit existing
+          const item = mockItems.find(i => i.id === id);
+          if (!item) return;
+          currentEditItemId = id;
+          document.getElementById("item-modal-title").textContent = "商品を編集";
+          document.getElementById("edit-id").value = id;
+          document.getElementById("edit-name").value = item.name;
+          document.getElementById("edit-price").value = item.price;
+          document.getElementById("edit-desc").value = item.desc || "";
+          deleteBtn.style.display = "block";
+        } else {
+          // New item
+          currentEditItemId = null;
+          document.getElementById("item-modal-title").textContent = "商品を追加";
+          document.getElementById("edit-id").value = "";
+          document.getElementById("edit-name").value = "";
+          document.getElementById("edit-price").value = "";
+          document.getElementById("edit-desc").value = "";
+          deleteBtn.style.display = "none";
+        }
+        modal.classList.add("open");
+      }
+
+      function closeItemModal() {
+        document.getElementById("item-modal").classList.remove("open");
+      }
+
+      function saveItemMock() {
+        const name = document.getElementById("edit-name").value.trim();
+        const price = parseInt(document.getElementById("edit-price").value, 10);
+        const desc = document.getElementById("edit-desc").value.trim();
+
+        if (!name) { alert("商品名を入力してください。"); return; }
+        if (isNaN(price) || price < 0) { alert("正しい価格を入力してください。"); return; }
+
+        if (currentEditItemId) {
+          const item = mockItems.find(i => i.id === currentEditItemId);
+          if (item) { item.name = name; item.price = price; item.desc = desc; }
+          showToast("「" + name + "」を更新しました (Mock)");
+        } else {
+          const newId = "i" + Date.now();
+          mockItems.push({ id: newId, name, price, desc, isAvailable: true });
+          showToast("「" + name + "」を追加しました (Mock)");
+        }
+
+        closeItemModal();
+        renderItems();
+      }
+
+      function deleteItemMock() {
+        if (!currentEditItemId) return;
+        const item = mockItems.find(i => i.id === currentEditItemId);
+        if (!item) return;
+        if (!confirm("「" + item.name + "」を削除しますか？")) return;
+        mockItems = mockItems.filter(i => i.id !== currentEditItemId);
+        closeItemModal();
+        renderItems();
+        showToast("「" + item.name + "」を削除しました (Mock)");
+      }
+
+      // ===== Orders (注文検索) =====
+      const STATUS_MAP = {
+        unpaid_at_pos: { l: "POS注文済み", c: "status-unpaid" },
+        authorized: { l: "モバイルセルフ注文済み", c: "status-authorized" },
+        cooking: { l: "調理中", c: "status-authorized" },
+        ready_to_serve: { l: "調理完了(呼び出し前)", c: "status-preparing" },
+        ready_for_pickup: { l: "お呼び出し中", c: "status-ready" },
+        completed_at_store: { l: "受取完了", c: "status-completed" },
+        abandoned_and_paid: { l: "受取期限切れ", c: "status-abandoned" },
+        cancelled: { l: "キャンセル", c: "status-canceled" }
+      };
+
+      function renderOrders() {
+        const keyword = (document.getElementById("search-keyword").value || "").trim();
+        const statusFilter = document.getElementById("search-status").value;
         const tbody = document.getElementById("order-table-body");
         tbody.innerHTML = "";
-        mockOrders.forEach((o) => {
-          if (filter && !o.id.includes(filter)) return;
 
+        const filtered = mockOrders.filter(o => {
+          const matchKeyword = !keyword || o.id.includes(keyword);
+          let matchStatus = true;
+          if (statusFilter !== "all") {
+            if (statusFilter === "completed" && !o.status.includes("completed")) matchStatus = false;
+            if (statusFilter === "unpaid" && o.status !== "unpaid_at_pos") matchStatus = false;
+            if (statusFilter === "active" && !["authorized", "cooking", "ready_to_serve", "ready_for_pickup"].includes(o.status)) matchStatus = false;
+            if (statusFilter === "abandoned" && o.status !== "abandoned_and_paid") matchStatus = false;
+            if (statusFilter === "canceled" && !o.status.includes("cancel")) matchStatus = false;
+          }
+          return matchKeyword && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#9ca3af; padding:32px;">注文が見つかりません</td></tr>';
+          return;
+        }
+
+        filtered.forEach(o => {
+          const itemSummary = o.items.map(i => i.name + "×" + i.qty).join(", ");
+          const sInfo = STATUS_MAP[o.status] || { l: o.status, c: "status-completed" };
           const tr = document.createElement("tr");
+          tr.className = "clickable";
+          tr.onclick = function() { openOrderModal(o.id); };
           tr.innerHTML = `
-                  <td>${o.id}</td>
-                  <td>${o.items}</td>
-                  <td>${o.status}</td>
-                  <td>
-                      <button class="btn-cancel" onclick="cancelOrder('${o.id}')">Cancel</button>
-                  </td>
-              `;
+            <td style="font-family:monospace; font-weight:700;">No.${o.id}</td>
+            <td>${itemSummary}</td>
+            <td><span class="badge ${sInfo.c}">${sInfo.l}</span></td>
+            <td style="text-align:right; font-weight:700;">¥${o.total}</td>
+          `;
           tbody.appendChild(tr);
         });
       }
 
-      function filterOrders(val) {
-        renderOrders(val);
+      // ===== Order Modal =====
+      function openOrderModal(id) {
+        const order = mockOrders.find(o => o.id === id);
+        if (!order) return;
+        currentViewOrderId = id;
+
+        document.getElementById("order-receipt-no").textContent = "No." + order.id;
+
+        const list = document.getElementById("order-items-list");
+        list.innerHTML = order.items.map(item =>
+          '<div class="order-item-row">' +
+            '<span>' + item.name + ' × ' + item.qty + '</span>' +
+            '<span style="font-weight:700;">¥' + (item.price * item.qty) + '</span>' +
+          '</div>'
+        ).join("") +
+        '<div class="order-item-row" style="border-top:2px solid #d1d5db; margin-top:8px; padding-top:8px;">' +
+          '<span style="font-weight:800;">合計</span>' +
+          '<span style="font-weight:900; font-size:1.1rem;">¥' + order.total + '</span>' +
+        '</div>';
+
+        const sel = document.getElementById("order-status-select");
+        sel.value = order.status;
+
+        document.getElementById("order-modal").classList.add("open");
       }
 
-      function cancelOrder(id) {
-        if (confirm(`注文 #${id} をキャンセルしますか？`)) {
-          mockOrders = mockOrders.filter((o) => o.id !== id);
-          renderOrders();
-          alert("キャンセルしました (Mock)");
-        }
+      function closeOrderModal() {
+        document.getElementById("order-modal").classList.remove("open");
       }
 
-      function closeModal() {
-        document.getElementById("order-modal").style.display = "none";
+      function saveOrderStatusMock() {
+        const order = mockOrders.find(o => o.id === currentViewOrderId);
+        if (!order) return;
+        const newStatus = document.getElementById("order-status-select").value;
+        order.status = newStatus;
+        closeOrderModal();
+        renderOrders();
+        showToast("注文 No." + order.id + " を「" + (STATUS_LABELS[newStatus] || newStatus) + "」に変更しました (Mock)");
       }
     </script>
   </body>

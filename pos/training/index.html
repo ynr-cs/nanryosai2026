@@ -99,28 +99,52 @@
       }
 
       .flow-step {
-        background: #333;
-        padding: 15px;
-        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 24px 20px;
+        border-radius: 16px;
         text-align: center;
         position: relative;
         margin-bottom: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition:
+          transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+          box-shadow 0.3s ease;
       }
+      .flow-step:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        border-color: var(--accent-color);
+      }
+
       .flow-icon {
-        font-size: 2rem;
-        margin-bottom: 10px;
+        font-size: 2.4rem;
+        margin-bottom: 15px;
         color: var(--accent-color);
+        background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
       }
       .flow-arrow {
-        font-size: 1.5rem;
-        color: #666;
+        font-size: 1.8rem;
+        color: var(--accent-color);
         display: none;
+        opacity: 0.6;
       }
       @media (min-width: 768px) {
         .flow-arrow {
           display: block;
           position: absolute;
-          right: -25px;
+          right: -30px;
           top: 50%;
           transform: translateY(-50%);
           z-index: 1;
@@ -128,14 +152,16 @@
       }
 
       .return-link {
-        color: #aaa;
+        color: #666;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         margin-top: 20px;
+        font-weight: 500;
+        transition: color 0.2s;
       }
       .return-link:hover {
-        color: #fff;
+        color: var(--accent-color);
       }
     </style>
   </head>
@@ -196,7 +222,7 @@
           <div class="col-md-3">
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-cart-plus"></i></div>
-              <h5>1. 注文 (POS)</h5>
+              <h5 class="fw-bold">1. 注文 (POS)</h5>
               <p class="small text-muted mb-0">
                 お客様から注文を受け、レジで入力・会計します。
               </p>
@@ -207,7 +233,7 @@
           <div class="col-md-3">
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-fire"></i></div>
-              <h5>2. 調理 (Kitchen)</h5>
+              <h5 class="fw-bold">2. 調理 (Kitchen)</h5>
               <p class="small text-muted mb-0">
                 注文内容を確認し、調理を行います。完了したら呼び出します。
               </p>
@@ -218,7 +244,7 @@
           <div class="col-md-3">
             <div class="flow-step">
               <div class="flow-icon"><i class="bi bi-megaphone"></i></div>
-              <h5>3. 受取 (Presenter)</h5>
+              <h5 class="fw-bold">3. 受取 (Presenter)</h5>
               <p class="small text-muted mb-0">
                 番号を呼び出し、お客様に商品をお渡しします。
               </p>
