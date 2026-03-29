@@ -1,5 +1,5 @@
-@startuml
-!theme mars
+@startuml nanryosai_pos_v3
+
 
 title 第24回南陵祭 POS システム 全体構想 v3
 
@@ -82,25 +82,13 @@ group モバイルオーダー - 目的: 混雑緩和
         Visitor -> MobileOrderApp: 内容確認後、「決済へ進む」ボタンを押下
     end
 
-    ' --- ステップ3: 決済 (与信確保) ---
-    group 与信確保 (オーソリゼーション)
-        ' (この部分のシーケンスは元の設計とほぼ同じ)
+    ' --- ステップ3: 注文確定 (決済は後ほど店頭で) ---
+    group 注文確定
         MobileOrderApp -> CloudFunctions: createOnlineOrder を呼び出す
         CloudFunctions -> Firestore: 受付番号を生成 (7000番台)
-        CloudFunctions -> Firestore: 注文データを作成 (status: 'awaiting_payment')
-        CloudFunctions -> "au PAY API": 与信確保 (Auth) リクエストを送信
-        
-        alt 与信確保成功
-            "au PAY API" --> CloudFunctions: 成功レスポンス
-            CloudFunctions -> Firestore: 注文ステータスを 'authorized' に更新
-            note right of CloudFunctions: この更新をトリガーに\nメール送信などが実行される
-            CloudFunctions --> MobileOrderApp: 成功を返す (status.htmlへ遷移)
-        else 与信確保失敗
-            "au PAY API" --> CloudFunctions: 失敗レスポンス
-            CloudFunctions -> Firestore: 注文ステータスを 'auth_failed' に更新
-            CloudFunctions --> MobileOrderApp: エラーを返す
-            MobileOrderApp -> Visitor: エラーメッセージを表示
-        end
+        CloudFunctions -> Firestore: 注文データを作成 (status: 'unpaid_mobile')
+        CloudFunctions --> MobileOrderApp: 成功を返す (status.htmlへ遷移)
+        MobileOrderApp -> Visitor: 「支払いは提供口のQRコードで」と案内表示
     end
 
 end
@@ -163,25 +151,13 @@ group セルフオーダー - 目的: 注文で並ぶ時間削減
         end
     end
 
-    group 与信確保 (モバイルオーダーとほぼ同じロジック, 2000番台の受付番号)
-        PayApp -> CloudFunctions: (シナリオAのステップ3与信確保とほとんど同じCloud Functionsを呼び出す)
+    group 注文確定 (モバイルオーダーとほぼ同じロジック, 2000番台の受付番号)
+        PayApp -> CloudFunctions: (モバイル決済手続きと同様のCloud Functionsを呼び出す)
         CloudFunctions -> Firestore: counters/sok ドキュメントから受付番号生成 (2000番台)
         Firestore --> CloudFunctions: 受付番号 (例: 2XXX) を返す
-        CloudFunctions -> Firestore: orders コレクションの該当ドキュメントを更新
-        CloudFunctions -> AuPayAPI: 指定売上方式での与信確保(Auth)リクエストを送信
-        AuPayAPI --> CloudFunctions: 与信確保成功/失敗レスポンスを返す
-
-        alt 与信確保成功の場合
-            CloudFunctions -> Firestore: 該当注文ドキュメントのstatusを'authorized'に更新、authorized_atを記録
-            Firestore --> CloudFunctions: status更新完了
-            CloudFunctions -> StatusApp: 注文完了通知 (status.htmlへ遷移)
-            StatusApp --> Visitor: 「調理を開始しました」と表示
-        else 与信確保失敗の場合
-            CloudFunctions -> Firestore: 該当注文ドキュメントのstatusを'auth_failed'に更新
-            Firestore --> CloudFunctions: status更新完了
-            CloudFunctions --> PayApp: エラーを返す
-            PayApp -> Visitor: エラーメッセージ表示
-        end
+        CloudFunctions -> Firestore: 該当注文ドキュメントのstatusを 'unpaid_mobile' に更新
+        CloudFunctions -> StatusApp: 注文完了通知 (status.htmlへ遷移)
+        StatusApp --> Visitor: 「支払いは提供口のQRコードで」と案内表示
     end
 end
 
@@ -231,50 +207,25 @@ group 調理から提供までの共通フロー
         Visitor -> PresenterStaff: 通知を見て提供口へ向かう
     end
 
-    group フェーズ2: 商品提供と決済 (来場者がモニターで操作)
-        alt オンライン注文の場合 (モバイルオーダー/SOK)
-            Visitor -> MonitorDisplay: 自分の受付番号をタップ
-            MonitorDisplay -> Visitor: 「安全のため、もう一度ご自身の受付番号を入力してください」と表示
-            Visitor -> MonitorDisplay: 受付番号を入力 (認証)
-            MonitorDisplay -> Visitor: 「ご注文内容：〇〇 合計〇〇円｜この内容で決済を確定する」ボタンを表示
-            Visitor -> MonitorDisplay: 決済確定ボタンを押す
-            MonitorDisplay -> CloudFunctions: (トリガー)
-            CloudFunctions -> AuPayAPI: **「売上確定(Capture)」**リクエストを送信
-
-            alt 決済成功
-                AuPayAPI --> CloudFunctions: 決済成功レスポンス
-                CloudFunctions -> Firestore: 注文ステータスを `completed_online` に更新
-                Firestore -> MonitorDisplay: 「決済が完了しました。ありがとうございます！」と表示
-                PresenterStaff -> Visitor: 画面を確認し、商品を渡す
-            else 決済失敗
-                AuPayAPI --> CloudFunctions: 決済失敗レスポンス
-                CloudFunctions -> MonitorDisplay: 「決済に失敗しました。右のQRコードでお支払いください。」と表示
-                note over Visitor, PresenterStaff: 来場者が代替決済(個別QR手動決済)を実行
-                PresenterStaff -> PresenterDisplay: **「緊急完了(手動決済)」ボタン**を押す
-                PresenterDisplay -> CloudFunctions: (トリガー)
-                CloudFunctions -> Firestore: 注文ステータスを手動で `completed_at_store` に更新
-                PresenterStaff -> Visitor: 代替決済を確認後、商品を渡す
-            end
-
-        else 有人POS注文の場合
-            Visitor -> MonitorDisplay: 自分の受付番号をタップ
-            MonitorDisplay -> Visitor: 「お会計は〇〇円です。右のQRコードでお支払いください。」と表示
-            
+    group フェーズ2: 商品提供と手動QR決済
+        alt モバイルオーダー/SOK、または未払いのPOS注文
+            Visitor -> PresenterStaff: 自分の番号が呼ばれたら提供口へ向かう
             Visitor -> "店舗設置のQR": QRをスキャンし、金額入力・決済実行
             Visitor -> PresenterStaff: スマホの決済完了画面を提示
             
+            PresenterStaff -> PresenterDisplay: お客様のスマホ画面の金額と、\npresenter.htmlの合計金額を照合する
             PresenterStaff -> PresenterDisplay: 完了画面を確認し、**「QR決済 完了」ボタン**を押す
             PresenterDisplay -> CloudFunctions: (トリガー)
             CloudFunctions -> Firestore: 注文ステータスを `completed_at_store` に更新
             PresenterStaff -> Visitor: 商品を渡す
             
-            MonitorDisplay -> MonitorDisplay: 注文番号一覧画面に自動で戻る
+            MonitorDisplay -> MonitorDisplay: 注文番号一覧から該当番号が消える
         end
     end
 end
 
 == 5. 15分放置ペナルティ自動実行フロー ==
-group ペナルティ自動実行フロー
+group ペナルティ自動実行フロー (手動決済化による変更)
     loop 1分ごとに自動起動
         group ステップ1: 監視対象の自動スキャンと判定
             Scheduler -> Firestore: ペナルティ対象の注文をクエリ
@@ -285,14 +236,13 @@ group ペナルティ自動実行フロー
             end note
         end
         
-        opt 対象注文が見つかった場合
+        alt 対象注文が見つかった場合
             Firestore --> Scheduler: ペナルティ対象の注文データを返す
             
             group ステップ2: ペナルティ実行シーケンス
-                Scheduler -> AuPayAPI: **「売上確定(Capture)」リクエストを強制実行**
-                AuPayAPI --> Scheduler: 決済確定レスポンス
-                Scheduler -> Firestore: 注文ステータスを `abandoned_and_paid` (放棄・決済済) に更新
-            Scheduler -> Firestore: 注文のユーザーIDを `banned_users` コレクションに記録
+                note right of Scheduler: 補足: 自動決済(Capture)は不可のため注文キャンセル扱い
+                Scheduler -> Firestore: 注文ステータスを `abandoned` (放棄) に更新し、在庫をスタッフが手動で戻す
+                Scheduler -> Firestore: 悪質な放置として、注文のユーザーIDを `banned_users` コレクションに記録
             end
         else 対象注文なし
             Scheduler -> Scheduler: 静かに終了し、次の起動を待つ
