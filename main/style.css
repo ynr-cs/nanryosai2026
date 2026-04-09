@@ -1123,7 +1123,8 @@ main {
   transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 24px 24px calc(24px + var(--safe-area-bottom));
+  overflow-y: auto;
 }
 
 .app-menu-overlay.active .app-menu-content {
