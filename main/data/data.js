@@ -1,24 +1,460 @@
-/**
- * Nanryosai 2026
- * Version: 0.1.0
- * Last Modified: 2026-02-23
- * Author: Nanryosai 2026 Project Team (Auto-generated)
- */
-// =======================================================
-// ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase/Admin) ★★★
-// =======================================================
+const projectData = [
+  {
+    id: "301",
+    loginId: "class301",
+    // Firestore: stores.name (団体名)
+    groupName: "3年1組",
+    // Firestore: stores.teamName (店名/企画名)
+    name: "やきそばスター",
+    place: "中庭テントA",
+    floor: 1,
 
-console.log("data.js loading...");
-
-// バージョン情報 (admin_syncで同期状態を確認するために使用)
-const dataVersion = "PORT_3009_TEST";
-
-// 企画の名簿データ
-const projectData = [];
-
-// ステージデータ (空でも定義が必要)
-const stageData = [
-  // 必要に応じてここに追加
+    // [2026年度メモ] mapX, mapY (地図座標)は要件定義待ちのため、現在はデータ定義から除外しています。
+    // 必要になった場合は、2D/3Dどちらの方式になるか確定後に再定義してください。
+    description:
+      "秘伝のソースが決め手！行列必至の焼きそば専門店です。目玉焼きトッピングがおすすめ！",
+    catchphrase: "星3つの味をあなたに",
+    tags: ["食品", "焼きそば"],
+    contentType: "menu",
+    menu: [
+      {
+        name: "ソース焼きそば",
+        price: "300円",
+        description: "特製ソースが香る王道の焼きそば。",
+        imageUrl: "",
+        isRecommended: true,
+        isAvailable: true,
+        allowedToppings: ["マヨネーズ", "紅生姜", "青のり"],
+      },
+      {
+        name: "塩焼きそば",
+        price: "350円",
+        description: "さっぱりとした塩ダレ味。女性に人気！",
+        imageUrl: "",
+        isRecommended: false,
+        isAvailable: true,
+        allowedToppings: ["レモン果汁"],
+      },
+      {
+        name: "全部のせスペシャル",
+        price: "500円",
+        description: "目玉焼きと全部のトッピングがついた贅沢な一品。",
+        imageUrl: "",
+        isRecommended: true,
+        isAvailable: true,
+        allowedToppings: [],
+      },
+    ],
+    gallery: [],
+  },
+  {
+    id: "302",
+    loginId: "class302",
+    groupName: "3年2組",
+    name: "タピオカヘブン",
+    place: "昇降口前",
+    floor: 1,
+    description:
+      "もちもち食感がたまらない！究極のタピオカドリンク専門店。インスタ映え間違いなし。",
+    catchphrase: "極上のモチモチ体験",
+    tags: ["食品", "ドリンク"],
+    contentType: "menu",
+    menu: [
+      {
+        name: "タピオカミルクティー",
+        price: "250円",
+        description: "定番のロイヤルミルクティー。",
+        imageUrl: "",
+        isRecommended: true,
+        isAvailable: true,
+        allowedToppings: ["タピオカ増量"],
+      },
+      {
+        name: "黒糖抹茶ラテ",
+        price: "300円",
+        description: "和風な甘さが落ち着く抹茶ラテ。",
+        imageUrl: "",
+        isRecommended: true,
+        isAvailable: true,
+        allowedToppings: [],
+      },
+      {
+        name: "マンゴーソーダ",
+        price: "200円",
+        description: "スッキリ爽快な炭酸ドリンク。",
+        imageUrl: "",
+        isAvailable: true,
+        allowedToppings: [],
+      },
+    ],
+    gallery: [],
+  },
+  {
+    id: "303",
+    loginId: "class303",
+    groupName: "3年3組",
+    name: "情熱のチュロス",
+    place: "中庭テントB",
+    floor: 1,
+    description:
+      "テーマパークのあの味を再現！サクサク揚げたてのロングチュロス。",
+    catchphrase: "カリッ、サクッ、甘〜い幸せ",
+    tags: ["食品", "スイーツ"],
+    contentType: "menu",
+    menu: [
+      {
+        name: "シナモンチュロス",
+        price: "200円",
+        imageUrl: "",
+        isAvailable: true,
+      },
+      {
+        name: "チョコチュロス",
+        price: "250円",
+        imageUrl: "",
+        isAvailable: true,
+      },
+      {
+        name: "ストロベリーチュロス",
+        price: "250円",
+        imageUrl: "",
+        isAvailable: true,
+      },
+    ],
+    gallery: [],
+  },
+  {
+    id: "201",
+    loginId: "class201",
+    groupName: "2年1組",
+    name: "ホラーハウス「廃校舎」",
+    place: "南棟 2F 201",
+    floor: 2,
+    description:
+      "かつて実験室だった場所で起きた悲劇...。あなたは無事に脱出できるか？最恐のお化け屋敷。",
+    catchphrase: "絶叫、保証します。",
+    tags: ["展示", "お化け屋敷"],
+    contentType: "gallery",
+    menu: [],
+    gallery: ["images/horror_1.jpg", "images/horror_2.jpg"],
+  },
+  {
+    id: "202",
+    loginId: "class202",
+    groupName: "2年2組",
+    name: "カジノ・ロワイヤル",
+    place: "南棟 2F 202",
+    floor: 2,
+    description:
+      "ポーカー、ブラックジャック、ルーレット。大人の社交場を教室に再現。※金銭は賭けません",
+    catchphrase: "運命のカードを引け",
+    tags: ["展示", "ゲーム"],
+    contentType: "gallery",
+    menu: [],
+    gallery: ["images/cards.jpg"],
+  },
+  {
+    id: "203",
+    loginId: "class203",
+    groupName: "2年3組",
+    name: "VS 南陵",
+    place: "体育館サブアリーナ",
+    floor: 1,
+    description:
+      "あの人気番組のような巨大アスレチック＆キッキングスナイパー！体力自慢集まれ！",
+    catchphrase: "最強は誰だ",
+    tags: ["展示", "アトラクション"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "204",
+    loginId: "class204",
+    groupName: "2年4組",
+    name: "縁日「夏祭り」",
+    place: "北棟 2F 204",
+    floor: 2,
+    description:
+      "射的、ヨーヨー釣り、スーパーボールすくい。懐かしいお祭りの雰囲気を楽しんで。",
+    catchphrase: "日本の夏、2-4の夏",
+    tags: ["展示", "縁日"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "101",
+    loginId: "class101",
+    groupName: "1年1組",
+    name: "めちゃうまポテイト",
+    place: "北棟 3F 301",
+    floor: 3,
+    description: "マッククルーによるめちゃくちゃうまいポテトです",
+    catchphrase: "カリカリの奇跡",
+    tags: ["食品", "軽食"],
+    contentType: "menu",
+    menu: [
+      {
+        price: "200円",
+        allowedToppings: ["ケチャップ", "マスタード"],
+        isAvailable: true,
+        imageUrl:
+          "https://firebasestorage.googleapis.com/v0/b/nanryosai-2026-a4091.firebasestorage.app/o/products%2F101%2F1766721516381_Gemini_Generated_Image_f1wivhf1wivhf1wi.png?alt=media&token=c636b244-8363-40c3-a959-2a755c1226b6",
+        isRecommended: true,
+        description: "揚げたてサクサクのフランクです。",
+        name: "フランクフルト",
+      },
+      {
+        isAvailable: true,
+        price: "100円",
+        allowedToppings: [],
+        imageUrl: "",
+        name: "やきとり",
+        description: "炭火風の香ばしさ",
+      },
+      {
+        price: "100円",
+        description: "限界まで値下げしました",
+        imageUrl:
+          "https://firebasestorage.googleapis.com/v0/b/nanryosai-2026-a4091.firebasestorage.app/o/product_images%2F101%2F1764574498685_Gemini_Generated_Image_no4fd0no4fd0no4f.png?alt=media&token=7928b955-6a93-48a9-b0e1-9605e342e9c4",
+        isAvailable: true,
+        isRecommended: true,
+        allowedToppings: ["塩", "コンソメ"],
+        name: "ポテト",
+      },
+    ],
+    gallery: [],
+  },
+  {
+    id: "102",
+    loginId: "class102",
+    groupName: "1年2組",
+    name: "フォトスポット「映えの森」",
+    place: "北棟 3F 302",
+    floor: 3,
+    description:
+      "教室全体がフォトスタジオに！黒板アートや風船で飾られた空間で思い出の一枚を。",
+    catchphrase: "キミの笑顔を撮りたい",
+    tags: ["展示", "フォト"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "103",
+    loginId: "class103",
+    groupName: "1年3組",
+    name: "迷路「不思議の国」",
+    place: "北棟 3F 303",
+    floor: 3,
+    description:
+      "ダンボールで作った巨大迷路。アリスの世界に迷い込んだような装飾に注目！",
+    catchphrase: "出口はどこだ？",
+    tags: ["展示", "アトラクション"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "kado",
+    loginId: "kado",
+    groupName: "華道部",
+    name: "「花・鳥・風・月」展示",
+    place: "特別棟 1F 作法室",
+    floor: 1,
+    description:
+      "部員一同一生懸命生けたお花を展示しています。心安らぐ空間へようこそ。",
+    catchphrase: "静寂と美の世界",
+    tags: ["展示", "文化部"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "bijutsu",
+    loginId: "bijutsu",
+    groupName: "美術部",
+    name: "Art Gallery 2026",
+    place: "特別棟 2F 美術室",
+    floor: 2,
+    description:
+      "油絵、水彩、立体作品など、個性豊かな作品を展示。ポストカード販売もあります。",
+    catchphrase: "色が世界を変える",
+    tags: ["展示", "文化部"],
+    contentType: "menu",
+    menu: [
+      {
+        name: "オリジナルポストカード",
+        price: "100円",
+        imageUrl: "",
+        description: "部員手描きのイラスト",
+        isAvailable: true,
+        isRecommended: false,
+        allowedToppings: [],
+      },
+      {
+        name: "レジンアクセサリー",
+        price: "500円",
+        imageUrl: "",
+        description: "手作りの一点物",
+        isAvailable: true,
+        isRecommended: false,
+        allowedToppings: [],
+      },
+    ],
+    gallery: ["images/art1.jpg", "images/art2.jpg"],
+  },
+  {
+    id: "sado",
+    loginId: "sado",
+    groupName: "茶道部",
+    name: "お茶会",
+    place: "特別棟 1F 作法室",
+    floor: 1,
+    description:
+      "結構なお手前で。お抹茶と季節の和菓子をご用意してお待ちしております。",
+    catchphrase: "一期一会",
+    tags: ["食品", "文化部"],
+    contentType: "menu",
+    menu: [
+      {
+        name: "お抹茶セット",
+        price: "300円",
+        imageUrl: "",
+        description: "和菓子付き",
+        isRecommended: true,
+        isAvailable: true,
+        allowedToppings: [],
+      },
+    ],
+    gallery: [],
+  },
+  {
+    id: "shashin",
+    loginId: "shashin",
+    groupName: "写真部",
+    name: "Moment -瞬-",
+    place: "北棟 2F 渡り廊下",
+    floor: 2,
+    description: "南陵高校の日常を切り取った写真展。コンテスト入賞作品も展示。",
+    catchphrase: "その一瞬を永遠に",
+    tags: ["展示", "文化部"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "science",
+    loginId: "science",
+    groupName: "科学部",
+    name: "サイエンス・ラボ",
+    place: "特別棟 3F 化学室",
+    floor: 3,
+    description:
+      "スライム作り体験や炎色反応実験など、子供から大人まで楽しめる科学実験ショー。",
+    catchphrase: "科学の不思議を体験しよう",
+    tags: ["展示", "体験"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+  },
+  {
+    id: "keion",
+    loginId: "keion",
+    groupName: "軽音楽部",
+    name: "南陵ライブ2026",
+    place: "視聴覚室・体育館",
+    floor: 3,
+    description:
+      "総勢10バンドが出演！熱いライブをお届けします。日程によって場所が異なるのでご注意ください！",
+    catchphrase: "魂を震わせろ",
+    tags: ["ステージ", "文化部"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+    schedule: [
+      {
+        day: 1,
+        place: "特別棟 3F 視聴覚室",
+        floor: 3,
+        time: "10:00-15:00",
+      },
+      {
+        day: 2,
+        place: "体育館",
+        floor: 1,
+        time: "10:00-13:00",
+      },
+    ],
+  },
+  {
+    id: "brass",
+    loginId: "brass",
+    groupName: "吹奏楽部",
+    name: "Autumn Concert",
+    place: "音楽室・体育館",
+    floor: 4,
+    description: "ポップスからクラシックまで、幅広いジャンルの曲を演奏します。",
+    catchphrase: "響け、私たちの音",
+    tags: ["ステージ", "文化部"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+    schedule: [
+      {
+        day: 1,
+        place: "体育館",
+        floor: 1,
+        time: "10:15-10:45",
+      },
+      {
+        day: 1,
+        place: "特別棟 4F 音楽室",
+        floor: 4,
+        time: "13:30-14:15",
+      },
+      {
+        day: 2,
+        place: "特別棟 4F 音楽室",
+        floor: 4,
+        time: "13:30-14:15",
+      },
+    ],
+  },
+  {
+    id: "dance",
+    loginId: "dance",
+    groupName: "ダンス部",
+    name: "Show Time!!",
+    place: "体育館",
+    floor: 1,
+    description: "HipHop, Jazz, Lockなど様々なジャンルのダンスを披露します！",
+    catchphrase: "We are Dancers",
+    tags: ["ステージ", "運動部"],
+    contentType: "gallery",
+    menu: [],
+    gallery: [],
+    schedule: [
+      {
+        day: 1,
+        place: "体育館",
+        floor: 1,
+        time: "13:30-14:30",
+      },
+    ],
+  },
+  {
+    id: "cs",
+    loginId: "cs",
+    groupName: "コンピュータ科学部",
+    name: "南陵祭'26 Webサイト&モバイルオーダー",
+    place: "コンピュータ科学部",
+    floor: 2,
+    contentType: "gallery",
+    menu: [],
+    catchphrase: "Make Nanryo Great Again",
+  },
 ];
 
-console.log("data.js loaded: projectData count =", projectData.length, "version =", dataVersion);
+// ステージデータ (出演スケジュール)

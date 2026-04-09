@@ -140,6 +140,14 @@ body {
   padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
 }
 
+/* Section-level width constraint for PC (used inside account, settings, etc.) */
+.account-section {
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -1309,7 +1317,7 @@ main {
 
 /* Hero Container */
 .hero-container {
-  padding: 60px 20px 80px;
+  padding: 32px 20px 48px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -1358,8 +1366,8 @@ main {
 }
 
 .orb-1 {
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
   background: rgba(106, 17, 203, 0.15);
   top: -50px;
   left: -50px;
@@ -1367,8 +1375,8 @@ main {
 }
 
 .orb-2 {
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
   background: rgba(37, 117, 252, 0.15);
   bottom: 20px;
   right: -20px;
@@ -1382,13 +1390,13 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 /* Main Title */
 .hero-title {
   margin: 0;
-  font-size: clamp(3rem, 12vw, 5rem); /* Responsive giant text */
+  font-size: clamp(2.2rem, 10vw, 3.2rem); /* Compact responsive text */
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -2px;
@@ -1405,7 +1413,7 @@ main {
 /* Slogan */
 .hero-slogan {
   margin: 0;
-  font-size: clamp(1rem, 4vw, 1.25rem);
+  font-size: clamp(0.85rem, 3vw, 1rem);
   font-weight: 500;
   color: var(--text-sub);
   max-width: 600px;

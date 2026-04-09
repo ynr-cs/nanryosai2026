@@ -18,23 +18,21 @@
     <style>
       .profile-header {
         text-align: center;
-        padding: 40px 20px;
+        padding: 24px 16px;
         background: var(--card-bg);
-        border-radius: 0 0 30px 30px;
-        box-shadow: 0 4px 20px var(--shadow-color);
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 4px 15px var(--shadow-color);
         margin-bottom: 20px;
       }
       .profile-img-lg {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
         background: var(--border-color);
-        margin: 0 auto 15px;
-        margin: 0 auto 15px;
+        margin: 0 auto 12px;
         overflow: hidden;
-        border: 4px solid var(--card-bg);
-        box-shadow: 0 8px 16px var(--shadow-color);
+        border: 3px solid var(--card-bg);
+        box-shadow: 0 6px 12px var(--shadow-color);
       }
       .profile-img-lg img {
         width: 100%;
@@ -42,9 +40,9 @@
         object-fit: cover;
       }
       .profile-name {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
         color: var(--text-main);
       }
       .profile-email {
@@ -54,8 +52,8 @@
 
       .section-title {
         padding: 0 20px;
-        margin-bottom: 10px;
-        font-size: 1.2rem;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
         font-weight: 800;
         display: flex;
         align-items: center;
@@ -66,13 +64,14 @@
       .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        padding: 0 20px 20px;
+        gap: 12px;
+        padding: 0;
+        margin-bottom: 20px;
       }
       .stat-card {
         background: var(--card-bg);
-        padding: 20px;
-        border-radius: 20px;
+        padding: 16px 12px;
+        border-radius: 16px;
         text-align: center;
         box-shadow: 0 4px 10px var(--shadow-color);
         transition: transform 0.2s;
@@ -81,7 +80,7 @@
         transform: scale(0.98);
       }
       .stat-num {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: 900;
         color: var(--primary-color);
         line-height: 1;
@@ -107,7 +106,7 @@
       }
 
       .menu-list {
-        padding: 0 20px 40px;
+        padding: 0;
       }
       .menu-item {
         display: flex;
@@ -125,12 +124,16 @@
         transform: translateX(6px);
         color: var(--primary-color);
       }
-      .menu-item i {
+      .menu-item i,
+      .logout-btn i {
         width: 30px;
         text-align: center;
         margin-right: 15px;
         color: var(--primary-color);
         transition: color 0.2s ease;
+      }
+      .logout-btn i {
+        color: #ff4757 !important;
       }
       .menu-item:hover i {
         color: var(--brand-color);
@@ -139,23 +142,7 @@
         border-bottom: none;
       }
 
-      .logout-btn {
-        color: #ff4757;
-        width: 100%;
-        text-align: left;
-        background: none;
-        border: none;
-        padding: 15px 0;
-        font-size: 1rem;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        transition: transform 0.2s ease;
-        cursor: pointer;
-      }
-      .logout-btn:hover {
-        transform: translateX(6px);
-      }
+      /* Menu items are standard div.menu-item */
 
       /* Loading State */
       .loading-skeleton {
@@ -165,51 +152,79 @@
         border-radius: 4px;
       }
 
-      /* Order History Styles */
+      /* Order History Styles - Compact */
       .order-card {
         background: var(--card-bg);
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 8px var(--shadow-color);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
         border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.15s, box-shadow 0.15s;
       }
-      .order-header {
+      .order-card:active {
+        transform: scale(0.98);
+      }
+      .order-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--item-fill);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+      }
+      .order-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .order-info-top {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed var(--border-color);
+        align-items: baseline;
+        gap: 8px;
       }
       .store-name {
-        font-weight: bold;
+        font-weight: 700;
         color: var(--text-main);
-        font-size: 1rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .order-date {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         color: var(--text-sub);
+        white-space: nowrap;
+        flex-shrink: 0;
       }
       .order-items {
-        flex: 1;
-        margin-bottom: 8px;
-        color: var(--text-main);
+        font-size: 0.75rem;
+        color: var(--text-sub);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 2px 0;
       }
-      .order-meta {
+      .order-info-bottom {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 8px;
       }
       .order-price {
-        font-weight: 900;
-        font-size: 1.1rem;
+        font-weight: 800;
+        font-size: 0.9rem;
         color: var(--text-main);
       }
       .status-badge {
-        padding: 4px 10px;
+        padding: 2px 8px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         font-weight: bold;
       }
 
@@ -218,9 +233,9 @@
         color: white;
         padding: 2px 8px;
         border-radius: 10px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
-        margin-left: 8px;
+        margin-left: 6px;
       }
 
       .guest-icon-box {
@@ -246,9 +261,9 @@
       }
 
       .section-title {
-        padding: 0 20px;
+        padding: 0;
         margin-bottom: 10px;
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         font-weight: 800;
         display: flex;
         align-items: center;
@@ -346,7 +361,7 @@
   <body>
     <main>
       <!-- Loading State (Visible by default) -->
-      <div id="auth-loading" style="text-align: center; padding: 60px 20px">
+      <div id="auth-loading" style="text-align: center; padding: 40px 20px">
         <div
           class="loading-skeleton"
           style="
@@ -376,8 +391,22 @@
           </div>
         </div>
 
+        <!-- Dashboard Stats -->
+        <div class="account-section">
+          <div class="dashboard-grid">
+            <div class="stat-card" id="card-order-count">
+              <div class="stat-num" id="stat-orders">-</div>
+              <div class="stat-label">注文数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-favorites">0</div>
+              <div class="stat-label">お気に入り</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Favorites Section -->
-        <div id="favorites-section" style="margin-top: 10px">
+        <div class="account-section" id="favorites-section" style="margin-top: 10px">
           <h3 class="section-title section-closed" id="favorites-toggle">
             <span style="display: flex; align-items: center">
               🌟 お気に入り
@@ -386,15 +415,17 @@
             <i class="bi bi-chevron-down toggle-icon"></i>
           </h3>
           <div class="collapsible-content">
-            <div id="favorites-list" style="padding: 0 20px 20px">
+            <div id="favorites-list">
               <div
                 style="
                   text-align: center;
-                  padding: 20px;
+                  padding: 16px;
                   color: var(--text-sub);
                   background: var(--card-bg);
-                  border-radius: 16px;
+                  border-radius: 12px;
                   border: 1px dashed var(--border-color);
+                  font-size: 0.85rem;
+                  margin-bottom: 16px;
                 "
               >
                 お気に入り機能は準備中です
@@ -404,7 +435,7 @@
         </div>
 
         <!-- Order History Section -->
-        <div id="order-history-section" style="margin-top: 10px">
+        <div class="account-section" id="order-history-section" style="margin-top: 10px">
           <h3 class="section-title section-closed" id="order-history-toggle">
             <span style="display: flex; align-items: center">
               📦 注文履歴
@@ -413,59 +444,60 @@
             <i class="bi bi-chevron-down toggle-icon"></i>
           </h3>
           <div class="collapsible-content">
-            <div id="order-list" style="padding: 0 20px 20px">
+            <div id="order-list">
               <!-- Orders will be injected here -->
               <div
                 class="loading-skeleton"
-                style="height: 100px; margin-bottom: 10px"
+                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
               ></div>
               <div
                 class="loading-skeleton"
-                style="height: 100px; margin-bottom: 10px"
+                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
               ></div>
             </div>
           </div>
         </div>
 
-        <h3 class="section-title" style="margin-top: 20px">⚙️ 設定</h3>
-        <div
-          class="menu-list"
-          style="
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 10px 20px;
-            margin: 0 20px 20px;
-          "
-        >
-          <div class="menu-item" style="justify-content: space-between">
-            <div style="display: flex; align-items: center">
-              <i class="bi bi-bell"></i> 呼び出し通知
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="notification-toggle" />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="menu-item" onclick="window.location.href = 'terms.html'">
-            <i class="bi bi-file-text"></i> 利用規約
-          </div>
-          <!-- Delete Account Button -->
+        <!-- Settings Section -->
+        <div class="account-section" style="margin-top: 16px; margin-bottom: 40px">
+          <h3 class="section-title" style="cursor: default">⚙️ 設定</h3>
           <div
-            class="menu-item"
-            id="btn-delete-account"
+            class="menu-list"
             style="
-              color: #ff4757;
-              cursor: pointer;
-              border-bottom: none;
-              margin-top: 10px;
+              background: var(--card-bg);
+              border-radius: 16px;
+              padding: 6px 16px;
             "
           >
-            <i class="bi bi-trash"></i> アカウント削除
+            <div class="menu-item" style="justify-content: space-between">
+              <div style="display: flex; align-items: center">
+                <i class="bi bi-bell"></i> 呼び出し通知
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notification-toggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="menu-item" onclick="window.location.href = 'terms.html'">
+              <i class="bi bi-file-text"></i> 利用規約
+            </div>
+            <!-- Logout Button -->
+            <div
+              class="menu-item"
+              id="btn-logout"
+            >
+              <i class="bi bi-box-arrow-right"></i>
+              ログアウト
+            </div>
+            <!-- Delete Account Button -->
+            <div
+              class="menu-item"
+              id="btn-delete-account"
+              style="border-bottom: none; cursor: pointer"
+            >
+              <i class="bi bi-trash"></i> アカウント削除
+            </div>
           </div>
-          <button class="logout-btn" id="btn-logout">
-            <i class="bi bi-box-arrow-right" style="color: #ff4757"></i>
-            ログアウト
-          </button>
         </div>
       </div>
 
@@ -887,6 +919,8 @@
           const count = snapshot.data().count;
           const badge = document.getElementById("order-count-badge");
           if (badge) badge.textContent = count;
+          const statEl = document.getElementById("stat-orders");
+          if (statEl) statEl.textContent = count;
         } catch (e) {
           console.error("Order Count Error:", e);
         }
@@ -936,7 +970,7 @@
             }
 
             const el = document.createElement("div");
-            el.className = "order-card animate__animated animate__fadeIn";
+            el.className = "order-card";
             // Link to Status Page
             el.onclick = () => {
               window.location.href = `../pos/status.html?orderId=${orderId}`;
@@ -949,16 +983,19 @@
               .join("、");
 
             el.innerHTML = `
-                        <div class="order-header">
-                            <span class="store-name" id="store-name-${orderId}">${storeName}</span>
-                            <span class="order-date">${date}</span>
+                        <div class="order-icon">
+                            <i class="bi bi-receipt" style="color: var(--primary-color)"></i>
                         </div>
-                        <div class="order-items text-truncate" style="max-width: 100%;">
-                            ${itemNames}
-                        </div>
-                        <div class="order-meta">
-                            <span class="order-price">¥${total}</span>
-                            <span class="status-badge" style="background: ${statusColor}; color: white;">${statusText}</span>
+                        <div class="order-info">
+                            <div class="order-info-top">
+                                <span class="store-name" id="store-name-${orderId}">${storeName}</span>
+                                <span class="order-date">${date}</span>
+                            </div>
+                            <div class="order-items">${itemNames}</div>
+                            <div class="order-info-bottom">
+                                <span class="order-price">¥${total}</span>
+                                <span class="status-badge" style="background: ${statusColor}; color: white;">${statusText}</span>
+                            </div>
                         </div>
                     `;
             list.appendChild(el);

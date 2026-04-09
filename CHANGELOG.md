@@ -15,7 +15,86 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
-## [0.2.110] Hamburger Menu Mobile Accessibility Fix - 2026-04-09
+## [0.2.115] Account Menu Refinement & Cleanup - 2026-04-09
+
+### メタ情報
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+- **`account.html`**:
+  - 「ログアウト」と「アカウント削除」の順序を入れ替え。
+  - 「アカウント削除」の赤色指定を削除し、他のメニュー項目と完全に同じ外観（統一デザイン）に修正。
+  - 不要なCSSクラス `.logout-item` と `.logout-btn` をクリーンアップ。
+
+---
+
+## [0.2.114] Account Page Section Layout & Compact Orders - 2026-04-09
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Claude Opus 4.6)
+- **筆者**: AI
+
+### 変更 (Changed)
+- **`style.css`**: `.compact-page`（ページ全体の幅制限）を廃止し、`.account-section`（セクション単位の幅制限 max-width: 640px）に変更。ヘッダーやナビはフル幅のまま、コンテンツ部分のみ適切に制御。
+- **`account.html`**:
+  - `<main>` から `compact-page` クラスを削除。
+  - お気に入り・注文履歴・設定の各セクションを `account-section` クラスで個別に幅制限。
+  - 注文履歴カードを大幅にコンパクト化（横並びレイアウト：左にアイコン、右に店名・商品・金額・ステータスを1行ずつ）。
+  - ダッシュボード統計カード（注文数・お気に入り数）をプロフィール直下に追加。
+  - セクションタイトルのフォントサイズ微調整（1.2rem → 1.05rem）。
+
+---
+
+## [0.2.113] PC Display Optimization & Consistency Fix - 2026-04-09
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+- **`style.css`**: PC表示時にコンテンツ幅を制限するための `.compact-page` ユーティリティクラスを追加。
+
+### 修正 (Fixed)
+- **`account.html`**:
+  - `main` タグに `.compact-page` を適用し、PCでの視認性と操作性を向上。
+  - ログアウトボタンのアイコンが他のメニュー項目とずれていた問題を修正。
+
+## [0.2.112] Account Page Density Optimization - 2026-04-09
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`account.html`**:
+  - マイページ（プロファイル、ダッシュボード）の各カードサイズを縮小し、情報密度を向上。
+  - 余白を調整し、モバイル端末でのスクロール量を削減。
+
+## [0.2.111] Hero Section Size Optimization - 2026-04-09
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`main/style.css`**:
+  - トップページのヒーローセクション（「南陵祭 2026」部分）が大きすぎるとのフィードバックに基づき、全体的にサイズを縮小。
+  - **調整内容**:
+    - `.hero-container` の上下パディングを削減（`60px/80px` -> `32px/48px`）。
+    - `.hero-title` の最大フォントサイズを `5rem` から `3.2rem` へ縮小。
+    - `.hero-slogan` のサイズを微調整。
+    - 各要素間の `gap` を `16px` から `8px` へ短縮。
+    - 背景の装飾円（Orbs）のサイズをタイトルに合わせて縮小。
+
+---
+
 
 ### メタ情報
 
