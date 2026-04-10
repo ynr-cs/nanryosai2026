@@ -1115,6 +1115,7 @@ main {
   left: 0;
   width: 100%;
   height: 100vh;
+  height: 100dvh; /* iOS対応: 実際の表示領域に合わせる */
   background: rgba(0, 0, 0, 0.5);
   z-index: 2000;
   opacity: 0;
@@ -1133,14 +1134,15 @@ main {
   top: 0;
   right: -280px; /* Hidden */
   width: 280px;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh; /* iOS対応: 実際の表示領域に合わせる */
   background: var(--card-bg);
   color: var(--text-main);
   box-shadow: -5px 0 20px var(--shadow-color);
   transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  padding: 24px 24px 0; /* bottom padding は menu-footer 側で管理 */
+  padding: 24px 24px calc(24px + var(--safe-area-bottom));
   overflow-y: auto;
 }
 
@@ -1214,12 +1216,8 @@ main {
 
 /* Menu Footer */
 .menu-footer {
-  flex-shrink: 0; /* 常に表示 — スクロールで隠れない */
-  position: sticky;
-  bottom: 0;
-  background: var(--card-bg); /* 背景を上書きしてコンテンツに重ならないように */
   margin-top: auto;
-  padding: 16px 0 calc(24px + var(--safe-area-bottom));
+  padding-top: 16px;
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;

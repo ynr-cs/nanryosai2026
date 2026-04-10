@@ -15,26 +15,6 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
-## [0.2.117] Hamburger Menu Footer Fix - 2026-04-10
-
-### メタ情報
-
-- **AIモデル**: Claude
-- **筆者**: AI
-
-### 修正 (Fixed)
-
-- **`main/style.css`**:
-  - スマホで「Powered by コンピュータ科学部」が見えない問題を修正。
-  - **背景/原因**: `.app-menu-content` が `overflow-y: auto` の flex コンテナであり、その中で `.menu-footer` に `margin-top: auto` を付けてもメニュー項目が多い場合にフッターがスクロール領域の外に押し出され、スクロールしないと見えない状態になっていた。
-  - **解決策**:
-    - `.app-menu-content` の `padding-bottom` を `0` にし、フッター側で下部パディング（セーフエリア含む）を管理するよう変更。
-    - `.menu-footer` に `position: sticky; bottom: 0;` を追加し、スクロールコンテナ内でも常に下部に固定表示されるようにした。`background: var(--card-bg)` でコンテンツとの重なりを防止。
-    - `flex-shrink: 0` を追加し、フッターが縮小されないことを保証。
-  - **得られた知見**: `overflow-y: auto` の flex コンテナ内では `margin-top: auto` だけで末尾に固定することはできない。`position: sticky; bottom: 0;` と組み合わせることで、スクロールコンテナ内でも常に下部に表示できる。
-
----
-
 ## [0.2.116] Mobile Display Scale Down - 2026-04-10
 
 ### メタ情報
@@ -54,8 +34,11 @@
 ### 修正 (Fixed)
 
 - **ボトムナビ後ろの背景帯が見える問題を修正**（zoom とは無関係の既存問題）:
-  - **背景/原因**: `body` に `padding-bottom: calc(--bottom-nav-height + --safe-area-bottom)` が設定されており、この領域に `body` の背景色 (`--bg-color`) が表示され、ボトムナビ（`position: fixed`、piil形状）の後ろに背景の帯が見えていた。
-  - **解決策**: `body` の `padding-bottom` を `0` に変更。代わりに `main` に `padding-bottom` を付与することでコンテンツがボトムナビに隠れないようにした。これにより `body` の背景がボトムナビの後ろに露出しなくなった。
+  - **背景/原因**: `body` に `padding-bottom: calc(--bottom-nav-height + --safe-area-bottom)` が設定されており、この領域に `body` の背景色 (`--bg-color`) が表示され、ボトムナビ（`position: fixed`、pill形状）の後ろに背景の帯が見えていた。
+  - **解決策**: `body` の `padding-bottom` を `0` に変更。代わりに `main` に `padding-bottom` を付与することでコンテンツがボトムナビに隠れないようにした。
+- **ハンバーガーメニュー下部「Powered by コンピュータ科学部」がスマホで見えない問題を修正**:
+  - **背景/原因**: `.app-menu-overlay` と `.app-menu-content` が `height: 100vh` を使用。iOSモバイルブラウザでは `100vh` がアドレスバーを含む高さになるため、実際の表示領域より大きくなり、`margin-top: auto` で下に配置されたフッターが画面外に押し出されていた。
+  - **解決策**: `100dvh` (dynamic viewport height) を追加。`100vh` をフォールバックとして残しつつ、`100dvh` で実際の表示領域にフィットさせた。
 
 ---
 
