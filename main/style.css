@@ -106,9 +106,9 @@
   --glass-border: rgba(255, 255, 255, 0.5);
 }
 
-/* Mobile Scale Down — スマホ表示で全体を縮小 */
+/* Mobile Scale Down — スマホ表示でコンテンツ全体を縮小 */
 @media (max-width: 768px) {
-  html {
+  main {
     zoom: 0.9;
   }
 }
