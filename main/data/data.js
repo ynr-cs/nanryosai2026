@@ -1,3 +1,19 @@
+/**
+ * Nanryosai 2026
+ * Version: 0.1.0
+ * Last Modified: 2026-02-05
+ * Author: Nanryosai 2026 Project Team
+ */
+// =======================================================
+// ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase) ★★★
+// =======================================================
+
+console.log("data.js loading...");
+
+// バージョン情報 (admin_syncで同期状態を確認するために使用)
+const dataVersion = "PORT_3009_TEST";
+
+// 企画の名簿データ
 const projectData = [
   {
     id: "301",
@@ -8,7 +24,6 @@ const projectData = [
     name: "やきそばスター",
     place: "中庭テントA",
     floor: 1,
-
     // [2026年度メモ] mapX, mapY (地図座標)は要件定義待ちのため、現在はデータ定義から除外しています。
     // 必要になった場合は、2D/3Dどちらの方式になるか確定後に再定義してください。
     description:
@@ -458,3 +473,72 @@ const projectData = [
 ];
 
 // ステージデータ (出演スケジュール)
+const stageData = [
+  // Day 1
+  {
+    id: "brass_d1",
+    day: 1,
+    time: "Day1 10:15 - 10:45",
+    groupName: "吹奏楽部",
+    name: "南陵ブラス・コンサート",
+    place: "体育館",
+    description: "「宝島」やJ-POPメドレーなど、盛り上がる曲をお届けします！",
+    tags: ["Day1", "音楽"],
+  },
+  {
+    id: "band_d1",
+    day: 1,
+    time: "Day1 11:30 - 12:30",
+    groupName: "有志バンド",
+    name: "SUMMER ROCK FES",
+    place: "体育館",
+    description: "オーディションを勝ち抜いた3バンドによる熱いライブ。",
+    tags: ["Day1", "音楽"],
+  },
+  {
+    id: "dance_d1",
+    day: 1,
+    time: "Day1 13:30 - 14:30",
+    groupName: "ダンス部",
+    name: "DANCE PERFORMANCE '26",
+    place: "体育館",
+    description: "全国大会出場の実力！迫力のパフォーマンスを見逃すな。",
+    tags: ["Day1", "ダンス"],
+  },
+
+  // Day 2
+  {
+    id: "keion_d2",
+    day: 2,
+    time: "Day2 10:00 - 11:00",
+    groupName: "軽音楽部",
+    name: "ACOUSTIC LIVE",
+    place: "体育館",
+    description: "しっとりとしたアコースティックサウンドをお届けします。",
+    tags: ["Day2", "音楽"],
+  },
+  {
+    id: "shodo_d2",
+    day: 2,
+    time: "Day2 11:30 - 12:30",
+    groupName: "書道部",
+    name: "書道パフォーマンス",
+    place: "体育館",
+    description: "音楽に合わせて巨大な紙に想いを描く、圧巻のパフォーマンス。",
+    tags: ["Day2", "パフォーマンス"],
+  },
+  {
+    id: "dance_battle_d2",
+    day: 2,
+    time: "Day2 13:30 - 14:30",
+    groupName: "後夜祭ダンスバトル",
+    name: "DANCE BATTLE FINAL",
+    place: "体育館",
+    description: "最強のダンサーは誰だ！？飛び入り参加ありのダンスバトル。",
+    tags: ["Day2", "ダンス"],
+  },
+  // 必要に応じてここに追加
+];
+
+console.log("data.js loaded: projectData count =", projectData.length);
+console.log("data.js loaded: stageData count =", stageData.length);
