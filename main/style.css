@@ -1130,12 +1130,11 @@ main {
 }
 
 .app-menu-content {
-  position: absolute;
+  position: fixed;
   top: 0;
+  bottom: 0;
   right: -280px; /* Hidden */
   width: 280px;
-  height: 100vh;
-  height: 100dvh; /* iOS対応: 実際の表示領域に合わせる */
   background: var(--card-bg);
   color: var(--text-main);
   box-shadow: -5px 0 20px var(--shadow-color);
