@@ -24,7 +24,6 @@ import {
 
 const AppShell = {
   init: function () {
-    this.applyMobileZoom();
     this.injectStyles();
     this.injectHeader();
     this.injectBottomNav();
@@ -32,19 +31,6 @@ const AppShell = {
     this.highlightActiveTab();
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
-  },
-
-  applyMobileZoom: function () {
-    // スマホ全体表示が大きすぎる問題への対応
-    // 小さい画面のスマホ（375pxや390px等）の場合、表示幅を仮想的に414pxに固定することで
-    // ブラウザに自動的に画面全体を縮小(約0.85〜0.94倍)させ、
-    // 「セクション毎ではなく画面全体を小さくする」という要件を安全に満たす。
-    if (window.innerWidth > 0 && window.innerWidth < 414) {
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=414, viewport-fit=cover');
-      }
-    }
   },
 
   resolvePath: function (path) {
