@@ -1140,7 +1140,7 @@ main {
   transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  padding: 24px 24px calc(24px + var(--safe-area-bottom));
+  padding: 24px 24px 0; /* bottom padding は menu-footer 側で管理 */
   overflow-y: auto;
 }
 
@@ -1214,8 +1214,12 @@ main {
 
 /* Menu Footer */
 .menu-footer {
+  flex-shrink: 0; /* 常に表示 — スクロールで隠れない */
+  position: sticky;
+  bottom: 0;
+  background: var(--card-bg); /* 背景を上書きしてコンテンツに重ならないように */
   margin-top: auto;
-  padding-top: 16px;
+  padding: 16px 0 calc(24px + var(--safe-area-bottom));
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;

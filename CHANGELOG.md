@@ -15,6 +15,26 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.117] Hamburger Menu Footer Fix - 2026-04-10
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`main/style.css`**:
+  - スマホで「Powered by コンピュータ科学部」が見えない問題を修正。
+  - **背景/原因**: `.app-menu-content` が `overflow-y: auto` の flex コンテナであり、その中で `.menu-footer` に `margin-top: auto` を付けてもメニュー項目が多い場合にフッターがスクロール領域の外に押し出され、スクロールしないと見えない状態になっていた。
+  - **解決策**:
+    - `.app-menu-content` の `padding-bottom` を `0` にし、フッター側で下部パディング（セーフエリア含む）を管理するよう変更。
+    - `.menu-footer` に `position: sticky; bottom: 0;` を追加し、スクロールコンテナ内でも常に下部に固定表示されるようにした。`background: var(--card-bg)` でコンテンツとの重なりを防止。
+    - `flex-shrink: 0` を追加し、フッターが縮小されないことを保証。
+  - **得られた知見**: `overflow-y: auto` の flex コンテナ内では `margin-top: auto` だけで末尾に固定することはできない。`position: sticky; bottom: 0;` と組み合わせることで、スクロールコンテナ内でも常に下部に表示できる。
+
+---
+
 ## [0.2.116] Mobile Display Scale Down - 2026-04-10
 
 ### メタ情報
