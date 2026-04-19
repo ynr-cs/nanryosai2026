@@ -61,6 +61,12 @@ last_updated: 2026-04-19
     - **権限設定**: 作成者アカウントから、システム用サービスアカウント（例: `nanryosai-2026-a4091@appspot...` 及びローカル開発用 `932284...`）に編集(Editor)権限を付与することで、Cloud Functionsからの自動追記を実現。
     - `stores/{storeId}.spreadsheetId`: 作成されたGoogleスプレッドシートのID。
     - `stores/{storeId}.spreadsheetUrl`: スプレッドシートへの直接リンク。
+  - `venues/{venueId}`: 会場（体育館、音楽室など）のリアルタイムステータス。
+    - `status`: "preparing" | "soon" | "live" | "ended"
+    - `currentEventId`: 現在の演目ID（data.js の stageData と紐付け）
+    - `nextEventId`: 次の演目ID
+  - `venue_admin_config/settings`: 会場管理画面のログイン用設定（URLトークン、パスワードのハッシュ・ソルト）。Firebase Authを使わない独立した認証に使用。
+  - `venue_admin_sessions/{sessionToken}`: 会場管理の有効なセッショントークン。
 - **セキュリティルール**:
   - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは管理者/本人/SuperAdminのみ。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
@@ -73,6 +79,12 @@ last_updated: 2026-04-19
     - フィールド: `storeId` (Ascending), `createdAt` (Ascending)
     - 備考: `portal.html` から前日のデータを集計する際に使用。
 
+## 4.5. 独自セッション認証 (会場ステータス管理)
+
+会場ステータス管理 (`admin/venue.html`) は、学校の先生が共有端末等で即座にアクセスできるよう、**Firebase Auth を使用しない独自の認証フロー**を採用しています。
+- **ログイン**: URLパラメータの `token` と手入力のパスワードをCloud Function (`loginVenueAdmin`) に送信し、PBKDF2でハッシュ照合。成功時にセッショントークンを発行して `venue_admin_sessions` に保存。
+- **ステータス更新**: クライアントは `updateVenueStatus` Functionを呼び出し、セッショントークンを検証した上で `venues` を更新。Firestoreへの直接書き込みはルールで全拒否。
+
 ## 5. バックエンド (Cloud Functions)
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
@@ -83,6 +95,8 @@ last_updated: 2026-04-19
   - `mockAuPayPayment` (OnCall): auPay決済のデモ用モック処理。注文ステータスを `authorized` へ変更する。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。
   - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
+  - `loginVenueAdmin` (OnCall): 会場管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
+  - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
 
 ## 6. クラウドストレージ (Cloud Storage)
 

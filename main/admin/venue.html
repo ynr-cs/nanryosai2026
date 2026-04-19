@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会場ステータス管理 | 南陵祭'26</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="../data/data.js"></script>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --primary-gradient: linear-gradient(135deg, #ff0080, #7928ca);
+            --success-color: #00f2fe;
+            --error-color: #ff0844;
+        }
+
+        body { 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 0, 128, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(121, 40, 202, 0.15), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        .container { 
+            max-width: 500px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .venue-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-sub);
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+
+        .card { 
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 30px; 
+            border-radius: 20px; 
+            margin-bottom: 25px; 
+            box-shadow: var(--glass-shadow);
+        }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px; 
+            color: var(--text-sub); 
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .save-status {
+            font-size: 0.8rem;
+            color: var(--success-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .save-status.show { opacity: 1; }
+        .save-status.saving { color: var(--text-sub); opacity: 1; }
+
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 14px 16px; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.2); 
+            color: var(--text-main); 
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #ff0080;
+            box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.2);
+            background: rgba(0,0,0,0.4);
+        }
+
+        .btn { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            background: var(--primary-gradient); 
+            color: white; 
+            font-size: 1.05rem;
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+        }
+
+        .btn:hover:not(:disabled) { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 128, 0.4);
+        }
+
+        .btn:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden { display: none !important; }
+
+        .notification { 
+            padding: 16px; 
+            margin-bottom: 25px; 
+            border-radius: 12px; 
+            text-align: center; 
+            font-weight: 600;
+            transition: all 0.4s ease;
+        }
+        .notification.error { 
+            background: rgba(255, 8, 68, 0.15); 
+            color: var(--error-color); 
+            border: 1px solid rgba(255, 8, 68, 0.3); 
+        }
+        .notification.success { 
+            background: rgba(0, 242, 254, 0.15); 
+            color: var(--success-color); 
+            border: 1px solid rgba(0, 242, 254, 0.3); 
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-sub);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header-title">会場管理</h1>
+        <div id="venue-name-display" class="venue-subtitle">...</div>
+        
+        <div id="notification" class="notification hidden"></div>
+
+        <!-- Login Section -->
+        <div id="login-section" class="card hidden">
+            <p style="margin-bottom: 25px; color: var(--text-sub); font-size: 0.95em; line-height: 1.6;">
+                パスワードを入力してログインしてください。
+            </p>
+            <div class="form-group">
+                <label>PASSWORD</label>
+                <input type="password" id="password-input" placeholder="パスワードを入力">
+            </div>
+            <button class="btn" id="login-btn">ログイン</button>
+        </div>
+
+        <!-- Management Section -->
+        <div id="manage-section" class="card hidden">
+            
+            <div class="form-group">
+                <label>
+                    ステータス
+                    <span class="save-status" id="status-save">✓ 保存済み</span>
+                </label>
+                <select id="status-select">
+                    <option value="preparing">準備中</option>
+                    <option value="soon">まもなく開始</option>
+                    <option value="live">開催中</option>
+                    <option value="ended">終了</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    現在の演目
+                    <span class="save-status" id="current-save">✓ 保存済み</span>
+                </label>
+                <select id="current-select">
+                    <option value="">（なし）</option>
+                    <!-- Options injected -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    次の演目
+                    <span class="save-status" id="next-save">✓ 保存済み</span>
+                </label>
+                <select id="next-select">
+                    <option value="">（なし）</option>
+                    <!-- Options injected -->
+                </select>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">ログアウト</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { app, db } from '../auth.js';
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const functions = getFunctions(app, "asia-northeast1");
+        const loginVenueAdmin = httpsCallable(functions, 'loginVenueAdmin');
+        const updateVenueStatus = httpsCallable(functions, 'updateVenueStatus');
+
+        const venueInfo = {
+            gym: { name: '体育館', keywords: ['体育館'] },
+            music_room: { name: '音楽室', keywords: ['音楽室'] },
+            av_room: { name: '視聴覚室', keywords: ['視聴覚室'] }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const venueId = urlParams.get('venue');
+
+        const loginSection = document.getElementById('login-section');
+        const manageSection = document.getElementById('manage-section');
+        const notification = document.getElementById('notification');
+        const venueTitle = document.getElementById('venue-name-display');
+
+        let autoSaveTimer = null;
+
+        function showNotification(msg, type = 'success') {
+            notification.textContent = msg;
+            notification.className = `notification ${type}`;
+            setTimeout(() => { notification.classList.add('hidden'); }, 4000);
+        }
+
+        function setSaveFeedback(id, state) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (state === 'saving') {
+                el.textContent = '保存中...';
+                el.className = 'save-status saving';
+            } else if (state === 'saved') {
+                el.textContent = '✓ 保存済み';
+                el.className = 'save-status show';
+                setTimeout(() => el.classList.remove('show'), 2000);
+            } else if (state === 'error') {
+                el.textContent = '⚠ エラー';
+                el.className = 'save-status show';
+                el.style.color = 'var(--error-color)';
+            }
+        }
+
+        async function loadInitialData() {
+            try {
+                const docRef = doc(db, 'venues', venueId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('status-select').value = data.status || 'preparing';
+                    document.getElementById('current-select').value = data.currentEventId || '';
+                    document.getElementById('next-select').value = data.nextEventId || '';
+                }
+            } catch(e) {
+                console.error("初期データ取得エラー:", e);
+            }
+        }
+
+        function populateSelects() {
+            const currentSel = document.getElementById('current-select');
+            const nextSel = document.getElementById('next-select');
+            
+            const vInfo = venueInfo[venueId];
+            if (!vInfo) return;
+
+            // Filter stageData by place keywords
+            const stages = window.stageData || [];
+            const filteredStages = stages.filter(s => {
+                return vInfo.keywords.some(kw => s.place && s.place.includes(kw));
+            });
+
+            const htmlOptions = filteredStages.map(s => 
+                `<option value="${s.id}">${s.time} | ${s.groupName} - ${s.name}</option>`
+            ).join('');
+
+            currentSel.insertAdjacentHTML('beforeend', htmlOptions);
+            nextSel.insertAdjacentHTML('beforeend', htmlOptions);
+        }
+
+        async function handleAutoSave(elementId) {
+            const sessionToken = localStorage.getItem('venueAdminSession');
+            if (!sessionToken) {
+                showNotification('セッションが切れました。再ログインしてください', 'error');
+                logout();
+                return;
+            }
+
+            const status = document.getElementById('status-select').value;
+            const currentEventId = document.getElementById('current-select').value || null;
+            const nextEventId = document.getElementById('next-select').value || null;
+
+            const feedbackId = elementId.replace('-select', '-save');
+            setSaveFeedback(feedbackId, 'saving');
+
+            try {
+                await updateVenueStatus({
+                    sessionToken,
+                    venueId,
+                    updates: { status, currentEventId, nextEventId }
+                });
+                setSaveFeedback(feedbackId, 'saved');
+            } catch (error) {
+                console.error(error);
+                setSaveFeedback(feedbackId, 'error');
+                if (error.message.includes('セッション')) {
+                    setTimeout(() => logout(), 2000);
+                }
+            }
+        }
+
+        function setupListeners() {
+            ['status-select', 'current-select', 'next-select'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('change', () => {
+                    // 自動選択ロジック (現在の演目が選ばれた場合)
+                    if (id === 'current-select') {
+                        const currentId = el.value;
+                        if (currentId) {
+                            const stages = window.stageData || [];
+                            const vInfo = venueInfo[venueId];
+                            const filteredStages = stages.filter(s => vInfo.keywords.some(kw => s.place && s.place.includes(kw)));
+                            
+                            const currentIndex = filteredStages.findIndex(s => s.id === currentId);
+                            if (currentIndex !== -1 && currentIndex < filteredStages.length - 1) {
+                                const nextId = filteredStages[currentIndex + 1].id;
+                                const nextSel = document.getElementById('next-select');
+                                if (nextSel.value !== nextId) {
+                                    nextSel.value = nextId;
+                                    // 次の演目の保存フィードバックも出す
+                                    handleAutoSave('next-select');
+                                }
+                            }
+                        }
+                    }
+
+                    // 保存処理
+                    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(() => handleAutoSave(id), 200);
+                });
+            });
+        }
+
+        function init() {
+            if (!venueId || !venueInfo[venueId] || !token) {
+                venueTitle.textContent = "エラー";
+                loginSection.classList.remove('hidden');
+                loginSection.innerHTML = '<p style="color:var(--error-color); text-align:center;">無効なアクセスです。<br>正しいURLからアクセスしてください。</p>';
+                return;
+            }
+
+            venueTitle.textContent = venueInfo[venueId].name;
+
+            const sessionToken = localStorage.getItem('venueAdminSession');
+            if (sessionToken) {
+                populateSelects();
+                loadInitialData().then(() => {
+                    showManageSection();
+                    setupListeners();
+                });
+            } else {
+                loginSection.classList.remove('hidden');
+            }
+        }
+
+        // Login handler
+        document.getElementById('login-btn')?.addEventListener('click', async () => {
+            const password = document.getElementById('password-input').value;
+
+            if (!password) {
+                showNotification('パスワードを入力してください', 'error');
+                return;
+            }
+
+            try {
+                const btn = document.getElementById('login-btn');
+                btn.textContent = 'ログイン中...';
+                btn.disabled = true;
+                
+                const result = await loginVenueAdmin({ urlToken: token, password });
+                
+                if (result.data.success) {
+                    localStorage.setItem('venueAdminSession', result.data.sessionToken);
+                    
+                    populateSelects();
+                    await loadInitialData();
+                    
+                    showManageSection();
+                    setupListeners();
+                }
+            } catch (error) {
+                console.error(error);
+                showNotification(error.message || 'ログインに失敗しました', 'error');
+            } finally {
+                const btn = document.getElementById('login-btn');
+                if(btn) {
+                    btn.textContent = 'ログイン';
+                    btn.disabled = false;
+                }
+            }
+        });
+
+        window.logout = () => {
+            localStorage.removeItem('venueAdminSession');
+            location.reload();
+        };
+
+        function showManageSection() {
+            loginSection.classList.add('hidden');
+            manageSection.classList.remove('hidden');
+        }
+
+        init();
+    </script>
+</body>
+</html>

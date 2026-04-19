@@ -1296,3 +1296,97 @@ exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
   },
 );
 
+/**
+ * @name loginVenueAdmin
+ * @description 会場ステータス管理ログイン。URLトークンとパスワードを検証し、セッショントークンを発行。
+ */
+exports.loginVenueAdmin = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { urlToken, password } = requestData;
+
+    if (!urlToken || !password) {
+      throw new functions.https.HttpsError("invalid-argument", "URLトークンとパスワードが必要です。");
+    }
+
+    try {
+      const configDoc = await db.collection("venue_admin_config").doc("settings").get();
+      if (!configDoc.exists) {
+        throw new functions.https.HttpsError("failed-precondition", "管理設定が初期化されていません。");
+      }
+
+      const config = configDoc.data();
+      if (config.accessToken !== urlToken) {
+        throw new functions.https.HttpsError("permission-denied", "無効なURLです。");
+      }
+
+      const isValid = verifyPassword(password, config.hash, config.salt);
+      if (!isValid) {
+        throw new functions.https.HttpsError("permission-denied", "パスワードが間違っています。");
+      }
+
+      const sessionToken = crypto.randomBytes(32).toString("hex");
+      await db.collection("venue_admin_sessions").doc(sessionToken).set({
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      return { success: true, sessionToken };
+    } catch (error) {
+      console.error("loginVenueAdmin Error:", error);
+      // Custom Error handling
+      if (error instanceof functions.https.HttpsError) {
+          throw error;
+      }
+      throw new functions.https.HttpsError("internal", "ログイン中にエラーが発生しました。");
+    }
+  });
+
+/**
+ * @name updateVenueStatus
+ * @description セッショントークンを検証し、会場ステータスを更新する
+ */
+exports.updateVenueStatus = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { sessionToken, venueId, updates } = requestData;
+
+    if (!sessionToken || !venueId || !updates) {
+      throw new functions.https.HttpsError("invalid-argument", "必要なパラメータが不足しています。");
+    }
+
+    try {
+      const sessionDoc = await db.collection("venue_admin_sessions").doc(sessionToken).get();
+      if (!sessionDoc.exists) {
+        throw new functions.https.HttpsError("unauthenticated", "セッションが無効か期限切れです。");
+      }
+
+      const createdAt = sessionDoc.data().createdAt.toDate();
+      const now = new Date();
+      const diffHours = (now - createdAt) / (1000 * 60 * 60);
+      
+      if (diffHours > 24) {
+        await sessionDoc.ref.delete(); // expired
+        throw new functions.https.HttpsError("unauthenticated", "セッションの有効期限が切れています。");
+      }
+
+      // 許可するフィールドのみ抽出
+      const allowedUpdates = {
+        status: updates.status, // "preparing" | "soon" | "live" | "ended"
+        currentEventId: updates.currentEventId || null,
+        nextEventId: updates.nextEventId || null,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection("venues").doc(venueId).set(allowedUpdates, { merge: true });
+
+      return { success: true, message: "更新しました" };
+    } catch (error) {
+      console.error("updateVenueStatus Error:", error);
+      if (error instanceof functions.https.HttpsError) {
+          throw error;
+      }
+      throw new functions.https.HttpsError("internal", "更新中にエラーが発生しました。");
+    }
+  });

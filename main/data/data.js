@@ -542,3 +542,7 @@ const stageData = [
 
 console.log("data.js loaded: projectData count =", projectData.length);
 console.log("data.js loaded: stageData count =", stageData.length);
+
+// グローバルアクセス用に window オブジェクトに紐付け
+window.projectData = projectData;
+window.stageData = stageData;

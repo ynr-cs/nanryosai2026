@@ -185,39 +185,39 @@
             </div>
             
             <div class="venue-grid">
-                <!-- 体育館 (Dummy) -->
+                <!-- 体育館 -->
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>体育館</h3>
-                        <span class="status-badge live">開催中</span>
+                        <span class="status-badge preparing" id="badge-gym">準備中</span>
                     </div>
                     <div class="venue-body">
-                        <p class="current-program">（現在調整中：ダミーデータ）</p>
-                        <p class="next-program">Next: 準備中</p>
+                        <p class="current-program" id="current-gym">読み込み中...</p>
+                        <p class="next-program" id="next-gym">Next: ―</p>
                     </div>
                 </div>
 
-                <!-- 音楽室 (Dummy) -->
+                <!-- 音楽室 -->
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>音楽室</h3>
-                        <span class="status-badge preparing">準備中</span>
+                        <span class="status-badge preparing" id="badge-music_room">準備中</span>
                     </div>
                     <div class="venue-body">
-                        <p class="current-program">（現在調整中：ダミーデータ）</p>
-                        <p class="next-program">Next: ―</p>
+                        <p class="current-program" id="current-music_room">読み込み中...</p>
+                        <p class="next-program" id="next-music_room">Next: ―</p>
                     </div>
                 </div>
 
-                <!-- 視聴覚室 (Dummy) -->
+                <!-- 視聴覚室 -->
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>視聴覚室</h3>
-                        <span class="status-badge ended">終了</span>
+                        <span class="status-badge preparing" id="badge-av_room">準備中</span>
                     </div>
                     <div class="venue-body">
-                        <p class="current-program">本日の公演は終了しました</p>
-                        <p class="next-program">See you tomorrow!</p>
+                        <p class="current-program" id="current-av_room">読み込み中...</p>
+                        <p class="next-program" id="next-av_room">Next: ―</p>
                     </div>
                 </div>
             </div>
@@ -618,5 +618,86 @@
     </script>
     <!-- App Shell Logic -->
     <script type="module" src="app-shell.js"></script>
+
+    <!-- Realtime Venue Status -->
+    <script type="module">
+        import { db } from './auth.js';
+        import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const venuesRef = collection(db, 'venues');
+        console.log("Starting venue status listener...");
+        
+        onSnapshot(venuesRef, (snapshot) => {
+            snapshot.forEach(doc => {
+                const id = doc.id; // gym, music_room, av_room
+                const data = doc.data();
+                console.log(`Venue update: ${id}`, data);
+                
+                const badge = document.getElementById(`badge-${id}`);
+                const current = document.getElementById(`current-${id}`);
+                const next = document.getElementById(`next-${id}`);
+                
+                if (badge && current && next) {
+                    const getStageHTML = (eventId, isCurrent) => {
+                        if (!eventId) return null;
+                        const stages = window.stageData || [];
+                        const stage = stages.find(s => s.id === eventId);
+                        if (stage) {
+                            const projects = window.projectData || [];
+                            const project = projects.find(p => p.groupName === stage.groupName);
+                            const linkHTML = project ? `<a href="store.html?id=${project.id}" style="color:var(--accent-color); text-decoration:underline; margin-left: 10px;">詳細</a>` : '';
+                            
+                            if (isCurrent) {
+                                return `
+                                    <div style="font-size:0.85em; color:var(--text-sub);">${stage.time}</div>
+                                    <div style="font-weight:bold; font-size:1.1em; margin: 4px 0;">${stage.groupName} ${linkHTML}</div>
+                                    <div style="font-size:0.95em;">「${stage.name}」</div>
+                                `;
+                            } else {
+                                return `Next: ${stage.time} ${stage.groupName}`;
+                            }
+                        }
+                        return null;
+                    };
+
+                    const newCurrentHTML = getStageHTML(data.currentEventId, true) || "（未設定）";
+                    const newNextHTML = getStageHTML(data.nextEventId, false) || "Next: ―";
+                    
+                    let newStatusText = '準備中';
+                    let newStatusClass = data.status || 'preparing';
+                    switch(data.status) {
+                        case 'live': newStatusText = '開催中'; break;
+                        case 'soon': newStatusText = 'まもなく開始'; break;
+                        case 'preparing': newStatusText = '準備中'; break;
+                        case 'ended': newStatusText = '終了'; break;
+                    }
+
+                    // Update with fade animation if changed
+                    const updateWithFade = (element, newHTML, newClass = null) => {
+                        if (element.innerHTML !== newHTML || (newClass && !element.classList.contains(newClass))) {
+                            element.style.transition = 'opacity 0.3s ease';
+                            element.style.opacity = '0';
+                            setTimeout(() => {
+                                if (newClass !== null) {
+                                    element.innerText = newHTML; // For badge (plain text)
+                                    element.className = 'status-badge'; // reset
+                                    element.classList.add(newClass);
+                                } else {
+                                    element.innerHTML = newHTML; // For content (HTML)
+                                }
+                                element.style.opacity = '1';
+                            }, 300);
+                        }
+                    };
+
+                    updateWithFade(current, newCurrentHTML);
+                    updateWithFade(next, newNextHTML);
+                    updateWithFade(badge, newStatusText, newStatusClass);
+                }
+            });
+        }, (error) => {
+            console.error("会場ステータスの取得に失敗しました:", error);
+        });
+    </script>
 </body>
 </html>
