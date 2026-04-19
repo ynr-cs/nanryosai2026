@@ -538,6 +538,70 @@ const stageData = [
     tags: ["Day2", "ダンス"],
   },
   // 必要に応じてここに追加
+
+  // --- 音楽室 ---
+  {
+    id: "music_d1_1",
+    day: 1,
+    time: "10:30 - 11:00",
+    groupName: "合唱部",
+    name: "春の合唱コンサート",
+    place: "音楽室",
+    description: "美しいハーモニーをお楽しみください。",
+    tags: ["Day1", "音楽"],
+  },
+  {
+    id: "music_d1_2",
+    day: 1,
+    time: "13:00 - 13:30",
+    groupName: "ギタークラブ",
+    name: "アコースティックセッション",
+    place: "音楽室",
+    description: "アコースティックギターの調べをご堪能ください。",
+    tags: ["Day1", "音楽"],
+  },
+  {
+    id: "music_d2_1",
+    day: 2,
+    time: "10:30 - 11:00",
+    groupName: "吹奏楽部",
+    name: "室内楽コンサート",
+    place: "音楽室",
+    description: "小編成アンサンブルによる演奏会。",
+    tags: ["Day2", "音楽"],
+  },
+
+  // --- 視聴覚室 ---
+  {
+    id: "av_d1_1",
+    day: 1,
+    time: "10:00 - 11:00",
+    groupName: "映画研究部",
+    name: "自主制作映画上映会",
+    place: "視聴覚室",
+    description: "部員が制作した短編映画を上映します。",
+    tags: ["Day1", "映像"],
+  },
+  {
+    id: "av_d1_2",
+    day: 1,
+    time: "13:00 - 14:00",
+    groupName: "放送部",
+    name: "メディアプレゼンテーション",
+    place: "視聴覚室",
+    description: "取材・編集した映像作品を発表します。",
+    tags: ["Day1", "映像"],
+  },
+  {
+    id: "av_d2_1",
+    day: 2,
+    time: "10:00 - 11:00",
+    groupName: "映画研究部",
+    name: "映画上映会 Day2",
+    place: "視聴覚室",
+    description: "2日目の上映プログラムです。",
+    tags: ["Day2", "映像"],
+  },
 ];
 
 console.log("data.js loaded: projectData count =", projectData.length);

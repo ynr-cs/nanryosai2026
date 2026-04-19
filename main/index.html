@@ -151,23 +151,36 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
         }
+        @media (max-width: 768px) {
+            .venue-grid { gap: 6px; }
+        }
 
         .venue-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 12px;
+            border-radius: 12px;
+            padding: 12px 10px;
             color: var(--text-main);
-            box-shadow: 0 2px 8px var(--shadow-color);
+            box-shadow: 0 4px 12px var(--shadow-color);
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            position: relative;
+            overflow: hidden;
         }
         @media (max-width: 768px) {
             .venue-card {
-                padding: 10px 8px;
+                padding: 10px 6px;
                 border-radius: 8px;
             }
+        }
+
+        /* Top Accent Line */
+        .venue-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--primary-gradient);
+            opacity: 0.7;
         }
 
         .venue-header {
@@ -177,110 +190,163 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             margin-bottom: 6px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            text-align: center;
         }
-        .venue-header h3 { margin: 0; }
+        @media (max-width: 768px) {
+            .venue-header { font-size: 0.65rem; margin-bottom: 4px; }
+        }
+        .venue-header h3 { 
+            margin: 0; 
+            text-align: center;
+        }
 
         .venue-status-indicator {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.7rem;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.65rem;
             font-weight: 800;
             color: var(--text-main);
+            background: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            align-self: center;
         }
         .venue-status-indicator .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            background: #4ade80;
+            width: 5px; height: 5px; border-radius: 50%; background: #4ade80;
         }
         .venue-status-indicator.live .dot { background: #ff0055; animation: pulse-glow 2s infinite; }
+        .venue-status-indicator.soon .dot { background: #8b5cf6; }
         .venue-status-indicator.ended .dot { background: var(--text-sub); opacity: 0.5; }
         .venue-status-indicator.preparing .dot { background: #fbbf24; }
 
+        /* Compact Link Block for Group Info */
+        .venue-link-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            background: rgba(106, 17, 203, 0.04);
+            border: 1px solid rgba(106, 17, 203, 0.1);
+            border-radius: 8px;
+            padding: 8px 4px;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            gap: 4px;
+        }
+        [data-theme="dark"] .venue-link-block {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.05);
+        }
+        .venue-link-block:hover {
+            background: rgba(106, 17, 203, 0.08);
+            border-color: rgba(106, 17, 203, 0.2);
+            text-decoration: none;
+        }
+        .venue-link-block:active {
+            transform: scale(0.98);
+        }
+        .venue-next-block:hover {
+            background: rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+        }
+        .venue-next-block:active {
+            transform: scale(0.98);
+        }
+        
+        .venue-info {
+            flex: 1;
+            min-width: 0; /* for truncation */
+        }
+
         .venue-group-name {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             font-weight: 900;
-            line-height: 1.3;
+            line-height: 1.2;
             color: var(--text-main);
-            word-break: keep-all;
+            white-space: nowrap;
             overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
         }
         @media (max-width: 480px) {
-            .venue-group-name { font-size: 0.85rem; }
+            .venue-group-name { font-size: 0.75rem; }
         }
 
         .venue-time {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: var(--text-sub);
-            margin-bottom: 6px;
+            margin-top: 1px;
+            font-weight: 600;
         }
 
-        .venue-btn {
-            display: block;
-            text-align: center;
-            background: var(--primary-gradient);
-            color: white;
-            font-weight: 800;
-            font-size: 0.75rem;
-            padding: 7px 8px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: opacity 0.2s;
-            margin-top: auto;
+        .venue-event-name {
+            font-size: 0.6rem;
+            color: var(--text-main);
+            opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+            line-height: 1.1;
         }
-        .venue-btn:active { opacity: 0.8; }
+
+        .venue-arrow {
+            font-size: 0.6rem;
+            color: var(--primary-color);
+            flex-shrink: 0;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
 
         .venue-divider {
             height: 1px;
             background: var(--border-color);
-            margin: 4px -12px 6px;
+            margin: 0 -10px 8px;
         }
         @media (max-width: 768px) {
-            .venue-divider { margin: 4px -8px 6px; }
+            .venue-divider { margin: 0 -6px 6px; }
         }
 
         .venue-next-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 900;
             color: var(--text-sub);
             text-transform: uppercase;
             letter-spacing: 0.04em;
+            margin-bottom: 2px;
         }
-        .venue-next-title {
-            font-size: 0.75rem;
-            font-weight: 700;
-            line-height: 1.3;
-            color: var(--text-main);
-            word-break: keep-all;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            margin-bottom: 4px;
-        }
-        .venue-next-btn {
-            display: inline-block;
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 2px 7px;
-            border-radius: 4px;
+        
+        /* NEXT section formatting */
+        .venue-next-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             text-decoration: none;
-            transition: all 0.2s;
+            color: inherit;
+            padding: 4px 0;
+            gap: 4px;
+            transition: opacity 0.2s;
         }
-        .venue-next-btn:hover {
-            background: var(--primary-color);
-            color: white;
+        .venue-next-block:active { opacity: 0.7; }
+        
+        .venue-next-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -348,9 +414,9 @@
           現在はデザイン確認用のダミーデータを表示しています。
           backend logic: Not implemented yet.
         -->
-        <section class="realtime-container">
-            <div class="section-header">
-                <h2 class="section-title">リアルタイム情報</h2>
+        <section class="realtime-container" style="padding: 0 20px 40px; max-width: 800px; margin: 0 auto;">
+            <div class="highlight-header" style="margin-bottom: 16px;">
+                <h2 class="highlight-title">リアルタイム情報</h2>
                 <div class="live-badge-pulse">LIVE</div>
             </div>
             
@@ -362,12 +428,21 @@
                     </div>
                     <div class="venue-body" id="current-gym">
                         <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
-                        <div class="venue-group-name">読み込み中...</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name">読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="venue-divider"></div>
                     <div class="venue-footer" id="next-gym">
                         <div class="venue-next-label">NEXT</div>
-                        <div class="venue-next-title">―</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -378,12 +453,21 @@
                     </div>
                     <div class="venue-body" id="current-music_room">
                         <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
-                        <div class="venue-group-name">読み込み中...</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name">読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="venue-divider"></div>
                     <div class="venue-footer" id="next-music_room">
                         <div class="venue-next-label">NEXT</div>
-                        <div class="venue-next-title">―</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -394,12 +478,21 @@
                     </div>
                     <div class="venue-body" id="current-av_room">
                         <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
-                        <div class="venue-group-name">読み込み中...</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name">読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="venue-divider"></div>
                     <div class="venue-footer" id="next-av_room">
                         <div class="venue-next-label">NEXT</div>
-                        <div class="venue-next-title">―</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -836,33 +929,61 @@
                         const stage = stages.find(s => s.id === eventId);
                         if (stage) {
                             const projects = window.projectData || [];
-                            const project = projects.find(p => p.groupName === stage.groupName);
+                            const project = projects.find(p => 
+                                (p.groupName || "").trim() === (stage.groupName || "").trim() ||
+                                (p.id && stage.id.startsWith(p.id + "_")) ||
+                                (p.id && stage.id === p.id)
+                            );
+                            const linkUrl = project ? `detail.html?id=${project.id}` : 'projects-list.html';
+                            const linkTag = 'a'; 
+                            const arrowIcon = `<i class="fas fa-chevron-right venue-arrow"></i>`;
                             
-                            if (isCurrent) {
-                                const linkHTML = project ? `<a href="detail.html?id=${project.id}" class="venue-btn">企画詳細 →</a>` : '';
-                                return `
-                                    <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
-                                    <div class="venue-group-name">${stage.groupName}</div>
-                                    <div class="venue-time">${stage.time}</div>
-                                    ${linkHTML}
-                                `;
-                            } else {
-                                return `
-                                    <div class="venue-next-label">NEXT</div>
-                                    <div class="venue-next-title">${stage.groupName}「${stage.name}」(${stage.time})</div>
-                                `;
-                            }
+                             const commonContent = `
+                                 <div class="venue-info">
+                                     <div class="venue-group-name">${stage.groupName}</div>
+                                     <div class="venue-event-name" style="margin-top: 2px;">${stage.name}</div>
+                                     <div class="venue-time" style="margin-top: 2px;">${stage.time}</div>
+                                 </div>
+                                 ${arrowIcon}
+                             `;
+ 
+                             if (isCurrent) {
+                                 return `
+                                     <div style="display: flex; justify-content: center; width: 100%;">
+                                         <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
+                                     </div>
+                                     <${linkTag} href="${linkUrl}" class="venue-link-block">
+                                         ${commonContent}
+                                     </${linkTag}>
+                                 `;
+                             } else {
+                                 return `
+                                     <div class="venue-next-label" style="text-align: center; width: 100%;">NEXT</div>
+                                     <${linkTag} href="${linkUrl}" class="venue-next-block">
+                                         ${commonContent}
+                                     </${linkTag}>
+                                 `;
+                             }
                         }
                         return null;
                     };
 
                     const newCurrentHTML = getStageHTML(data.currentEventId, true) || `
                         <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
-                        <div class="venue-group-name">（未設定）</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name">（未設定）</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
                     `;
                     const newNextHTML = getStageHTML(data.nextEventId, false) || `
                         <div class="venue-next-label">NEXT</div>
-                        <div class="venue-next-title">―</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
                     `;
                     
                     // Update with fade animation if changed
