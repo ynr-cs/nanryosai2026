@@ -110,6 +110,51 @@ last_updated: 2026-03-19
 - **情報の一元管理は `data.js`**: マスタデータはコードベースで管理されていますが、同期ロジックによる「フィルタリング（情報の切り捨て）」があることを認識しておく必要があります。
 - **データフローの双方向性**: 基本は `data.js` -> Firestore ですが、商品写真のみ Firestore (Portal) -> `data.js` (Export) という逆流が必要になります。
 
+---
+
+## 6. データ読み込み待機パターン (Wait for Data Load)
+
+`data.js` は巨大なファイルであり、ブラウザによるパースが完了して `window` オブジェクト（`window.projectData` や `window.stageData`）が利用可能になる前に、他のスクリプトが初期化を開始してしまうリスクがあります。
+
+### `ensureData()` パターン (2026-04-20 導入)
+
+`ReferenceError` を防ぎ、データ準備完了を待機するための再帰的チェックパターンです。
+
+```javascript
+/**
+ * 外部読み込みの data.js が準備できるまで待機する
+ */
+async function ensureData(target = "stageData") {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window[target]) {
+        resolve(window[target]);
+      } else {
+        console.log(`Waiting for ${target}...`);
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+}
+
+// 使用例
+async function init() {
+  const data = await ensureData("stageData");
+  populateUI(data);
+}
+```
+
+このパターンにより、スクリプトの配置順序やネットワーク遅延に関わらず、確実にデータが存在する状態でUIを構築できます。
+
+---
+
+## 7. イベントリスナーの重複防止 (Double-Listener Prevention)
+
+シングルページアプリケーション（SPA）風の画面遷移や、ログイン・ログアウトの繰り返しを伴う画面では、`window.onAuthStateChanged` 等の中でイベントリスナーを登録すると、遷移のたびにリスナーが増殖するバグが発生します。
+
+- **解決策**: `isListenersAttached` 等のフラグ変数を導入し、一度登録したら二度目はスキップするガード節を設けること。
+
 ## 参照ファイル
 
 - `main/data/data.js`

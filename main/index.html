@@ -112,6 +112,144 @@
                 font-size: 1.2rem;
             }
         }
+
+        /* --- Real-time Info Section --- */
+        .realtime-container {
+            padding: 0 20px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .live-badge-pulse {
+            background: #ff0055;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 900;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            animation: pulse-glow 2s infinite;
+        }
+        .venue-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .venue-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .venue-card {
+            background: linear-gradient(145deg, #6b6baf, #5a5a9c);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(107, 107, 175, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .venue-header {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .venue-header h3 {
+            margin: 0;
+            letter-spacing: 0.1em;
+        }
+        
+        .venue-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        .venue-status-indicator .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .venue-status-indicator.live .dot { color: #ff0055; background: #ff0055; animation: pulse-glow 2s infinite; }
+        .venue-status-indicator.ended .dot { color: #cbd5e1; background: #cbd5e1; box-shadow: none; }
+        .venue-status-indicator.preparing .dot { color: #fbbf24; background: #fbbf24; }
+
+        .venue-group-name {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            word-break: keep-all;
+        }
+        .venue-time {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+        .venue-btn {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            padding: 14px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(255, 117, 140, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        .venue-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(255, 117, 140, 0.5);
+        }
+        .venue-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 -24px 20px;
+        }
+        .venue-next-label {
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: white;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .venue-next-title {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.5;
+            color: white;
+            opacity: 0.9;
+            word-break: keep-all;
+        }
     </style>
 </head>
 <body>
@@ -189,11 +327,15 @@
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>体育館</h3>
-                        <span class="status-badge preparing" id="badge-gym">準備中</span>
                     </div>
-                    <div class="venue-body">
-                        <p class="current-program" id="current-gym">読み込み中...</p>
-                        <p class="next-program" id="next-gym">Next: ―</p>
+                    <div class="venue-body" id="current-gym">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-group-name">読み込み中...</div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-gym">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-title">―</div>
                     </div>
                 </div>
 
@@ -201,11 +343,15 @@
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>音楽室</h3>
-                        <span class="status-badge preparing" id="badge-music_room">準備中</span>
                     </div>
-                    <div class="venue-body">
-                        <p class="current-program" id="current-music_room">読み込み中...</p>
-                        <p class="next-program" id="next-music_room">Next: ―</p>
+                    <div class="venue-body" id="current-music_room">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-group-name">読み込み中...</div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-music_room">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-title">―</div>
                     </div>
                 </div>
 
@@ -213,11 +359,15 @@
                 <div class="venue-card">
                     <div class="venue-header">
                         <h3>視聴覚室</h3>
-                        <span class="status-badge preparing" id="badge-av_room">準備中</span>
                     </div>
-                    <div class="venue-body">
-                        <p class="current-program" id="current-av_room">読み込み中...</p>
-                        <p class="next-program" id="next-av_room">Next: ―</p>
+                    <div class="venue-body" id="current-av_room">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-group-name">読み込み中...</div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-av_room">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-title">―</div>
                     </div>
                 </div>
             </div>
@@ -616,6 +766,8 @@
             }
         });
     </script>
+    <!-- Master Data (stageData / projectData) -->
+    <script src="data/data.js"></script>
     <!-- App Shell Logic -->
     <script type="module" src="app-shell.js"></script>
 
@@ -633,36 +785,10 @@
                 const data = doc.data();
                 console.log(`Venue update: ${id}`, data);
                 
-                const badge = document.getElementById(`badge-${id}`);
                 const current = document.getElementById(`current-${id}`);
                 const next = document.getElementById(`next-${id}`);
                 
-                if (badge && current && next) {
-                    const getStageHTML = (eventId, isCurrent) => {
-                        if (!eventId) return null;
-                        const stages = window.stageData || [];
-                        const stage = stages.find(s => s.id === eventId);
-                        if (stage) {
-                            const projects = window.projectData || [];
-                            const project = projects.find(p => p.groupName === stage.groupName);
-                            const linkHTML = project ? `<a href="store.html?id=${project.id}" style="color:var(--accent-color); text-decoration:underline; margin-left: 10px;">詳細</a>` : '';
-                            
-                            if (isCurrent) {
-                                return `
-                                    <div style="font-size:0.85em; color:var(--text-sub);">${stage.time}</div>
-                                    <div style="font-weight:bold; font-size:1.1em; margin: 4px 0;">${stage.groupName} ${linkHTML}</div>
-                                    <div style="font-size:0.95em;">「${stage.name}」</div>
-                                `;
-                            } else {
-                                return `Next: ${stage.time} ${stage.groupName}`;
-                            }
-                        }
-                        return null;
-                    };
-
-                    const newCurrentHTML = getStageHTML(data.currentEventId, true) || "（未設定）";
-                    const newNextHTML = getStageHTML(data.nextEventId, false) || "Next: ―";
-                    
+                if (current && next) {
                     let newStatusText = '準備中';
                     let newStatusClass = data.status || 'preparing';
                     switch(data.status) {
@@ -672,19 +798,48 @@
                         case 'ended': newStatusText = '終了'; break;
                     }
 
+                    const getStageHTML = (eventId, isCurrent) => {
+                        if (!eventId) return null;
+                        const stages = window.stageData || [];
+                        const stage = stages.find(s => s.id === eventId);
+                        if (stage) {
+                            const projects = window.projectData || [];
+                            const project = projects.find(p => p.groupName === stage.groupName);
+                            const linkHTML = project ? `<a href="detail.html?id=${project.id}" class="venue-btn">詳しく見る</a>` : '';
+                            
+                            if (isCurrent) {
+                                return `
+                                    <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
+                                    <div class="venue-group-name">${stage.groupName}</div>
+                                    <div class="venue-time">予定時間: ${stage.time}</div>
+                                    ${linkHTML}
+                                `;
+                            } else {
+                                return `
+                                    <div class="venue-next-label">NEXT</div>
+                                    <div class="venue-next-title">${stage.groupName}「${stage.name}」<br>(${stage.time})</div>
+                                `;
+                            }
+                        }
+                        return null;
+                    };
+
+                    const newCurrentHTML = getStageHTML(data.currentEventId, true) || `
+                        <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
+                        <div class="venue-group-name">（未設定）</div>
+                    `;
+                    const newNextHTML = getStageHTML(data.nextEventId, false) || `
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-title">―</div>
+                    `;
+                    
                     // Update with fade animation if changed
-                    const updateWithFade = (element, newHTML, newClass = null) => {
-                        if (element.innerHTML !== newHTML || (newClass && !element.classList.contains(newClass))) {
+                    const updateWithFade = (element, newHTML) => {
+                        if (element.innerHTML.trim() !== newHTML.trim()) {
                             element.style.transition = 'opacity 0.3s ease';
                             element.style.opacity = '0';
                             setTimeout(() => {
-                                if (newClass !== null) {
-                                    element.innerText = newHTML; // For badge (plain text)
-                                    element.className = 'status-badge'; // reset
-                                    element.classList.add(newClass);
-                                } else {
-                                    element.innerHTML = newHTML; // For content (HTML)
-                                }
+                                element.innerHTML = newHTML;
                                 element.style.opacity = '1';
                             }, 300);
                         }
@@ -692,7 +847,6 @@
 
                     updateWithFade(current, newCurrentHTML);
                     updateWithFade(next, newNextHTML);
-                    updateWithFade(badge, newStatusText, newStatusClass);
                 }
             });
         }, (error) => {

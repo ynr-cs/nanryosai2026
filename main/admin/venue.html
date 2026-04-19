@@ -3,238 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会場ステータス管理 | 南陵祭'26</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>会場管理 | 南陵祭'26</title>
     <script src="../data/data.js"></script>
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            --primary-gradient: linear-gradient(135deg, #ff0080, #7928ca);
-            --success-color: #00f2fe;
-            --error-color: #ff0844;
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --border: #cccccc;
+            --primary: #0066cc;
+            --error: #cc0000;
+            --success: #008800;
         }
-
-        body { 
-            background: var(--bg-color); 
-            color: var(--text-main); 
-            font-family: 'Inter', sans-serif;
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121212;
+                --text: #eeeeee;
+                --border: #444444;
+                --primary: #4da3ff;
+                --error: #ff4d4d;
+                --success: #4dff4d;
+            }
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(255, 0, 128, 0.15), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(121, 40, 202, 0.15), transparent 25%);
-            background-attachment: fixed;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; font-size: 1.5rem; }
+        .venue-name { font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; color: var(--primary); }
+        
+        .section {
+            border: 1px solid var(--border);
+            padding: 15px;
+            margin-bottom: 20px;
         }
 
-        .container { 
-            max-width: 500px; 
-            margin: 50px auto; 
-            padding: 20px; 
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header-title {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-        .venue-subtitle {
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--text-sub);
-            margin-bottom: 40px;
-            font-weight: bold;
-        }
-
-        .card { 
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            padding: 30px; 
-            border-radius: 20px; 
-            margin-bottom: 25px; 
-            box-shadow: var(--glass-shadow);
-        }
-
-        .form-group { margin-bottom: 25px; }
-        .form-group label { 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px; 
-            color: var(--text-sub); 
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .save-status {
-            font-size: 0.8rem;
-            color: var(--success-color);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .save-status.show { opacity: 1; }
-        .save-status.saving { color: var(--text-sub); opacity: 1; }
-
-        .form-group input, .form-group select { 
-            width: 100%; 
-            padding: 14px 16px; 
-            border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(0,0,0,0.2); 
-            color: var(--text-main); 
-            font-size: 1rem;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            appearance: none;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #ff0080;
-            box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.2);
-            background: rgba(0,0,0,0.4);
-        }
-
-        .btn { 
-            width: 100%; 
-            padding: 16px; 
-            border: none; 
-            border-radius: 12px; 
-            background: var(--primary-gradient); 
-            color: white; 
-            font-size: 1.05rem;
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
-        }
-
-        .btn:hover:not(:disabled) { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 0, 128, 0.4);
-        }
-
-        .btn:disabled { 
-            opacity: 0.6; 
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .hidden { display: none !important; }
-
-        .notification { 
-            padding: 16px; 
-            margin-bottom: 25px; 
-            border-radius: 12px; 
-            text-align: center; 
-            font-weight: 600;
-            transition: all 0.4s ease;
-        }
-        .notification.error { 
-            background: rgba(255, 8, 68, 0.15); 
-            color: var(--error-color); 
-            border: 1px solid rgba(255, 8, 68, 0.3); 
-        }
-        .notification.success { 
-            background: rgba(0, 242, 254, 0.15); 
-            color: var(--success-color); 
-            border: 1px solid rgba(0, 242, 254, 0.3); 
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-sub);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; }
+        
+        select, input {
             width: 100%;
-            margin-top: 20px;
+            padding: 10px;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-size: 1rem;
         }
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: var(--text-main);
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
         }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .logout-link { display: inline-block; margin-top: 20px; color: var(--text); text-decoration: underline; cursor: pointer; font-size: 0.9rem; }
+
+        .feedback { font-size: 0.8rem; margin-top: 4px; display: block; height: 1.2rem; }
+        .feedback.success { color: var(--success); }
+        .feedback.error { color: var(--error); }
+        
+        .notification {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .notification.error { border-color: var(--error); color: var(--error); }
+        .notification.success { border-color: var(--success); color: var(--success); }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="header-title">会場管理</h1>
-        <div id="venue-name-display" class="venue-subtitle">...</div>
+        <h1>会場ステータス管理</h1>
+        <div id="venue-name-display" class="venue-name">読み込み中...</div>
         
         <div id="notification" class="notification hidden"></div>
 
-        <!-- Login Section -->
-        <div id="login-section" class="card hidden">
-            <p style="margin-bottom: 25px; color: var(--text-sub); font-size: 0.95em; line-height: 1.6;">
-                パスワードを入力してログインしてください。
-            </p>
+        <!-- Login -->
+        <div id="login-section" class="section hidden">
             <div class="form-group">
-                <label>PASSWORD</label>
-                <input type="password" id="password-input" placeholder="パスワードを入力">
+                <label>パスワード</label>
+                <input type="password" id="password-input" placeholder="管理用パスワード">
             </div>
             <button class="btn" id="login-btn">ログイン</button>
         </div>
 
-        <!-- Management Section -->
-        <div id="manage-section" class="card hidden">
-            
-            <div class="form-group">
-                <label>
-                    ステータス
-                    <span class="save-status" id="status-save">✓ 保存済み</span>
-                </label>
-                <select id="status-select">
-                    <option value="preparing">準備中</option>
-                    <option value="soon">まもなく開始</option>
-                    <option value="live">開催中</option>
-                    <option value="ended">終了</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>
-                    現在の演目
-                    <span class="save-status" id="current-save">✓ 保存済み</span>
-                </label>
-                <select id="current-select">
-                    <option value="">（なし）</option>
-                    <!-- Options injected -->
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>
-                    次の演目
-                    <span class="save-status" id="next-save">✓ 保存済み</span>
-                </label>
-                <select id="next-select">
-                    <option value="">（なし）</option>
-                    <!-- Options injected -->
-                </select>
+        <!-- Manage -->
+        <div id="manage-section" class="hidden">
+            <div class="section">
+                <div class="form-group">
+                    <label for="status-select">現在のステータス</label>
+                    <select id="status-select">
+                        <option value="preparing">準備中</option>
+                        <option value="soon">まもなく開始</option>
+                        <option value="live">開催中</option>
+                        <option value="ended">終了</option>
+                    </select>
+                    <span id="status-save" class="feedback"></span>
+                </div>
             </div>
 
-            <button class="logout-btn" onclick="logout()">ログアウト</button>
+            <div class="section">
+                <div class="form-group">
+                    <label for="current-select">現在の演目</label>
+                    <select id="current-select">
+                        <option value="">（選択なし）</option>
+                    </select>
+                    <span id="current-save" class="feedback"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="next-select">次の演目</label>
+                    <select id="next-select">
+                        <option value="">（選択なし）</option>
+                    </select>
+                    <span id="next-save" class="feedback"></span>
+                </div>
+            </div>
+
+            <div class="logout-link" onclick="logout()">ログアウト</div>
         </div>
     </div>
 
@@ -262,12 +164,14 @@
         const notification = document.getElementById('notification');
         const venueTitle = document.getElementById('venue-name-display');
 
+        let isListenersAttached = false;
         let autoSaveTimer = null;
 
         function showNotification(msg, type = 'success') {
             notification.textContent = msg;
             notification.className = `notification ${type}`;
-            setTimeout(() => { notification.classList.add('hidden'); }, 4000);
+            notification.classList.remove('hidden');
+            setTimeout(() => { notification.classList.add('hidden'); }, 5000);
         }
 
         function setSaveFeedback(id, state) {
@@ -275,16 +179,25 @@
             if (!el) return;
             if (state === 'saving') {
                 el.textContent = '保存中...';
-                el.className = 'save-status saving';
+                el.className = 'feedback';
             } else if (state === 'saved') {
-                el.textContent = '✓ 保存済み';
-                el.className = 'save-status show';
-                setTimeout(() => el.classList.remove('show'), 2000);
+                el.textContent = '✓ 保存しました';
+                el.className = 'feedback success';
+                setTimeout(() => { if(el.textContent === '✓ 保存しました') el.textContent = ''; }, 3000);
             } else if (state === 'error') {
-                el.textContent = '⚠ エラー';
-                el.className = 'save-status show';
-                el.style.color = 'var(--error-color)';
+                el.textContent = '⚠ 保存に失敗しました';
+                el.className = 'feedback error';
             }
+        }
+
+        async function ensureData() {
+            // Wait for stageData if not present
+            let attempts = 0;
+            while (!window.stageData && attempts < 20) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            return !!window.stageData;
         }
 
         async function loadInitialData() {
@@ -298,7 +211,8 @@
                     document.getElementById('next-select').value = data.nextEventId || '';
                 }
             } catch(e) {
-                console.error("初期データ取得エラー:", e);
+                console.error("Data Load Error:", e);
+                showNotification('初期データの取得に失敗しました', 'error');
             }
         }
 
@@ -306,10 +220,13 @@
             const currentSel = document.getElementById('current-select');
             const nextSel = document.getElementById('next-select');
             
+            // Clear existing options except first
+            currentSel.innerHTML = '<option value="">（選択なし）</option>';
+            nextSel.innerHTML = '<option value="">（選択なし）</option>';
+
             const vInfo = venueInfo[venueId];
             if (!vInfo) return;
 
-            // Filter stageData by place keywords
             const stages = window.stageData || [];
             const filteredStages = stages.filter(s => {
                 return vInfo.keywords.some(kw => s.place && s.place.includes(kw));
@@ -348,17 +265,19 @@
             } catch (error) {
                 console.error(error);
                 setSaveFeedback(feedbackId, 'error');
-                if (error.message.includes('セッション')) {
+                if (error.message && error.message.includes('セッション')) {
                     setTimeout(() => logout(), 2000);
                 }
             }
         }
 
         function setupListeners() {
+            if (isListenersAttached) return;
+            
             ['status-select', 'current-select', 'next-select'].forEach(id => {
                 const el = document.getElementById(id);
                 el.addEventListener('change', () => {
-                    // 自動選択ロジック (現在の演目が選ばれた場合)
+                    // Auto-predict next event
                     if (id === 'current-select') {
                         const currentId = el.value;
                         if (currentId) {
@@ -372,25 +291,23 @@
                                 const nextSel = document.getElementById('next-select');
                                 if (nextSel.value !== nextId) {
                                     nextSel.value = nextId;
-                                    // 次の演目の保存フィードバックも出す
                                     handleAutoSave('next-select');
                                 }
                             }
                         }
                     }
 
-                    // 保存処理
                     if (autoSaveTimer) clearTimeout(autoSaveTimer);
                     autoSaveTimer = setTimeout(() => handleAutoSave(id), 200);
                 });
             });
+            isListenersAttached = true;
         }
 
-        function init() {
+        async function init() {
             if (!venueId || !venueInfo[venueId] || !token) {
                 venueTitle.textContent = "エラー";
-                loginSection.classList.remove('hidden');
-                loginSection.innerHTML = '<p style="color:var(--error-color); text-align:center;">無効なアクセスです。<br>正しいURLからアクセスしてください。</p>';
+                showNotification('無効なアクセスURLです。', 'error');
                 return;
             }
 
@@ -398,20 +315,19 @@
 
             const sessionToken = localStorage.getItem('venueAdminSession');
             if (sessionToken) {
+                await ensureData();
                 populateSelects();
-                loadInitialData().then(() => {
-                    showManageSection();
-                    setupListeners();
-                });
+                await loadInitialData();
+                showManageSection();
+                setupListeners();
             } else {
                 loginSection.classList.remove('hidden');
             }
         }
 
-        // Login handler
+        // Login
         document.getElementById('login-btn')?.addEventListener('click', async () => {
             const password = document.getElementById('password-input').value;
-
             if (!password) {
                 showNotification('パスワードを入力してください', 'error');
                 return;
@@ -419,23 +335,24 @@
 
             try {
                 const btn = document.getElementById('login-btn');
-                btn.textContent = 'ログイン中...';
+                btn.textContent = '認証中...';
                 btn.disabled = true;
                 
                 const result = await loginVenueAdmin({ urlToken: token, password });
                 
-                if (result.data.success) {
+                if (result.data && result.data.success) {
                     localStorage.setItem('venueAdminSession', result.data.sessionToken);
-                    
+                    await ensureData();
                     populateSelects();
                     await loadInitialData();
-                    
                     showManageSection();
                     setupListeners();
+                } else {
+                    showNotification('ログインに失敗しました', 'error');
                 }
             } catch (error) {
                 console.error(error);
-                showNotification(error.message || 'ログインに失敗しました', 'error');
+                showNotification(error.message || 'ログインエラー', 'error');
             } finally {
                 const btn = document.getElementById('login-btn');
                 if(btn) {
