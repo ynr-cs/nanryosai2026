@@ -39,17 +39,37 @@ group モバイルオーダー - 目的: 混雑緩和
 
     ' --- ステップ1: ログインと初期設定 ---
     group ログインと初期設定
-        Visitor -> "店舗内QRコード": QRコードから南陵祭Webサイトへアクセス
         Visitor -> MobileOrderApp: mobile-order.htmlにアクセス
+        MobileOrderApp -> Visitor: **「在校生ですか？」と確認** (Student Check)
 
-        MobileOrderApp -> Visitor: **Googleアカウントでのログインを要求**
-        Visitor -> MobileOrderApp: 「Googleでログイン」ボタンを押下
-        MobileOrderApp -> FirebaseAuth: Google認証を要求 (signInWithPopup/Redirect)
-        
-        alt 認証成功
-            FirebaseAuth --> MobileOrderApp: 認証成功 (ユーザー情報)
-            note right of MobileOrderApp: 初回ログインの場合、\nCloud Functionsトリガーで\nFirestoreにユーザーデータを作成
+        alt 在校生 (isStudentFlow = true)
+            Visitor -> MobileOrderApp: 「はい」を選択
+            MobileOrderApp -> Visitor: **学校アカウント使用の注意事項を表示** (One-Cushion)
+            Visitor -> MobileOrderApp: 「理解しました」を押下
+            MobileOrderApp -> FirebaseAuth: Google認証を要求 (signInWithPopup)
+            FirebaseAuth --> MobileOrderApp: 認証成功
             
+            alt 学校アカウント (@gl.pen-kanagawa.ed.jp)
+                MobileOrderApp -> MobileOrderApp: 正常フローへ継続
+            else 個人アカウント等
+                MobileOrderApp -> Visitor: **「利用対象外アカウント」画面を表示**\n(アカウント切り替えを推奨)
+                Visitor -> MobileOrderApp: ログアウトして再試行 or ホームへ
+                note over MobileOrderApp: フロー終了
+            end
+
+        else 一般来場者 (isStudentFlow = false)
+            Visitor -> MobileOrderApp: 「いいえ」を選択
+            MobileOrderApp -> Visitor: **ゲスト機能 (お気に入り等) の案内を表示**
+            Visitor -> MobileOrderApp: 「Googleでログイン」を押下
+            MobileOrderApp -> FirebaseAuth: Google認証を要求
+            FirebaseAuth --> MobileOrderApp: 認証成功
+            MobileOrderApp -> Visitor: **ゲスト歓迎画面を表示**\n(お気に入り機能の宣伝)
+            Visitor -> MobileOrderApp: ホームへ戻る
+            note over MobileOrderApp: モバイルオーダーは不可
+        end
+
+        ' --- 正常ログイン後の初期設定 ---
+        group 正常ログイン後の初期設定 (在校生のみ)
             ' --- Web Push通知許可 ---
             MobileOrderApp -> Visitor: **Web Push通知の許可を要求**\n(「準備完了を通知します」)
             alt 許可
@@ -65,10 +85,6 @@ group モバイルオーダー - 目的: 混雑緩和
             Visitor -> MobileOrderApp: 「同意して進む」ボタンを押下
             MobileOrderApp -> Firestore: ユーザー情報に同意フラグを記録
             MobileOrderApp -> Visitor: 店舗・メニュー選択画面へ遷移
-
-        else 認証失敗 or キャンセル
-            FirebaseAuth --> MobileOrderApp: 認証失敗
-            MobileOrderApp -> Visitor: エラーメッセージを表示し、フローを中断
         end
     end
 

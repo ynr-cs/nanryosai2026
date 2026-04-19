@@ -714,19 +714,22 @@
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        overflow: hidden; /* Ensure inner content doesn't spill out and cause body scroll */
-
+        overflow-y: auto; /* Enable scrolling for the content area */
+        overflow-x: hidden;
+        position: relative;
         /* Reset any transforms from previous scripts if they interfere */
         transform-origin: top center;
         background: var(--bg-color); /* Ensure background is solid */
-        border-right: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border for desktop view */
-        border-left: 1px solid rgba(0, 0, 0, 0.05);
+        border-right: 1px solid var(--border-color);
+        border-left: 1px solid var(--border-color);
+        /* Ensure bottom content isn't covered by nav */
+        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px);
       }
 
       /* Screens take full available height of the container */
       .screen {
         padding: 20px; /* Standard internal padding */
-        padding-bottom: 40px; /* Reduced padding since container will end above the nav */
+        /* Padding handled by app-container for consistent scrolling */
       }
 
       /* Menu Screen specific: Remove default padding to allow sticky header to hit top edge of container */
@@ -798,7 +801,7 @@
         >
       </div>
     </div>
-    <div id="app-container">
+    <main id="app-container">
       <!-- =========================================
            Screen 1: Loading
            ========================================= -->
@@ -836,8 +839,8 @@
           <div style="background: var(--item-fill); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
             <i class="bi bi-shield-check text-primary" style="font-size: 2.5rem"></i>
           </div>
-          <h3 class="fw-bold mt-4 mb-3">ログインに関するご注意</h3>
-          <div class="text-muted small px-3 text-start" style="line-height: 1.8;">
+          <h3 class="fw-bold mt-4 mb-3" style="color: var(--text-main);">ログインに関するご注意</h3>
+          <div class="small px-3 text-start" style="line-height: 1.8; color: var(--text-sub);">
             <p>モバイルオーダーの利用には、学校から配布されている<strong class="text-primary">「@gl.pen-kanagawa.ed.jp」</strong>で終わるメールアドレスでのログインが必要です。</p>
             <ul class="ps-3 mb-0">
               <li>個人のGmail等では注文できません。</li>
@@ -861,9 +864,9 @@
       <div id="step-guest-guidance" class="screen">
         <div class="text-center mt-5 mb-4">
           <i class="bi bi-info-circle text-primary" style="font-size: 4rem"></i>
-          <h3 class="fw-bold mt-3 mb-3">ご案内</h3>
-          <p class="text-muted small px-3">
-            誠に恐れ入りますが、モバイルオーダーは<strong class="text-dark">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。<br><br>
+          <h3 class="fw-bold mt-3 mb-3" style="color: var(--text-main);">ご案内</h3>
+          <p class="small px-3" style="color: var(--text-sub);">
+            誠に恐れ入りますが、モバイルオーダーは<strong style="color: var(--text-main);">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。<br><br>
             <strong class="text-primary">💡 ログインしてアプリをもっと楽しむ</strong><br>
             ログインしていただくと、「企画のお気に入り登録」など便利な機能がご利用いただけます！よろしければぜひログインして南陵祭をお楽しみください。
           </p>
@@ -974,17 +977,17 @@
           <div style="background: var(--item-fill); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
             <i class="bi bi-person-check text-primary" style="font-size: 2.5rem"></i>
           </div>
-          <h3 class="fw-bold mt-4 mb-3">ログインありがとうございます！</h3>
-          <p class="text-muted small px-4" style="line-height: 1.8;">
-            ログイン中：<strong class="text-dark" id="guest-email-display"></strong><br><br>
+          <h3 class="fw-bold mt-4 mb-3" style="color: var(--text-main);">ログインありがとうございます！</h3>
+          <p class="small px-4" style="line-height: 1.8; color: var(--text-sub);">
+            ログイン中：<strong style="color: var(--text-main);" id="guest-email-display"></strong><br><br>
             モバイルオーダーは在校生限定の機能ですが、ログインしたあなたなら以下の機能をお楽しみいただけます！
           </p>
-          <div class="mx-3 mt-3 p-3 text-start" style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color);">
+          <div class="mx-3 mt-3 p-3 text-start" style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); backdrop-filter: blur(10px);">
             <div class="d-flex align-items-center mb-2">
               <i class="bi bi-star-fill text-warning me-2"></i>
-              <span class="fw-bold">お気に入り登録</span>
+              <span class="fw-bold" style="color: var(--text-main);">お気に入り登録</span>
             </div>
-            <p class="small text-muted mb-0">気になる企画をお気に入り登録して、自分だけのマイリストを作れます。</p>
+            <p class="small mb-0" style="color: var(--text-sub);">気になる企画をお気に入り登録して、自分だけのマイリストを作れます。</p>
           </div>
         </div>
         <div class="mt-auto pb-4 px-3 d-flex flex-column gap-3">
@@ -1003,11 +1006,11 @@
       <div id="step-unauthorized-logged-in" class="screen">
         <div class="text-center mt-5 mb-4">
           <i class="bi bi-exclamation-circle text-danger" style="font-size: 4rem"></i>
-          <h3 class="fw-bold mt-3 mb-3">利用対象外のアカウント</h3>
-          <p class="text-muted small px-3">
-            モバイルオーダーは、<strong class="text-dark">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。<br><br>
+          <h3 class="fw-bold mt-3 mb-3" style="color: var(--text-main);">利用対象外のアカウント</h3>
+          <p class="small px-3" style="color: var(--text-sub);">
+            モバイルオーダーは、<strong style="color: var(--text-main);">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。<br><br>
             現在のアカウント:<br>
-            <strong class="text-dark" id="unauthorized-email-display"></strong><br><br>
+            <strong style="color: var(--text-main);" id="unauthorized-email-display"></strong><br><br>
             お気に入り登録などの機能は引き続きご利用いただけます。<br>
             ご注文は各店舗の<strong>POSレジ（セルフオーダー）</strong>をご利用ください。
           </p>
@@ -2229,7 +2232,7 @@
         document.getElementById(id).classList.add("active");
         const bar = document.getElementById("bottom-bar");
         if (id !== "step-menu") bar.style.display = "none";
-        window.scrollTo(0, 0);
+        document.getElementById("app-container").scrollTo(0, 0);
       }
       window.showScreen = showScreen;
 
@@ -2370,6 +2373,7 @@
       // Start the application
       init();
     </script>
+    </main>
     <script>
       window.CURRENT_PAGE = "order";
     </script>

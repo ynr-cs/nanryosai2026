@@ -15,6 +15,43 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.122] Mobile Order UI/UX Polish - 2026-04-19
+
+### 修正 (Fixed)
+- **mobile-order.html**: モバイル表示でのコンテンツ見切れを修正。
+  - `#app-container` に `padding-bottom` (safe-area考慮) を追加し、ボトムナビとの重なりを解消。
+  - スクロール領域を `body` から `#app-container` に完全に移行し、`showScreen` 時のスクロールリセット挙動を修正。
+- **ダークモード対応**: 最近追加された認証・案内画面の配色を修正。
+  - `text-muted`, `text-dark` などのハードコードされたクラスを CSS 変数 (`var(--text-sub)`, `var(--text-main)`) に置き換え。
+  - `backdrop-filter` を活用した Glassmorphism の適用により、ダークモード時のプレミアム感を向上。
+
+### 変更 (Changed)
+- **HTML構造**: セマンティックな構造化と `main/style.css` のスケーリング適用のた、`#app-container` を `main` タグに変更。
+
+## [0.2.121] Domain Restriction for Admin/Staff Screens - 2026-04-19
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`pos/pos.html`**: `@gl.pen-kanagawa.ed.jp` ドメイン制限を追加。ログイン画面にドメイン案内文、ドメインエラーオーバーレイを実装。
+- **`pos/portal.html`**: 同上。ステップ画面のサブタイトルをドメイン案内文に変更。
+- **`pos/monitor.html`**: 同上。Auth ビューにドメイン案内文を追加。
+- **`pos/kitchen.html`**: Compat SDK パターンで同上を実装。
+- **`pos/presenter.html`**: Compat SDK パターンで同上を実装。
+- 全画面共通: ドメイン不一致時に「在校生専用システム」エラーオーバーレイを表示し、「別のアカウントでログインする」ボタンでサインアウト→ログイン画面へ戻るフローを実装。
+
+### 設計上の注意
+
+- ドメインチェックは `onAuthStateChanged` の `if(user)` ブロック最先頭で実行し、全処理の前にブロックする。
+- `presenter.html` / `kitchen.html` は Compat SDK (`firebase.auth()`) を使用。`signOut` は `auth.signOut()` で呼び出す。
+- `status.html` は来場者用のため対象外。
+
+---
+
 ## [0.2.120] Auth Robustness & Error Handling - 2026-04-19
 
 ### メタ情報

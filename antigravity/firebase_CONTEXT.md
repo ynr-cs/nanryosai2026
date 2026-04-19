@@ -24,9 +24,15 @@ last_updated: 2026-04-19
 
 - **認証方式**: Google Sign-In (Popup) を採用。
 - **モバイルオーダーのアクセス制御**:
-  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` または特定管理者アカウントであるかを厳格に判定。
+  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。
   - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
   - **ゲストモード**: 一般来場者がログインした場合は、「利用対象外」と突き放すのではなく、お気に入り機能等のメリットを提示する歓迎画面（`step-guest-welcome`）を表示する設計に改善（2026-04-19）。
+- **管理・運営画面のアクセス制御** (v0.2.121 追加):
+  - **対象**: `pos.html`, `portal.html`, `monitor.html`, `kitchen.html`, `presenter.html`
+  - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
+  - **実装パターン**: `onAuthStateChanged` の `if(user)` ブロック最先頭でドメインチェック → 不一致の場合は `domain-error-overlay`（`z-index:99999`の暗背景オーバーレイ）を表示。
+  - **エラーUX**: オーバーレイに「別のアカウントでログインする」ボタンを設置し、`signOut()` → ログイン画面へ誘導。現在ログイン中のメールアドレスも表示する。
+  - **SDK別の実装**: `pos.html` / `portal.html` / `monitor.html` は Modular SDK (`signOut(auth)`)。`kitchen.html` / `presenter.html` は Compat SDK (`auth.signOut()`)。
 - **堅牢性**: 
   - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
   - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。

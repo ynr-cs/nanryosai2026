@@ -807,11 +807,29 @@
       </div>
     </div>
 
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:var(--font);">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+
     <!-- View 0: Authentication -->
     <div id="view-auth" class="view active">
       <div class="login-card">
         <h1>Staff Login</h1>
-        <p style="margin: 20px 0; color: var(--text-muted)">
+        <p style="margin: 12px 0 4px; color: var(--text-muted); line-height:1.6;">
+          南陵高校から配布された<br><strong style="color:#1a1a1a;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください
+        </p>
+        <p style="margin: 0 0 20px; color: var(--text-muted)">
           Store ID:
           <span id="auth-store-id" style="font-weight: bold; color: var(--text)"
             >-</span
@@ -1067,6 +1085,26 @@
         }
 
         setupAuthListeners() {
+          // ドメインチェックヘルパー
+          const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+          const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+          function isAuthorizedUser(user) {
+            if (!user || !user.email) return false;
+            return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+          }
+          const showDomainError = (user) => {
+            const overlay = document.getElementById("domain-error-overlay");
+            const emailEl = document.getElementById("domain-error-email");
+            if (emailEl && user) emailEl.textContent = `ログイン中: ${user.email}`;
+            overlay.style.display = "flex";
+            this.transitionTo("auth");
+          };
+          document.getElementById("btn-domain-logout").addEventListener("click", () => {
+            signOut(this.auth);
+            document.getElementById("domain-error-overlay").style.display = "none";
+          });
+
           document
             .getElementById("btn-google-login")
             .addEventListener("click", () => {
@@ -1081,11 +1119,18 @@
               return;
             }
             if (user) {
+              // ドメインチェック（最優先）
+              if (!isAuthorizedUser(user)) {
+                showDomainError(user);
+                return;
+              }
+              document.getElementById("domain-error-overlay").style.display = "none";
               const uName = user.email.split("@")[0];
               const menuUser = document.getElementById("menu-user");
               if (menuUser) menuUser.innerText = uName;
               this.checkStoreLogin();
             } else {
+              document.getElementById("domain-error-overlay").style.display = "none";
               this.stopApp();
               this.transitionTo("auth");
               document.getElementById("store-login-modal").style.display =
