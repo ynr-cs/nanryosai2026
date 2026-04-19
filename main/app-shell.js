@@ -31,6 +31,7 @@ const AppShell = {
     this.highlightActiveTab();
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
+    this.updateVersionDisplay(); // Fetch and display version from CHANGELOG
   },
 
   resolvePath: function (path) {
@@ -267,10 +268,11 @@ const AppShell = {
                         </a></li>
                     </ul>
 
-                    <div class="menu-footer">
-                        <a href="${this.resolvePath("about-us.html")}" class="menu-footer-link">
+                    <div class="menu-footer" style="text-align: center; padding: 20px 0;">
+                        <a href="${this.resolvePath("about-us.html")}" class="menu-footer-link" style="opacity: 0.8; text-decoration: none; color: inherit; font-size: 0.85rem;">
                             Powered By コンピュータ科学部
                         </a>
+                        <div id="app-version-display" style="font-size: 0.7rem; color: var(--text-sub); margin-top: 4px; opacity: 0.5; display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -298,6 +300,26 @@ const AppShell = {
     const overlay = document.getElementById("app-menu-overlay");
     if (show) overlay.classList.add("active");
     else overlay.classList.remove("active");
+  },
+
+  updateVersionDisplay: async function () {
+    try {
+      // Fetch CHANGELOG.md from the root directory
+      const response = await fetch(this.resolvePath("../CHANGELOG.md"));
+      if (!response.ok) return;
+      const text = await response.text();
+      // Match the first version pattern: ## [x.y.z]
+      const match = text.match(/## \[([\d\.]+)\]/);
+      if (match && match[1]) {
+        const versionEl = document.getElementById("app-version-display");
+        if (versionEl) {
+          versionEl.textContent = `v${match[1]}`;
+          versionEl.style.display = "block";
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch version from CHANGELOG.md", e);
+    }
   },
 
   highlightActiveTab: function () {
