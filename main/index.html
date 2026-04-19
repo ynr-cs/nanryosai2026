@@ -115,140 +115,172 @@
 
         /* --- Real-time Info Section --- */
         .realtime-container {
-            padding: 0 20px 40px;
-            max-width: 800px;
+            padding: 0 16px 32px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
         .section-title {
-            font-size: 1.5rem;
+            font-size: 1rem;
             font-weight: 900;
+            color: var(--text-main);
             margin: 0;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
         .live-badge-pulse {
             background: #ff0055;
             color: white;
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             font-weight: 900;
-            padding: 4px 12px;
+            padding: 3px 8px;
             border-radius: 20px;
             letter-spacing: 1px;
             animation: pulse-glow 2s infinite;
         }
+
+        /* PC: 3カラム / タブレット: 3カラム / スマホ: 3カラム(コンパクト) */
         .venue-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            gap: 12px;
         }
-        @media (max-width: 768px) {
-            .venue-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+
         .venue-card {
-            background: linear-gradient(145deg, #6b6baf, #5a5a9c);
-            border-radius: 16px;
-            padding: 24px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(107, 107, 175, 0.4);
-            position: relative;
-            overflow: hidden;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 12px;
+            color: var(--text-main);
+            box-shadow: 0 2px 8px var(--shadow-color);
             display: flex;
             flex-direction: column;
+            gap: 4px;
         }
+        @media (max-width: 768px) {
+            .venue-card {
+                padding: 10px 8px;
+                border-radius: 8px;
+            }
+        }
+
         .venue-header {
-            text-align: center;
-            font-size: 1.4rem;
+            font-size: 0.7rem;
             font-weight: 900;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
         }
-        .venue-header h3 {
-            margin: 0;
-            letter-spacing: 0.1em;
-        }
-        
+        .venue-header h3 { margin: 0; }
+
         .venue-status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 1rem;
+            gap: 5px;
+            font-size: 0.7rem;
             font-weight: 800;
-            margin-bottom: 8px;
-            opacity: 0.9;
+            color: var(--text-main);
         }
         .venue-status-indicator .dot {
-            width: 12px;
-            height: 12px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
+            flex-shrink: 0;
             background: #4ade80;
-            box-shadow: 0 0 8px currentColor;
         }
-        .venue-status-indicator.live .dot { color: #ff0055; background: #ff0055; animation: pulse-glow 2s infinite; }
-        .venue-status-indicator.ended .dot { color: #cbd5e1; background: #cbd5e1; box-shadow: none; }
-        .venue-status-indicator.preparing .dot { color: #fbbf24; background: #fbbf24; }
+        .venue-status-indicator.live .dot { background: #ff0055; animation: pulse-glow 2s infinite; }
+        .venue-status-indicator.ended .dot { background: var(--text-sub); opacity: 0.5; }
+        .venue-status-indicator.preparing .dot { background: #fbbf24; }
 
         .venue-group-name {
-            font-size: 1.6rem;
+            font-size: 0.95rem;
             font-weight: 900;
-            margin-bottom: 4px;
             line-height: 1.3;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            color: var(--text-main);
             word-break: keep-all;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
+        @media (max-width: 480px) {
+            .venue-group-name { font-size: 0.85rem; }
+        }
+
         .venue-time {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
+            font-size: 0.7rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
         }
+
         .venue-btn {
             display: block;
             text-align: center;
-            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            background: var(--primary-gradient);
             color: white;
             font-weight: 800;
-            font-size: 1.1rem;
-            padding: 14px;
-            border-radius: 50px;
+            font-size: 0.75rem;
+            padding: 7px 8px;
+            border-radius: 6px;
             text-decoration: none;
-            box-shadow: 0 6px 20px rgba(255, 117, 140, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 20px;
+            transition: opacity 0.2s;
+            margin-top: auto;
         }
-        .venue-btn:active {
-            transform: scale(0.96);
-            box-shadow: 0 2px 10px rgba(255, 117, 140, 0.5);
-        }
+        .venue-btn:active { opacity: 0.8; }
+
         .venue-divider {
             height: 1px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 0 -24px 20px;
+            background: var(--border-color);
+            margin: 4px -12px 6px;
         }
+        @media (max-width: 768px) {
+            .venue-divider { margin: 4px -8px 6px; }
+        }
+
         .venue-next-label {
-            font-size: 0.85rem;
+            font-size: 0.65rem;
             font-weight: 900;
-            color: white;
-            opacity: 0.9;
-            margin-bottom: 4px;
-            letter-spacing: 0.05em;
+            color: var(--text-sub);
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
         .venue-next-title {
-            font-size: 1rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            line-height: 1.5;
-            color: white;
-            opacity: 0.9;
+            line-height: 1.3;
+            color: var(--text-main);
             word-break: keep-all;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 4px;
+        }
+        .venue-next-btn {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .venue-next-btn:hover {
+            background: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
@@ -805,19 +837,19 @@
                         if (stage) {
                             const projects = window.projectData || [];
                             const project = projects.find(p => p.groupName === stage.groupName);
-                            const linkHTML = project ? `<a href="detail.html?id=${project.id}" class="venue-btn">詳しく見る</a>` : '';
                             
                             if (isCurrent) {
+                                const linkHTML = project ? `<a href="detail.html?id=${project.id}" class="venue-btn">企画詳細 →</a>` : '';
                                 return `
                                     <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
                                     <div class="venue-group-name">${stage.groupName}</div>
-                                    <div class="venue-time">予定時間: ${stage.time}</div>
+                                    <div class="venue-time">${stage.time}</div>
                                     ${linkHTML}
                                 `;
                             } else {
                                 return `
                                     <div class="venue-next-label">NEXT</div>
-                                    <div class="venue-next-title">${stage.groupName}「${stage.name}」<br>(${stage.time})</div>
+                                    <div class="venue-next-title">${stage.groupName}「${stage.name}」(${stage.time})</div>
                                 `;
                             }
                         }

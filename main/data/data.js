@@ -478,7 +478,7 @@ const stageData = [
   {
     id: "brass_d1",
     day: 1,
-    time: "Day1 10:15 - 10:45",
+    time: "10:15 - 10:45",
     groupName: "吹奏楽部",
     name: "南陵ブラス・コンサート",
     place: "体育館",
@@ -488,7 +488,7 @@ const stageData = [
   {
     id: "band_d1",
     day: 1,
-    time: "Day1 11:30 - 12:30",
+    time: "11:30 - 12:30",
     groupName: "有志バンド",
     name: "SUMMER ROCK FES",
     place: "体育館",
@@ -498,7 +498,7 @@ const stageData = [
   {
     id: "dance_d1",
     day: 1,
-    time: "Day1 13:30 - 14:30",
+    time: "13:30 - 14:30",
     groupName: "ダンス部",
     name: "DANCE PERFORMANCE '26",
     place: "体育館",
@@ -510,7 +510,7 @@ const stageData = [
   {
     id: "keion_d2",
     day: 2,
-    time: "Day2 10:00 - 11:00",
+    time: "10:00 - 11:00",
     groupName: "軽音楽部",
     name: "ACOUSTIC LIVE",
     place: "体育館",
@@ -520,7 +520,7 @@ const stageData = [
   {
     id: "shodo_d2",
     day: 2,
-    time: "Day2 11:30 - 12:30",
+    time: "11:30 - 12:30",
     groupName: "書道部",
     name: "書道パフォーマンス",
     place: "体育館",
@@ -530,7 +530,7 @@ const stageData = [
   {
     id: "dance_battle_d2",
     day: 2,
-    time: "Day2 13:30 - 14:30",
+    time: "13:30 - 14:30",
     groupName: "後夜祭ダンスバトル",
     name: "DANCE BATTLE FINAL",
     place: "体育館",
