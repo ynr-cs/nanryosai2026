@@ -92,8 +92,15 @@ async function login() {
       alert(
         "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。",
       );
-    } else if (error.code === "auth/cancelled-popup-request") {
-      // User closed the popup, ignore.
+    } else if (
+      error.code === "auth/cancelled-popup-request" ||
+      error.code === "auth/popup-closed-by-user"
+    ) {
+      console.log("Login cancelled by user");
+    } else if (error.code === "auth/network-request-failed") {
+      alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
+    } else if (error.code === "auth/internal-error") {
+      alert("認証サーバーでエラーが発生しました。しばらく時間を置いてから再度お試しください。");
     } else {
       alert("ログインエラー: " + error.message);
     }

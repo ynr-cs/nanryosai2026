@@ -15,6 +15,85 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.120] Auth Robustness & Error Handling - 2026-04-19
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`pos/mobile-order.html` & `main/auth.js`**:
+  - **ログインエラー対応の強化**: ネットワークエラー (`auth/network-request-failed`) やサーバーエラー (`auth/internal-error`) に対する分かりやすい日本語メッセージを追加。
+  - **二重実行防止**: `onAuthStateChanged` とログイン処理完了後の両方で `checkFlow()` が呼ばれることによる二重実行・レースコンディションを、フラグ管理により防止。
+  - **ローディング解除の保証**: Firestoreの保存失敗やService Worker登録エラーが発生しても、`finally` ブロックで確実にローディング画面が消えるように改善。
+  - **例外処理の追加**: `saveToken()` (通知設定) や `updateUserProfile()` が失敗しても、注文画面への遷移を止めないよう個別で `try-catch` を追加。
+
+## [0.2.119] UI Polish & Loader Update - 2026-04-19
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`**:
+  - **ローディングアニメーションの刷新**: 従来の「円が広がる」アニメーションを、より一般的で視認性の高い「円形スピン（標準的なスピナー）」に変更。
+  - **不要な要素の削除**: ゲスト向け案内画面から「MAP連動」の項目を削除（前回の指示の反映漏れ確認）。
+
+## [0.2.118] Guest Experience Improvement & Flow Refinement - 2026-04-19
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`**:
+  - **ゲスト体験の向上**: 一般来場者がログインした際、「利用対象外」と突き放すのではなく、お気に入り機能などを活用してもらうための歓迎画面（`step-guest-welcome`）を追加。
+  - **判定ロジックの改善**: `isStudentFlow` フラグを導入。明示的に「はい（在校生）」を選択した上でドメインが不一致だった場合のみ警告を表示し、それ以外（最初からログイン済みやゲスト案内からログイン）はゲスト用案内を表示するよう最適化。
+  - **UI調整**: 制限画面（`step-unauthorized-logged-in`）のボタン配置を見直し。ユーザーの意図に合わせて「アカウントの切り替え」をメイン（塗りつぶし）に、「ホームに戻る」をサブ（アウトライン）に変更。
+  - **メッセージの改善**: ゲスト向けに「お気に入り登録」のメリットを提示するセクションを追加。
+
+## [0.2.117] Mobile Order Access Restriction (Students Only) - 2026-04-19
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`pos/mobile-order.html`**: モバイルオーダーの在校生限定アクセス制限フローを実装。
+  - **新規画面**: 
+    - `step-student-check`: 初回アクセス時に在校生か確認するワンクッション画面。
+    - `step-guest-guidance`: 一般来場者へお気に入り機能等の利用を促す案内画面。
+    - `step-unauthorized-logged-in`: 制限対象外ドメインでログインした際の警告画面。
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`**:
+  - 認証フローの改修。未ログイン時は直接ログイン画面を出さず、属性確認から開始するよう変更。
+  - 在校生判定（「はい」選択時）に、学校アカウント必須であることを再確認させる「ワンクッション画面（`step-student-confirm`）」を追加。
+  - **不具合修正**: `showScreen` 関数がモジュールスコープに閉じ込められ、HTMLの `onclick` から呼び出せなかった問題を修正（`window.showScreen` へのエクスポート）。
+  - `checkFlow()` 内で `@gl.pen-kanagawa.ed.jp` ドメインの検証ロジックを追加。
+  - アカウント切り替えを容易にするため、制限画面からの `logoutAndRetry` （ログアウト＆再試行）機能を実装。
+  - 一般ユーザーがログインしても強制ログアウトせず、他のMy Page機能（お気に入り等）を利用し続けられるようUXを最適化。
+  - **不具合修正**: `mobile-order.html` において、URLに `storeId` がない場合にアクセスを遮断していた不要なチェック（`checkStoreIdInit`）を削除。来場者用ページでは店舗選択ステップがあるため、IDなしでのアクセスを許可。
+  - **不具合修正**: `init()` 関数が定義されているだけで呼び出されていなかった問題を修正し、アプリケーションが正常に開始されるように改善。
+- **`main/account.html`**:
+  - **不具合修正**: ログアウトボタン（`btn-logout`）とアカウント削除ボタン（`btn-delete-account`）にイベントリスナーが設定されていなかった問題を修正。
+  - Firestore上のユーザー情報の削除と、Firebase Authのアカウント削除を連携。再ログインが必要な際のエラーハンドリングを追加。
+- **`functions/index.js`**:
+  - `createOnlineOrder` 関数にサーバーサイドのドメインバリデーションを追加。フロントエンドをバイパスした不正な注文送信を強力にブロック。
+- **`antigravity/firebase_CONTEXT.md`**:
+  - 今回実装したドメイン制限の仕様、UIフロー、セキュリティロジックをナレッジベースに同期。
+
+---
+
 ## [0.2.116] Mobile Display Scale Down - 2026-04-10
 
 ### メタ情報

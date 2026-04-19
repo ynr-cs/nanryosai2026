@@ -1031,6 +1031,49 @@
         }
       }
 
+      // Logout Logic
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          if (confirm("ログアウトしますか？")) {
+            await logout();
+          }
+        });
+      }
+
+      // Delete Account Logic
+      const deleteBtn = document.getElementById("btn-delete-account");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async () => {
+          const user = auth.currentUser;
+          if (!user) return;
+
+          if (
+            confirm(
+              "アカウントを完全に削除しますか？\nこの操作は取り消せません。\n(注文履歴などのデータも削除されます)",
+            )
+          ) {
+            try {
+              // 1. Delete user document from Firestore
+              await deleteDoc(doc(db, "users", user.uid));
+
+              // 2. Delete the user from Firebase Auth
+              await deleteUser(user);
+
+              alert("アカウントを削除しました。ご利用ありがとうございました。");
+            } catch (error) {
+              console.error("Account deletion failed:", error);
+              if (error.code === "auth/requires-recent-login") {
+                alert(
+                  "セキュリティ上の理由から、この操作を行うには再度ログインが必要です。一度ログアウトして再度ログインしてから実行してください。",
+                );
+              } else {
+                alert("アカウントの削除中にエラーが発生しました: " + error.message);
+              }
+            }
+          }
+        });
+      }
+
       function translateStatus(s) {
         if (s === "ready_for_pickup") return "呼出中";
         if (s === "completed_at_store" || s === "completed_online")

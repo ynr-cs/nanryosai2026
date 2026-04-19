@@ -2,7 +2,7 @@
 title: Firebase アーキテクチャ コンテキスト
 tags: [infra, context]
 status: active
-last_updated: 2026-03-19
+last_updated: 2026-04-19
 ---
 
 # Firebase アーキテクチャ コンテキスト
@@ -22,11 +22,16 @@ last_updated: 2026-03-19
   - 管理・モニター画面: **ReCaptcha v3**
 - **デバッグ**: ローカル開発用トークン `b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae`。
 
-## 3. 認証 (Authentication)
-
-- **方式**: Google Sign-In (Popup)。
-- **アプリ内ブラウザ対策**: LINE/Instagramブラウザでのアクセス時に警告を表示するロジックあり。
-- **同期**: ログイン時にユーザープロフィール（名前、メール）を Firestore `users/{uid}` に同期。
+- **認証方式**: Google Sign-In (Popup) を採用。
+- **モバイルオーダーのアクセス制御**:
+  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` または特定管理者アカウントであるかを厳格に判定。
+  - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
+  - **ゲストモード**: 一般来場者がログインした場合は、「利用対象外」と突き放すのではなく、お気に入り機能等のメリットを提示する歓迎画面（`step-guest-welcome`）を表示する設計に改善（2026-04-19）。
+- **堅牢性**: 
+  - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
+  - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。
+  - **エラーハンドリング**: ネットワークエラー等に対し、ユーザーが次に取るべき行動を明示した日本語エラーメッセージを表示。
+- **同期**: ログイン時にユーザープロフィールを Firestore `users/{uid}` に保存。保存失敗時もUIがフリーズしないよう例外処理を徹底。
 
 ## 4. データベース (Firestore)
 
@@ -66,7 +71,7 @@ last_updated: 2026-03-19
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
 - **関数一覧**:
-  - `createOnlineOrder` (OnCall): 注文作成トランザクション。在庫チェック、レシート番号発番を行う。
+  - `createOnlineOrder` (OnCall): 注文作成トランザクション。在庫チェック、レシート番号発番を行う。API直叩きでの不正利用を防ぐため、**`context.auth.token.email` を用いたドメイン検証**を必須要件としている。
   - `getNextReceiptNumber` (OnCall): POS用の安全なレシート番号発番。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を送信。
   - `mockAuPayPayment` (OnCall): auPay決済のデモ用モック処理。注文ステータスを `authorized` へ変更する。

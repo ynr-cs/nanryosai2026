@@ -143,6 +143,15 @@ exports.createOnlineOrder = functions
       );
     }
 
+    // ドメイン制限チェック
+    const email = context.auth.token.email || "";
+    if (!email.endsWith("@gl.pen-kanagawa.ed.jp") && email !== "ynrcs1000@gmail.com") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "モバイルオーダーは在校生（@gl.pen-kanagawa.ed.jp）のみ利用可能です。"
+      );
+    }
+
     const uid = context.auth.uid;
     const requestData =
       data.data && typeof data.data === "object" ? data.data : data;
