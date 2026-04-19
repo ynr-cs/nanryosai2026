@@ -15,6 +15,17 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.137] Venue UI: Real-Time Info Modal Expansion - 2026-04-20
+### メタ情報
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+- **`main/index.html` & `main/style.css`**:
+  - **モーダル拡張機能**: リアルタイム情報セクション（体育館・音楽室・視聴覚室）の各カードをタップした際に、画面全体を覆う拡大モーダルを表示する機能を追加。
+  - **動的データバインディング**: `openVenueModal` および `closeVenueModal` のJS関数を実装し、現在および次回のイベント情報をモーダル内に動的に代入する処理を追加。
+  - **プレミアムデザイン**: モーダル背景に `backdrop-filter` を適用した Glassmorphism スタイルを導入し、既存のダークモード/ライトモード設計と完全に調和するように調整。カードホバー時の浮き上がりアニメーションも実装。
+
 ## [0.2.136] Venue UI: Header Unification & Card Layout Restore - 2026-04-20
 ### メタ情報
 - **AIモデル**: Antigravity (Gemini)

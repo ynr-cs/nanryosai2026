@@ -659,6 +659,32 @@
               (p) => p.groupName === stageItem.groupName,
             );
           }
+
+          // projectDataに対応がない場合、stageDataから合成して表示する
+          if (!project && stageItem) {
+            // 同じgroupNameのステージを全て集めてスケジュール化
+            const relatedStages = stageData.filter(
+              (s) => s.groupName === stageItem.groupName,
+            );
+            project = {
+              id: stageItem.id,
+              groupName: stageItem.groupName,
+              name: stageItem.name,
+              place: stageItem.place,
+              description: stageItem.description || "詳細は当日をお楽しみに！",
+              catchphrase: "",
+              tags: stageItem.tags || ["ステージ"],
+              contentType: "gallery",
+              menu: [],
+              gallery: [],
+              schedule: relatedStages.map((s) => ({
+                day: s.day,
+                time: s.time,
+                place: s.place,
+                name: s.name,
+              })),
+            };
+          }
         }
 
         if (!project) {

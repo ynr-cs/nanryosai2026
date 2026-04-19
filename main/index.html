@@ -147,9 +147,9 @@
 
         /* PC: 3カラム / タブレット: 3カラム / スマホ: 3カラム(コンパクト) */
         .venue-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
             gap: 12px;
+            width: 100%;
         }
         @media (max-width: 768px) {
             .venue-grid { gap: 6px; }
@@ -166,12 +166,64 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            flex: 1; /* 通常時はすべて同じ幅 (1:1:1) */
+            min-width: 0; /* Flex要素が縮小できるようにする */
+            white-space: nowrap; /* 縮んだ際にテキストが折り返してレイアウトが崩れるのを防ぐ */
+            transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+        }
+        .venue-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+        }
+        .venue-card:active {
+            transform: scale(0.98);
         }
         @media (max-width: 768px) {
             .venue-card {
                 padding: 10px 6px;
                 border-radius: 8px;
             }
+        }
+
+        /* --- Expanded State --- */
+        .venue-card.expanded {
+            flex: 2.5; /* 拡大時は他のカードを押しつぶす */
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+            border-color: rgba(106, 17, 203, 0.3);
+        }
+        @media (min-width: 769px) {
+            .venue-card.expanded {
+                flex: 2;
+            }
+        }
+        
+        /* 何かが拡大されている時の、拡大されていないカード */
+        .venue-grid.has-expanded .venue-card:not(.expanded) {
+            opacity: 0.5;
+        }
+        .venue-grid.has-expanded .venue-card:not(.expanded) * {
+            text-overflow: clip; /* 縮んだ際に「...」が出ないように */
+        }
+        
+        /* Expanded時のテキスト拡大（ドアップ感） */
+        .venue-card.expanded .venue-group-name {
+            font-size: 1.2rem;
+            white-space: normal;
+        }
+        @media (max-width: 768px) {
+            .venue-card.expanded .venue-group-name { font-size: 1.1rem; }
+        }
+        .venue-card.expanded .venue-time {
+            font-size: 1rem;
+        }
+        .venue-card.expanded .venue-next-title {
+            font-size: 0.9rem;
+            white-space: normal;
+        }
+        .venue-card.expanded .venue-header {
+            font-size: 0.8rem;
         }
 
         /* Top Accent Line */
@@ -339,6 +391,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
     </style>
 </head>
 <body>
@@ -413,7 +466,7 @@
             
             <div class="venue-grid">
                 <!-- 体育館 -->
-                <div class="venue-card">
+                <div class="venue-card" onclick="toggleVenueExpand(this)">
                     <div class="venue-header">
                         <h3>体育館</h3>
                     </div>
@@ -438,7 +491,7 @@
                 </div>
 
                 <!-- 音楽室 -->
-                <div class="venue-card">
+                <div class="venue-card" onclick="toggleVenueExpand(this)">
                     <div class="venue-header">
                         <h3>音楽室</h3>
                     </div>
@@ -463,7 +516,7 @@
                 </div>
 
                 <!-- 視聴覚室 -->
-                <div class="venue-card">
+                <div class="venue-card" onclick="toggleVenueExpand(this)">
                     <div class="venue-header">
                         <h3>視聴覚室</h3>
                     </div>
@@ -668,6 +721,7 @@
 
     </main>
 
+
     <!-- Footer is injected here by JS -->
 
     <!-- Load External Data -->
@@ -783,12 +837,24 @@
             const generateCardsHTML = (items) => {
                 return items.map(item => {
                     const groupName = item.groupName || item.groupId || '参加団体';
-                    const imgSrc = `../images/${item.id}.png`;
                     const tags = item.tags ? item.tags.slice(0, 2) : [];
                     const tagsHTML = tags.map(tag => `<span class="highlight-tag">${tag}</span>`).join('');
                     
+                    // projectDataに対応があればそのIDでリンク、なくてもstageDataのIDでdetail.htmlが表示可能
+                    let linkId = item.id;
+                    let imgSrc = `../images/${item.id}.png`;
+                    const projects = window.projectData || [];
+                    const matchedProject = projects.find(p => 
+                        p.id === item.id ||
+                        (p.groupName || '').trim() === (item.groupName || '').trim()
+                    );
+                    if (matchedProject) {
+                        linkId = matchedProject.id;
+                        imgSrc = `../images/${matchedProject.id}.png`;
+                    }
+                    
                     return `
-                    <a href="detail.html?id=${item.id}" class="highlight-card">
+                    <a href="detail.html?id=${linkId}" class="highlight-card">
                         <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
@@ -869,6 +935,25 @@
             container.addEventListener('touchend', resume);
         }
 
+        // --- Venue Accordion Logic ---
+        window.toggleVenueExpand = function(cardElement) {
+            const grid = document.querySelector('.venue-grid');
+            const isExpanded = cardElement.classList.contains('expanded');
+            
+            // 全てのカードから expanded を外す
+            const allCards = document.querySelectorAll('.venue-card');
+            allCards.forEach(card => card.classList.remove('expanded'));
+
+            if (!isExpanded) {
+                // 拡大する
+                cardElement.classList.add('expanded');
+                grid.classList.add('has-expanded');
+            } else {
+                // 閉じる
+                grid.classList.remove('has-expanded');
+            }
+        };
+
         // Initialize Carousels
         document.addEventListener('DOMContentLoaded', () => {
              if (typeof projectData !== 'undefined') {
@@ -925,8 +1010,9 @@
                                 (p.id && stage.id.startsWith(p.id + "_")) ||
                                 (p.id && stage.id === p.id)
                             );
-                            const linkUrl = project ? `detail.html?id=${project.id}` : 'projects-list.html';
-                            const linkTag = 'a'; 
+                            
+                            // projectDataに対応があればそのID、なくてもstageDataのIDでリンク
+                            const linkUrl = project ? `detail.html?id=${project.id}` : `detail.html?id=${stage.id}`;
                             const arrowIcon = `<i class="fas fa-chevron-right venue-arrow"></i>`;
                             
                              const commonContent = `
@@ -941,16 +1027,16 @@
                              if (isCurrent) {
                                  return `
                                      <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
-                                     <${linkTag} href="${linkUrl}" class="venue-link-block">
+                                     <a href="${linkUrl}" class="venue-link-block" onclick="event.stopPropagation()">
                                          ${commonContent}
-                                     </${linkTag}>
+                                     </a>
                                  `;
                              } else {
                                  return `
                                      <div class="venue-next-label">NEXT</div>
-                                     <${linkTag} href="${linkUrl}" class="venue-next-block">
+                                     <a href="${linkUrl}" class="venue-next-block" onclick="event.stopPropagation()">
                                          ${commonContent}
-                                     </${linkTag}>
+                                     </a>
                                  `;
                              }
                         }
