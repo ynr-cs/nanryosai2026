@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ステージ発表 | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .page-header {
+        padding: 40px 20px 20px;
+        text-align: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .filter-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 20px;
+        margin: 0 20px 20px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        animation: fadeInUp 0.8s ease-out 0.2s backwards;
+      }
+
+      .day-selector {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .day-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-sub);
+        padding: 10px 24px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+
+      .day-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      .day-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+      }
+
+      /* Gantt Chart */
+      .gantt-chart-container {
+        overflow-x: auto;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 20px;
+        border-radius: 24px;
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+      }
+
+      .gantt-chart {
+        display: grid;
+        border-collapse: collapse;
+        min-width: 1000px;
+      }
+
+      .gantt-header,
+      .gantt-row {
+        display: contents;
+      }
+
+      .gantt-place-header,
+      .gantt-place,
+      .gantt-time-header,
+      .gantt-time-cell {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .gantt-time-header:last-child,
+      .gantt-time-cell:last-child {
+        border-right: none;
+      }
+
+      .gantt-place-header,
+      .gantt-place {
+        font-weight: 700;
+        font-size: 1rem;
+        background: var(--item-fill);
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        border-right: 1px solid var(--border-color) !important;
+      }
+
+      .gantt-time-header {
+        text-align: center;
+        font-size: 0.9em;
+        font-weight: 600;
+      }
+
+      .gantt-events {
+        grid-column-start: 2;
+        position: relative;
+      }
+
+      .gantt-event-bar {
+        position: absolute;
+        background: var(--primary-gradient);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .gantt-event-bar:hover {
+        filter: brightness(1.1);
+        transform: scale(1.02);
+        z-index: 20;
+      }
+
+      .event-group-name {
+        font-weight: 700;
+        display: block;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+      }
+
+      .event-perf-name {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        display: block;
+      }
+
+      #current-time-indicator {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #ff3b30;
+        z-index: 30;
+        box-shadow: 0 0 10px #ff3b30;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+
+      #current-time-indicator.visible {
+        opacity: 1;
+      }
+
+      #current-time-indicator .time-label {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff3b30;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      /* List View */
+      .timeline-list-container {
+        max-width: 900px;
+        margin: 0 auto 80px;
+        padding: 0 20px;
+      }
+
+      .timeline-controls {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 0 10px 16px;
+      }
+
+      .toggle-switch-label {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        gap: 12px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--item-fill);
+        transition: 0.4s;
+        border-radius: 34px;
+        border: 1px solid var(--border-color);
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 3px;
+        background-color: var(--text-sub);
+        transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background: var(--primary-gradient);
+        border-color: transparent;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+        background-color: white;
+      }
+
+      .list-event-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .list-event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .list-event-card.highlight {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+      }
+
+      .list-time {
+        font-size: 1.2rem;
+        font-weight: 800;
+        min-width: 130px;
+        color: var(--primary-color);
+      }
+
+      .list-details {
+        flex-grow: 1;
+      }
+
+      .list-name {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+
+      .list-perf-name {
+        font-size: 0.9rem;
+        color: var(--text-main);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .list-desc {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        margin-top: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .list-place {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        margin-top: 8px;
+        background: var(--item-fill);
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .list-link-button {
+        background: var(--item-fill);
+        color: var(--text-main);
+        padding: 8px 16px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .list-link-button:hover {
+        background: var(--border-color);
+      }
+
+      .fade-up {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+          transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .fade-up.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 768px) {
+        .list-event-card {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 16px;
+        }
+
+        .list-time {
+          font-size: 1.1rem;
+          min-width: auto;
+        }
+
+        .list-details {
+          width: 100%;
+        }
+
+        .list-link-button {
+          align-self: stretch;
+          text-align: center;
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="page-header">
+        <h1 class="page-title">ステージ発表</h1>
+      </div>
+
+      <div class="filter-section">
+        <div class="day-selector">
+          <button class="day-btn active" data-day="1">DAY 1</button>
+          <button class="day-btn" data-day="2">DAY 2</button>
+        </div>
+      </div>
+
+      <div id="gantt-chart-container" class="gantt-chart-container">
+        <div id="gantt-chart" class="gantt-chart"></div>
+      </div>
+
+      <div class="timeline-list-container">
+        <div class="timeline-controls">
+          <label class="toggle-switch-label">
+            <div class="toggle-switch">
+              <input type="checkbox" id="show-past-events-toggle" />
+              <span class="slider"></span>
+            </div>
+            過去の発表も表示する
+          </label>
+        </div>
+        <div id="timeline-list"></div>
+      </div>
+    </main>
+
+    <!-- Load External Data -->
+    <script src="data/data.js"></script>
+    <script type="module" src="app-shell.js"></script>
+
+    <script>
+      window.CURRENT_PAGE = "stage";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const chartWrapper = document.getElementById("gantt-chart-container");
+        const chartContainer = document.getElementById("gantt-chart");
+        const listContainer = document.getElementById("timeline-list");
+        const daySelector = document.querySelector(".day-selector");
+        const pastEventsToggle = document.getElementById(
+          "show-past-events-toggle",
+        );
+
+        // Festival setup
+        const startHour = 9;
+        const timeHeaders = [
+          "9:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+        ];
+        const totalMinutes = (timeHeaders.length - 1) * 60;
+        
+        // 2026年南陵祭の想定日程 (モック)
+        const festivalDates = {
+          1: new Date(2026, 8, 5), // 9/5 (Dateの月は0-indexedなので8=9月)
+          2: new Date(2026, 8, 6), // 9/6
+        };
+
+        function timeToMinutes(timeStr) {
+          if (typeof timeStr !== "string" || !timeStr.includes(":"))
+            return null;
+          const [hours, minutes] = timeStr.split(":").map(Number);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+          return hours * 60 + minutes;
+        }
+
+        function renderGanttChart(day) {
+          if (!chartContainer || typeof stageData === "undefined") return;
+
+          const dayData = stageData.filter(
+            (event) => event.day == day && event.time && event.time !== "不明",
+          );
+
+          const places = [...new Set(dayData.map((event) => event.place))].sort();
+          if (places.length === 0) {
+            chartContainer.innerHTML = `<div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-sub); font-weight: bold;">この日の発表予定はありません。</div>`;
+            chartContainer.style.gridTemplateColumns = "1fr";
+            return;
+          }
+
+          const columnWidth = 180;
+          chartContainer.style.gridTemplateColumns = `120px repeat(${timeHeaders.length - 1}, ${columnWidth}px)`;
+          
+          let html =
+            '<div class="gantt-header"><div class="gantt-place-header">場所</div>';
+          timeHeaders.forEach((time) => {
+            html += `<div class="gantt-time-header">${time}</div>`;
+          });
+          html += "</div>";
+
+          places.forEach((place, placeIndex) => {
+            const placeEvents = dayData.filter((event) => event.place === place);
+            html += `<div class="gantt-row"><div class="gantt-place" style="grid-row: ${placeIndex + 2}">${place}</div>`;
+            for (let i = 0; i < timeHeaders.length; i++) {
+              html += `<div class="gantt-time-cell" style="grid-row: ${placeIndex + 2}; grid-column: ${i + 2}"></div>`;
+            }
+            html += `<div class="gantt-events" style="grid-row: ${placeIndex + 2}; grid-column: 2 / span ${timeHeaders.length - 1}">`;
+            
+            placeEvents.forEach((event) => {
+              const [startTime, endTime] = (event.time || " - ")
+                .split("-")
+                .map((s) => s.trim());
+              const startMinutes = timeToMinutes(startTime);
+              const endMinutes = timeToMinutes(endTime);
+              
+              if (startMinutes !== null && endMinutes !== null) {
+                const left =
+                  ((startMinutes - startHour * 60) / totalMinutes) * 100;
+                const width = ((endMinutes - startMinutes) / totalMinutes) * 100;
+                if (width > 0) {
+                  html += `<div class="gantt-event-bar" 
+                                style="left: ${left}%; width: ${width}%" 
+                                data-target-id="list-${event.id}" 
+                                data-id="${event.id}"> 
+                                <span class="event-group-name">${event.groupName}</span>
+                                <span class="event-perf-name">${event.name}</span>
+                            </div>`;
+                }
+              }
+            });
+            html += `</div></div>`;
+          });
+          chartContainer.innerHTML = html;
+        }
+
+        function renderTimelineList(day, showPastEvents) {
+          if (!listContainer || typeof stageData === "undefined") return;
+
+          const now = new Date();
+          const festivalDay = festivalDates[day];
+          if (!festivalDay) return;
+
+          const todayDateOnly = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          const festivalDateOnly = new Date(
+            festivalDay.getFullYear(),
+            festivalDay.getMonth(),
+            festivalDay.getDate(),
+          );
+          const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+          let dayData = stageData.filter(
+            (event) => event.day == day && event.time && event.time !== "不明",
+          );
+
+          if (!showPastEvents) {
+            dayData = dayData.filter((event) => {
+              const timeParts = (event.time || "").split("-");
+              if (timeParts.length < 2) return true;
+              const endMinutes = timeToMinutes(timeParts[1].trim());
+              if (endMinutes === null) return true;
+
+              if (todayDateOnly.getTime() < festivalDateOnly.getTime()) {
+                return true;
+              }
+              if (todayDateOnly.getTime() > festivalDateOnly.getTime()) {
+                return false;
+              }
+              return endMinutes > currentMinutes;
+            });
+          }
+
+          dayData.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+          let listHTML = "";
+          if (dayData.length === 0) {
+            listHTML = `<div style="padding: 40px; text-align: center; color: var(--text-sub); font-weight: bold;">表示できる発表はありません。</div>`;
+          } else {
+            dayData.forEach((event) => {
+              // 関連する詳細情報へのリンクを探す
+              // projectDataに存在する場合はそのID（一貫性のため）、ない場合はこのステージイベント自身のIDを渡す
+              // detail.html 側で projectData にない場合は stageData から合成して表示する機能があるため、常にリンクを出す。
+              const relatedProject = projectData.find(p => p.groupName === event.groupName);
+              const linkId = relatedProject ? relatedProject.id : event.id;
+              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
+
+              listHTML += `
+                <div class="list-event-card fade-up" id="list-${event.id}">
+                    <div class="list-time">${event.time}</div>
+                    <div class="list-details">
+                        <div class="list-name">${event.groupName}</div>
+                        <div class="list-perf-name">${event.name}</div>
+                        ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
+                        <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
+                    </div>
+                    ${linkHTML}
+                </div>`;
+            });
+          }
+
+          listContainer.innerHTML = listHTML;
+
+          const newCards = listContainer.querySelectorAll(".fade-up");
+          newCards.forEach((card, index) => {
+            setTimeout(() => {
+              card.classList.add("is-visible");
+            }, index * 100);
+          });
+        }
+
+        function manageCurrentTimeIndicator() {
+          let indicator = document.getElementById("current-time-indicator");
+          if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "current-time-indicator";
+            const timeLabel = document.createElement("div");
+            timeLabel.className = "time-label";
+            indicator.appendChild(timeLabel);
+            chartWrapper.appendChild(indicator);
+          }
+          const timeLabel = indicator.querySelector(".time-label");
+          const placeHeaderWidth = 120;
+
+          function update() {
+            const currentChartContainer = document.getElementById("gantt-chart");
+            if (!currentChartContainer) {
+              requestAnimationFrame(update);
+              return;
+            }
+            const now = new Date();
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (!activeDayBtn) {
+              indicator.classList.remove("visible");
+              requestAnimationFrame(update);
+              return;
+            }
+
+            const activeFestivalDate = festivalDates[activeDayBtn.dataset.day];
+            const isTodayTheActiveDay =
+              now.getFullYear() === activeFestivalDate.getFullYear() &&
+              now.getMonth() === activeFestivalDate.getMonth() &&
+              now.getDate() === activeFestivalDate.getDate();
+
+            if (
+              isTodayTheActiveDay &&
+              now.getHours() >= startHour &&
+              now.getHours() < startHour + timeHeaders.length - 1
+            ) {
+              const currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes() +
+                now.getSeconds() / 60;
+              const chartAreaWidth =
+                currentChartContainer.scrollWidth - placeHeaderWidth;
+              if (chartAreaWidth <= 0) {
+                requestAnimationFrame(update);
+                return;
+              }
+              const leftPosition =
+                ((currentMinutes - startHour * 60) / totalMinutes) *
+                chartAreaWidth;
+              indicator.style.left = `${placeHeaderWidth + leftPosition}px`;
+              indicator.classList.add("visible");
+              const hours = String(now.getHours()).padStart(2, "0");
+              const minutes = String(now.getMinutes()).padStart(2, "0");
+              timeLabel.textContent = `${hours}:${minutes}`;
+            } else {
+              indicator.classList.remove("visible");
+            }
+            requestAnimationFrame(update);
+          }
+          update();
+        }
+
+        function renderPage(day, isInitialLoad = false) {
+          if (typeof stageData === "undefined") {
+            console.error("data.jsが読み込めていません。");
+            return;
+          }
+          renderGanttChart(day);
+          const showPast = pastEventsToggle ? pastEventsToggle.checked : false;
+          renderTimelineList(day, showPast);
+
+          if (isInitialLoad) {
+            setTimeout(() => {
+              const indicator = document.getElementById("current-time-indicator");
+              if (indicator && indicator.classList.contains("visible")) {
+                const scrollPosition =
+                  indicator.offsetLeft -
+                  chartWrapper.clientWidth / 2 +
+                  indicator.clientWidth / 2;
+                chartWrapper.scrollTo({
+                  left: scrollPosition,
+                  behavior: "smooth",
+                });
+              }
+            }, 500);
+          }
+        }
+
+        // Event Listeners
+        if (daySelector) {
+          daySelector.addEventListener("click", function (e) {
+            if (!e.target.matches(".day-btn")) return;
+            daySelector
+              .querySelectorAll(".day-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            e.target.classList.add("active");
+            renderPage(e.target.dataset.day, false);
+          });
+        }
+
+        if (chartWrapper) {
+          // クリックで該当リストアイテムへスクロール
+          chartWrapper.addEventListener("click", function (e) {
+            const eventBar = e.target.closest(".gantt-event-bar");
+            if (!eventBar) return;
+            const targetId = eventBar.dataset.targetId;
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              document
+                .querySelectorAll(".list-event-card.highlight")
+                .forEach((el) => el.classList.remove("highlight"));
+              targetElement.classList.add("highlight");
+              targetElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+              // 数秒後にハイライト消去
+              setTimeout(() => {
+                targetElement.classList.remove("highlight");
+              }, 2000);
+            }
+          });
+        }
+
+        if (pastEventsToggle) {
+          pastEventsToggle.addEventListener("change", function () {
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (activeDayBtn) {
+              const currentDay = activeDayBtn.dataset.day;
+              renderTimelineList(currentDay, this.checked);
+            }
+          });
+        }
+
+        // Initialize
+        function initializePage() {
+          const now = new Date();
+          const todayDateOnly = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          const day2Date = festivalDates[2];
+          let initialDay = "1";
+
+          // 本日がDAY2であればDAY2をデフォルトに
+          if (
+            todayDateOnly.getTime() === (day2Date ? day2Date.getTime() : null)
+          ) {
+            initialDay = "2";
+          }
+
+          daySelector.querySelectorAll(".day-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.day === initialDay);
+          });
+
+          renderPage(initialDay, true);
+          manageCurrentTimeIndicator();
+        }
+
+        if (typeof stageData !== "undefined") {
+          initializePage();
+        } else {
+          window.addEventListener("load", initializePage, { once: true });
+        }
+      });
+    </script>
+  </body>
+</html>

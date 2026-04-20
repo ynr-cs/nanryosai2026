@@ -388,20 +388,7 @@ const projectData = [
     contentType: "gallery",
     menu: [],
     gallery: [],
-    schedule: [
-      {
-        day: 1,
-        place: "特別棟 3F 視聴覚室",
-        floor: 3,
-        time: "10:00-15:00",
-      },
-      {
-        day: 2,
-        place: "体育館",
-        floor: 1,
-        time: "10:00-13:00",
-      },
-    ],
+    // スケジュールは stageData で一元管理 (projectData には持たない)
   },
   {
     id: "brass",
@@ -416,26 +403,7 @@ const projectData = [
     contentType: "gallery",
     menu: [],
     gallery: [],
-    schedule: [
-      {
-        day: 1,
-        place: "体育館",
-        floor: 1,
-        time: "10:15-10:45",
-      },
-      {
-        day: 1,
-        place: "特別棟 4F 音楽室",
-        floor: 4,
-        time: "13:30-14:15",
-      },
-      {
-        day: 2,
-        place: "特別棟 4F 音楽室",
-        floor: 4,
-        time: "13:30-14:15",
-      },
-    ],
+    // スケジュールは stageData で一元管理 (projectData には持たない)
   },
   {
     id: "dance",
@@ -450,14 +418,7 @@ const projectData = [
     contentType: "gallery",
     menu: [],
     gallery: [],
-    schedule: [
-      {
-        day: 1,
-        place: "体育館",
-        floor: 1,
-        time: "13:30-14:30",
-      },
-    ],
+    // スケジュールは stageData で一元管理 (projectData には持たない)
   },
   {
     id: "cs",

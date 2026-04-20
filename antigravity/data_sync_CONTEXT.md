@@ -2,12 +2,26 @@
 title: データ同期アーキテクチャ分析レポート
 tags: [infra, context, spec]
 status: active
-last_updated: 2026-03-19
+last_updated: 2026-04-20
 ---
 
 # データ同期アーキテクチャ分析レポート
 
 本ドキュメントは、`data.js`、`admin_sync.html`、および Firebase (Firestore) 間のデータ同期メカニズムに関する詳細な分析結果です。`antigravity/main/[[data_CONTEXT]]` および [[architecture_CONTEXT]] の内容も統合されています。
+
+> [!IMPORTANT]
+> ## データ設計の基本原則 (2026-04-20 確定)
+> 
+> `projectData` と `stageData` の役割は**完全に分離**されています。
+> 
+> | データ | 役割 | スケジュール情報 |
+> |:---|:---|:---|
+> | `projectData` | 団体マスタ（名前・場所・説明・メニュー等） | **持たない** |
+> | `stageData` | ステージ出演スケジュールの**唯一の情報源 (SSOT)** | **ここで一元管理** |
+> 
+> **NG**: `projectData` に `schedule` プロパティを追加すること。
+> **OK**: ステージ団体を追加する場合は、`stageData` にのみ出演枠を追加する。
+
 
 ## 1. 全体像と役割分担
 

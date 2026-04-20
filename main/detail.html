@@ -852,32 +852,32 @@
                 `;
         }
 
-        // Tab 4: Schedule (if project.schedule exists OR stageData has items for this group)
+        // Tab 4: Schedule
+        // 設計方針: stageData が唯一の情報源。projectData には schedule を持たせない。
+        // これにより重複判定ロジックが不要になり、シンプルに保てる。
         let scheduleItems = [];
 
-        // Check project.schedule first
-        if (project.schedule && project.schedule.length > 0) {
+        // stageData から groupName が一致する出演枠を取得
+        if (typeof stageData !== "undefined") {
+          const groupStages = stageData.filter(
+            (s) => s.groupName === project.groupName,
+          );
+          scheduleItems = groupStages.map((s) => ({
+            day: s.day,
+            time: s.time,
+            place: s.place,
+            name: s.name,
+            description: s.description,
+          }));
+        }
+
+        // フォールバック: stageData に該当なしの場合、project.schedule を使用（将来の拡張性）
+        if (scheduleItems.length === 0 && project.schedule && project.schedule.length > 0) {
           scheduleItems = project.schedule.map((s) => ({
             day: s.day,
             time: s.time,
             place: s.place,
           }));
-        }
-
-        // Also check stageData for this group
-        if (typeof stageData !== "undefined") {
-          const groupStages = stageData.filter(
-            (s) => s.groupName === project.groupName,
-          );
-          groupStages.forEach((s) => {
-            scheduleItems.push({
-              day: s.day,
-              time: s.time,
-              place: s.place,
-              name: s.name,
-              description: s.description,
-            });
-          });
         }
 
         if (scheduleItems.length > 0) {
