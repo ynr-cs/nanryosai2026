@@ -614,7 +614,7 @@
         errorMsgEl.style.display = "block";
       }
 
-      // --- ドメインチェック ---
+      // --- Auth Guard ---
       const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
       const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
 
@@ -622,110 +622,24 @@
         if (!user || !user.email) return false;
         return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
       }
-      function showDomainError(user) {
-        const overlay = document.getElementById("domain-error-overlay");
-        const emailEl = document.getElementById("domain-error-email");
-        if (emailEl && user) emailEl.textContent = `ログイン中: ${user.email}`;
-        overlay.style.display = "flex";
-        document.getElementById("login-screen").style.display = "none";
-      }
-      document.getElementById("btn-domain-logout").addEventListener("click", () => {
-        auth.signOut();
-        document.getElementById("domain-error-overlay").style.display = "none";
-        document.getElementById("login-screen").style.display = "flex";
-      });
 
       auth.onAuthStateChanged((user) => {
-        if (user) {
-          // ドメインチェック（最優先）
-          if (!isAuthorizedUser(user)) {
-            showDomainError(user);
-            return;
-          }
-          document.getElementById("domain-error-overlay").style.display = "none";
-          document.getElementById("login-screen").style.display = "none";
-          document.getElementById("main-content").style.display = "block";
-          document.getElementById("user-name").textContent = user.displayName;
-          document.getElementById("display-store-id").textContent =
-            storeId || "なし";
-
-          if (!storeId) {
-            document.getElementById("error-overlay").style.display = "flex";
-            document.getElementById("login-screen").style.display = "none";
-            return;
-          }
-          checkStoreLogin();
-        } else {
-          document.getElementById("domain-error-overlay").style.display = "none";
-          document.getElementById("login-screen").style.display = "flex";
-          document.getElementById("main-content").style.display = "none";
-          document.getElementById("store-login-modal").style.display = "none";
-          if (unsubscribe) unsubscribe();
-        }
-      });
-
-      function checkStoreLogin() {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
 
-        if (cachedId === storeId) {
+        if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+          const currentUrl = encodeURIComponent(window.location.href);
+          const storeParam = storeId ? `&s=${storeId}` : '';
+          window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+        } else {
+          document.getElementById("login-screen").style.display = "none";
           document.getElementById("main-content").style.display = "block";
+          document.getElementById("user-name").textContent = user.displayName || user.email;
+          document.getElementById("display-store-id").textContent = storeId;
           startOrderListener();
           startTimerLoop();
-        } else {
-          const modal = document.getElementById("store-login-modal");
-          document.getElementById("target-store-id-display").textContent =
-            `Store ID: ${storeId}`;
-          modal.style.display = "flex";
         }
-      }
-
-      document
-        .getElementById("store-login-btn")
-        .addEventListener("click", () => {
-          const input = document.getElementById("store-password-input");
-          const error = document.getElementById("store-login-error");
-          const pass = input.value.trim();
-
-          if (!pass) {
-            error.textContent = "パスワードを入力してください";
-            return;
-          }
-
-          const btn = document.getElementById("store-login-btn");
-          btn.disabled = true;
-          error.textContent = "認証中...";
-
-          const functions = firebase.app().functions("asia-northeast1");
-          const loginStore = functions.httpsCallable("loginStore");
-
-          loginStore({ storeId: storeId, password: pass })
-            .then(async (result) => {
-              if (result.data.success) {
-                localStorage.setItem("nanryosai_store_id", storeId);
-                // Force Token Refresh
-                if (firebase.auth().currentUser) {
-                  await firebase.auth().currentUser.getIdToken(true);
-                }
-
-                document.getElementById("store-login-modal").style.display =
-                  "none";
-                document.getElementById("main-content").style.display = "block";
-                startOrderListener();
-                startTimerLoop();
-              }
-            })
-            .catch((e) => {
-              console.error(e);
-              error.textContent = "エラー: " + (e.message || "認証失敗");
-              btn.disabled = false;
-            });
-        });
-
-      function googleLogin() {
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        auth.signInWithPopup(provider).catch((e) => alert(e.message));
-      }
+      });
       function logout() {
         if (confirm("ログアウトしますか？"))
           auth.signOut().then(() => location.reload());

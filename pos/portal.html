@@ -2662,7 +2662,8 @@
       import {
         getAuth,
         GoogleAuthProvider,
-        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -2733,6 +2734,17 @@
       let pulseChart = null;
       let pulseChartRange = { start: 480, end: 1080 }; // 8:00 - 18:00 (1分単位: 60 * 8 - 60 * 18)
       let pulseDataCache = null;
+
+      // URL parameters for Auth Hub routing
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnUrl = urlParams.get("return");
+      const storeParam = urlParams.get("s");
+
+      // Handle redirect result immediately on load
+      getRedirectResult(auth).catch((error) => {
+        console.error("Redirect Login Error:", error);
+        document.getElementById("google-error").innerText = error.message;
+      });
 
       // --- Tooltip Logic ---
       window.toggleTooltip = (element) => {
@@ -2856,7 +2868,8 @@
 
       document.getElementById("btn-google-login").onclick = async () => {
         try {
-          await signInWithPopup(auth, new GoogleAuthProvider());
+          // Use signInWithRedirect to avoid popup blockers on mobile
+          await signInWithRedirect(auth, new GoogleAuthProvider());
         } catch (e) {
           document.getElementById("google-error").innerText = e.message;
         }
@@ -2876,6 +2889,11 @@
           // op.dataset.password = data.password; // SECURITY FIX: Do not expose password in DOM
           select.appendChild(op);
         });
+
+        // If 's' param is present, pre-select it
+        if (storeParam) {
+          select.value = storeParam;
+        }
       }
 
       document.getElementById("btn-store-login").onclick = async () => {
@@ -2931,6 +2949,12 @@
       let prevDayData = { total: 0, count: 0 };
 
       async function startApp() {
+        // If there's a return URL, redirect immediately instead of showing the portal
+        if (returnUrl) {
+          window.location.href = returnUrl;
+          return;
+        }
+
         document.getElementById("auth-overlay").style.display = "none";
         document.getElementById("app").style.display = "flex";
 

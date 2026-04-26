@@ -521,12 +521,10 @@
       import {
         getAuth,
         onAuthStateChanged,
-        signInWithPopup,
-        GoogleAuthProvider,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
       /* Import Shared Instance from auth.js to prevent "App already exists" error */
-      import { app, auth, db } from "../main/auth.js";
+      import { app, auth, db, login } from "../main/auth.js";
 
       // AppCheck (Debug Token handled by devtools or console)
       // Note: Reusing same key as mobile-order
@@ -563,7 +561,7 @@
             document.querySelector(".spinner-border").style.display = "none";
 
             document.getElementById("btn-login-status").onclick = () => {
-              signInWithPopup(auth, new GoogleAuthProvider()).catch((e) =>
+              login().catch((e) =>
                 alert(e.message)
               );
             };

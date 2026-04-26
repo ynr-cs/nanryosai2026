@@ -8,7 +8,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -41,10 +42,37 @@ const db = getFirestore(app);
 // Global User State
 let currentUser = null;
 
-// Handle Redirect Login Result -> REMOVED (Reverting to Popup)
+// Handle Redirect Login Result
+getRedirectResult(auth)
+  .then(async (result) => {
+    if (result && result.user) {
+      const user = result.user;
+      // Save/Update user profile in Firestore
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          lastLogin: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+  })
+  .catch((error) => {
+    console.error("Redirect login failed:", error);
+    if (error.code === "auth/network-request-failed") {
+      alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
+    } else if (error.code === "auth/internal-error") {
+      alert("認証サーバーでエラーが発生しました。しばらく時間を置いてから再度お試しください。");
+    } else {
+      alert("ログインエラー: " + error.message);
+    }
+  });
 
 /**
- * Initiates Google Login via Popup using GoogleAuthProvider.
+ * Initiates Google Login via Redirect using GoogleAuthProvider.
  * Includes In-App Browser detection to warn users.
  */
 async function login() {
@@ -70,40 +98,10 @@ async function login() {
       prompt: "select_account",
     });
 
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-
-    // Save/Update user profile in Firestore
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        lastLogin: serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    return user;
+    await signInWithRedirect(auth, provider);
   } catch (error) {
-    console.error("Login failed:", error);
-    if (error.code === "auth/popup-blocked") {
-      alert(
-        "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。",
-      );
-    } else if (
-      error.code === "auth/cancelled-popup-request" ||
-      error.code === "auth/popup-closed-by-user"
-    ) {
-      console.log("Login cancelled by user");
-    } else if (error.code === "auth/network-request-failed") {
-      alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
-    } else if (error.code === "auth/internal-error") {
-      alert("認証サーバーでエラーが発生しました。しばらく時間を置いてから再度お試しください。");
-    } else {
-      alert("ログインエラー: " + error.message);
-    }
+    console.error("Login trigger failed:", error);
+    alert("ログイン画面への遷移に失敗しました。");
     throw error;
   }
 }

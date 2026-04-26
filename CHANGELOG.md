@@ -15,6 +15,26 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.140] Auth Hub: Redirect-Based Firebase Authentication - 2026-04-23
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **Firebase Authentication**:
+  - `signInWithPopup` から `signInWithRedirect` への完全移行。
+  - **背景**: モバイル端末（特にアプリ内ブラウザ）でのポップアップブロックによる認証失敗を根本的に解消するため。
+- **`pos/portal.html`**:
+  - **認証ハブ化**: すべてのスタッフ用ツール（POS、モニター、キッチン、プレゼンター）の認証処理を集約。
+  - **Auth Guard 実装**: 未認証や不正ドメイン（@gl.pen-kanagawa.ed.jp 以外）でのアクセスを検知し、ポータルへリダイレクトする共通ロジックを各ツールに展開。
+- **`main/auth.js`**:
+  - 共通認証モジュールのロジックを `Redirect` SDK に準拠するよう刷新。
+- **UI/UX**:
+  - 不正ドメインログイン時の専用エラーオーバーレイを `portal.html` に追加。在校生用アカウント（@gl.pen-kanagawa.ed.jp）での再試行を促すフローを確立。
+
 ## [0.2.139] Data Architecture: 完全分離 projectData / stageData - 2026-04-20
 
 ### メタ情報

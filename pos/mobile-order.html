@@ -1477,7 +1477,8 @@
       import {
         getAuth,
         GoogleAuthProvider,
-        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       import {
@@ -1567,6 +1568,26 @@
 
       /* 4. Core Lifecycle & Auth */
       function init() {
+        // Handle redirect result
+        getRedirectResult(auth)
+          .then(async (result) => {
+            if (result && result.user) {
+              currentUser = result.user;
+              // User data update is handled in checkFlow which runs via onAuthStateChanged
+            }
+          })
+          .catch((error) => {
+            console.error("Redirect login failed:", error);
+            loader.style.display = "none";
+            if (error.code === "auth/network-request-failed") {
+              alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
+            } else if (error.code === "auth/internal-error") {
+              alert("認証サーバーでエラーが発生しました。しばらく時間を置いてから再度お試しください。");
+            } else {
+              alert("ログインエラー: " + error.message);
+            }
+          });
+
         onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
@@ -1677,30 +1698,10 @@
             prompt: "select_account",
           });
 
-          const result = await signInWithPopup(auth, provider);
-
-          // Explicitly trigger UI update to prevent "Reload required" issues
-          currentUser = result.user;
-          // checkFlow has built-in redundancy protection
-          await checkFlow();
+          await signInWithRedirect(auth, provider);
         } catch (e) {
-          console.error(e);
-          if (e.code === "auth/popup-blocked") {
-            alert(
-              "ポップアップがブロックされました。\nブラウザの設定でポップアップを許可するか、外部ブラウザで開いてください。",
-            );
-          } else if (
-            e.code === "auth/cancelled-popup-request" ||
-            e.code === "auth/popup-closed-by-user"
-          ) {
-            console.log("Login cancelled by user");
-          } else if (e.code === "auth/network-request-failed") {
-            alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
-          } else if (e.code === "auth/internal-error") {
-            alert("認証サーバーでエラーが発生しました。しばらく時間を置いてから再度お試しください。");
-          } else {
-            alert("ログインエラー: " + e.message);
-          }
+          console.error("Login trigger failed:", e);
+          alert("ログイン画面への遷移に失敗しました。");
 
           // Reset Button only on error
           btn.disabled = false;

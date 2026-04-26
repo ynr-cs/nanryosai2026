@@ -808,8 +808,6 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
       import {
         getAuth,
-        GoogleAuthProvider,
-        signInWithPopup,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       // MOD: onSnapshot をインポート
@@ -878,7 +876,6 @@
       const timerDisplay = document.getElementById("timer-display");
       const loader = document.getElementById("global-loader");
       const loaderText = document.getElementById("loader-text");
-      const errorScreen = document.getElementById("error-overlay"); // Renamed to errorScreen var but points to overlay
 
       // Modals
       const checkoutModal = document.getElementById("checkout-confirm-modal");
@@ -899,17 +896,6 @@
         isProcessing = false;
       }
 
-      // Auth
-      document
-        .getElementById("google-login-btn")
-        .addEventListener("click", async () => {
-          try {
-            await signInWithPopup(auth, new GoogleAuthProvider());
-          } catch (e) {
-            document.getElementById("login-error").textContent = e.message;
-          }
-        });
-
       // ドメインチェックヘルパー
       const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
       const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
@@ -918,108 +904,26 @@
         if (!user || !user.email) return false;
         return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
       }
-      function showDomainError(user) {
-        const overlay = document.getElementById("domain-error-overlay");
-        const emailEl = document.getElementById("domain-error-email");
-        if (emailEl && user) emailEl.textContent = `ログイン中: ${user.email}`;
-        overlay.style.display = "flex";
-        document.getElementById("login-screen").style.display = "none";
-      }
-      document.getElementById("btn-domain-logout").addEventListener("click", async () => {
-        const { signOut } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js");
-        await signOut(auth);
-        document.getElementById("domain-error-overlay").style.display = "none";
-        document.getElementById("login-screen").style.display = "flex";
-      });
 
+      // Auth Guard
       onAuthStateChanged(auth, (user) => {
-        if (user) {
-          // ドメインチェック（最優先）
-          if (!isAuthorizedUser(user)) {
-            showDomainError(user);
-            return;
-          }
-          if (!storeId) {
-            document.getElementById("login-screen").style.display = "none";
-            errorScreen.style.display = "flex";
-            return;
-          }
-          // Googleログイン成功 -> 店舗パスワードチェックへ
-          document.getElementById("login-screen").style.display = "none";
-          checkStoreLogin();
-        } else {
-          document.getElementById("domain-error-overlay").style.display = "none";
-          document.getElementById("login-screen").style.display = "flex";
-          document.getElementById("app-container").style.display = "none";
-          document.getElementById("store-login-modal").style.display = "none"; // ログアウト時はモーダルも消す
-
-          // ログアウト時は購読解除
-          if (unsubscribeProducts) unsubscribeProducts();
-        }
-      });
-
-      // 店舗認証チェック
-      async function checkStoreLogin() {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
 
-        if (cachedId === storeId) {
+        if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+          // 未認証 または ドメイン不正 または 店舗ID不一致 -> ポータルへリダイレクト
+          const currentUrl = encodeURIComponent(window.location.href);
+          const storeParam = storeId ? `&s=${storeId}` : '';
+          window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+        } else {
           // 認証済み
+          const loginScreen = document.getElementById("login-screen");
+          if (loginScreen) loginScreen.style.display = "none";
           document.getElementById("app-container").style.display = "flex";
           subscribeToProducts();
           startClock();
-        } else {
-          // 未認証 -> モーダル表示
-          const modal = document.getElementById("store-login-modal");
-          document.getElementById("target-store-id-display").textContent =
-            `Store ID: ${storeId}`;
-          modal.style.display = "flex";
         }
-      }
-
-      // 店舗認証ボタン処理
-      document
-        .getElementById("store-login-btn")
-        .addEventListener("click", async () => {
-          const input = document.getElementById("store-password-input");
-          const error = document.getElementById("store-login-error");
-          const pass = input.value.trim();
-
-          if (!pass) {
-            error.textContent = "パスワードを入力してください";
-            return;
-          }
-
-          const btn = document.getElementById("store-login-btn");
-          btn.disabled = true;
-          error.textContent = "認証中...";
-
-          try {
-            const loginStore = httpsCallable(functions, "loginStore");
-            const result = await loginStore({
-              storeId: storeId,
-              password: pass,
-            });
-
-            if (result.data.success) {
-              // 認証成功
-              localStorage.setItem("nanryosai_store_id", storeId);
-              // Token Refresh for Claims
-              await auth.currentUser.getIdToken(true);
-
-              document.getElementById("store-login-modal").style.display =
-                "none";
-              document.getElementById("app-container").style.display = "flex";
-              subscribeToProducts();
-              startClock();
-            }
-          } catch (e) {
-            console.error(e);
-            error.textContent =
-              "エラー: " + (e.message || "認証に失敗しました");
-            btn.disabled = false;
-          }
-        });
+      });
 
       // Clock
       function startClock() {

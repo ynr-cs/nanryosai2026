@@ -2,7 +2,7 @@
 title: ポータル (pos/portal.html) コンテキスト
 tags: [pos, context, admin]
 status: active
-last_updated: 2026-03-19
+last_updated: 2026-04-26
 ---
 
 # ポータル (`pos/portal.html`) コンテキスト
@@ -14,7 +14,10 @@ last_updated: 2026-03-19
 
 ## 2. 認証 (Authentication)
 
-- **Step 1: Googleログイン**: `firebase.auth` を使用。ドメイン制限などは現状なし（誰でもユーザー作成自体は可能）。
+- **認証ハブ機能**: POS、モニター等の全スタッフツールの共通ログイン窓口。
+- **Googleログイン**: `signInWithRedirect` を採用。
+- **ドメイン制限**: 南陵高校配布のアカウント（`@gl.pen-kanagawa.ed.jp`）およびマスターアカウントのみログインを許可。
+- **ドメインエラー処理**: 許可されていないドメインでログインした場合、専用のエラーオーバーレイを表示し、ログアウトして再試行を促す。
 - **Step 2: 店舗ログイン**: `loginStore` (Cloud Function) を呼び出し。
   - 入力されたパスワードを検証。
   - 成功時、Custom Claims (`role: store_admin`, `storeId`) を付与された状態で認証トークンがリフレッシュされる。
