@@ -15,6 +15,29 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.142] Firebase Auth: Triple Fallback Strategy - 2026-04-27
+
+### メタ情報
+
+- **AIモデル**: Claude Opus 4.6
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **Firebase ログイン完全修正 - GitHub Pages 環境でのクロスオリジン問題解決**
+  - **根本原因**: `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンであるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返し、ログインが完了しなかった。GitHub Pages ではリバースプロキシの設定が不可能なため、`signInWithRedirect` 自体が根本的に動作しない。
+  - **解決策 - トリプルフォールバック戦略**:
+    1. **① `signInWithPopup`（最優先）**: ユーザージェスチャーを保持して即座に呼び出すことでポップアップブロックを回避。`login()` 関数を `async` にせず、`await` なしで即座に実行。
+    2. **② `signInWithRedirect`（フォールバック）**: `auth/popup-blocked` エラー時のみリダイレクト方式にフォールバック。
+    3. **③ 外部ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+  - **v0.2.141 の `setPersistence` は削除**: 問題の本質はセッション永続化ではなくクロスオリジン問題だったため不要。
+
+### 変更 (Changed)
+
+- **`main/auth.js`**: `signInWithRedirect` → `signInWithPopup` + Redirect フォールバックに全面移行。`setPersistence` / `browserLocalPersistence` のインポートを削除。
+- **`pos/portal.html`**: 同上のトリプルフォールバック戦略に移行。`setPersistence` を削除。
+- **`pos/mobile-order.html`**: 同上のトリプルフォールバック戦略に移行。アプリ内ブラウザ検出を `confirm()` ダイアログ方式に強化。
+
 ## [0.2.141] Firebase Redirect Login Session Persistence Fix - 2026-04-27
 
 ### メタ情報

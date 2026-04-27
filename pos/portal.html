@@ -2662,12 +2662,11 @@
       import {
         getAuth,
         GoogleAuthProvider,
+        signInWithPopup,
         signInWithRedirect,
         getRedirectResult,
         onAuthStateChanged,
         signOut,
-        setPersistence,
-        browserLocalPersistence,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       import {
         getFirestore,
@@ -2715,11 +2714,6 @@
       });
 
       const auth = getAuth(app);
-      
-      // 明示的なセッション永続化 (Redirect認証時のセッションロスト対策)
-      setPersistence(auth, browserLocalPersistence).catch((error) => {
-        console.error("Auth persistence error:", error);
-      });
 
       const db = getFirestore(app);
       const storage = getStorage(app);
@@ -2748,11 +2742,18 @@
       const returnUrl = urlParams.get("return");
       const storeParam = urlParams.get("s");
 
-      // Handle redirect result immediately on load
-      getRedirectResult(auth).catch((error) => {
-        console.error("Redirect Login Error:", error);
-        document.getElementById("google-error").innerText = error.message;
-      });
+      // Handle redirect result (signInWithPopup の popup-blocked フォールバック用)
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result && result.user) {
+            console.log("[Portal Auth] Redirect login success:", result.user.email);
+          }
+        })
+        .catch((error) => {
+          if (error.code === "auth/popup-closed-by-user") return;
+          console.error("Redirect Login Error:", error);
+          document.getElementById("google-error").innerText = error.message;
+        });
 
       // --- Tooltip Logic ---
       window.toggleTooltip = (element) => {
@@ -2874,13 +2875,58 @@
         }
       });
 
-      document.getElementById("btn-google-login").onclick = async () => {
-        try {
-          // Use signInWithRedirect to avoid popup blockers on mobile
-          await signInWithRedirect(auth, new GoogleAuthProvider());
-        } catch (e) {
-          document.getElementById("google-error").innerText = e.message;
+      // アプリ内ブラウザ検出
+      function detectInAppBrowser() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        return (
+          ua.indexOf("FBAN") > -1 ||
+          ua.indexOf("FBAV") > -1 ||
+          ua.indexOf("Instagram") > -1 ||
+          ua.indexOf("Line/") > -1 ||
+          ua.indexOf("LINE/") > -1 ||
+          (ua.indexOf("wv") > -1 && ua.indexOf("Android") > -1)
+        );
+      }
+
+      document.getElementById("btn-google-login").onclick = () => {
+        // アプリ内ブラウザ警告
+        if (detectInAppBrowser()) {
+          const proceed = confirm(
+            "⚠️ アプリ内ブラウザが検出されました\n\n" +
+            "ログインに失敗する場合があります。\n" +
+            "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
+            "このまま続行しますか？"
+          );
+          if (!proceed) return;
         }
+
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+
+        // Triple Fallback: Popup → Redirect → Error
+        signInWithPopup(auth, provider)
+          .then((result) => {
+            if (result && result.user) {
+              console.log("[Portal Auth] Popup login success:", result.user.email);
+            }
+          })
+          .catch(async (error) => {
+            if (error.code === "auth/popup-blocked") {
+              console.warn("[Portal Auth] Popup blocked, falling back to redirect...");
+              try {
+                await signInWithRedirect(auth, provider);
+              } catch (redirectErr) {
+                document.getElementById("google-error").innerText =
+                  "ログインに失敗しました。標準ブラウザで開いてください。";
+              }
+              return;
+            }
+            if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+              return; // ユーザーがキャンセル
+            }
+            console.error("[Portal Auth] Login error:", error);
+            document.getElementById("google-error").innerText = error.message;
+          });
       };
 
       async function loadStoreOptions() {

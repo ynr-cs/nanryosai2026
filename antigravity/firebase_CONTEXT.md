@@ -22,8 +22,16 @@ last_updated: 2026-04-26
   - 管理・モニター画面: **ReCaptcha v3**
 - **デバッグ**: ローカル開発用トークン `b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae`。
 
-- **認証方式**: モバイル端末のインラインブラウザ等でのポップアップブロックを回避するため、Google Sign-In (**Redirect**, `signInWithRedirect`) を採用 (2026-04-23)。
-  - **セッション永続化 (Persistence)**: ドメイン跨ぎのリダイレクト後（特にサードパーティCookie制限下）にログイン状態が失われる問題を防ぐため、`auth` 初期化直後に `setPersistence(auth, browserLocalPersistence)` を明示的に呼び出し、ローカルストレージへの認証情報の保存を強制している (2026-04-27)。
+- **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
+  - **① `signInWithPopup`（最優先）**: ユーザージェスチャーを保持して即座に呼び出し。`login()` を `async` にしないことで、ブラウザがポップアップをユーザーの意図的操作と判断する。
+  - **② `signInWithRedirect`（フォールバック）**: `auth/popup-blocked` エラー時のみリダイレクト方式にフォールバック。
+  - **③ 外部ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+  - **重要な教訓（GitHub Pages + signInWithRedirect の非互換性）**:
+    - `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンとなるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返す。
+    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。
+    - `setPersistence(auth, browserLocalPersistence)` ではこの問題は解決できない（v0.2.141で試行・失敗）。
+    - 解決にはホスティングをFirebase Hostingに移行するか、`signInWithPopup` を使用する必要がある。
+  - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
 - **モバイルオーダーのアクセス制御**:
   - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。
   - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
@@ -33,7 +41,7 @@ last_updated: 2026-04-26
   - **認証ハブ**: `portal.html`
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
   - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
-  - **SDK実装の統一**: 古いログインロジック(`signInWithPopup`)は全て削除し、認証が必要な箇所は共通化。
+  - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を基本とし、`popup-blocked` 時のみ `signInWithRedirect` にフォールバックする統一パターンを適用。
 - **堅牢性**: 
   - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
   - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。
