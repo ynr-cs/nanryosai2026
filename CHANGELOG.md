@@ -15,6 +15,20 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.141] Firebase Redirect Login Session Persistence Fix - 2026-04-27
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`main/auth.js`**:
+  - `signInWithRedirect` 使用時、元のページにリダイレクトされた後に認証状態が復元されない（ログアウト状態になる）不具合を修正。
+  - **背景/原因**: ブラウザやローカル開発環境等の設定により、ドメイン跨ぎのリダイレクト時にデフォルトのセッションが保持されない（サードパーティークッキーブロックなどの影響）ことが原因。
+  - **解決策**: `firebase-auth.js` から `setPersistence` と `browserLocalPersistence` をインポートし、`auth` 初期化直後に明示的にローカルストレージへの永続化を有効化してから `getRedirectResult` を処理するように修正した。
+
 ## [0.2.140] Auth Hub: Redirect-Based Firebase Authentication - 2026-04-23
 
 ### メタ情報

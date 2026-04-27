@@ -12,6 +12,8 @@ import {
   getRedirectResult,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {
   getFirestore,
@@ -42,8 +44,11 @@ const db = getFirestore(app);
 // Global User State
 let currentUser = null;
 
-// Handle Redirect Login Result
-getRedirectResult(auth)
+// Initialize Persistence and Handle Redirect Login Result
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    return getRedirectResult(auth);
+  })
   .then(async (result) => {
     if (result && result.user) {
       const user = result.user;

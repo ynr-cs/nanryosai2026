@@ -2666,6 +2666,8 @@
         getRedirectResult,
         onAuthStateChanged,
         signOut,
+        setPersistence,
+        browserLocalPersistence,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       import {
         getFirestore,
@@ -2713,6 +2715,12 @@
       });
 
       const auth = getAuth(app);
+      
+      // 明示的なセッション永続化 (Redirect認証時のセッションロスト対策)
+      setPersistence(auth, browserLocalPersistence).catch((error) => {
+        console.error("Auth persistence error:", error);
+      });
+
       const db = getFirestore(app);
       const storage = getStorage(app);
       const functions = getFunctions(app, "asia-northeast1");
