@@ -159,7 +159,7 @@
         align-items: center;
         justify-content: flex-start;
         padding: 0;
-        padding-bottom: 40px; 
+        padding-bottom: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom) + 20px); 
         text-align: center;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
@@ -489,8 +489,6 @@
              </div>
         </div>
 
-        <!-- Spacer for scrolling -->
-        <div style="height: 40px;"></div>
       </div>
 
       </div>

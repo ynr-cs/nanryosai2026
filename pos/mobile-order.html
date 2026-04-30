@@ -123,7 +123,9 @@
         justify-content: flex-start; /* Ensure start from top */
         align-items: center; /* Center horizontally */
 
-        /* Padding is handled by style.css */
+        /* Account for mobile safe areas (notch, home indicator) */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
         box-sizing: border-box;
       }
 
@@ -365,11 +367,11 @@
          ========================================= */
       /* Login Step */
       #step-login {
-        justify-content: center;
         align-items: center;
         text-align: center;
       }
       .login-hero {
+        margin-top: auto;
         margin-bottom: 40px;
       }
       .login-logo {
@@ -499,7 +501,7 @@
       /* Bottom Bar */
       .bottom-cart-bar {
         position: fixed;
-        bottom: 24px;
+        bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 24px);
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
@@ -703,6 +705,9 @@
       /* Ensure body doesn't scroll, only the container */
       body {
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
       }
 
       #app-container {
@@ -752,7 +757,7 @@
       /* Cart bar position relative to container */
       .bottom-cart-bar {
         position: absolute; /* Absolute within #app-container */
-        bottom: 20px;
+        bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px);
         left: 50%;
         transform: translateX(-50%);
         width: 90%;
@@ -785,6 +790,125 @@
       .error-msg {
         font-size: 1.2rem;
         line-height: 1.6;
+      }
+
+      /* =========================================
+         9. No-Scroll Screen Layout
+         ========================================= */
+
+      /*
+       * 店舗選択・商品選択以外は基本的に縮小表示だが、
+       * コンテンツが溢れる場合はスクロールを許可する（窮屈さ・重なり防止）
+       * mt-auto クラスで下部ボタンを配置する
+       */
+      #step-student-check,
+      #step-student-confirm,
+      #step-login,
+      #step-guest-guidance,
+      #step-guest-welcome,
+      #step-unauthorized-logged-in,
+      #step-notification,
+      #step-terms {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        align-items: stretch !important;
+        padding: clamp(32px, 6vh, 48px) clamp(16px, 4vw, 24px) clamp(12px, 3vh, 24px) !important;
+        gap: clamp(12px, 2vh, 24px);
+      }
+
+      /* 各直接子要素は潰れないようにする */
+      #step-student-check > *,
+      #step-student-confirm > *,
+      #step-login > *,
+      #step-guest-guidance > *,
+      #step-guest-welcome > *,
+      #step-unauthorized-logged-in > *,
+      #step-notification > *,
+      #step-terms > * {
+        flex-shrink: 0;
+      }
+
+      /* タイトルフォントのレスポンシブ縮小 */
+      .login-hero h1,
+      #step-student-check h1 {
+        font-size: clamp(1.4rem, 4.5vw, 2.5rem) !important;
+        margin-bottom: clamp(4px, 1.5vh, 12px) !important;
+      }
+      .login-hero p {
+        font-size: clamp(0.85rem, 2.5vw, 1rem) !important;
+        margin-bottom: 0 !important;
+      }
+      .login-hero {
+        margin-bottom: 0 !important;
+        padding-top: 2vh;
+      }
+
+      /* アイコンのレスポンシブ縮小 */
+      #step-student-confirm .bi-shield-check,
+      #step-guest-guidance .bi-info-circle,
+      #step-guest-welcome .bi-person-check,
+      #step-unauthorized-logged-in .bi-exclamation-circle,
+      #step-notification .bi-bell-fill {
+        font-size: clamp(2rem, 7vh, 4rem) !important;
+      }
+
+      /* アイコン囲みサークルの縮小 */
+      #step-student-confirm .login-icon-wrap,
+      #step-guest-welcome .login-icon-wrap {
+        width: clamp(52px, 10vh, 80px) !important;
+        height: clamp(52px, 10vh, 80px) !important;
+      }
+
+      /* h3 タイトルのレスポンシブ縮小 */
+      #step-student-confirm h3,
+      #step-guest-guidance h3,
+      #step-guest-welcome h3,
+      #step-unauthorized-logged-in h3,
+      #step-notification h2 {
+        font-size: clamp(1.1rem, 4vw, 1.5rem) !important;
+        margin-top: clamp(4px, 1vh, 12px) !important;
+        margin-bottom: clamp(4px, 1vh, 10px) !important;
+      }
+
+      /* ボタンのレスポンシブ縮小 */
+      @media (max-height: 700px) {
+        .btn-primary-custom {
+          padding: 14px 18px !important;
+          font-size: 0.95rem !important;
+        }
+        .btn.py-3 {
+          padding-top: 0.6rem !important;
+          padding-bottom: 0.6rem !important;
+        }
+        #step-student-confirm h3,
+        #step-guest-guidance h3,
+        #step-guest-welcome h3,
+        #step-unauthorized-logged-in h3 {
+          font-size: 1.05rem !important;
+        }
+      }
+
+      @media (max-height: 600px) {
+        .btn-primary-custom {
+          padding: 11px 16px !important;
+          font-size: 0.9rem !important;
+        }
+        .btn.py-3 {
+          padding-top: 0.45rem !important;
+          padding-bottom: 0.45rem !important;
+        }
+      }
+
+      /* アイコン囲みサークル共通クラス（インラインスタイルを置き換え） */
+      .screen-icon-wrap {
+        width: clamp(60px, 12vh, 80px);
+        height: clamp(60px, 12vh, 80px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        flex-shrink: 0;
       }
     </style>
   </head>
@@ -821,7 +945,7 @@
             あなたは南陵高校の在校生ですか？
           </p>
         </div>
-        <div class="d-flex flex-column gap-3 mt-4">
+        <div class="mt-auto d-flex flex-column gap-3">
           <button class="btn-primary-custom" onclick="isStudentFlow = true; showScreen('step-student-confirm')">
             はい（在校生）
           </button>
@@ -835,20 +959,23 @@
            Screen 1.1.5: Student Confirmation (One-Cushion)
            ========================================= -->
       <div id="step-student-confirm" class="screen">
-        <div class="text-center mt-5 mb-4">
-          <div style="background: var(--item-fill); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+        <div class="text-center">
+          <div class="screen-icon-wrap" style="background: var(--item-fill);">
             <i class="bi bi-shield-check text-primary" style="font-size: 2.5rem"></i>
           </div>
-          <h3 class="fw-bold mt-4 mb-3" style="color: var(--text-main);">ログインに関するご注意</h3>
-          <div class="small px-3 text-start" style="line-height: 1.8; color: var(--text-sub);">
-            <p>モバイルオーダーの利用には、学校から配布されている<strong class="text-primary">「@gl.pen-kanagawa.ed.jp」</strong>で終わるメールアドレスでのログインが必要です。</p>
-            <ul class="ps-3 mb-0">
+          <h3 class="fw-bold" style="color: var(--text-main);">ログインに関するご注意</h3>
+          <div class="px-3 text-start" style="line-height: 1.5; color: var(--text-main);">
+            <p class="mb-2 fw-bold text-center">モバイルオーダーの利用には、必ず学校から配布されている以下のメールアドレスでログインしてください。</p>
+            <div class="text-center py-3 mb-3 fw-bold fs-5 rounded" style="background: rgba(229, 57, 53, 0.1); color: var(--accent-color); border: 2px dashed var(--accent-color);">
+              @gl.pen-kanagawa.ed.jp
+            </div>
+            <ul class="ps-3 mb-0 small" style="color: var(--text-sub);">
               <li>個人のGmail等では注文できません。</li>
               <li>端末に複数のアカウントが登録されている場合は、必ず学校アカウントを選択してください。</li>
             </ul>
           </div>
         </div>
-        <div class="mt-auto pb-4 px-3 d-flex flex-column gap-3">
+        <div class="mt-auto px-3 pb-2 d-flex flex-column gap-2">
           <button class="btn-primary-custom" onclick="showScreen('step-login')">
             理解しました（次へ）
           </button>
@@ -862,16 +989,18 @@
            Screen 1.2: Guest Guidance
            ========================================= -->
       <div id="step-guest-guidance" class="screen">
-        <div class="text-center mt-5 mb-4">
+        <div class="text-center">
           <i class="bi bi-info-circle text-primary" style="font-size: 4rem"></i>
-          <h3 class="fw-bold mt-3 mb-3" style="color: var(--text-main);">ご案内</h3>
-          <p class="small px-3" style="color: var(--text-sub);">
-            誠に恐れ入りますが、モバイルオーダーは<strong style="color: var(--text-main);">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。<br><br>
-            <strong class="text-primary">💡 ログインしてアプリをもっと楽しむ</strong><br>
-            ログインしていただくと、「企画のお気に入り登録」など便利な機能がご利用いただけます！よろしければぜひログインして南陵祭をお楽しみください。
+          <h3 class="fw-bold" style="color: var(--text-main);">ご案内</h3>
+          <p class="px-3 fs-6" style="color: var(--text-sub); line-height: 1.5;">
+            誠に恐れ入りますが、モバイルオーダーは<strong class="fs-5" style="color: var(--accent-color);">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。<br><br>
+            <span class="d-inline-block p-3 rounded text-start" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+              <strong class="text-primary d-block mb-1">💡 ログインしてアプリをもっと楽しむ</strong>
+              <span class="small">ログインしていただくと、「企画のお気に入り登録」など便利な機能がご利用いただけます！よろしければぜひログインして南陵祭をお楽しみください。</span>
+            </span>
           </p>
         </div>
-        <div class="mt-auto pb-4 px-3 d-flex flex-column gap-3">
+        <div class="mt-auto px-3 pb-4 d-flex flex-column gap-2">
           <button class="btn-primary-custom" id="btn-guest-login">
             <i class="bi bi-google me-2"></i> ログインして他の機能を使う
           </button>
@@ -910,27 +1039,29 @@
           </h1>
           <p
             style="
-              color: var(--text-sub);
-              font-size: 0.875rem;
+              color: var(--text-main);
+              font-size: 1rem;
+              font-weight: bold;
               line-height: 1.6;
             "
           >
             モバイルオーダー機能を使うには<br />
-            <strong style="color: var(--accent-color);">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong><br />
+            <strong style="color: var(--accent-color); display: inline-block; margin: 12px 0; padding: 8px 12px; background: rgba(229,57,53,0.1); border-radius: 8px; font-size: 1.15rem; border: 1px solid rgba(229,57,53,0.3);">在校生アカウント<br><span style="font-size: 0.9em;">（@gl.pen-kanagawa.ed.jp）</span></strong><br />
             でログインしてください
           </p>
         </div>
-        <button id="btn-login" class="btn-primary-custom">
-          <i class="bi bi-google me-2"></i> Google でログイン
-        </button>
-        <div
-          class="mt-4 p-3 rounded text-start"
-          style="
-            background: var(--item-fill);
-            font-size: 0.85rem;
-            border: 1px solid var(--border-color);
-          "
-        >
+        <div class="mt-auto px-3 pb-4 d-flex flex-column gap-4">
+          <button id="btn-login" class="btn-primary-custom">
+            <i class="bi bi-google me-2"></i> Google でログイン
+          </button>
+          <div
+            class="p-3 rounded text-start"
+            style="
+              background: var(--item-fill);
+              font-size: 0.85rem;
+              border: 1px solid var(--border-color);
+            "
+          >
           <strong
             class="d-block mb-2"
             style="font-size: 0.95rem; color: #ff4757"
@@ -966,6 +1097,7 @@
               までご連絡ください。</small
             >
           </div>
+          </div>
         </div>
       </div>
 
@@ -973,12 +1105,12 @@
            Screen 1.3: Guest Welcome (Logged in as Guest)
            ========================================= -->
       <div id="step-guest-welcome" class="screen">
-        <div class="text-center mt-5 mb-4">
-          <div style="background: var(--item-fill); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+        <div class="text-center">
+          <div class="screen-icon-wrap" style="background: var(--item-fill);">
             <i class="bi bi-person-check text-primary" style="font-size: 2.5rem"></i>
           </div>
-          <h3 class="fw-bold mt-4 mb-3" style="color: var(--text-main);">ログインありがとうございます！</h3>
-          <p class="small px-4" style="line-height: 1.8; color: var(--text-sub);">
+          <h3 class="fw-bold" style="color: var(--text-main);">ログインありがとうございます！</h3>
+          <p class="small px-4" style="line-height: 1.5; color: var(--text-sub);">
             ログイン中：<strong style="color: var(--text-main);" id="guest-email-display"></strong><br><br>
             モバイルオーダーは在校生限定の機能ですが、ログインしたあなたなら以下の機能をお楽しみいただけます！
           </p>
@@ -990,7 +1122,7 @@
             <p class="small mb-0" style="color: var(--text-sub);">気になる企画をお気に入り登録して、自分だけのマイリストを作れます。</p>
           </div>
         </div>
-        <div class="mt-auto pb-4 px-3 d-flex flex-column gap-3">
+        <div class="mt-auto px-3 pb-4 d-flex flex-column gap-2">
           <a href="../main/index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none">
             ホームに戻る
           </a>
@@ -1004,18 +1136,20 @@
            Screen 2.5: Unauthorized
            ========================================= -->
       <div id="step-unauthorized-logged-in" class="screen">
-        <div class="text-center mt-5 mb-4">
+        <div class="text-center">
           <i class="bi bi-exclamation-circle text-danger" style="font-size: 4rem"></i>
-          <h3 class="fw-bold mt-3 mb-3" style="color: var(--text-main);">利用対象外のアカウント</h3>
-          <p class="small px-3" style="color: var(--text-sub);">
-            モバイルオーダーは、<strong style="color: var(--text-main);">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。<br><br>
-            現在のアカウント:<br>
-            <strong style="color: var(--text-main);" id="unauthorized-email-display"></strong><br><br>
-            お気に入り登録などの機能は引き続きご利用いただけます。<br>
-            ご注文は各店舗の<strong>POSレジ（セルフオーダー）</strong>をご利用ください。
+          <h3 class="fw-bold" style="color: var(--text-main);">モバイルオーダー対象外のアカウントです</h3>
+          <p class="px-3 fs-6" style="color: var(--text-sub); line-height: 1.5;">
+            モバイルオーダーは、<strong class="fs-6" style="color: var(--accent-color);">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。<br><br>
+            <span class="d-inline-block p-2 rounded mb-3" style="background: rgba(0,0,0,0.05);">
+              現在のアカウント:<br>
+              <strong style="color: var(--text-main); font-size: 1.1rem;" id="unauthorized-email-display"></strong>
+            </span><br>
+            <span class="small">お気に入り登録などの機能は引き続きご利用いただけます。<br>
+            ご注文は各店舗の<strong>POSレジ（セルフオーダー）</strong>をご利用ください。</span>
           </p>
         </div>
-        <div class="mt-auto pb-4 px-3 d-flex flex-column gap-3">
+        <div class="mt-auto px-3 pb-4 d-flex flex-column gap-2">
           <button class="btn-primary-custom" onclick="logoutAndRetry()">
             別のアカウントに切り替える
           </button>
@@ -1029,12 +1163,12 @@
            Screen 3: Notifications
            ========================================= -->
       <div id="step-notification" class="screen text-center">
-        <div class="mt-5 mb-4">
-          <div class="mb-3">
+        <div>
+          <div>
             <i class="bi bi-bell-fill text-warning" style="font-size: 4rem"></i>
           </div>
-          <h2 class="fw-bold">通知の設定</h2>
-          <p class="text-muted mt-3">
+          <h2 class="fw-bold mt-2">通知の設定</h2>
+          <p class="text-muted mt-2">
             商品の準備ができたら<br />
             プッシュ通知でお知らせします。
           </p>
@@ -1043,7 +1177,7 @@
             <strong>「許可」</strong>を選択してください。
           </p>
         </div>
-        <div class="mt-auto pb-4">
+        <div class="pb-2">
           <button id="btn-req-notification" class="btn-primary-custom mb-3">
             通知を受け取る
           </button>
@@ -1355,6 +1489,7 @@
               style="
                 background: var(--card-bg);
                 border-top-color: var(--border-color) !important;
+                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px) !important;
               "
             >
               <div class="d-flex justify-content-between align-items-end mb-2">
@@ -1447,7 +1582,7 @@
               class="modal-footer d-block border-top-0 p-3 pt-0"
               style="
                 background: var(--bg-color);
-                padding-bottom: 120px !important;
+                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px) !important;
               "
             >
               <button
@@ -1471,6 +1606,8 @@
     </div>
     <!-- End App Container -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
+    <script src="../config.local.js"></script>
     <script type="module">
       /* 1. Firebase Imports */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -1532,9 +1669,14 @@
         location.hostname === "localhost" ||
         location.hostname === "127.0.0.1"
       ) {
-        // 'true' に設定すると、ブラウザごとに一意のデバッグトークンが生成され、コンソールに出力されます。
-        // これにより、他の開発者がコードをプルしても、各自の環境で個別に Firebase にトークンを登録して開発を継続できます。
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        if (window.LOCAL_ENV && window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN) {
+          self.FIREBASE_APPCHECK_DEBUG_TOKEN = window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN;
+          console.log("[App Check] Using shared local debug token.");
+        } else {
+          // config.local.js が読み込めなかった場合のフォールバック
+          self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+          console.warn("[App Check] config.local.js not found. Using auto-generated token.");
+        }
       }
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(
@@ -2286,42 +2428,15 @@
         }
       }
 
-      // Scaling
+      // Scaling (Obsolete: Now uses pure CSS flex layout with overflow-y: auto)
       function adjustScale() {
         const app = document.getElementById("app-container");
-        const isMobile = window.innerWidth <= 480;
-
-        if (isMobile) {
-          // Mobile: Standard flow, fill parent flex space
-          app.style.height = "100%";
+        if (app) {
+          app.style.height = "auto";
           app.style.flex = "1";
           app.style.transform = "none";
           app.style.zoom = "1";
           app.style.marginTop = "0";
-        } else {
-          // PC/Tablet: Simulating a phone device
-          // Force the container to "Fit" strictly BETWEEN header and the Bottom Nav (Order Button)
-
-          // 1. Define the usable height ABOVE the bottom nav
-          // Window Height - (Header ~60px) - (Bottom Nav ~90px) - (Margins ~30px)
-          const availableHeight = window.innerHeight - 180;
-
-          // 2. Define standard Phone Aspect Ratio Height
-          // Reverted to 840 to fit more vertical content (preventing customization button cut-off)
-          const baseHeight = 840;
-
-          let scale = Math.min(1, availableHeight / baseHeight);
-
-          // Fix dimensions to the base phone size, then scale it
-          app.style.flex = "none";
-          app.style.height = `${baseHeight}px`;
-          // max-width is handled by CSS (500px)
-
-          app.style.transform = `scale(${scale})`;
-          app.style.transformOrigin = "top center";
-
-          // Adjust zoom to reset if mixed
-          app.style.zoom = "1";
         }
       }
       window.addEventListener("resize", adjustScale);

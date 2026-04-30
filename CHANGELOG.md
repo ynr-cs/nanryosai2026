@@ -15,6 +15,47 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.144] Mobile UX Consistency & Layout Fixes - 2026-04-30
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`pos/status.html`**:
+  - **注文内容の見切れ解消**: `.status-container` の `padding-bottom` を `calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom) + 20px)` に変更。動的に挿入されるボトムナビゲーションとの干渉を完全に解消。
+  - **不要なスペーサーの削除**: ページ末尾の固定高スペーサーを削除し、CSSによる流体レイアウトに統一。
+- **`pos/mobile-order.html`**:
+  - **モーダルフッターの保護**: 商品詳細およびカートモーダルのフッター（`.modal-footer`）に、ボトムナビとセーフエリアを考慮した `padding-bottom` を適用。これにより「カートに追加」「レジへ進む」ボタンがメニューバーに隠れる問題を修正。
+  - **フローティングカートバーの配置最適化**: `.bottom-cart-bar` の `bottom` 位置を動的に計算し、最下部ナビゲーションとの重なりを回避。
+
+### 変更 (Changed)
+
+- **`antigravity/mobile-order_CONTEXT.md`** (更新):
+  - 今回の修正内容（セーフエリア対応、ボトムナビ考慮の余白設計）を設計知識として永続化。今後の開発におけるUI/UXの標準仕様（モバイルファースト）を明文化。
+
+## [0.2.143] Mobile Order Layout & Safe Area Overhaul - 2026-04-28
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`pos/mobile-order.html`**:
+  - **ノッチ・セーフエリア見切れの解消**: `body` に `padding-top: env(safe-area-inset-top)` / `padding-bottom: env(safe-area-inset-bottom)` を適用し、iPhoneなどのノッチ領域に「店舗を選択」等のヘッダーテキストが隠れてしまう問題を修正。
+  - **窮屈さ・上部見切れの解消**: 各 `.screen` や `#step-login` における `justify-content: center` への依存を廃止し、画面高が足りない場合に要素が上方向にはみ出して不可視領域へ消えるバグを解消。代わりに `.login-hero` などの要素に `margin-top: auto` を適用し、余白を自動分配しつつ下方向へのスクロールで対応できるように設計を変更。
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`**:
+  - **JS強制スケーリングの廃止**: 画面幅に応じたJavaScriptによる強引な `zoom` / `transform: scale` 処理 (`adjustScale` 等) を完全廃止。`100dvh` と CSS Flexbox を用いた自然な流体レイアウト (Fluid Layout) に移行し、パフォーマンスと保守性を向上。
+- **`config.local.js`** (新規):
+  - ローカル開発時 (`localhost` 等) の Firebase App Check を突破するため、共通のデバッグトークンを管理するファイルを追加。`.gitignore` に登録し、開発者間で柔軟にテストできる環境を構築。
+
 ## [0.2.142] Firebase Auth: Triple Fallback Strategy - 2026-04-27
 
 ### メタ情報

@@ -20,7 +20,7 @@ last_updated: 2026-04-26
 - **プロバイダー**:
   - `mobile-order.html`: **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`)
   - 管理・モニター画面: **ReCaptcha v3**
-- **デバッグ**: ローカル開発用トークン `b20b2da1-c68d-4cd9-a34f-5f65e2d0bdae`。
+- **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。これにより GitHub へのトークン漏洩を防ぐ。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
 
 - **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
   - **① `signInWithPopup`（最優先）**: ユーザージェスチャーを保持して即座に呼び出し。`login()` を `async` にしないことで、ブラウザがポップアップをユーザーの意図的操作と判断する。
