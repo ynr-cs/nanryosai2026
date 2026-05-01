@@ -256,11 +256,11 @@
         background: var(--card-bg);
         border-radius: var(--radius-md);
         border: none;
-        padding: 20px;
-        margin-bottom: 20px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
         box-shadow: var(--shadow-card);
         cursor: pointer;
         transition:
@@ -272,15 +272,15 @@
         background: #fff;
       }
       .store-img {
-        width: 64px;
-        height: 64px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         object-fit: cover;
         background: #eee;
         box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
       }
       .store-info h3 {
-        font-size: 1.15rem;
+        font-size: 1rem;
         font-weight: 800;
         margin: 0 0 4px 0;
         color: var(--text-main);
@@ -325,7 +325,7 @@
         opacity: 1 !important;
       }
       .menu-info {
-        padding: 16px;
+        padding: 10px 12px;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
@@ -514,7 +514,7 @@
         display: none; /* Flex when visible */
         justify-content: space-between;
         align-items: center;
-        padding: 8px 8px 8px 24px;
+        padding: 6px 6px 6px 20px;
         cursor: pointer;
         transition:
           transform 0.2s,
@@ -531,7 +531,7 @@
       }
       .cart-icon-box {
         position: relative;
-        font-size: 1.4rem;
+        font-size: 1.2rem;
         color: #fff;
         display: flex;
         align-items: center;
@@ -543,11 +543,11 @@
         right: -8px;
         background: var(--accent-color);
         color: white;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: bold;
-        min-width: 20px;
-        height: 20px;
-        border-radius: 10px;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -555,7 +555,7 @@
         border: 2px solid #2d3436;
       }
       .cart-total-price {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         font-weight: 800;
         font-family: var(--font-main);
         letter-spacing: 0.02em;
@@ -566,7 +566,8 @@
         font-weight: 800;
         border: none;
         border-radius: 50px;
-        padding: 14px 28px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -584,8 +585,8 @@
       .cart-item {
         background: var(--card-bg);
         border-radius: var(--radius-md);
-        padding: 16px;
-        margin-bottom: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
         box-shadow: var(--shadow-card);
         border: none;
         display: flex;
@@ -597,7 +598,7 @@
         transform: scale(0.98);
       }
       .cart-item-details h5 {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         margin: 0 0 4px 0;
         font-weight: 700;
         color: var(--text-main);
@@ -605,14 +606,14 @@
       .cart-item-price {
         font-weight: bold;
         color: var(--text-main);
-        font-size: 0.95rem;
+        font-size: 0.85rem;
       }
       .cart-item-mods {
-        margin-top: 6px;
+        margin-top: 4px;
       }
       .cart-del-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         background: #ffebee;
         color: #d32f2f;
@@ -620,7 +621,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1.1rem;
+        font-size: 1rem;
         transition: background 0.2s;
       }
       .cart-del-btn:active {
@@ -631,16 +632,16 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         padding: 10px 0;
       }
       .cart-total-label {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: bold;
         color: var(--text-sub);
       }
       .cart-total-value {
-        font-size: 2rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: var(--text-main);
       }
@@ -1182,6 +1183,7 @@
             通知を受け取る
           </button>
           <button
+            id="btn-skip-notification"
             class="btn btn-link text-secondary text-decoration-none"
             onclick="skipNotification()"
           >
@@ -1240,7 +1242,7 @@
            Screen 5: Store Selection
            ========================================= -->
       <div id="step-stores" class="screen">
-        <h2 class="fw-bold mb-4">店舗を選択</h2>
+        <h4 class="fw-bold mb-3">店舗を選択</h4>
         <div id="store-list">
           <!-- JS Injected -->
         </div>
@@ -1252,10 +1254,10 @@
       <div id="step-menu" class="screen">
         <div
           id="menu-header"
-          class="p-3 sticky-top shadow-sm d-flex align-items-center justify-content-between"
+          class="p-2 sticky-top shadow-sm d-flex align-items-center justify-content-between"
           style="background: var(--card-bg); color: var(--text-main)"
         >
-          <h5 class="m-0 fw-bold" id="menu-store-name">Store Name</h5>
+          <h6 class="m-0 fw-bold" id="menu-store-name">Store Name</h6>
           <button
             class="btn btn-sm btn-outline-secondary rounded-circle"
             onclick="backToStores()"
@@ -1265,8 +1267,8 @@
         </div>
         <div
           id="menu-grid"
-          class="p-3"
-          style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+          class="p-2"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
         >
           <!-- JS Injected -->
         </div>
@@ -1276,14 +1278,14 @@
            Screen 7: Checkout (Confirmation)
            ========================================= -->
       <div id="step-checkout" class="screen">
-        <h2 class="fw-bold mb-4">注文内容の確認</h2>
+        <h4 class="fw-bold mb-3">注文内容の確認</h4>
         <div
           class="card mb-3 shadow-sm border-0"
           style="background: var(--card-bg); color: var(--text-main)"
         >
-          <div class="card-body">
-            <h6 class="small" style="color: var(--text-sub)">受け取り店舗</h6>
-            <h4 class="fw-bold" id="checkout-store-name">Store Name</h4>
+          <div class="card-body p-3">
+            <h6 class="small mb-1" style="color: var(--text-sub)">受け取り店舗</h6>
+            <h5 class="fw-bold mb-0" id="checkout-store-name">Store Name</h5>
           </div>
         </div>
         <div
@@ -1291,8 +1293,8 @@
           style="background: var(--card-bg); color: var(--text-main)"
         >
           <div
-            class="card-header border-bottom-0 fw-bold"
-            style="background: var(--card-bg); color: var(--text-main)"
+            class="card-header border-bottom-0 fw-bold py-2"
+            style="background: var(--card-bg); color: var(--text-main); font-size: 0.95rem;"
           >
             注文商品
           </div>
@@ -1303,10 +1305,10 @@
           </div>
         </div>
         <div
-          class="d-flex justify-content-between align-items-center mb-4 px-2"
+          class="d-flex justify-content-between align-items-center mb-3 px-2"
         >
-          <span class="fw-bold fs-5">合計金額</span>
-          <span class="fw-bold fs-2 text-danger" id="checkout-total">¥0</span>
+          <span class="fw-bold fs-6">合計金額</span>
+          <span class="fw-bold fs-3 text-danger" id="checkout-total">¥0</span>
         </div>
         <div class="alert alert-danger small" role="alert">
           <i class="bi bi-exclamation-triangle-fill me-1"></i>
@@ -1390,7 +1392,7 @@
                 class="text-center py-2 mb-3 shadow-sm position-relative"
                 style="
                   background: var(--card-bg);
-                  min-height: 200px;
+                  min-height: 150px;
                   display: flex;
                   align-items: center;
                   justify-content: center;
@@ -1408,7 +1410,7 @@
                   class="img-fluid"
                   style="
                     max-width: 80%;
-                    max-height: 200px;
+                    max-height: 150px;
                     object-fit: contain;
                     opacity: 0;
                     transition: opacity 0.3s;
@@ -1495,7 +1497,7 @@
               <div class="d-flex justify-content-between align-items-end mb-2">
                 <div>
                   <span
-                    class="fs-2 fw-bold"
+                    class="fs-3 fw-bold"
                     id="modal-item-price"
                     style="color: var(--text-main)"
                     >¥0</span
@@ -1881,6 +1883,11 @@
       document.getElementById("btn-guest-login").onclick = () => handleLoginClick("btn-guest-login");
 
       document.getElementById("btn-req-notification").onclick = async () => {
+        const btn = document.getElementById("btn-req-notification");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
+
         try {
           const p = await Notification.requestPermission();
           if (p === "granted") {
@@ -1894,6 +1901,9 @@
           }
         } catch (e) {
           console.warn(e);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
         }
         showScreen("step-terms");
       };
@@ -1909,10 +1919,19 @@
       };
 
       window.skipNotification = async () => {
-        await updateUserProfile({
-          notificationEnabled: false,
-          permissionStatus: "skipped",
-        });
+        const btn = document.getElementById("btn-skip-notification");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
+        try {
+          await updateUserProfile({
+            notificationEnabled: false,
+            permissionStatus: "skipped",
+          });
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
         showScreen("step-terms");
       };
 
