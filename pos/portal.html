@@ -1918,21 +1918,6 @@
         >
           <span style="font-weight: bold">G</span> Googleでログイン
         </button>
-        <button
-          id="btn-delayed-login"
-          class="btn-primary"
-          style="
-            width: 100%;
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            margin-top: 10px;
-            font-size: 0.8rem;
-          "
-          onclick="triggerDelayedLogin()"
-        >
-          【検証用】2秒遅延ログイン（ブロックされるはず）
-        </button>
         <p
           id="google-error"
           style="color: red; margin-top: 12px; font-size: 0.9rem"
@@ -3015,41 +3000,6 @@
             console.error("[Portal Auth] Login error:", error);
             document.getElementById("google-error").innerText = error.message;
           });
-      };
-
-      // 【検証用】2秒遅延ログインのロジック
-      window.triggerDelayedLogin = async () => {
-        const btn = document.getElementById("btn-delayed-login");
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 2秒待機中...';
-        
-        try {
-          console.log("[Verification] Waiting 2 seconds to trigger popup block...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: "select_account" });
-          
-          console.log("[Verification] Triggering signInWithPopup after delay...");
-          const result = await signInWithPopup(auth, provider);
-          if (result && result.user) {
-            console.log("[Verification] Success (Unexpectedly not blocked):", result.user.email);
-          }
-        } catch (error) {
-          if (error.code === "auth/popup-blocked") {
-            alert("✅ 証明成功: ポップアップがブロックされました！\n\nawaitを挟むとブラウザがユーザー操作と認識しなくなるため、この挙動は正常（想定通り）です。");
-            document.getElementById("popup-blocked-guidance").style.display = "block";
-          } else if (error.code === "auth/popup-closed-by-user") {
-             // Ignore
-          } else {
-            console.error("[Verification] Error:", error);
-            alert("エラーが発生しました: " + error.message);
-          }
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
       };
 
       async function loadStoreOptions() {

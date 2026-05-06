@@ -1005,9 +1005,6 @@
           <button class="btn-primary-custom" id="btn-guest-login">
             <i class="bi bi-google me-2"></i> ログインして他の機能を使う
           </button>
-          <button class="btn w-100 py-2 rounded-pill fw-bold" id="btn-delayed-guest-login" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.8rem;" onclick="triggerDelayedLogin('btn-delayed-guest-login')">
-            【検証用】2秒遅延ログイン（ブロック用）
-          </button>
           <a href="../main/index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none">
             ホームに戻る
           </a>
@@ -1057,9 +1054,6 @@
         <div class="mt-auto px-3 pb-4 d-flex flex-column gap-4">
           <button id="btn-login" class="btn-primary-custom">
             <i class="bi bi-google me-2"></i> Google でログイン
-          </button>
-          <button class="btn w-100 py-2 rounded-pill fw-bold" id="btn-delayed-login-test" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.8rem;" onclick="triggerDelayedLogin('btn-delayed-login-test')">
-            【検証用】2秒遅延ログイン（ブロック用）
           </button>
 
           <!-- Popup Blocked Guidance -->
@@ -1851,43 +1845,6 @@
           (ua.indexOf("wv") > -1 && ua.indexOf("Android") > -1)
         );
       }
-
-
-
-      // 【検証用】2秒遅延ログインのロジック
-      window.triggerDelayedLogin = async (btnId) => {
-        const btn = document.getElementById(btnId);
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 2秒待機中...';
-        
-        try {
-          console.log("[Verification] Waiting 2 seconds to trigger popup block...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: "select_account" });
-          
-          console.log("[Verification] Triggering signInWithPopup after delay...");
-          const result = await signInWithPopup(auth, provider);
-          if (result && result.user) {
-            console.log("[Verification] Success (Unexpectedly not blocked):", result.user.email);
-          }
-        } catch (error) {
-          if (error.code === "auth/popup-blocked") {
-            alert("✅ 証明成功: ポップアップがブロックされました！\n\nawaitを挟むとブラウザがユーザー操作と認識しなくなるため、この挙動は正常（想定通り）です。");
-            document.getElementById("popup-blocked-guidance").style.display = "block";
-          } else if (error.code === "auth/popup-closed-by-user") {
-             // Ignore
-          } else {
-            console.error("[Verification] Error:", error);
-            alert("エラーが発生しました: " + error.message);
-          }
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
-      };
 
       const handleLoginClick = (btnId) => {
         const btn = document.getElementById(btnId);
