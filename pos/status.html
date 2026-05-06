@@ -1,7 +1,7 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Version: 0.1.1
+  Last Modified: 2026-05-06
   Author: Nanryosai 2026 Project Team
 -->
 <!DOCTYPE html>
@@ -497,46 +497,20 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      // Firestore モジュールから必要な関数のみ import
       import {
-        initializeAppCheck,
-        ReCaptchaV3Provider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-      import {
-        getFirestore,
         doc,
         onSnapshot,
         getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // Auth モジュールから必要な関数のみ import
       import {
-        getFunctions,
-        httpsCallable,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import {
-        getMessaging,
-        onMessage,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
-      import {
-        getAuth,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-      /* Import Shared Instance from auth.js to prevent "App already exists" error */
+      /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
       import { app, auth, db, login } from "../main/auth.js";
-
-      // AppCheck (Debug Token handled by devtools or console)
-      // Note: Reusing same key as mobile-order
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(
-          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS"
-        ),
-        isTokenAutoRefreshEnabled: true,
-      });
-
-      // const db = getFirestore(app); // Imported from auth.js
-      // const auth = getAuth(app);    // Imported from auth.js
-      const functions = getFunctions(app, "asia-northeast1"); 
-      const messaging = getMessaging(app);
 
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);

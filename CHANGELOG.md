@@ -15,6 +15,22 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.150] pos/status.html: Firebase 初期化統合リファクタリング - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/status.html`**:
+  - **Firebase 二重初期化の解消**: 独自に行っていた App Check 初期化（`initializeAppCheck`）、Functions 初期化（`getFunctions`）、Messaging 初期化（`getMessaging`）を削除し、`main/auth.js` (v0.3.0) の Single Source of Truth に統一。
+  - **背景/原因**: `auth.js` が v0.3.0 で App Check を含む全 Firebase サービスの初期化を集約したため、`status.html` 側の独自初期化が二重初期化（`appCheck/already-initialized`）を引き起こす潜在的バグの原因となっていた。
+  - **解決策**: 未使用の import（`initializeApp`, `initializeAppCheck`, `ReCaptchaV3Provider`, `getFirestore`, `getFunctions`, `httpsCallable`, `getMessaging`, `onMessage`, `getAuth`）を全て削除。実際に使用している `doc`, `onSnapshot`, `getDoc`（Firestore）と `onAuthStateChanged`（Auth）のみを残し、Firebase インスタンス（`app`, `auth`, `db`, `login`）は `auth.js` から取得するように整理。
+  - **得られた知見**: Firebase の `initializeAppCheck()` は同一 app に対して複数回呼ぶと例外を投げる。各ページで独自に初期化するのではなく、共通モジュールで一度だけ初期化し export する設計が正しい。
+  - ファイルバージョン: `0.1.0` → `0.1.1` に更新。
+
 ## [0.2.149] auth.js リファクタリング: Firebase 初期化統合 & App Check 追加 - 2026-05-07
 
 ### メタ情報
