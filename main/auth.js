@@ -1,13 +1,20 @@
 /**
  * Nanryosai 2026
- * Version: 0.2.142
- * Last Modified: 2026-04-27
+ * Version: 0.3.0
+ * Last Modified: 2026-05-06
  * Author: Nanryosai 2026 Project Team
  *
- * Firebase Auth Module - Triple Fallback Strategy
- * ① signInWithPopup (即座呼び出し、ジェスチャー保持)
- * ② signInWithRedirect (popup-blocked フォールバック)
- * ③ アプリ内ブラウザ誘導UI (LINE/Instagram等)
+ * Firebase Auth Module - Single Source of Truth
+ * Firebase の初期化・認証・App Check を一元管理する。
+ *
+ * 変更履歴:
+ *   v0.3.0 - Firebase 初期化の集約 (Storage, Functions, Messaging, App Check)
+ *            App Check (reCAPTCHA v3) の統合とトークンウォームアップ
+ *            requireLogin() スタブ追加
+ *   v0.2.142 - Triple Fallback Strategy
+ *     ① signInWithPopup (即座呼び出し、ジェスチャー保持)
+ *     ② signInWithRedirect (popup-blocked フォールバック)
+ *     ③ アプリ内ブラウザ誘導UI (LINE/Instagram等)
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {
@@ -26,6 +33,20 @@ import {
   setDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {
+  getStorage,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+import {
+  getFunctions,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+import {
+  getMessaging,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+import {
+  initializeAppCheck,
+  ReCaptchaV3Provider,
+  getToken as getAppCheckToken,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 
 /* ==============================
    Firebase Configuration
@@ -40,19 +61,73 @@ const firebaseConfig = {
   appId: "1:93228414556:web:f64f90c13849fae9049899",
 };
 
-// Initialize Firebase
+/* ==============================
+   1. Initialize Firebase App
+   ============================== */
 const app = initializeApp(firebaseConfig);
+
+/* ==============================
+   2. App Check Debug Token (localhost)
+   initializeAppCheck() より前に設定する必要がある
+   ============================== */
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  if (window.LOCAL_ENV && window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN;
+    console.log("[App Check] Using shared local debug token.");
+  } else {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    console.warn("[App Check] config.local.js not found. Using auto-generated token.");
+  }
+}
+
+/* ==============================
+   3. Initialize App Check (reCAPTCHA v3)
+   ============================== */
+const RECAPTCHA_SITE_KEY = "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS";
+
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
+  isTokenAutoRefreshEnabled: true,
+});
+
+/* ==============================
+   4. App Check Token Warmup
+   ページロード時にトークンを温めておく。
+   これにより、後続の signInWithPopup 時にトークン取得の非同期待ちが発生せず、
+   ポップアップブロックを回避できる。
+   ============================== */
+getAppCheckToken(appCheck, false).catch((e) => {
+  console.warn("[Auth] AppCheck warmup failed:", e);
+});
+
+/* ==============================
+   5. Initialize Firebase Services
+   App Check の後に初期化することで、
+   各サービスからのリクエストに自動的に App Check トークンが付与される。
+   ============================== */
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+const functions = getFunctions(app, "asia-northeast1");
+
+// Messaging は非対応ブラウザ（一部 iOS Safari、古いブラウザ等）で
+// エラーをスローする可能性があるため、try-catch でラップする。
+// 利用側では if (messaging) で null チェックすること。
+let messaging = null;
+try {
+  messaging = getMessaging(app);
+} catch (e) {
+  console.warn("[Auth] Messaging not supported in this environment:", e);
+}
 
 // Global User State
 let currentUser = null;
 
-/**
- * Handle Redirect Login Result (フォールバック用)
- * signInWithRedirect でフォールバックした場合にのみ結果が返る。
- * signInWithPopup でログインした場合は null が返る（正常）。
- */
+/* ==============================
+   6. Handle Redirect Login Result (フォールバック用)
+   signInWithRedirect でフォールバックした場合にのみ結果が返る。
+   signInWithPopup でログインした場合は null が返る（正常）。
+   ============================== */
 getRedirectResult(auth)
   .then(async (result) => {
     if (result && result.user) {
@@ -202,5 +277,48 @@ function getCurrentUser() {
   return currentUser;
 }
 
+/**
+ * ログインを要求するヘルパー(将来 login.html へのリダイレクトを実装予定)
+ *
+ * 注意: ページロード直後は Auth の初期化が完了していない場合があるため、
+ * 確実にログイン状態を取得したい場合は watchUser() の使用を推奨。
+ *
+ * @param {Object} options
+ * @param {string} [options.reason] - ログイン理由 (mypage / favorite / order)
+ * @param {string} [options.mode] - ログインモード (student / undefined)
+ * @param {string} [options.redirect] - ログイン後の戻り先 URL（省略時は現在のURL）
+ * @returns {Promise<User|null>}
+ */
+async function requireLogin(options = {}) {
+  // 既にログイン済みなら現在のユーザーを返す
+  if (currentUser) return currentUser;
+
+  // TODO: 後のステップで login.html へのリダイレクトを実装する
+  // 想定実装:
+  //   const redirect = options.redirect || location.href;
+  //   const params = new URLSearchParams();
+  //   params.set("redirect", redirect);
+  //   if (options.reason) params.set("reason", options.reason);
+  //   if (options.mode) params.set("mode", options.mode);
+  //   location.href = `/main/login.html?${params.toString()}`;
+  //   return null;
+
+  console.warn("[Auth] requireLogin called but login.html is not yet implemented");
+  return null;
+}
+
 // Export everything needed
-export { app, auth, db, login, logout, watchUser, getCurrentUser };
+export {
+  app,
+  auth,
+  db,
+  storage,
+  functions,
+  messaging,
+  appCheck,
+  login,
+  logout,
+  watchUser,
+  getCurrentUser,
+  requireLogin,
+};

@@ -2,7 +2,7 @@
 title: Firebase アーキテクチャ コンテキスト
 tags: [infra, context]
 status: active
-last_updated: 2026-04-26
+last_updated: 2026-05-07
 ---
 
 # Firebase アーキテクチャ コンテキスト
@@ -17,10 +17,14 @@ last_updated: 2026-04-26
 ## 2. セキュリティ (App Check)
 
 - **全体実装済み**: 不正なアクセスをブロックするため全域で有効化。
+- **Single Source of Truth**: `main/auth.js` が全 Firebase サービス（App, Auth, Firestore, Storage, Functions, Messaging, App Check）の初期化を一元管理（v0.3.0〜）。
 - **プロバイダー**:
-  - `mobile-order.html`: **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`)
+  - `main/auth.js`（共通モジュール）: **ReCaptcha v3** (Key: `6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS`)
+  - `mobile-order.html`: 独自初期化で **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`) を使用（将来的に auth.js に統合予定）
   - 管理・モニター画面: **ReCaptcha v3**
-- **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。これにより GitHub へのトークン漏洩を防ぐ。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
+- **App Check トークンウォームアップ**: ページロード時に `getAppCheckToken(appCheck, false)` を fire-and-forget で呼び、トークンをキャッシュしておく。これにより `signInWithPopup` 時にトークン取得の非同期待ちが発生せず、ポップアップブロックを回避できる。
+- **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。`auth.js` 内で localhost 判定し `self.FIREBASE_APPCHECK_DEBUG_TOKEN` を設定。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
+- **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックが必要。
 
 - **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
   - **② ポップアップブロック・ガイダンス（改善済）**: `auth/popup-blocked` 時、リダイレクト方式は GitHub Pages の制限（サードパーティCookie制限）により動作しないため、ユーザーに「ポップアップ解除手順」と「再試行ボタン」を提示するUIを表示。

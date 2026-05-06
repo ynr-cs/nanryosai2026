@@ -15,6 +15,32 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.149] auth.js リファクタリング: Firebase 初期化統合 & App Check 追加 - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/auth.js`**:
+  - **Firebase サービスの初期化を集約**: `storage` (Cloud Storage), `functions` (Cloud Functions, region: `asia-northeast1`), `messaging` (FCM), `appCheck` (App Check) を新たに初期化し export。これにより `auth.js` が Firebase 初期化の Single Source of Truth となった。
+  - **App Check (reCAPTCHA v3) の統合**: サイトキー `6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS` で `ReCaptchaV3Provider` を初期化。`isTokenAutoRefreshEnabled: true` による自動更新に加え、**ページロード時のトークンウォームアップ** (`getAppCheckToken(appCheck, false)`) を実装。
+    - **背景/原因**: `isTokenAutoRefreshEnabled: true` だけでは初回トークンが「実際に必要になった瞬間」に取得されてしまい、`signInWithPopup` の前に非同期待ちが発生してユーザージェスチャーが切れ、ポップアップがブロックされる。
+    - **解決策**: ページロード時に `getAppCheckToken()` を呼んでトークンをキャッシュしておくことで、後続の認証リクエスト時にはトークンが即座に利用可能になる。
+    - **得られた知見**: App Check トークンのウォームアップは `await` せず fire-and-forget で呼ぶ。`catch` でエラーを無視し、ページの初期化をブロックしない。
+  - **localhost デバッグトークン対応**: `pos/mobile-order.html` に既存のロジックを移植。`config.local.js` の `window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN` を使い、なければ自動生成トークンにフォールバック。`initializeAppCheck()` の**前**に設定。
+  - **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックする前提。
+  - **`requireLogin()` スタブ**: ログイン済みなら `currentUser` を返し、未ログインの場合はコンソール警告のみ。将来 `login.html` へのリダイレクトを実装予定。
+
+### 変更 (Changed)
+
+- **`main/auth.js`**:
+  - **初期化順序の最適化**: `initializeApp()` → デバッグトークン設定 → `initializeAppCheck()` → トークンウォームアップ → `getAuth()`/`getFirestore()`/etc. の順序に変更。App Check を各サービスの初期化**前**に行うことで、全リクエストにトークンが自動付与される。
+  - **ファイルバージョン**: `0.2.142` → `0.3.0` に更新。
+  - 既存の `login()`, `logout()`, `watchUser()`, `getCurrentUser()`, `getRedirectResult()` の挙動は**一切変更なし**。
+
 ## [0.2.148] Mobile Order: Notification Response & UI Scaling - 2026-05-06
 
 ### メタ情報
