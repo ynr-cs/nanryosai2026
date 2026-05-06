@@ -1005,6 +1005,9 @@
           <button class="btn-primary-custom" id="btn-guest-login">
             <i class="bi bi-google me-2"></i> ログインして他の機能を使う
           </button>
+          <button class="btn w-100 py-2 rounded-pill fw-bold" id="btn-delayed-guest-login" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.8rem;" onclick="triggerDelayedLogin('btn-delayed-guest-login')">
+            【検証用】2秒遅延ログイン（ブロック用）
+          </button>
           <a href="../main/index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none">
             ホームに戻る
           </a>
@@ -1055,6 +1058,29 @@
           <button id="btn-login" class="btn-primary-custom">
             <i class="bi bi-google me-2"></i> Google でログイン
           </button>
+          <button class="btn w-100 py-2 rounded-pill fw-bold" id="btn-delayed-login-test" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.8rem;" onclick="triggerDelayedLogin('btn-delayed-login-test')">
+            【検証用】2秒遅延ログイン（ブロック用）
+          </button>
+
+          <!-- Popup Blocked Guidance -->
+          <div id="popup-blocked-guidance" class="p-3 rounded text-start animate__animated animate__fadeIn" style="display: none; background: #fffbeb; border: 1px solid #f59e0b;">
+            <h3 style="font-size: 1rem; color: #92400e; font-weight: bold; margin-bottom: 10px;">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> ポップアップがブロックされました
+            </h3>
+            <p style="font-size: 0.85rem; color: #78350f; margin-bottom: 12px; line-height: 1.5;">
+              ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
+            </p>
+            <div style="background: rgba(245,158,11,0.05); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+              <ol style="font-size: 0.8rem; color: #78350f; margin-bottom: 0; padding-left: 20px;">
+                <li class="mb-2">アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
+                <li class="mb-2"><strong>「常に許可」</strong>を選択。</li>
+                <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
+              </ol>
+            </div>
+            <button id="btn-retry-login" class="btn w-100 fw-bold" style="background: #374151; color: white;">
+              設定したので再試行する
+            </button>
+          </div>
           <div
             class="p-3 rounded text-start"
             style="
@@ -1826,6 +1852,43 @@
         );
       }
 
+
+
+      // 【検証用】2秒遅延ログインのロジック
+      window.triggerDelayedLogin = async (btnId) => {
+        const btn = document.getElementById(btnId);
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 2秒待機中...';
+        
+        try {
+          console.log("[Verification] Waiting 2 seconds to trigger popup block...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
+          
+          console.log("[Verification] Triggering signInWithPopup after delay...");
+          const result = await signInWithPopup(auth, provider);
+          if (result && result.user) {
+            console.log("[Verification] Success (Unexpectedly not blocked):", result.user.email);
+          }
+        } catch (error) {
+          if (error.code === "auth/popup-blocked") {
+            alert("✅ 証明成功: ポップアップがブロックされました！\n\nawaitを挟むとブラウザがユーザー操作と認識しなくなるため、この挙動は正常（想定通り）です。");
+            document.getElementById("popup-blocked-guidance").style.display = "block";
+          } else if (error.code === "auth/popup-closed-by-user") {
+             // Ignore
+          } else {
+            console.error("[Verification] Error:", error);
+            alert("エラーが発生しました: " + error.message);
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      };
+
       const handleLoginClick = (btnId) => {
         const btn = document.getElementById(btnId);
 
@@ -1858,14 +1921,15 @@
           })
           .catch(async (error) => {
             if (error.code === "auth/popup-blocked") {
-              console.warn("[MobileOrder Auth] Popup blocked, falling back to redirect...");
-              try {
-                await signInWithRedirect(auth, provider);
-                return;
-              } catch (redirectErr) {
-                console.error("[MobileOrder Auth] Redirect fallback failed:", redirectErr);
-                alert("ログインに失敗しました。標準ブラウザで開いてください。");
-              }
+              console.warn("[MobileOrder Auth] Popup blocked, showing guidance...");
+              document.getElementById("popup-blocked-guidance").style.display = "block";
+              
+              // Re-trigger login
+              document.getElementById("btn-retry-login").onclick = () => {
+                document.getElementById("popup-blocked-guidance").style.display = "none";
+                document.getElementById("btn-login").click();
+              };
+              return;
             } else if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
               // ユーザーがキャンセル
             } else {

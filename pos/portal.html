@@ -441,6 +441,56 @@
         max-width: 400px;
       }
 
+      /* Popup Blocked Guidance */
+      .popup-blocked-warning {
+        display: none;
+        background: #fffbeb;
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: left;
+        animation: fadeIn 0.3s ease-out;
+      }
+      .popup-blocked-warning h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #92400e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .popup-blocked-warning p {
+        margin: 0 0 12px 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #78350f;
+      }
+      .popup-blocked-warning ol {
+        margin: 0 0 15px 0;
+        padding-left: 20px;
+        font-size: 0.8rem;
+        color: #78350f;
+      }
+      .popup-blocked-warning ol li {
+        margin-bottom: 4px;
+      }
+      .btn-redirect {
+        width: 100%;
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+      }
+      .btn-redirect:hover {
+        background: #d97706;
+      }
+
       /* Helper Tooltip */
       .help-container {
         display: inline-block;
@@ -1868,10 +1918,47 @@
         >
           <span style="font-weight: bold">G</span> Googleでログイン
         </button>
+        <button
+          id="btn-delayed-login"
+          class="btn-primary"
+          style="
+            width: 100%;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            margin-top: 10px;
+            font-size: 0.8rem;
+          "
+          onclick="triggerDelayedLogin()"
+        >
+          【検証用】2秒遅延ログイン（ブロックされるはず）
+        </button>
         <p
           id="google-error"
           style="color: red; margin-top: 12px; font-size: 0.9rem"
         ></p>
+
+        <!-- Popup Blocked Guidance -->
+        <div id="popup-blocked-guidance" class="popup-blocked-warning">
+          <h3>⚠️ ポップアップがブロックされました</h3>
+          <p>
+            ブラウザの設定により、ログイン画面（ポップアップ）の表示がブロックされました。
+          </p>
+          <div style="background: rgba(245,158,11,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 0.85rem;">解除方法：</p>
+            <ol style="margin-bottom: 0;">
+              <li>アドレスバー（URLバー）の右端にある「ブロックアイコン」をクリック。</li>
+              <li><strong>「ポップアップとリダイレクトを常に許可」</strong>を選択して完了をクリック。</li>
+              <li>下の「再試行」ボタンを押してください。</li>
+            </ol>
+          </div>
+          <p style="font-size: 0.8rem; color: #78350f; font-style: italic;">
+            ※ LINEやInstagram内ブラウザでは正常に動作しません。右上のメニューから「ブラウザで開く」を選択してください。
+          </p>
+          <button id="btn-retry-login" class="btn-redirect" style="background: #374151;">
+            設定を完了したので再試行する
+          </button>
+        </div>
       </div>
 
       <div id="step-store" class="auth-card" style="display: none">
@@ -2912,13 +2999,14 @@
           })
           .catch(async (error) => {
             if (error.code === "auth/popup-blocked") {
-              console.warn("[Portal Auth] Popup blocked, falling back to redirect...");
-              try {
-                await signInWithRedirect(auth, provider);
-              } catch (redirectErr) {
-                document.getElementById("google-error").innerText =
-                  "ログインに失敗しました。標準ブラウザで開いてください。";
-              }
+              console.warn("[Portal Auth] Popup blocked, showing guidance...");
+              document.getElementById("popup-blocked-guidance").style.display = "block";
+              
+              // Re-trigger the same logic on retry
+              document.getElementById("btn-retry-login").onclick = () => {
+                document.getElementById("popup-blocked-guidance").style.display = "none";
+                document.getElementById("btn-google-login").click();
+              };
               return;
             }
             if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
@@ -2927,6 +3015,41 @@
             console.error("[Portal Auth] Login error:", error);
             document.getElementById("google-error").innerText = error.message;
           });
+      };
+
+      // 【検証用】2秒遅延ログインのロジック
+      window.triggerDelayedLogin = async () => {
+        const btn = document.getElementById("btn-delayed-login");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 2秒待機中...';
+        
+        try {
+          console.log("[Verification] Waiting 2 seconds to trigger popup block...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
+          
+          console.log("[Verification] Triggering signInWithPopup after delay...");
+          const result = await signInWithPopup(auth, provider);
+          if (result && result.user) {
+            console.log("[Verification] Success (Unexpectedly not blocked):", result.user.email);
+          }
+        } catch (error) {
+          if (error.code === "auth/popup-blocked") {
+            alert("✅ 証明成功: ポップアップがブロックされました！\n\nawaitを挟むとブラウザがユーザー操作と認識しなくなるため、この挙動は正常（想定通り）です。");
+            document.getElementById("popup-blocked-guidance").style.display = "block";
+          } else if (error.code === "auth/popup-closed-by-user") {
+             // Ignore
+          } else {
+            console.error("[Verification] Error:", error);
+            alert("エラーが発生しました: " + error.message);
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
       };
 
       async function loadStoreOptions() {

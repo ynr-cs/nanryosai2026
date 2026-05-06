@@ -23,15 +23,16 @@ last_updated: 2026-04-26
 - **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。これにより GitHub へのトークン漏洩を防ぐ。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
 
 - **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
-  - **① `signInWithPopup`（最優先）**: ユーザージェスチャーを保持して即座に呼び出し。`login()` を `async` にしないことで、ブラウザがポップアップをユーザーの意図的操作と判断する。
-  - **② `signInWithRedirect`（フォールバック）**: `auth/popup-blocked` エラー時のみリダイレクト方式にフォールバック。
+  - **② ポップアップブロック・ガイダンス（改善済）**: `auth/popup-blocked` 時、リダイレクト方式は GitHub Pages の制限（サードパーティCookie制限）により動作しないため、ユーザーに「ポップアップ解除手順」と「再試行ボタン」を提示するUIを表示。
   - **③ 外部ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
   - **重要な教訓（GitHub Pages + signInWithRedirect の非互換性）**:
     - `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンとなるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返す。
     - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。
     - `setPersistence(auth, browserLocalPersistence)` ではこの問題は解決できない（v0.2.141で試行・失敗）。
     - 解決にはホスティングをFirebase Hostingに移行するか、`signInWithPopup` を使用する必要がある。
-  - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
+  - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むと、ブラウザが「ユーザーの直接操作」とみなさなくなり、ポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
+    - **検証済み (2026-05-06)**: 2秒の遅延を入れた場合、iOS SafariおよびAndroid Chromeにおいてポップアップブロックが確実に発生することを確認。
+    - **ブロック時のフロー**: ブロックされた場合は `auth/popup-blocked` エラーをキャッチし、専用の案内UIを表示して手動許可を促す。
 - **モバイルオーダーのアクセス制御**:
   - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。
   - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
@@ -41,7 +42,7 @@ last_updated: 2026-04-26
   - **認証ハブ**: `portal.html`
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
   - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
-  - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を基本とし、`popup-blocked` 時のみ `signInWithRedirect` にフォールバックする統一パターンを適用。
+  - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
 - **堅牢性**: 
   - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
   - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。
