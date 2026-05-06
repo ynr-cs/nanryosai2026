@@ -157,6 +157,10 @@
         }
       }
 
+      .text-sub-custom {
+        color: var(--text-sub) !important;
+      }
+
       /* Loading Overlay */
       #global-loader {
         position: absolute;
@@ -911,6 +915,23 @@
         margin: 0 auto;
         flex-shrink: 0;
       }
+
+      /* =========================================
+         10. Zoom Adjustments (Compact Mode)
+         ========================================= */
+      #step-stores,
+      #step-menu,
+      #step-checkout,
+      #itemModal .modal-content,
+      #cartModal .modal-content,
+      #bottom-bar {
+        zoom: 0.9;
+      }
+
+      /* Adjust absolute positioned elements after zoom */
+      #bottom-bar {
+        width: 95% !important; /* Width correction for zoom */
+      }
     </style>
   </head>
   <body>
@@ -1189,11 +1210,11 @@
             <i class="bi bi-bell-fill text-warning" style="font-size: 4rem"></i>
           </div>
           <h2 class="fw-bold mt-2">通知の設定</h2>
-          <p class="text-muted mt-2">
+          <p class="text-sub-custom mt-2">
             商品の準備ができたら<br />
             プッシュ通知でお知らせします。
           </p>
-          <p class="text-muted small">
+          <p class="text-sub-custom small">
             次の画面で表示されるポップアップで<br />
             <strong>「許可」</strong>を選択してください。
           </p>
@@ -1204,7 +1225,7 @@
           </button>
           <button
             id="btn-skip-notification"
-            class="btn btn-link text-secondary text-decoration-none"
+            class="btn btn-link text-sub-custom text-decoration-none"
             onclick="skipNotification()"
           >
             通知を受け取らない
@@ -1903,28 +1924,20 @@
       document.getElementById("btn-login").onclick = () => handleLoginClick("btn-login");
       document.getElementById("btn-guest-login").onclick = () => handleLoginClick("btn-guest-login");
 
-      document.getElementById("btn-req-notification").onclick = async () => {
-        const btn = document.getElementById("btn-req-notification");
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
-
+      document.getElementById("btn-req-notification").onclick = () => {
         try {
-          const p = await Notification.requestPermission();
-          if (p === "granted") {
-            await saveToken(); // This sets notificationEnabled: true
-          } else {
-            // Denied or dismissed
-            await updateUserProfile({
-              notificationEnabled: false,
-              permissionStatus: p,
-            });
-          }
+          Notification.requestPermission().then((p) => {
+            if (p === "granted") {
+              saveToken(); // バックグラウンドで実行
+            } else {
+              updateUserProfile({
+                notificationEnabled: false,
+                permissionStatus: p,
+              });
+            }
+          });
         } catch (e) {
           console.warn(e);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
         }
         showScreen("step-terms");
       };
@@ -1939,20 +1952,11 @@
         }
       };
 
-      window.skipNotification = async () => {
-        const btn = document.getElementById("btn-skip-notification");
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
-        try {
-          await updateUserProfile({
-            notificationEnabled: false,
-            permissionStatus: "skipped",
-          });
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
+      window.skipNotification = () => {
+        updateUserProfile({
+          notificationEnabled: false,
+          permissionStatus: "skipped",
+        });
         showScreen("step-terms");
       };
 
