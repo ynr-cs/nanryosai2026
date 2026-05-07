@@ -43,67 +43,20 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
     />
 
+    <link rel="stylesheet" href="style.css" />
     <style>
-      /* =========================================
-         CSS Variables (Light / Dark)
-         ========================================= */
-      :root {
-        --bg-color: #f0f2f5;
-        --card-bg: #ffffff;
-        --text-main: #1a1a1a;
-        --text-sub: #636e72;
-        --border-color: #e5e7eb;
-        --shadow-color: rgba(0, 0, 0, 0.04);
-        --primary-color: #6a11cb;
-        --accent-color: #ff0080;
-        --item-fill: #eff6ff;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-color: #0f172a;
-          --card-bg: #1e293b;
-          --text-main: #f1f5f9;
-          --text-sub: #94a3b8;
-          --border-color: #334155;
-          --shadow-color: rgba(0, 0, 0, 0.3);
-          --item-fill: #334155;
-        }
-      }
-
-      /* =========================================
-         Base
-         ========================================= */
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        min-height: 100dvh;
-        min-height: 100vh; /* fallback */
-        background: var(--bg-color);
-        color: var(--text-main);
-        font-family: "Noto Sans JP", sans-serif;
-        -webkit-font-smoothing: antialiased;
-      }
-
       /* =========================================
          Page Layout
          ========================================= */
       .login-page {
         display: flex;
+        flex: 1;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 100dvh;
-        min-height: 100vh;
+        width: 100%;
         padding: 24px 16px;
-        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom, 0px) + 24px);
       }
 
       .login-container {
@@ -438,7 +391,7 @@
     </style>
   </head>
   <body>
-    <div class="login-page">
+    <main class="login-page">
       <div class="login-container">
         <!-- ============================
              Loading (visible by default)
@@ -673,11 +626,16 @@
 
         </div> <!-- /#login-content -->
       </div>
-    </div>
+    </main>
 
     <!-- ============================
          JavaScript (Module)
          ============================ -->
+    <script>
+      window.CURRENT_PAGE = "account";
+    </script>
+    <script type="module" src="app-shell.js"></script>
+
     <script type="module">
       import { watchUser, login, logout } from "./auth.js";
 
@@ -884,10 +842,8 @@
           const user = await login();
           if (user) {
             handlePostLogin(user);
-          } else {
-            // Cancelled or network error (handled in auth.js)
-            resetButton();
           }
+          // Note: if user is null (cancelled), finally block will reset button
         } catch (error) {
           if (error.code === "auth/popup-blocked") {
             // Show popup-blocked guidance
@@ -895,6 +851,8 @@
               "block";
           }
           // Other errors are handled by auth.js (alert)
+        } finally {
+          // 画面遷移（Redirect）が発生しない場合のために、常にボタンをリセット可能にする
           resetButton();
         }
       }
