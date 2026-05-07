@@ -36,9 +36,8 @@ last_updated: 2026-05-07
     - 解決にはホスティングをFirebase Hostingに移行するか、現行の `signInWithPopup` + ガイダンスUIを使用する必要がある。
   - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
 - **モバイルオーダーのアクセス制御**:
-  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。
-  - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
-  - **ゲストモード**: 一般来場者がログインした場合は、「利用対象外」と突き放すのではなく、お気に入り機能等のメリットを提示する歓迎画面（`step-guest-welcome`）を表示する設計に改善（2026-04-19）。
+  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。`watchUser` を通じて `mobile-order.html` 側でも検証され、条件を満たさない場合は `login.html` にリダイレクトされる。
+  - **ログイン機能の集約**: 以前存在した `mobile-order.html` 内部の対話型フローやゲスト歓迎画面は完全に廃止（Phase E-2）。未認証・非対象ユーザーは一律 `main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされ、認証・ドメイン確認はすべて `login.html` で処理される。
 - **管理・運営画面のアクセス制御**:
   - **対象**: `pos.html`, `monitor.html`, `kitchen.html`, `presenter.html`
   - **認証ハブ**: `portal.html`

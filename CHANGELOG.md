@@ -15,6 +15,28 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.156] pos/mobile-order.html: ログイン関連画面の全削除と login.html リダイレクト統合 (Phase E-2) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`** (v0.3.0 → v0.4.0):
+  - **内部ログイン画面の全撤去**: これまで `mobile-order.html` 内で直接提供していた「ログイン前確認」「ゲスト案内」「ドメイン不正時の警告」などの複雑なステップUI（`#step-student-check`, `#step-guest-guidance`, `#step-unauthorized-logged-in` 等）をすべて削除。
+  - **`login.html` へのリダイレクト強制**: 未ログイン時、または非在校生アカウント（対象外ドメイン）でアクセスした場合、直ちに `../main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトするようアーキテクチャを刷新。
+  - **UIとロジックの責務分離**: 認証・アカウント属性（在校生）の検証は完全に `login.html` が担い、`mobile-order.html` は「認証済み在校生」のみが到達できるクリーンな注文専用画面として再設計された。
+  - **不要リソースのクリーンアップ**: 削除されたUIステップに関連するレガシーなCSS変数、スタイル、およびイベントハンドラーを徹底的にクリーンアップし、保守性を向上。
+
+### ドキュメント同期 (Documentation Sync)
+
+- **`antigravity/mobile-order_CONTEXT.md`**:
+  - モバイルオーダーにおける新しい認証・セッション管理（`auth.js` + `login.html` によるSSOTアプローチ）の仕様を永続化。
+- **`antigravity/firebase_CONTEXT.md`**:
+  - モバイルオーダーのアクセス制御に関する記述を更新し、対話型フローやゲスト歓迎画面が撤廃され `login.html` に集約されたことを記録。
+
 ## [0.2.155] main/login.html: 在校生確認フローの追加 (Phase E-1) - 2026-05-07
 
 ### メタ情報
