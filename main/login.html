@@ -1,13 +1,12 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
+  Version: 0.2.0
   Last Modified: 2026-05-07
   Author: Nanryosai 2026 Project Team
 
-  統一ログイン画面 (Phase C)
-  - auth.js の login() を呼び出す共通ログインページ
-  - URLパラメータでメッセージ・リダイレクト先・モードを制御
-  - Phase D / E で account.html / mobile-order.html から遷移される予定
+  v0.2.0: mode=student パラメータで在校生確認フローを追加 (Phase E-1)
+          mobile-order.html のログイン関連画面を login.html に集約
+  v0.1.0: 初版（Phase C）
 -->
 <!doctype html>
 <html lang="ja">
@@ -148,10 +147,16 @@
       }
 
       /* =========================================
-         Login Content (hidden until auth check)
+         Screen Containers (NEW)
          ========================================= */
-      #login-content {
+      .screen {
         display: none;
+        flex-direction: column;
+        gap: 24px;
+        align-items: stretch;
+      }
+      .screen.active {
+        display: flex;
       }
 
       /* =========================================
@@ -181,6 +186,29 @@
         font-size: 0.875rem;
         line-height: 1.6;
         margin: 0;
+      }
+
+      /* =========================================
+         Student Flow Specific Styles
+         ========================================= */
+      .screen-icon-wrap {
+        width: clamp(60px, 12vh, 80px);
+        height: clamp(60px, 12vh, 80px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px auto;
+        flex-shrink: 0;
+        background: var(--item-fill);
+      }
+
+      .student-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        text-align: left;
       }
 
       /* =========================================
@@ -215,9 +243,9 @@
       }
 
       /* =========================================
-         Login Button
+         Buttons
          ========================================= */
-      .btn-login {
+      .btn-primary-custom {
         background: var(--primary-color);
         color: white;
         border: none;
@@ -238,12 +266,12 @@
         gap: 8px;
       }
 
-      .btn-login:active {
+      .btn-primary-custom:active {
         transform: scale(0.96);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
-      .btn-login:disabled {
+      .btn-primary-custom:disabled {
         opacity: 0.7;
         cursor: not-allowed;
         transform: none;
@@ -421,85 +449,229 @@
         </div>
 
         <!-- ============================
-             Login Content (hidden until auth check)
+             Main Content Wrapper
              ============================ -->
-        <div id="login-content" class="animate__animated animate__fadeIn">
-          <!-- Hero -->
-          <div class="login-hero">
-            <p class="brand-label">南陵祭2026</p>
-            <h1>ログイン</h1>
-            <p class="login-message" id="login-message">
-              ログインが必要です
-            </p>
-          </div>
+        <div id="login-content" style="display: none;">
 
-          <!-- Student Email Emphasis (mode=student only) -->
-          <div class="email-emphasis-box" id="email-emphasis-box">
-            <span class="email-label">在校生は以下のアカウントでログインしてください</span>
-            @gl.pen-kanagawa.ed.jp
-            <span class="email-note">※ 個人のGmail等ではご利用いただけない機能があります</span>
-          </div>
-
-          <!-- Google Login Button -->
-          <button id="btn-login" class="btn-login">
-            <i class="bi bi-google"></i>
-            Google でログイン
-          </button>
-
-          <!-- Popup Blocked Guidance (hidden by default) -->
-          <div id="popup-blocked-guidance" class="animate__animated animate__fadeIn">
-            <h3 class="guidance-title">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              ポップアップがブロックされました
-            </h3>
-            <p class="guidance-desc">
-              ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
-            </p>
-            <div class="guidance-steps">
-              <ol>
-                <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
-                <li><strong>「常に許可」</strong>を選択。</li>
-                <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
-              </ol>
+          <!-- ============================
+               Screen: Student Check
+               ============================ -->
+          <div id="step-student-check" class="screen animate__animated animate__fadeIn">
+            <div class="login-hero">
+              <p class="brand-label">南陵祭2026</p>
+              <h1>モバイルオーダー</h1>
+              <p class="login-message" style="font-weight: bold; color: var(--text-main);">
+                あなたは南陵高校の在校生ですか？
+              </p>
             </div>
-            <button id="btn-retry" class="btn-retry">
-              設定したので再試行する
+            <div class="d-flex flex-column gap-3">
+              <button id="btn-student-yes" class="btn-primary-custom">
+                はい（在校生）
+              </button>
+              <button id="btn-student-no" class="btn btn-outline-secondary py-3 fw-bold rounded-pill" style="border-width: 2px;">
+                いいえ（一般のお客様）
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================
+               Screen: Student Confirm
+               ============================ -->
+          <div id="step-student-confirm" class="screen animate__animated animate__fadeIn">
+            <div class="text-center">
+              <div class="screen-icon-wrap">
+                <i class="bi bi-shield-check text-primary" style="font-size: 2.5rem;"></i>
+              </div>
+              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">ログインに関するご注意</h3>
+              <div class="student-card">
+                <p class="mb-3 fw-bold text-center" style="color: var(--text-main);">モバイルオーダーの利用には、必ず学校から配布されている以下のメールアドレスでログインしてください。</p>
+                <div class="text-center py-3 mb-3 fw-bold fs-5 rounded" style="background: rgba(229, 57, 53, 0.1); color: var(--accent-color); border: 2px dashed var(--accent-color);">
+                  @gl.pen-kanagawa.ed.jp
+                </div>
+                <ul class="ps-3 mb-0 small" style="color: var(--text-sub);">
+                  <li class="mb-1">個人のGmail等では注文できません。</li>
+                  <li>端末に複数のアカウントが登録されている場合は、必ず学校アカウントを選択してください。</li>
+                </ul>
+              </div>
+            </div>
+            <div class="d-flex flex-column gap-2">
+              <button id="btn-confirm-next" class="btn-primary-custom">
+                理解しました（次へ）
+              </button>
+              <button id="btn-confirm-back" class="btn btn-outline-secondary py-3 fw-bold rounded-pill" style="border-width: 2px;">
+                戻る
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================
+               Screen: Guest Info
+               ============================ -->
+          <div id="step-guest-info" class="screen animate__animated animate__fadeIn">
+            <div class="text-center">
+              <div class="screen-icon-wrap" style="background: transparent;">
+                <i class="bi bi-info-circle text-primary" style="font-size: 3.5rem;"></i>
+              </div>
+              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">ご案内</h3>
+              <p class="fs-6 text-start" style="color: var(--text-sub); line-height: 1.6; margin-bottom: 24px;">
+                誠に恐れ入りますが、モバイルオーダーは<strong style="color: var(--accent-color); font-size: 1.1em;">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。
+              </p>
+              <div class="student-card text-start">
+                <strong class="text-primary d-block mb-2"><i class="bi bi-lightbulb-fill"></i> ログインしてアプリをもっと楽しむ</strong>
+                <span class="small" style="color: var(--text-sub); line-height: 1.5; display: block;">ログインしていただくと、「企画のお気に入り登録」など便利な機能がご利用いただけます！よろしければぜひログインして南陵祭をお楽しみください。</span>
+              </div>
+            </div>
+            <div class="d-flex flex-column gap-2 mt-2">
+              <button id="btn-guest-login" class="btn-primary-custom">
+                <i class="bi bi-google me-2"></i> ログインして他の機能を使う
+              </button>
+              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;">
+                ホームに戻る
+              </a>
+            </div>
+          </div>
+
+          <!-- ============================
+               Screen: Login (Google Login)
+               ============================ -->
+          <div id="step-login" class="screen animate__animated animate__fadeIn">
+            <!-- Hero -->
+            <div class="login-hero">
+              <p class="brand-label">南陵祭2026</p>
+              <h1>ログイン</h1>
+              <p class="login-message" id="login-message">
+                ログインが必要です
+              </p>
+            </div>
+
+            <!-- Student Email Emphasis (mode=student only) -->
+            <div class="email-emphasis-box" id="email-emphasis-box">
+              <span class="email-label">在校生は以下のアカウントでログインしてください</span>
+              @gl.pen-kanagawa.ed.jp
+              <span class="email-note">※ 個人のGmail等ではご利用いただけない機能があります</span>
+            </div>
+
+            <!-- Google Login Button -->
+            <button id="btn-login" class="btn-login btn-primary-custom">
+              <i class="bi bi-google"></i>
+              Google でログイン
             </button>
-          </div>
 
-          <!-- Browser Recommendation -->
-          <div class="browser-info-box">
-            <strong class="warning-title">⚠️ 推奨ブラウザについて</strong>
-            <p>本システムの利用には、以下のブラウザを推奨しています。</p>
+            <!-- Popup Blocked Guidance (hidden by default) -->
+            <div id="popup-blocked-guidance" class="animate__animated animate__fadeIn">
+              <h3 class="guidance-title">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                ポップアップがブロックされました
+              </h3>
+              <p class="guidance-desc">
+                ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
+              </p>
+              <div class="guidance-steps">
+                <ol>
+                  <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
+                  <li><strong>「常に許可」</strong>を選択。</li>
+                  <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
+                </ol>
+              </div>
+              <button id="btn-retry" class="btn-retry">
+                設定したので再試行する
+              </button>
+            </div>
 
-            <p class="recommended-label">✅ 推奨ブラウザ</p>
-            <ul>
-              <li>Google Chrome</li>
-            </ul>
+            <!-- Browser Recommendation -->
+            <div class="browser-info-box">
+              <strong class="warning-title">⚠️ 推奨ブラウザについて</strong>
+              <p>本システムの利用には、以下のブラウザを推奨しています。</p>
 
-            <p class="note-text">
-              ※ その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
-            </p>
-            <div class="report-link-area">
-              動作しない場合は
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
-                target="_blank"
-                rel="noopener noreferrer"
-                >不具合報告フォーム</a
-              >
-              までご連絡ください。
+              <p class="recommended-label">✅ 推奨ブラウザ</p>
+              <ul>
+                <li>Google Chrome</li>
+              </ul>
+
+              <p class="note-text">
+                ※ その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
+              </p>
+              <div class="report-link-area">
+                動作しない場合は
+                <a
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >不具合報告フォーム</a
+                >
+                までご連絡ください。
+              </div>
+            </div>
+
+            <!-- Home Link -->
+            <div class="home-link">
+              <a href="./index.html">
+                <i class="bi bi-arrow-left"></i>
+                ホームへ戻る
+              </a>
             </div>
           </div>
 
-          <!-- Home Link -->
-          <div class="home-link">
-            <a href="./index.html">
-              <i class="bi bi-arrow-left"></i>
-              ホームへ戻る
-            </a>
+          <!-- ============================
+               Screen: Unauthorized (Logged in with wrong domain)
+               ============================ -->
+          <div id="step-unauthorized" class="screen animate__animated animate__fadeIn">
+            <div class="text-center">
+              <div class="screen-icon-wrap" style="background: transparent;">
+                <i class="bi bi-exclamation-circle text-danger" style="font-size: 3.5rem;"></i>
+              </div>
+              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">モバイルオーダー対象外のアカウントです</h3>
+              <p class="fs-6 text-start" style="color: var(--text-sub); line-height: 1.6; margin-bottom: 16px;">
+                モバイルオーダーは、<strong style="color: var(--accent-color); font-size: 1.05em;">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。
+              </p>
+              <div class="student-card mb-3 text-center" style="background: rgba(0,0,0,0.02);">
+                <span style="font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 4px;">現在のアカウント:</span>
+                <strong style="color: var(--text-main); font-size: 1.1rem; word-break: break-all;" id="unauthorized-email"></strong>
+              </div>
+              <p class="small text-start" style="color: var(--text-sub); line-height: 1.5;">
+                お気に入り登録などの機能は引き続きご利用いただけます。<br>
+                ご注文は各店舗の<strong>POSレジ（セルフオーダー）</strong>をご利用ください。
+              </p>
+            </div>
+            <div class="d-flex flex-column gap-2 mt-2">
+              <button id="btn-switch-account" class="btn-primary-custom">
+                別のアカウントに切り替える
+              </button>
+              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;">
+                ホームに戻る
+              </a>
+            </div>
           </div>
-        </div>
+
+          <!-- ============================
+               Screen: Guest Welcome
+               ============================ -->
+          <div id="step-guest-welcome" class="screen animate__animated animate__fadeIn">
+            <div class="text-center">
+              <div class="screen-icon-wrap">
+                <i class="bi bi-person-check text-primary" style="font-size: 2.5rem;"></i>
+              </div>
+              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">ログインありがとうございます！</h3>
+              <p class="small" style="line-height: 1.5; color: var(--text-sub); margin-bottom: 24px;">
+                ログイン中：<strong style="color: var(--text-main); word-break: break-all;" id="guest-welcome-email"></strong><br><br>
+                モバイルオーダーは在校生限定の機能ですが、ログインしたあなたなら以下の機能をお楽しみいただけます！
+              </p>
+              <div class="student-card text-start">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-star-fill text-warning me-2"></i>
+                  <span class="fw-bold" style="color: var(--text-main);">お気に入り登録</span>
+                </div>
+                <p class="small mb-0" style="color: var(--text-sub);">気になる企画をお気に入り登録して、自分だけのマイリストを作れます。</p>
+              </div>
+            </div>
+            <div class="d-flex flex-column gap-2 mt-4">
+              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;">
+                ホームに戻る
+              </a>
+            </div>
+          </div>
+
+        </div> <!-- /#login-content -->
       </div>
     </div>
 
@@ -507,10 +679,35 @@
          JavaScript (Module)
          ============================ -->
     <script type="module">
-      import { watchUser, login } from "./auth.js";
+      import { watchUser, login, logout } from "./auth.js";
 
       /* ==============================
-         1. URL Parameter Parsing
+         1. State Management
+         ============================== */
+      let isStudentFlow = false;
+      let currentScreen = null;
+
+      function showScreen(screenId) {
+        document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+        const target = document.getElementById(screenId);
+        if (target) {
+          target.classList.add("active");
+          currentScreen = screenId;
+        }
+        document.getElementById("login-loader").style.display = "none";
+        document.getElementById("login-content").style.display = "block";
+      }
+
+      function isStudentEmail(email) {
+        if (!email) return false;
+        return (
+          email.endsWith("@gl.pen-kanagawa.ed.jp") ||
+          email === "ynrcs1000@gmail.com"
+        );
+      }
+
+      /* ==============================
+         2. URL Parameter Parsing
          ============================== */
       const params = new URLSearchParams(location.search);
       const reason = params.get("reason");
@@ -518,7 +715,7 @@
       const rawRedirect = params.get("redirect");
 
       /* ==============================
-         2. Safe Redirect Validation
+         3. Safe Redirect Validation
          ============================== */
       function getSafeRedirect(raw) {
         const fallback = "./index.html";
@@ -557,7 +754,7 @@
       const redirectUrl = getSafeRedirect(rawRedirect);
 
       /* ==============================
-         3. Reason Message Update
+         4. Reason Message Update
          ============================== */
       const messageEl = document.getElementById("login-message");
       const messages = {
@@ -572,48 +769,121 @@
       }
 
       /* ==============================
-         4. Student Mode
+         5. UI Initial Setup
          ============================== */
       if (mode === "student") {
         document.getElementById("email-emphasis-box").style.display = "block";
+      } else {
+        document.getElementById("email-emphasis-box").style.display = "none";
       }
 
       /* ==============================
-         5. Auth State Watcher
+         6. Auth State Watcher
          ============================== */
-      const loaderEl = document.getElementById("login-loader");
-      const contentEl = document.getElementById("login-content");
-
       watchUser((user) => {
         if (user) {
-          // Already logged in → redirect immediately
-          window.location.replace(redirectUrl);
+          // 既ログイン
+          if (mode === "student") {
+            // mode=student の場合、ドメインチェックを実行
+            if (isStudentEmail(user.email)) {
+              // 在校生として OK → redirect
+              window.location.replace(redirectUrl);
+            } else {
+              // 個人 Gmail 等でログイン中 → 対象外画面
+              document.getElementById("unauthorized-email").textContent = user.email;
+              showScreen("step-unauthorized");
+            }
+          } else {
+            // mode 未指定 → 既存通り即 redirect
+            window.location.replace(redirectUrl);
+          }
         } else {
-          // Not logged in → show login UI
-          loaderEl.style.display = "none";
-          contentEl.style.display = "flex";
-          contentEl.style.flexDirection = "column";
-          contentEl.style.gap = "24px";
+          // 未ログイン: 初期画面を表示
+          if (mode === "student") {
+            showScreen("step-student-check");
+          } else {
+            showScreen("step-login");
+          }
         }
       });
 
       /* ==============================
-         6. Login Button Handler
+         7. Screen Navigation Buttons
+         ============================== */
+      document.getElementById("btn-student-yes").addEventListener("click", () => {
+        isStudentFlow = true;
+        showScreen("step-student-confirm");
+      });
+
+      document.getElementById("btn-student-no").addEventListener("click", () => {
+        isStudentFlow = false;
+        showScreen("step-guest-info");
+      });
+
+      document.getElementById("btn-confirm-next").addEventListener("click", () => {
+        showScreen("step-login");
+      });
+
+      document.getElementById("btn-confirm-back").addEventListener("click", () => {
+        showScreen("step-student-check");
+      });
+
+      document.getElementById("btn-guest-login").addEventListener("click", () => {
+        // isStudentFlow は false のまま
+        showScreen("step-login");
+      });
+
+      document.getElementById("btn-switch-account").addEventListener("click", async () => {
+        try {
+          await logout();
+          isStudentFlow = false; // リセット
+          showScreen("step-student-check");
+        } catch (e) {
+          console.error("Logout failed:", e);
+          alert("ログアウトに失敗しました: " + e.message);
+        }
+      });
+
+      /* ==============================
+         8. Login Button Handler
          ============================== */
       const btnLogin = document.getElementById("btn-login");
       const originalBtnHTML = btnLogin.innerHTML;
+
+      function handlePostLogin(user) {
+        if (mode === "student") {
+          if (isStudentFlow) {
+            // 在校生宣言済み → ドメインチェック
+            if (isStudentEmail(user.email)) {
+              // OK: redirect 先へ
+              window.location.replace(redirectUrl);
+            } else {
+              // NG: 対象外画面
+              document.getElementById("unauthorized-email").textContent = user.email;
+              showScreen("step-unauthorized");
+            }
+          } else {
+            // 「いいえ」選択後のログイン → ゲストウェルカム
+            document.getElementById("guest-welcome-email").textContent = user.email;
+            showScreen("step-guest-welcome");
+          }
+        } else {
+          // mode 未指定 → 既存挙動
+          window.location.replace(redirectUrl);
+        }
+      }
 
       async function handleLogin() {
         // UI feedback
         btnLogin.disabled = true;
         btnLogin.innerHTML =
           '<span class="spinner-border spinner-border-sm" role="status" style="width:1rem;height:1rem;border-width:0.15em;"></span> 処理中...';
+        document.getElementById("popup-blocked-guidance").style.display = "none";
 
         try {
           const user = await login();
           if (user) {
-            // Login success → redirect (replace to avoid history pollution)
-            window.location.replace(redirectUrl);
+            handlePostLogin(user);
           } else {
             // Cancelled or network error (handled in auth.js)
             resetButton();
@@ -637,7 +907,7 @@
       btnLogin.addEventListener("click", handleLogin);
 
       /* ==============================
-         7. Retry Button Handler
+         9. Retry Button Handler
          ============================== */
       document.getElementById("btn-retry").addEventListener("click", () => {
         document.getElementById("popup-blocked-guidance").style.display =
