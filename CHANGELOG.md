@@ -15,6 +15,204 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.158] main/login.html: ログインボタンの状態管理の堅牢化 - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`main/login.html`**:
+  - ログインボタンが「処理中...」のまま固定される不具合を修正。
+  - `handleLogin` 関数に `try...finally` ブロックを導入し、ログイン成功・失敗・キャンセル（ポップアップ閉鎖）・エラーのいずれの場合でも、ボタンの状態（テキストと活性状態）が確実に復帰するように改善。
+
+### ドキュメント同期 (Documentation Sync)
+
+- **`antigravity/firebase_CONTEXT.md`**:
+  - ログインボタンのローディング状態管理に関する設計原則（`try...finally` による確実なリセット）を追記し、ナレッジを永続化。
+
+## [0.2.157] 認証システム統合の完了と login.html の最終調整 - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **認証フローの完全統合**:
+  - `mobile-order.html` および `account.html` からの認証要求をすべて `main/login.html` へ集約。
+  - ポップアップブロック時のガイダンス表示と再試行ロジックの安定化。
+- **`main/login.html`**:
+  - 共通のデザインシステム（`app-shell.js`）との親和性を高めるため、余白とヒーローセクションのバランスを調整。
+  - `window.CURRENT_PAGE` を適切に設定し、ナビゲーションバーとの整合性を確保。
+
+### 得られた知見
+
+- 認証ロジックを各ページに分散させず、単一のゲートウェイ（`login.html`）に集約することで、複雑なドメイン検証（在校生判定）やエラーハンドリングの保守性が劇的に向上した。
+- `signInWithPopup` はユーザー操作（クリック）に直結させる必要があり、リダイレクト後の自動実行よりも、明示的なログインボタンを介したフローの方がモバイルブラウザでの成功率が高い。
+
+## [0.2.156] pos/mobile-order.html: ログイン関連画面の全削除と login.html リダイレクト統合 (Phase E-2) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`** (v0.3.0 → v0.4.0):
+  - **内部ログイン画面の全撤去**: これまで `mobile-order.html` 内で直接提供していた「ログイン前確認」「ゲスト案内」「ドメイン不正時の警告」などの複雑なステップUI（`#step-student-check`, `#step-guest-guidance`, `#step-unauthorized-logged-in` 等）をすべて削除。
+  - **`login.html` へのリダイレクト強制**: 未ログイン時、または非在校生アカウント（対象外ドメイン）でアクセスした場合、直ちに `../main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトするようアーキテクチャを刷新。
+  - **UIとロジックの責務分離**: 認証・アカウント属性（在校生）の検証は完全に `login.html` が担い、`mobile-order.html` は「認証済み在校生」のみが到達できるクリーンな注文専用画面として再設計された。
+  - **不要リソースのクリーンアップ**: 削除されたUIステップに関連するレガシーなCSS変数、スタイル、およびイベントハンドラーを徹底的にクリーンアップし、保守性を向上。
+
+### ドキュメント同期 (Documentation Sync)
+
+- **`antigravity/mobile-order_CONTEXT.md`**:
+  - モバイルオーダーにおける新しい認証・セッション管理（`auth.js` + `login.html` によるSSOTアプローチ）の仕様を永続化。
+- **`antigravity/firebase_CONTEXT.md`**:
+  - モバイルオーダーのアクセス制御に関する記述を更新し、対話型フローやゲスト歓迎画面が撤廃され `login.html` に集約されたことを記録。
+
+## [0.2.155] main/login.html: 在校生確認フローの追加 (Phase E-1) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/login.html`** (v0.1.0 → v0.2.0):
+  - **在校生確認フロー (`mode=student`) の実装**: URLパラメータに `mode=student` が指定された場合、モバイルオーダー等の利用に必要な在校生確認UI（学校アカウント限定の案内、確認ステップなど）を表示する機能を追加。
+  - **画面状態管理の導入**: CSSの `.screen` クラスと `showScreen()` 関数を用いて、単一HTML内で「ログイン前」「在校生チェック」「ゲスト歓迎」「対象外エラー」などの複数の画面状態を動的に切り替えられるようにアーキテクチャを拡張。
+  - **ドメイン検証ロジック (`isStudentEmail`)**: ログイン完了直後に `@gl.pen-kanagawa.ed.jp` ドメインかどうかの判定を行い、結果に応じて動的に表示画面とリダイレクト先を制御（`handlePostLogin`）。
+  - **デザイン・UI統一**: `pos/mobile-order.html` のトンマナと合わせるため、アイコンのラッパー (`.screen-icon-wrap`) や `clamp()` 関数を用いた流体フォントサイズ設定を導入し、モバイルファーストかつダークモード完全対応のUIへ最適化。
+  - **背景/意図**: `pos/mobile-order.html` など各所に分散していたログイン関連UIとドメインチェックロジックを `main/login.html` にすべて集約するための準備。次フェーズ（Phase E-2）でモバイルオーダー側の関連UIを完全撤去する。
+
+## [0.2.154] main/account.html: 未ログイン時のリダイレクト統一 (Phase D) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/account.html`** (v0.1.0 → v0.2.0):
+  - **ゲスト画面の廃止**: 未ログイン時に表示していたゲスト用UI（`#guest-content`）および関連する手動ログイン関数（`triggerLogin`）を完全に削除。
+  - **ログイン画面への強制リダイレクト**: 未ログイン状態、または認証タイムアウト（2.5秒経過）時に、`window.location.replace()` を使用して新規作成した `main/login.html` へ強制的にリダイレクトする設計に変更。
+  - **安全な戻り先の指定**: リダイレクト時に `?redirect=./account.html&reason=account` パラメータを付与し、ログイン成功後にシームレスにマイページへ戻れるようにUXを維持。
+
+### ドキュメント同期 (Documentation Sync)
+
+- **`antigravity/firebase_CONTEXT.md`**:
+  - `account.html` の変更に伴う認証フロー統一（ゲスト画面廃止とリダイレクト）に関する仕様と設計意図をナレッジベースに追記。
+
+## [0.2.153] main/login.html: 統一ログイン画面の新規作成 (Phase C) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/login.html`** (v0.1.0 新規作成):
+  - **統一ログイン画面**: `auth.js` の `login()` を呼び出す共通ログインページを新規作成。Phase D/E で `account.html` / `mobile-order.html` から遷移される予定。
+  - **URLパラメータ仕様**:
+    - `redirect`: ログイン成功後の遷移先（`decodeURIComponent` → 相対パスまたは同一オリジンのみ許可、`login.html` 含む場合はループ防止で `./index.html` にフォールバック）
+    - `reason`: `favorite` / `mobile-order` / `account` / 未指定 で表示メッセージを切替
+    - `mode`: `student` で在校生アカウント（`@gl.pen-kanagawa.ed.jp`）の強調枠を表示
+  - **FOUC防止**: 初期表示はローディングスピナーのみ。`watchUser()` で認証状態を確認後、ログイン済みなら即時 `window.location.replace(redirect)` で遷移（履歴汚染回避）、未ログインならログインUIを `fadeIn` で表示。
+  - **ポップアップブロックガイダンス**: `auth/popup-blocked` エラー時に専用のUI（手順案内 + 再試行ボタン）を表示。`pos/mobile-order.html` のガイダンスUIと統一したトーン。
+  - **推奨ブラウザ案内**: Chrome推奨、不具合報告フォームへのリンクを設置。
+  - **デザイン**: CSS変数（`--bg-color`, `--text-main`, `--card-bg` 等）によるダークモード完全対応。`max-width: 500px` 中央寄せレイアウト。`account.html` のゲストログイン画面のトーン&マナーを踏襲。
+  - **得られた知見**: リダイレクトURLのバリデーションは、外部URLの排除だけでなく、自身（`login.html`）への再遷移によるループ防止も必須。`window.location.replace()` を使うことで、ブラウザの戻るボタンでログインページに戻ってしまう問題を回避できる。
+
+## [0.2.152] pos/mobile-order.html: ログイン処理を auth.js に統一 (Phase B-2) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`** (v0.2.0 → v0.3.0):
+  - **Firebase Auth import の削減**: `firebase-auth.js` からの import を `onAuthStateChanged` のみに縮小。`GoogleAuthProvider`、`signInWithPopup`、`signInWithRedirect`、`getRedirectResult` を削除。
+  - **auth.js から `login`/`logout` を追加 import**: `login`, `logout` を `main/auth.js` から取得し、Single Source of Truth を徹底。
+  - **`init()` の簡素化**: `getRedirectResult` ブロックを完全削除。popup-only 戦略では不要なため。
+  - **`handleLoginClick` の書き換え**: `signInWithPopup` の直接呼び出しを廃止し、`await login()` に委譲する async/await パターンに変更。`auth/popup-blocked` エラーは catch して `#popup-blocked-guidance` を表示。
+  - **`detectInAppBrowser` 関数の削除**: `auth.js` の `login()` 内で同等のチェックが実装済み（確認済み）のため、`mobile-order.html` 側の重複定義を削除。
+  - **`logoutAndRetry` の簡素化**: 動的 import (`await import(...)`) による `signOut` を廃止し、import 済みの `logout()` を直接呼び出すように変更。
+  - **得られた知見**: `handleLoginClick` を async 関数にすると、ユーザージェスチャーのタイミングが `await login()` で一段挟まれる。ただし `auth.js` の `login()` 自体が非 async で `signInWithPopup` を即座に呼ぶ設計のため、ジェスチャーは保持される。
+
+## [0.2.151] Firebase Auth: Global Redirect Removal (Phase B-1) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/auth.js`**:
+  - **`signInWithRedirect` および `getRedirectResult` の完全削除**: GitHub Pages環境における深刻な互換性問題（認証情報の消失）を解決するため、モジュールレベルでリダイレクト方式を廃止。
+  - **エラーハンドリングの刷新**: `login()` 関数内の自動リダイレクト・フォールバックを削除。ポップアップがブロックされた場合は `auth/popup-blocked` 例外を直接スローするように変更。
+  - **JSDoc & バージョン更新**: 最新仕様を反映し `v0.4.0` へアップデート。
+- **`main/account.html`**:
+  - **ポップアップブロックへの対応**: `auth.js` からスローされたエラーをキャッチし、ユーザーにブラウザ設定の変更を促す日本語アラートを表示するロジックを実装。
+
+### 修正 (Fixed)
+
+- **`antigravity/firebase_CONTEXT.md`**:
+  - 「Popup-only 戦略」を正式な設計指針として明記。GitHub Pages と `signInWithRedirect` の非互換性に関する技術的詳細を追記。
+
+## [0.2.150] pos/status.html: Firebase 初期化統合リファクタリング - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/status.html`**:
+  - **Firebase 二重初期化の解消**: 独自に行っていた App Check 初期化（`initializeAppCheck`）、Functions 初期化（`getFunctions`）、Messaging 初期化（`getMessaging`）を削除し、`main/auth.js` (v0.3.0) の Single Source of Truth に統一。
+  - **背景/原因**: `auth.js` が v0.3.0 で App Check を含む全 Firebase サービスの初期化を集約したため、`status.html` 側の独自初期化が二重初期化（`appCheck/already-initialized`）を引き起こす潜在的バグの原因となっていた。
+  - **解決策**: 未使用の import（`initializeApp`, `initializeAppCheck`, `ReCaptchaV3Provider`, `getFirestore`, `getFunctions`, `httpsCallable`, `getMessaging`, `onMessage`, `getAuth`）を全て削除。実際に使用している `doc`, `onSnapshot`, `getDoc`（Firestore）と `onAuthStateChanged`（Auth）のみを残し、Firebase インスタンス（`app`, `auth`, `db`, `login`）は `auth.js` から取得するように整理。
+  - **得られた知見**: Firebase の `initializeAppCheck()` は同一 app に対して複数回呼ぶと例外を投げる。各ページで独自に初期化するのではなく、共通モジュールで一度だけ初期化し export する設計が正しい。
+  - ファイルバージョン: `0.1.0` → `0.1.1` に更新。
+
+## [0.2.149] auth.js リファクタリング: Firebase 初期化統合 & App Check 追加 - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/auth.js`**:
+  - **Firebase サービスの初期化を集約**: `storage` (Cloud Storage), `functions` (Cloud Functions, region: `asia-northeast1`), `messaging` (FCM), `appCheck` (App Check) を新たに初期化し export。これにより `auth.js` が Firebase 初期化の Single Source of Truth となった。
+  - **App Check (reCAPTCHA v3) の統合**: サイトキー `6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS` で `ReCaptchaV3Provider` を初期化。`isTokenAutoRefreshEnabled: true` による自動更新に加え、**ページロード時のトークンウォームアップ** (`getAppCheckToken(appCheck, false)`) を実装。
+    - **背景/原因**: `isTokenAutoRefreshEnabled: true` だけでは初回トークンが「実際に必要になった瞬間」に取得されてしまい、`signInWithPopup` の前に非同期待ちが発生してユーザージェスチャーが切れ、ポップアップがブロックされる。
+    - **解決策**: ページロード時に `getAppCheckToken()` を呼んでトークンをキャッシュしておくことで、後続の認証リクエスト時にはトークンが即座に利用可能になる。
+    - **得られた知見**: App Check トークンのウォームアップは `await` せず fire-and-forget で呼ぶ。`catch` でエラーを無視し、ページの初期化をブロックしない。
+  - **localhost デバッグトークン対応**: `pos/mobile-order.html` に既存のロジックを移植。`config.local.js` の `window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN` を使い、なければ自動生成トークンにフォールバック。`initializeAppCheck()` の**前**に設定。
+  - **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックする前提。
+  - **`requireLogin()` スタブ**: ログイン済みなら `currentUser` を返し、未ログインの場合はコンソール警告のみ。将来 `login.html` へのリダイレクトを実装予定。
+
+### 変更 (Changed)
+
+- **`main/auth.js`**:
+  - **初期化順序の最適化**: `initializeApp()` → デバッグトークン設定 → `initializeAppCheck()` → トークンウォームアップ → `getAuth()`/`getFirestore()`/etc. の順序に変更。App Check を各サービスの初期化**前**に行うことで、全リクエストにトークンが自動付与される。
+  - **ファイルバージョン**: `0.2.142` → `0.3.0` に更新。
+  - 既存の `login()`, `logout()`, `watchUser()`, `getCurrentUser()`, `getRedirectResult()` の挙動は**一切変更なし**。
+
 ## [0.2.148] Mobile Order: Notification Response & UI Scaling - 2026-05-06
 
 ### メタ情報

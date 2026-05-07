@@ -2,7 +2,7 @@
 title: Firebase アーキテクチャ コンテキスト
 tags: [infra, context]
 status: active
-last_updated: 2026-04-26
+last_updated: 2026-05-07
 ---
 
 # Firebase アーキテクチャ コンテキスト
@@ -17,34 +17,41 @@ last_updated: 2026-04-26
 ## 2. セキュリティ (App Check)
 
 - **全体実装済み**: 不正なアクセスをブロックするため全域で有効化。
+- **Single Source of Truth**: `main/auth.js` が全 Firebase サービス（App, Auth, Firestore, Storage, Functions, Messaging, App Check）の初期化を一元管理（v0.3.0〜）。
 - **プロバイダー**:
-  - `mobile-order.html`: **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`)
+  - `main/auth.js`（共通モジュール）: **ReCaptcha v3** (Key: `6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS`)
+  - `mobile-order.html`: 独自初期化で **ReCaptcha Enterprise** (Key: `6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6`) を使用（将来的に auth.js に統合予定）
   - 管理・モニター画面: **ReCaptcha v3**
-- **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。これにより GitHub へのトークン漏洩を防ぐ。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
+- **App Check トークンウォームアップ**: ページロード時に `getAppCheckToken(appCheck, false)` を fire-and-forget で呼び、トークンをキャッシュしておく。これにより `signInWithPopup` 時にトークン取得の非同期待ちが発生せず、ポップアップブロックを回避できる。
+- **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。`auth.js` 内で localhost 判定し `self.FIREBASE_APPCHECK_DEBUG_TOKEN` を設定。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
+- **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックが必要。
 
-- **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
-  - **② ポップアップブロック・ガイダンス（改善済）**: `auth/popup-blocked` 時、リダイレクト方式は GitHub Pages の制限（サードパーティCookie制限）により動作しないため、ユーザーに「ポップアップ解除手順」と「再試行ボタン」を提示するUIを表示。
-  - **③ 外部ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+- **認証方式**: **Popup-only 戦略** (2026-05-07 v0.4.0)
+  - **① アプリ内ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+  - **② signInWithPopup**: 即座呼び出し、ユーザージェスチャー保持。
+  - **③ popup-blocked 委譲**: `auth/popup-blocked` 時、呼び出し側にエラーをスローし、ユーザーに「ポップアップ解除手順」を提示するUIを表示。
   - **重要な教訓（GitHub Pages + signInWithRedirect の非互換性）**:
     - `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンとなるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返す。
-    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。
-    - `setPersistence(auth, browserLocalPersistence)` ではこの問題は解決できない（v0.2.141で試行・失敗）。
-    - 解決にはホスティングをFirebase Hostingに移行するか、`signInWithPopup` を使用する必要がある。
+    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。そのため、v0.4.0 にて完全に廃止した。
+    - 解決にはホスティングをFirebase Hostingに移行するか、現行の `signInWithPopup` + ガイダンスUIを使用する必要がある。
   - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
 - **モバイルオーダーのアクセス制御**:
-  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。
-  - **対話型フロー**: ログイン前に「南陵生ですか？」の確認を挟み、はいの場合は「学校アカウントの選択」を促すワンクッション画面を表示。
-  - **ゲストモード**: 一般来場者がログインした場合は、「利用対象外」と突き放すのではなく、お気に入り機能等のメリットを提示する歓迎画面（`step-guest-welcome`）を表示する設計に改善（2026-04-19）。
+  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。`watchUser` を通じて `mobile-order.html` 側でも検証され、条件を満たさない場合は `login.html` にリダイレクトされる。
+  - **ログイン機能の集約**: 以前存在した `mobile-order.html` 内部の対話型フローやゲスト歓迎画面は完全に廃止（Phase E-2）。未認証・非対象ユーザーは一律 `main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされ、認証・ドメイン確認はすべて `login.html` で処理される。
 - **管理・運営画面のアクセス制御**:
   - **対象**: `pos.html`, `monitor.html`, `kitchen.html`, `presenter.html`
   - **認証ハブ**: `portal.html`
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
   - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
   - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
-- **堅牢性**: 
-  - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
-  - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。
-  - **エラーハンドリング**: ネットワークエラー等に対し、ユーザーが次に取るべき行動を明示した日本語エラーメッセージを表示。
+- **統一ログイン画面 (`main/login.html`)** (v0.2.153, Phase C):
+  - **役割**: `auth.js` の `login()` を呼び出す共通ログインページ。Phase D/E で `account.html` / `mobile-order.html` がリダイレクト先として使用する予定。
+  - **URLパラメータ**: `redirect`（安全なリダイレクト先）、`reason`（メッセージ切替: `favorite`/`mobile-order`/`account`）、`mode`（`student` で学校メール強調枠表示）
+  - **安全なリダイレクトバリデーション**: 相対パスまたは同一オリジンのみ許可。外部URLと `login.html` を含むURL（ループ防止）は `./index.html` にフォールバック。
+  - **FOUC防止**: 初期表示はローディングスピナーのみ。`watchUser()` で認証状態確認後、ログイン済みなら `window.location.replace()` で即時遷移（履歴汚染回避）。
+  - **デザインの最終調整 (v0.2.157)**: `app-shell.js` による共通ヘッダー・ナビゲーションの適用を確認し、`login.html` 固有のヒーローセクションとの視覚的整合性を確保。ログインページがアプリの一部として自然に見えるよう、余白と配置を最適化した。
+  - 「`main/account.html` v0.2.0 (2026-05-07): 未ログイン時のゲスト画面を廃止し、`login.html?redirect=./account.html&reason=account` へリダイレクトに統一 (Phase D)。」
+  - **堅牢なログインボタンの状態管理**: ログイン処理中はボタンを無効化し「処理中...」を表示するが、`try...finally` を用いて、処理完了後（成功・失敗・キャンセル・ポップアップ閉鎖を問わず）に確実にボタンを再活性化させる。これにより、部外者アカウントでのログイン失敗後のアカウント切り替え再試行などを妨げない設計とする（2026-05-07）。
 - **同期**: ログイン時にユーザープロフィールを Firestore `users/{uid}` に保存。保存失敗時もUIがフリーズしないよう例外処理を徹底。
 
 ## 4. データベース (Firestore)
