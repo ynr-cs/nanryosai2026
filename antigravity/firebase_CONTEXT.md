@@ -26,14 +26,14 @@ last_updated: 2026-05-07
 - **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。`auth.js` 内で localhost 判定し `self.FIREBASE_APPCHECK_DEBUG_TOKEN` を設定。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
 - **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックが必要。
 
-- **認証方式**: **トリプルフォールバック戦略** (2026-04-27 v0.2.142)
-  - **② ポップアップブロック・ガイダンス（改善済）**: `auth/popup-blocked` 時、リダイレクト方式は GitHub Pages の制限（サードパーティCookie制限）により動作しないため、ユーザーに「ポップアップ解除手順」と「再試行ボタン」を提示するUIを表示。
-  - **③ 外部ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+- **認証方式**: **Popup-only 戦略** (2026-05-07 v0.4.0)
+  - **① アプリ内ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
+  - **② signInWithPopup**: 即座呼び出し、ユーザージェスチャー保持。
+  - **③ popup-blocked 委譲**: `auth/popup-blocked` 時、呼び出し側にエラーをスローし、ユーザーに「ポップアップ解除手順」を提示するUIを表示。
   - **重要な教訓（GitHub Pages + signInWithRedirect の非互換性）**:
     - `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンとなるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返す。
-    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。
-    - `setPersistence(auth, browserLocalPersistence)` ではこの問題は解決できない（v0.2.141で試行・失敗）。
-    - 解決にはホスティングをFirebase Hostingに移行するか、`signInWithPopup` を使用する必要がある。
+    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。そのため、v0.4.0 にて完全に廃止した。
+    - 解決にはホスティングをFirebase Hostingに移行するか、現行の `signInWithPopup` + ガイダンスUIを使用する必要がある。
   - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
 - **モバイルオーダーのアクセス制御**:
   - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。

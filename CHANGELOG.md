@@ -15,6 +15,27 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.151] Firebase Auth: Global Redirect Removal (Phase B-1) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/auth.js`**:
+  - **`signInWithRedirect` および `getRedirectResult` の完全削除**: GitHub Pages環境における深刻な互換性問題（認証情報の消失）を解決するため、モジュールレベルでリダイレクト方式を廃止。
+  - **エラーハンドリングの刷新**: `login()` 関数内の自動リダイレクト・フォールバックを削除。ポップアップがブロックされた場合は `auth/popup-blocked` 例外を直接スローするように変更。
+  - **JSDoc & バージョン更新**: 最新仕様を反映し `v0.4.0` へアップデート。
+- **`main/account.html`**:
+  - **ポップアップブロックへの対応**: `auth.js` からスローされたエラーをキャッチし、ユーザーにブラウザ設定の変更を促す日本語アラートを表示するロジックを実装。
+
+### 修正 (Fixed)
+
+- **`antigravity/firebase_CONTEXT.md`**:
+  - 「Popup-only 戦略」を正式な設計指針として明記。GitHub Pages と `signInWithRedirect` の非互換性に関する技術的詳細を追記。
+
 ## [0.2.150] pos/status.html: Firebase 初期化統合リファクタリング - 2026-05-07
 
 ### メタ情報

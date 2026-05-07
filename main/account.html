@@ -872,9 +872,17 @@
             handleUserUpdate(user);
           }
         } catch (e) {
-          // Error handled in auth.js mostly, but reset button here
           console.error("Login Trigger Error:", e);
-          // alert("ログインに失敗しました: " + e.message); // auth.js already alerts
+          // popup-blocked の場合は専用メッセージ
+          // (将来的には login.html に統合してガイダンス UI を表示する予定)
+          if (e.code === "auth/popup-blocked") {
+            alert(
+              "ポップアップがブロックされました。\n\n" +
+              "ブラウザのアドレスバー右端にあるポップアップブロックアイコンをタップし、\n" +
+              "「常に許可」を選択してから、もう一度お試しください。"
+            );
+          }
+          // その他のエラーは auth.js 側で alert 済み
         } finally {
           // Reset button (if we haven't navigated away or completely replaced the view)
           // If we logged in, the view might switch, but it's safe to reset just in case we stay.

@@ -1,6 +1,6 @@
 /**
  * Nanryosai 2026
- * Version: 0.3.0
+ * Version: 0.4.0
  * Last Modified: 2026-05-06
  * Author: Nanryosai 2026 Project Team
  *
@@ -8,6 +8,9 @@
  * Firebase の初期化・認証・App Check を一元管理する。
  *
  * 変更履歴:
+ *   v0.4.0 - signInWithRedirect 完全廃止 (GitHub Pages 環境では使えないため)
+ *            popup-blocked エラーを呼び出し側に委譲する設計に変更
+ *            getRedirectResult の処理を削除
  *   v0.3.0 - Firebase 初期化の集約 (Storage, Functions, Messaging, App Check)
  *            App Check (reCAPTCHA v3) の統合とトークンウォームアップ
  *            requireLogin() スタブ追加
@@ -21,8 +24,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -123,35 +124,6 @@ try {
 // Global User State
 let currentUser = null;
 
-/* ==============================
-   6. Handle Redirect Login Result (フォールバック用)
-   signInWithRedirect でフォールバックした場合にのみ結果が返る。
-   signInWithPopup でログインした場合は null が返る（正常）。
-   ============================== */
-getRedirectResult(auth)
-  .then(async (result) => {
-    if (result && result.user) {
-      const user = result.user;
-      console.log("[Auth] Redirect login success:", user.email);
-      // Save/Update user profile in Firestore
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true },
-      );
-    }
-  })
-  .catch((error) => {
-    // auth/popup-closed-by-user は無視（ユーザーが閉じた場合）
-    if (error.code === "auth/popup-closed-by-user") return;
-    console.error("Redirect login failed:", error);
-  });
-
 /**
  * アプリ内ブラウザを検出する
  * @returns {boolean} アプリ内ブラウザの場合 true
@@ -169,13 +141,22 @@ function detectInAppBrowser() {
 }
 
 /**
- * Initiates Google Login via Triple Fallback Strategy.
+ * Initiates Google Login via signInWithPopup (popup-only strategy).
  *
- * ① signInWithPopup（即座呼び出し、非同期ギャップなし）
- * ② popup-blocked → signInWithRedirect にフォールバック
- * ③ アプリ内ブラウザ → 外部ブラウザ誘導UIを表示
+ * このプロジェクトは GitHub Pages 環境のため、signInWithRedirect は使わない。
+ * (リダイレクト後に認証状態が正しく引き継がれない問題があるため)
  *
- * @returns {Promise<import("firebase/auth").User|null>} ログイン成功時は User、それ以外は null
+ * フロー:
+ *   ① アプリ内ブラウザ検出 → confirm() で警告
+ *   ② signInWithPopup を即座に呼ぶ(ユーザージェスチャー保持)
+ *   ③ popup-blocked → 呼び出し側にエラーをスロー(UI ガイダンス表示用)
+ *
+ * @returns {Promise<import("firebase/auth").User|null>}
+ *   - ログイン成功時: User
+ *   - ユーザーがポップアップを閉じた場合: null
+ *   - ネットワークエラー: null (alert 表示済み)
+ *   - popup-blocked: throw (error.code === "auth/popup-blocked")
+ *   - その他のエラー: throw
  */
 function login() {
   // 1. アプリ内ブラウザ検出 → 警告表示（ログインは試行させる）
@@ -215,21 +196,16 @@ function login() {
       }
       return null;
     })
-    .catch(async (error) => {
-      // ポップアップがブロックされた場合 → リダイレクトにフォールバック
+    .catch((error) => {
+      // ポップアップがブロックされた場合 → 呼び出し側に委譲(UI ガイダンス表示用)
+      // このプロジェクトは GitHub Pages 環境のため signInWithRedirect は使わない。
+      // 呼び出し側(login.html 等)で popup-blocked-guidance を表示する設計。
       if (error.code === "auth/popup-blocked") {
-        console.warn("[Auth] Popup blocked, falling back to redirect...");
-        try {
-          await signInWithRedirect(auth, provider);
-          // リダイレクト後はページが再読み込みされるため、ここには戻らない
-        } catch (redirectError) {
-          console.error("[Auth] Redirect fallback failed:", redirectError);
-          alert("ログインに失敗しました。ブラウザの設定でポップアップを許可するか、標準ブラウザで開いてください。");
-        }
-        return null;
+        console.warn("[Auth] Popup blocked. Caller should show guidance UI.");
+        throw error; // error.code === "auth/popup-blocked" のままスロー
       }
 
-      // ユーザーがポップアップを閉じた場合 → 何もしない
+      // ユーザーがポップアップを閉じた場合 → 何もしない(null を返す)
       if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
         console.log("[Auth] User cancelled popup");
         return null;

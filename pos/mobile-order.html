@@ -1,7 +1,7 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Version: 0.2.0
+  Last Modified: 2026-05-06
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -1652,10 +1652,11 @@
     <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
     <script src="../config.local.js"></script>
     <script type="module">
-      /* 1. Firebase Imports */
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      /* 1. Firebase Function Imports
+         インスタンス(app, auth, db 等)は auth.js から import する(Single Source of Truth)。
+         各 SDK モジュールから関数のみを import する。
+      */
       import {
-        getAuth,
         GoogleAuthProvider,
         signInWithPopup,
         signInWithRedirect,
@@ -1663,7 +1664,6 @@
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       import {
-        getFirestore,
         collection,
         getDocs,
         doc,
@@ -1675,64 +1675,22 @@
         where,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
-        getMessaging,
         getToken,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
       import {
-        getStorage,
         ref as sRef,
         getDownloadURL,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
       import {
-        getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import {
-        initializeAppCheck,
-        ReCaptchaEnterpriseProvider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 
-      /* 2. Configuration */
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
+      /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
+      import { app, auth, db, storage, functions, messaging } from "../main/auth.js";
+
+      /* VAPID Key (FCM) */
       const VAPID_KEY =
         "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
-
-      // Initialize Services
-      const app = initializeApp(firebaseConfig);
-
-      // App Check (Localhost Debug)
-      if (
-        location.hostname === "localhost" ||
-        location.hostname === "127.0.0.1"
-      ) {
-        if (window.LOCAL_ENV && window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN) {
-          self.FIREBASE_APPCHECK_DEBUG_TOKEN = window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN;
-          console.log("[App Check] Using shared local debug token.");
-        } else {
-          // config.local.js が読み込めなかった場合のフォールバック
-          self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-          console.warn("[App Check] config.local.js not found. Using auto-generated token.");
-        }
-      }
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(
-          "6LdVI4sqAAAAABsFgjK80A2MAiCg7X9K7uJ-gYQ6",
-        ),
-        isTokenAutoRefreshEnabled: true,
-      });
-
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const messaging = getMessaging(app);
-      const storage = getStorage(app);
-      const functions = getFunctions(app, "asia-northeast1");
 
       /* 3. Global State */
       let currentUser = null;
