@@ -15,6 +15,24 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.152] pos/mobile-order.html: ログイン処理を auth.js に統一 (Phase B-2) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`** (v0.2.0 → v0.3.0):
+  - **Firebase Auth import の削減**: `firebase-auth.js` からの import を `onAuthStateChanged` のみに縮小。`GoogleAuthProvider`、`signInWithPopup`、`signInWithRedirect`、`getRedirectResult` を削除。
+  - **auth.js から `login`/`logout` を追加 import**: `login`, `logout` を `main/auth.js` から取得し、Single Source of Truth を徹底。
+  - **`init()` の簡素化**: `getRedirectResult` ブロックを完全削除。popup-only 戦略では不要なため。
+  - **`handleLoginClick` の書き換え**: `signInWithPopup` の直接呼び出しを廃止し、`await login()` に委譲する async/await パターンに変更。`auth/popup-blocked` エラーは catch して `#popup-blocked-guidance` を表示。
+  - **`detectInAppBrowser` 関数の削除**: `auth.js` の `login()` 内で同等のチェックが実装済み（確認済み）のため、`mobile-order.html` 側の重複定義を削除。
+  - **`logoutAndRetry` の簡素化**: 動的 import (`await import(...)`) による `signOut` を廃止し、import 済みの `logout()` を直接呼び出すように変更。
+  - **得られた知見**: `handleLoginClick` を async 関数にすると、ユーザージェスチャーのタイミングが `await login()` で一段挟まれる。ただし `auth.js` の `login()` 自体が非 async で `signInWithPopup` を即座に呼ぶ設計のため、ジェスチャーは保持される。
+
 ## [0.2.151] Firebase Auth: Global Redirect Removal (Phase B-1) - 2026-05-07
 
 ### メタ情報

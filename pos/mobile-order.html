@@ -1,6 +1,6 @@
 <!--
   Nanryosai 2026
-  Version: 0.2.0
+  Version: 0.3.0
   Last Modified: 2026-05-06
   Author: Nanryosai 2026 Project Team
 -->
@@ -1657,10 +1657,6 @@
          各 SDK モジュールから関数のみを import する。
       */
       import {
-        GoogleAuthProvider,
-        signInWithPopup,
-        signInWithRedirect,
-        getRedirectResult,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
       import {
@@ -1686,7 +1682,7 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
-      import { app, auth, db, storage, functions, messaging } from "../main/auth.js";
+      import { app, auth, db, storage, functions, messaging, login, logout } from "../main/auth.js";
 
       /* VAPID Key (FCM) */
       const VAPID_KEY =
@@ -1712,34 +1708,15 @@
 
       /* 4. Core Lifecycle & Auth */
       function init() {
-        // Handle redirect result (フォールバック用)
-        getRedirectResult(auth)
-          .then(async (result) => {
-            if (result && result.user) {
-              currentUser = result.user;
-              console.log("[MobileOrder Auth] Redirect login success:", result.user.email);
-            }
-          })
-          .catch((error) => {
-            if (error.code === "auth/popup-closed-by-user") return;
-            console.error("Redirect login failed:", error);
-            loader.style.display = "none";
-            if (error.code === "auth/network-request-failed") {
-              alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
-            } else if (error.code !== "auth/internal-error") {
-              alert("ログインエラー: " + error.message);
-            }
-          });
-
         onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          currentUser = user;
-          await checkFlow();
-        } else {
-          showScreen("step-student-check");
-          loader.style.display = "none";
-        }
-      });
+          if (user) {
+            currentUser = user;
+            await checkFlow();
+          } else {
+            showScreen("step-student-check");
+            loader.style.display = "none";
+          }
+        });
       }
 
       let isStudentFlow = false; // Flag to track if the user claimed to be a student
@@ -1812,71 +1789,46 @@
       }
 
       // Handlers
-      // アプリ内ブラウザ検出
-      function detectInAppBrowser() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        return (
-          ua.indexOf("FBAN") > -1 ||
-          ua.indexOf("FBAV") > -1 ||
-          ua.indexOf("Instagram") > -1 ||
-          ua.indexOf("Line/") > -1 ||
-          ua.indexOf("LINE/") > -1 ||
-          (ua.indexOf("wv") > -1 && ua.indexOf("Android") > -1)
-        );
-      }
-
-      const handleLoginClick = (btnId) => {
+      const handleLoginClick = async (btnId) => {
         const btn = document.getElementById(btnId);
 
-        // 1. アプリ内ブラウザ警告
-        if (detectInAppBrowser()) {
-          const proceed = confirm(
-            "⚠️ アプリ内ブラウザが検出されました\n\n" +
-            "LINEやInstagramのアプリ内ブラウザでは、Googleログインが正常に動作しないことが多くあります。\n\n" +
-            "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
-            "このまま続行しますか？"
-          );
-          if (!proceed) return;
-        }
-
-        // 2. UI Feedback
+        // 1. UI Feedback
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML =
           '<span class="spinner-border spinner-border-sm me-2"></span> 処理中...';
 
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-
-        // 3. Triple Fallback: Popup → Redirect → Error
-        signInWithPopup(auth, provider)
-          .then((result) => {
-            if (result && result.user) {
-              console.log("[MobileOrder Auth] Popup login success:", result.user.email);
-            }
-          })
-          .catch(async (error) => {
-            if (error.code === "auth/popup-blocked") {
-              console.warn("[MobileOrder Auth] Popup blocked, showing guidance...");
-              document.getElementById("popup-blocked-guidance").style.display = "block";
-              
-              // Re-trigger login
-              document.getElementById("btn-retry-login").onclick = () => {
-                document.getElementById("popup-blocked-guidance").style.display = "none";
-                document.getElementById("btn-login").click();
-              };
-              return;
-            } else if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
-              // ユーザーがキャンセル
-            } else {
-              console.error("[MobileOrder Auth] Login error:", error);
-              alert("ログイン画面への遷移に失敗しました。");
-            }
-
-            // Reset Button on error
+        // 2. auth.js の login() に委譲
+        //    アプリ内ブラウザ検出は auth.js の login() 内で実施済み
+        try {
+          const user = await login();
+          if (user) {
+            console.log("[MobileOrder Auth] Login success:", user.email);
+            // onAuthStateChanged が後続処理を引き受けるため、ここでは何もしない
+          } else {
+            // ユーザーキャンセル or ネットワークエラー (login() 側で処理済み)
             btn.disabled = false;
             btn.innerHTML = originalText;
-          });
+          }
+        } catch (error) {
+          if (error.code === "auth/popup-blocked") {
+            console.warn("[MobileOrder Auth] Popup blocked, showing guidance...");
+            document.getElementById("popup-blocked-guidance").style.display = "block";
+
+            // 再試行ボタンの設定
+            document.getElementById("btn-retry-login").onclick = () => {
+              document.getElementById("popup-blocked-guidance").style.display = "none";
+              document.getElementById("btn-login").click();
+            };
+          } else {
+            console.error("[MobileOrder Auth] Login error:", error);
+            alert("ログイン処理に失敗しました: " + (error.message || error.code));
+          }
+
+          // ボタン状態をリセット
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
       };
 
       document.getElementById("btn-login").onclick = () => handleLoginClick("btn-login");
@@ -1901,9 +1853,8 @@
       };
 
       window.logoutAndRetry = async () => {
-        const { signOut } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js");
         try {
-          await signOut(auth);
+          await logout();
           window.location.reload();
         } catch (e) {
           alert("ログアウトに失敗しました: " + e.message);
