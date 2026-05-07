@@ -1,8 +1,11 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Version: 0.2.0
+  Last Modified: 2026-05-07
   Author: Nanryosai 2026 Project Team
+
+  v0.2.0: 未ログイン時を login.html へリダイレクトに統一 (Phase D)
+  v0.1.0: 初版
 -->
 <!doctype html>
 <html lang="ja">
@@ -236,28 +239,6 @@
         font-size: 0.75rem;
         font-weight: 700;
         margin-left: 6px;
-      }
-
-      .guest-icon-box {
-        background: var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        color: var(--text-sub);
-      }
-      .btn-login-trigger {
-        margin-top: 20px;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-weight: bold;
-        transition: opacity 0.2s;
-      }
-      .btn-login-trigger:active {
-        opacity: 0.8;
       }
 
       .section-title {
@@ -500,178 +481,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Guest Content -->
-      <div id="guest-content" style="display: none; padding: 60px 20px">
-        <!-- Login Screen (Synced with mobile-order.html, No Bootstrap) -->
-        <style>
-          .guest-flex-wrapper {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            min-height: 50vh;
-          }
-          .btn-primary-custom {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 20px; /* --radius-lg */
-            font-weight: 700;
-            width: 100%;
-            max-width: 350px;
-            font-size: 1.05rem;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-            transition:
-              transform 0.2s,
-              box-shadow 0.2s;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            text-decoration: none; /* Reset anchor styles if any */
-          }
-          .btn-primary-custom:active {
-            transform: scale(0.96);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-          .login-hero {
-            margin-bottom: 40px;
-          }
-        </style>
-
-        <div class="guest-flex-wrapper">
-          <div class="login-hero">
-            <p
-              style="
-                color: var(--text-sub);
-                margin-bottom: 8px;
-                font-weight: 500;
-              "
-            >
-              南陵祭2026
-            </p>
-            <h1
-              style="
-                font-size: 2.5rem;
-                font-weight: 700;
-                margin: 0 0 24px;
-                color: var(--text-main);
-              "
-            >
-              マイページ
-            </h1>
-            <p
-              style="
-                color: var(--text-sub);
-                font-size: 0.875rem;
-                line-height: 1.6;
-                margin: 0;
-              "
-            >
-              マイページ機能を使うには<br />
-              ログインしてください
-            </p>
-          </div>
-
-          <button
-            id="btn-login-account"
-            onclick="window.triggerLogin()"
-            class="btn-primary-custom"
-          >
-            <!-- SVG for Google Icon to avoid Bootstrap Icons dependency if any, but bi-google usually works if css loads. 
-                         However, BI css IS NOT loaded in account.html based on my read. 
-                         Wait, mobile-order uses CDN for BI. account.html has no BI link. 
-                         So I need to import BI or use SVG. I'll import BI CDN to be safe. -->
-            <i class="bi bi-google" style="margin-right: 8px"></i> Google
-            でログイン
-          </button>
-
-          <!-- Disclaimer Box -->
-          <div
-            style="
-              margin-top: 24px;
-              padding: 20px;
-              border-radius: 12px;
-              text-align: left;
-              background: var(--item-fill);
-              font-size: 0.85rem;
-              border: 1px solid var(--border-color);
-              width: 100%;
-              max-width: 350px;
-            "
-          >
-            <strong
-              style="
-                color: #ff4757;
-                display: block;
-                margin-bottom: 8px;
-                font-size: 0.95rem;
-              "
-              >⚠️ 推奨ブラウザについて</strong
-            >
-            <p
-              style="
-                margin: 0 0 12px;
-                color: var(--text-main);
-                line-height: 1.5;
-              "
-            >
-              本システムの利用には、以下のブラウザを推奨しています。
-            </p>
-
-            <p
-              style="font-weight: 700; margin: 0 0 4px; color: var(--text-main)"
-            >
-              ✅ 推奨ブラウザ
-            </p>
-            <ul
-              style="
-                margin: 0 0 16px 0;
-                padding-left: 1.5rem;
-                color: var(--text-main);
-              "
-            >
-              <li>Google Chrome</li>
-            </ul>
-
-            <p
-              style="
-                margin: 0;
-                color: var(--text-sub);
-                font-size: 0.8rem;
-                line-height: 1.4;
-              "
-            >
-              ※
-              その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
-            </p>
-            <div
-              style="
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid var(--border-color);
-              "
-            >
-              <span style="font-size: 0.8rem"
-                >動作しない場合は
-                <a
-                  href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
-                  id="bug-report-link"
-                  target="_blank"
-                  style="color: #4dabf7; text-decoration: underline"
-                  >不具合報告フォーム</a
-                >
-                までご連絡ください。</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
 
     <script>
@@ -821,75 +630,35 @@
       // Loader Element
       const authLoader = document.getElementById("auth-loading");
 
-      // Fallback Timeout: If auth takes too long (e.g. In-App Browser blocked), show Guest
+      // Fallback Timeout: If auth takes too long, redirect
       const authTimeout = setTimeout(() => {
         if (authLoader.style.display !== "none") {
-          console.warn("Auth timeout - forcing guest view");
-          authLoader.style.display = "none";
-          document.getElementById("guest-content").style.display = "block";
+          console.warn("Auth timeout - redirecting to login");
+          const redirectTarget = encodeURIComponent("./account.html");
+          window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
         }
       }, 2500);
-
-      import { login } from "./auth.js";
 
       // UI Update Logic extracted for manual trigger
       function handleUserUpdate(user) {
         clearTimeout(authTimeout);
-        authLoader.style.display = "none";
 
-        window.CURRENT_USER_OBJ = user;
         if (user) {
+          authLoader.style.display = "none";
+          window.CURRENT_USER_OBJ = user;
           document.getElementById("auth-content").style.display = "block";
-          document.getElementById("guest-content").style.display = "none";
 
           renderProfile(user);
           fetchOrderCount(user.uid);
           fetchOrderHistory(user.uid);
         } else {
-          document.getElementById("auth-content").style.display = "none";
-          document.getElementById("guest-content").style.display = "block";
+          const redirectTarget = encodeURIComponent("./account.html");
+          window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
         }
       }
 
       // Initialize Listener
       watchUser(handleUserUpdate);
-
-      // Enhanced Login Trigger
-      window.triggerLogin = async () => {
-        const btn = document.getElementById("btn-login-account");
-        const originalContent = btn.innerHTML;
-
-        // UI Feedback
-        btn.disabled = true;
-        btn.innerHTML =
-          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="width: 1rem; height: 1rem; border-width: 0.15em;"></span> 処理中...';
-
-        try {
-          const user = await login(); // auth.js login handles popup params
-
-          // Force UI Update immediately
-          if (user) {
-            handleUserUpdate(user);
-          }
-        } catch (e) {
-          console.error("Login Trigger Error:", e);
-          // popup-blocked の場合は専用メッセージ
-          // (将来的には login.html に統合してガイダンス UI を表示する予定)
-          if (e.code === "auth/popup-blocked") {
-            alert(
-              "ポップアップがブロックされました。\n\n" +
-              "ブラウザのアドレスバー右端にあるポップアップブロックアイコンをタップし、\n" +
-              "「常に許可」を選択してから、もう一度お試しください。"
-            );
-          }
-          // その他のエラーは auth.js 側で alert 済み
-        } finally {
-          // Reset button (if we haven't navigated away or completely replaced the view)
-          // If we logged in, the view might switch, but it's safe to reset just in case we stay.
-          btn.disabled = false;
-          btn.innerHTML = originalContent;
-        }
-      };
 
       // --- Missing Functions Implementation ---
 
