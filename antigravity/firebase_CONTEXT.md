@@ -45,6 +45,11 @@ last_updated: 2026-05-07
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
   - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
   - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
+- **統一ログイン画面 (`main/login.html`)** (v0.2.153, Phase C):
+  - **役割**: `auth.js` の `login()` を呼び出す共通ログインページ。Phase D/E で `account.html` / `mobile-order.html` がリダイレクト先として使用する予定。
+  - **URLパラメータ**: `redirect`（安全なリダイレクト先）、`reason`（メッセージ切替: `favorite`/`mobile-order`/`account`）、`mode`（`student` で学校メール強調枠表示）
+  - **安全なリダイレクトバリデーション**: 相対パスまたは同一オリジンのみ許可。外部URLと `login.html` を含むURL（ループ防止）は `./index.html` にフォールバック。
+  - **FOUC防止**: 初期表示はローディングスピナーのみ。`watchUser()` で認証状態確認後、ログイン済みなら `window.location.replace()` で即時遷移（履歴汚染回避）。
 - **堅牢性**: 
   - **二重実行防止**: `onAuthStateChanged` と手動ログインの競合を防ぐため、実行フラグによる排他制御を実装。
   - **アプリ内ブラウザ対策**: LINE/Instagram等のブラウザでは標準ブラウザ（Chrome/Safari）への誘導を強化。

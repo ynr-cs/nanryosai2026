@@ -15,6 +15,27 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.153] main/login.html: 統一ログイン画面の新規作成 (Phase C) - 2026-05-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/login.html`** (v0.1.0 新規作成):
+  - **統一ログイン画面**: `auth.js` の `login()` を呼び出す共通ログインページを新規作成。Phase D/E で `account.html` / `mobile-order.html` から遷移される予定。
+  - **URLパラメータ仕様**:
+    - `redirect`: ログイン成功後の遷移先（`decodeURIComponent` → 相対パスまたは同一オリジンのみ許可、`login.html` 含む場合はループ防止で `./index.html` にフォールバック）
+    - `reason`: `favorite` / `mobile-order` / `account` / 未指定 で表示メッセージを切替
+    - `mode`: `student` で在校生アカウント（`@gl.pen-kanagawa.ed.jp`）の強調枠を表示
+  - **FOUC防止**: 初期表示はローディングスピナーのみ。`watchUser()` で認証状態を確認後、ログイン済みなら即時 `window.location.replace(redirect)` で遷移（履歴汚染回避）、未ログインならログインUIを `fadeIn` で表示。
+  - **ポップアップブロックガイダンス**: `auth/popup-blocked` エラー時に専用のUI（手順案内 + 再試行ボタン）を表示。`pos/mobile-order.html` のガイダンスUIと統一したトーン。
+  - **推奨ブラウザ案内**: Chrome推奨、不具合報告フォームへのリンクを設置。
+  - **デザイン**: CSS変数（`--bg-color`, `--text-main`, `--card-bg` 等）によるダークモード完全対応。`max-width: 500px` 中央寄せレイアウト。`account.html` のゲストログイン画面のトーン&マナーを踏襲。
+  - **得られた知見**: リダイレクトURLのバリデーションは、外部URLの排除だけでなく、自身（`login.html`）への再遷移によるループ防止も必須。`window.location.replace()` を使うことで、ブラウザの戻るボタンでログインページに戻ってしまう問題を回避できる。
+
 ## [0.2.152] pos/mobile-order.html: ログイン処理を auth.js に統一 (Phase B-2) - 2026-05-07
 
 ### メタ情報

@@ -1,0 +1,653 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-05-07
+  Author: Nanryosai 2026 Project Team
+
+  統一ログイン画面 (Phase C)
+  - auth.js の login() を呼び出す共通ログインページ
+  - URLパラメータでメッセージ・リダイレクト先・モードを制御
+  - Phase D / E で account.html / mobile-order.html から遷移される予定
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>ログイン | 南陵祭'26</title>
+    <meta name="description" content="南陵祭2026 統一ログインページ。Googleアカウントでログインして、お気に入りやモバイルオーダーなどの機能をご利用いただけます。" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <!-- Animate.css -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <style>
+      /* =========================================
+         CSS Variables (Light / Dark)
+         ========================================= */
+      :root {
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-main: #1a1a1a;
+        --text-sub: #636e72;
+        --border-color: #e5e7eb;
+        --shadow-color: rgba(0, 0, 0, 0.04);
+        --primary-color: #6a11cb;
+        --accent-color: #ff0080;
+        --item-fill: #eff6ff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --border-color: #334155;
+          --shadow-color: rgba(0, 0, 0, 0.3);
+          --item-fill: #334155;
+        }
+      }
+
+      /* =========================================
+         Base
+         ========================================= */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100dvh;
+        min-height: 100vh; /* fallback */
+        background: var(--bg-color);
+        color: var(--text-main);
+        font-family: "Noto Sans JP", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* =========================================
+         Page Layout
+         ========================================= */
+      .login-page {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100dvh;
+        min-height: 100vh;
+        padding: 24px 16px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .login-container {
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      /* =========================================
+         Loading State
+         ========================================= */
+      #login-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        gap: 16px;
+      }
+
+      .standard-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loader-text {
+        color: var(--text-sub);
+        font-size: 0.85rem;
+      }
+
+      /* =========================================
+         Login Content (hidden until auth check)
+         ========================================= */
+      #login-content {
+        display: none;
+      }
+
+      /* =========================================
+         Hero Section
+         ========================================= */
+      .login-hero {
+        text-align: center;
+        padding-top: 2vh;
+      }
+
+      .login-hero .brand-label {
+        color: var(--text-sub);
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+
+      .login-hero h1 {
+        font-size: clamp(1.6rem, 5vw, 2.5rem);
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
+      }
+
+      .login-hero .login-message {
+        color: var(--text-sub);
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* =========================================
+         Student Email Emphasis Box
+         ========================================= */
+      .email-emphasis-box {
+        display: none; /* shown only when mode=student */
+        text-align: center;
+        padding: 16px;
+        background: rgba(229, 57, 53, 0.08);
+        border: 2px dashed var(--accent-color);
+        border-radius: 12px;
+        color: var(--accent-color);
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+
+      .email-emphasis-box .email-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-sub);
+        margin-bottom: 4px;
+      }
+
+      .email-emphasis-box .email-note {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: var(--text-sub);
+        margin-top: 8px;
+      }
+
+      /* =========================================
+         Login Button
+         ========================================= */
+      .btn-login {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 18px;
+        border-radius: 20px;
+        font-weight: 700;
+        width: 100%;
+        font-size: 1.05rem;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-login:active {
+        transform: scale(0.96);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-login:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* =========================================
+         Popup Blocked Guidance
+         ========================================= */
+      #popup-blocked-guidance {
+        display: none;
+        padding: 16px;
+        border-radius: 12px;
+        background: #fffbeb;
+        border: 1px solid #f59e0b;
+        text-align: left;
+      }
+
+      #popup-blocked-guidance .guidance-title {
+        font-size: 1rem;
+        color: #92400e;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      #popup-blocked-guidance .guidance-desc {
+        font-size: 0.85rem;
+        color: #78350f;
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+
+      #popup-blocked-guidance .guidance-steps {
+        background: rgba(245, 158, 11, 0.05);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #f59e0b;
+      }
+
+      #popup-blocked-guidance .guidance-steps ol {
+        font-size: 0.8rem;
+        color: #78350f;
+        margin-bottom: 0;
+        padding-left: 20px;
+      }
+
+      #popup-blocked-guidance .guidance-steps li {
+        margin-bottom: 8px;
+      }
+
+      #popup-blocked-guidance .guidance-steps li:last-child {
+        margin-bottom: 0;
+      }
+
+      .btn-retry {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        background: #374151;
+        color: white;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+
+      .btn-retry:active {
+        opacity: 0.8;
+      }
+
+      /* =========================================
+         Browser Recommendation Box
+         ========================================= */
+      .browser-info-box {
+        padding: 20px;
+        border-radius: 12px;
+        background: var(--item-fill);
+        border: 1px solid var(--border-color);
+        text-align: left;
+        font-size: 0.85rem;
+      }
+
+      .browser-info-box .warning-title {
+        color: #ff4757;
+        font-size: 0.95rem;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .browser-info-box p {
+        color: var(--text-main);
+        line-height: 1.5;
+        margin: 0 0 12px;
+      }
+
+      .browser-info-box .recommended-label {
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 4px;
+      }
+
+      .browser-info-box ul {
+        margin: 0 0 16px;
+        padding-left: 1.5rem;
+        color: var(--text-main);
+      }
+
+      .browser-info-box .note-text {
+        color: var(--text-sub);
+        font-size: 0.8rem;
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      .browser-info-box .report-link-area {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--border-color);
+        font-size: 0.8rem;
+        color: var(--text-sub);
+      }
+
+      .browser-info-box .report-link-area a {
+        color: #4dabf7;
+        text-decoration: underline;
+      }
+
+      /* =========================================
+         Home Link
+         ========================================= */
+      .home-link {
+        text-align: center;
+      }
+
+      .home-link a {
+        color: var(--text-sub);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .home-link a:hover {
+        color: var(--primary-color);
+      }
+
+      /* =========================================
+         Responsive
+         ========================================= */
+      @media (max-height: 700px) {
+        .login-hero h1 {
+          font-size: 1.5rem !important;
+          margin-bottom: 12px !important;
+        }
+        .btn-login {
+          padding: 14px;
+          font-size: 0.95rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-page">
+      <div class="login-container">
+        <!-- ============================
+             Loading (visible by default)
+             ============================ -->
+        <div id="login-loader">
+          <div class="standard-spinner"></div>
+          <div class="loader-text">認証を確認中...</div>
+        </div>
+
+        <!-- ============================
+             Login Content (hidden until auth check)
+             ============================ -->
+        <div id="login-content" class="animate__animated animate__fadeIn">
+          <!-- Hero -->
+          <div class="login-hero">
+            <p class="brand-label">南陵祭2026</p>
+            <h1>ログイン</h1>
+            <p class="login-message" id="login-message">
+              ログインが必要です
+            </p>
+          </div>
+
+          <!-- Student Email Emphasis (mode=student only) -->
+          <div class="email-emphasis-box" id="email-emphasis-box">
+            <span class="email-label">在校生は以下のアカウントでログインしてください</span>
+            @gl.pen-kanagawa.ed.jp
+            <span class="email-note">※ 個人のGmail等ではご利用いただけない機能があります</span>
+          </div>
+
+          <!-- Google Login Button -->
+          <button id="btn-login" class="btn-login">
+            <i class="bi bi-google"></i>
+            Google でログイン
+          </button>
+
+          <!-- Popup Blocked Guidance (hidden by default) -->
+          <div id="popup-blocked-guidance" class="animate__animated animate__fadeIn">
+            <h3 class="guidance-title">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              ポップアップがブロックされました
+            </h3>
+            <p class="guidance-desc">
+              ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
+            </p>
+            <div class="guidance-steps">
+              <ol>
+                <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
+                <li><strong>「常に許可」</strong>を選択。</li>
+                <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
+              </ol>
+            </div>
+            <button id="btn-retry" class="btn-retry">
+              設定したので再試行する
+            </button>
+          </div>
+
+          <!-- Browser Recommendation -->
+          <div class="browser-info-box">
+            <strong class="warning-title">⚠️ 推奨ブラウザについて</strong>
+            <p>本システムの利用には、以下のブラウザを推奨しています。</p>
+
+            <p class="recommended-label">✅ 推奨ブラウザ</p>
+            <ul>
+              <li>Google Chrome</li>
+            </ul>
+
+            <p class="note-text">
+              ※ その他の環境やアプリ内ブラウザ（LINE/Instagram等）では、正常にログインできない場合があります。
+            </p>
+            <div class="report-link-area">
+              動作しない場合は
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header"
+                target="_blank"
+                rel="noopener noreferrer"
+                >不具合報告フォーム</a
+              >
+              までご連絡ください。
+            </div>
+          </div>
+
+          <!-- Home Link -->
+          <div class="home-link">
+            <a href="./index.html">
+              <i class="bi bi-arrow-left"></i>
+              ホームへ戻る
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         JavaScript (Module)
+         ============================ -->
+    <script type="module">
+      import { watchUser, login } from "./auth.js";
+
+      /* ==============================
+         1. URL Parameter Parsing
+         ============================== */
+      const params = new URLSearchParams(location.search);
+      const reason = params.get("reason");
+      const mode = params.get("mode");
+      const rawRedirect = params.get("redirect");
+
+      /* ==============================
+         2. Safe Redirect Validation
+         ============================== */
+      function getSafeRedirect(raw) {
+        const fallback = "./index.html";
+        if (!raw) return fallback;
+
+        let decoded;
+        try {
+          decoded = decodeURIComponent(raw);
+        } catch {
+          return fallback;
+        }
+
+        // Loop prevention: login.html への再遷移を防止
+        if (decoded.includes("login.html")) {
+          return fallback;
+        }
+
+        // 相対パス (./ or / 始まり) は許可
+        if (decoded.startsWith("./") || decoded.startsWith("/")) {
+          return decoded;
+        }
+
+        // 絶対URL: 同一オリジンのみ許可
+        try {
+          const url = new URL(decoded, location.origin);
+          if (url.origin === location.origin) {
+            return decoded;
+          }
+        } catch {
+          // invalid URL
+        }
+
+        return fallback;
+      }
+
+      const redirectUrl = getSafeRedirect(rawRedirect);
+
+      /* ==============================
+         3. Reason Message Update
+         ============================== */
+      const messageEl = document.getElementById("login-message");
+      const messages = {
+        favorite: "お気に入り機能を使用するには<br>ログインが必要です",
+        "mobile-order":
+          "モバイルオーダーを利用するには<br>ログインが必要です",
+        account: "マイページを使用するには<br>ログインが必要です",
+      };
+
+      if (reason && messages[reason]) {
+        messageEl.innerHTML = messages[reason];
+      }
+
+      /* ==============================
+         4. Student Mode
+         ============================== */
+      if (mode === "student") {
+        document.getElementById("email-emphasis-box").style.display = "block";
+      }
+
+      /* ==============================
+         5. Auth State Watcher
+         ============================== */
+      const loaderEl = document.getElementById("login-loader");
+      const contentEl = document.getElementById("login-content");
+
+      watchUser((user) => {
+        if (user) {
+          // Already logged in → redirect immediately
+          window.location.replace(redirectUrl);
+        } else {
+          // Not logged in → show login UI
+          loaderEl.style.display = "none";
+          contentEl.style.display = "flex";
+          contentEl.style.flexDirection = "column";
+          contentEl.style.gap = "24px";
+        }
+      });
+
+      /* ==============================
+         6. Login Button Handler
+         ============================== */
+      const btnLogin = document.getElementById("btn-login");
+      const originalBtnHTML = btnLogin.innerHTML;
+
+      async function handleLogin() {
+        // UI feedback
+        btnLogin.disabled = true;
+        btnLogin.innerHTML =
+          '<span class="spinner-border spinner-border-sm" role="status" style="width:1rem;height:1rem;border-width:0.15em;"></span> 処理中...';
+
+        try {
+          const user = await login();
+          if (user) {
+            // Login success → redirect (replace to avoid history pollution)
+            window.location.replace(redirectUrl);
+          } else {
+            // Cancelled or network error (handled in auth.js)
+            resetButton();
+          }
+        } catch (error) {
+          if (error.code === "auth/popup-blocked") {
+            // Show popup-blocked guidance
+            document.getElementById("popup-blocked-guidance").style.display =
+              "block";
+          }
+          // Other errors are handled by auth.js (alert)
+          resetButton();
+        }
+      }
+
+      function resetButton() {
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = originalBtnHTML;
+      }
+
+      btnLogin.addEventListener("click", handleLogin);
+
+      /* ==============================
+         7. Retry Button Handler
+         ============================== */
+      document.getElementById("btn-retry").addEventListener("click", () => {
+        document.getElementById("popup-blocked-guidance").style.display =
+          "none";
+        resetButton();
+        // Delay slightly to let DOM update, then re-trigger login
+        setTimeout(() => {
+          handleLogin();
+        }, 100);
+      });
+    </script>
+  </body>
+</html>

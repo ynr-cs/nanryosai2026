@@ -191,6 +191,7 @@ graph TD
     subgraph "Public Pages"
         IndexHTML["index.html"]
         AccountHTML["account.html"]
+        LoginHTML["login.html<br/>#40;Unified Login#41;"]
     end
 
     subgraph "POS System"
@@ -201,7 +202,7 @@ graph TD
     end
 
     %% Dependencies
-    AuthJS --> IndexHTML & AccountHTML & MobileOrderHTML & PortalHTML
+    AuthJS --> IndexHTML & AccountHTML & LoginHTML & MobileOrderHTML & PortalHTML
     ShellJS --> IndexHTML & AccountHTML
     StyleCSS --> IndexHTML & AccountHTML & MobileOrderHTML & PortalHTML & KitchenHTML
     DataJS --> IndexHTML & PortalHTML
