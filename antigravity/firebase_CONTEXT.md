@@ -144,3 +144,15 @@ last_updated: 2026-05-07
 - **算出根拠**:
   - 各ドキュメント(インデックス込)を平均 2KB と仮定。
   - 開発環境のテストデータのみであるため、課金発生ライン (1GiB/日) には遠く及ばない。
+
+## 9. 関連ファイル構造
+
+プロジェクト内の主要なFirebase関連ファイルは以下の通りです。
+
+- **設定・ルール**: `firebase.json`, `.firebaserc`, `firestore.rules`, `storage.rules`, `firestore.indexes.json`, `cors.json`
+- **初期化モジュール**: `main/auth.js` (SSOT), `main/firebase-messaging-sw.js`, `pos/firebase-messaging-sw.js`
+- **Cloud Functions**: `functions/index.js`, `functions/package.json`, `functions/setupVenueAdmin.js`
+- **主要な利用ページ**:
+  - `main/`: `index.html`, `account.html`, `login.html`, `admin/venue.html`, `admin_sync.html`
+  - `pos/`: `mobile-order.html`, `portal.html`, `pos.html`, `kitchen.html`, `monitor.html`, `status.html`, `presenter.html`, `training/pos.html`
+- **開発・同期スクリプト**: `admin-server.js`, `debug_firestore_custom.js`, `generate_hash.js`
