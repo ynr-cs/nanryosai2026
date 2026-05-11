@@ -1,0 +1,4413 @@
+<!--
+  Nanryosai 2026
+  Version: 0.2.69
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>店舗管理ポータル | 南陵祭2026</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-color: #1f2937;
+        --text-secondary: #6b7280;
+        --accent-color: #10b981; /* Emerald 500 */
+        --accent-hover: #059669;
+        --danger-color: #ef4444;
+        --shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --header-bg: #111827;
+
+        /* Status Colors */
+        --status-unpaid: #ef4444; /* Red */
+        --status-preparing: #f59e0b; /* Amber */
+        --status-ready: #10b981; /* Emerald */
+        --status-completed: #6b7280; /* Gray */
+        --status-ready: #10b981; /* Emerald */
+        --status-completed: #6b7280; /* Gray */
+        --status-canceled: #1f2937; /* Dark */
+        --status-abandoned: #9ca3af; /* Light Gray */
+        --status-authorized: #3b82f6; /* Blue */
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", "Noto Sans JP", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        font-size: 14px;
+      }
+
+      /* --- Top Bar --- */
+      .top-bar {
+        height: 56px;
+        background: var(--header-bg);
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.025em;
+      }
+      .store-badge {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      .user-info {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logout-btn {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+      }
+      .logout-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      /* --- Forms --- */
+      .input-field {
+        width: 100%;
+        height: 44px; /* Fixed height for consistency */
+        padding: 0 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: #f9fafb;
+        color: #1f2937; /* Force dark text */
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        line-height: normal; /* Allow flex centering */
+      }
+      input.input-field {
+        line-height: 44px; /* Ensure text centers in input */
+      }
+      select.input-field {
+        appearance: none;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background-color: #f9fafb;
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+
+      /* --- App Layout --- */
+      .app-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 240px;
+        background: #fff;
+        border-right: 1px solid #e5e7eb;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 40;
+        overflow-y: auto;
+      }
+
+      .nav-item {
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .nav-item:hover {
+        background: #f3f4f6;
+      }
+      .nav-item.active {
+        background: #ecfdf5;
+        color: var(--accent-color);
+      }
+      .nav-icon {
+        font-size: 1.2rem;
+      }
+
+      /* Main Content Area */
+      .main-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* View Sections (Toggled) */
+      .view-section {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+        min-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+      }
+      .view-section.active {
+        display: flex;
+      }
+
+      /* --- Common UI Components --- */
+      .card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+      }
+      .input-field {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: #f9fafb;
+        margin-bottom: 10px;
+      }
+      .btn-primary {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      /* Top Page Specifics */
+      .app-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      .app-link-card {
+        text-decoration: none;
+        color: inherit;
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        text-align: center;
+        transition:
+          transform 0.2s,
+          border-color 0.2s;
+        border: 2px solid transparent;
+      }
+      .app-link-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-color);
+      }
+      .app-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        display: block;
+      }
+      .app-title {
+        font-weight: 800;
+        font-size: 1.2rem;
+        display: block;
+        color: #111827;
+      }
+      .app-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 4px;
+        display: block;
+      }
+
+      /* Items Manager Specifics */
+      .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+      }
+      .item-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .item-img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 0.75rem;
+        text-align: center;
+        padding: 10px;
+      }
+      .item-body {
+        padding: 12px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .item-name {
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+      .item-price {
+        font-weight: 600;
+        color: #111827;
+      }
+      .item-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: auto;
+      }
+      .badge-rec {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .item-actions-row {
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+        padding-top: 10px;
+      }
+      .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+      }
+      .btn-edit {
+        background: #e5e7eb;
+        color: #374151;
+      }
+      .btn-toggle {
+        flex: 1;
+      }
+      .is-active {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .is-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      /* Search & Sales Shared Styles */
+      .summary-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .summary-card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        flex: 1;
+      }
+      .summary-title {
+        font-size: 1rem;
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .summary-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #111827;
+      }
+      .val-money {
+        color: #111827;
+      }
+
+      .table-wrapper {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: #6b7280;
+      }
+      tr.clickable:hover {
+        background: #f9fafb;
+        cursor: pointer;
+      }
+
+      /* Login Overlay */
+      .auth-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #f3f4f6;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .auth-card {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      /* Popup Blocked Guidance */
+      .popup-blocked-warning {
+        display: none;
+        background: #fffbeb;
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: left;
+        animation: fadeIn 0.3s ease-out;
+      }
+      .popup-blocked-warning h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #92400e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .popup-blocked-warning p {
+        margin: 0 0 12px 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #78350f;
+      }
+      .popup-blocked-warning ol {
+        margin: 0 0 15px 0;
+        padding-left: 20px;
+        font-size: 0.8rem;
+        color: #78350f;
+      }
+      .popup-blocked-warning ol li {
+        margin-bottom: 4px;
+      }
+      .btn-redirect {
+        width: 100%;
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+      }
+      .btn-redirect:hover {
+        background: #d97706;
+      }
+
+      /* Helper Tooltip */
+      .help-container {
+        display: inline-block;
+        position: relative;
+        margin-left: 6px;
+        vertical-align: middle;
+        z-index: 50;
+      }
+      .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s;
+      }
+      .help-container.active .help-icon,
+      .help-icon:hover {
+        background: #9ca3af;
+        color: white;
+      }
+      .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        width: 220px;
+        background-color: #1f2937;
+        color: #fff;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 100;
+        bottom: 135%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.5;
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        pointer-events: none;
+        white-space: normal;
+      }
+      .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #1f2937 transparent transparent transparent;
+      }
+      .help-container.active .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(-2px);
+      }
+      /* Mobile Adjustment for Tooltip */
+      @media (max-width: 480px) {
+        .tooltip-text {
+          width: 200px;
+          left: -80px; /* Shift left to avoid screen edge */
+          transform: translateX(0);
+        }
+        .tooltip-text::after {
+          left: auto;
+          right: 20px; /* Adjust arrow position */
+          margin-left: 0;
+        }
+        .help-container.active .tooltip-text {
+          transform: translateY(-2px);
+        }
+      }
+
+      /* HoH Badge */
+      .hoh-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin-left: 8px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .hoh-up {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .hoh-down {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .hoh-neutral {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+
+      /* Analysis Cards */
+      .analysis-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 24px;
+      }
+      .analysis-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+      .analysis-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+      .analysis-card h4 span {
+        font-size: 1.4rem;
+      }
+      .rank-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .rank-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 2px solid #f9fafb;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+      .rank-list li:last-child {
+        border-bottom: none;
+      }
+      .rank-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+
+      /* Pulse Chart (Timeline Inspector) */
+      .pulse-chart-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+        margin-top: 24px;
+      }
+      .pulse-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .pulse-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f3f4f6;
+        padding: 4px;
+        border-radius: 8px;
+      }
+      .zoom-btn {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        color: #374151;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .zoom-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+      }
+      .zoom-btn:active {
+        background: #f3f4f6;
+        transform: translateY(1px);
+      }
+      .zoom-btn.primary {
+        background: var(--accent-color);
+        color: white;
+        border-color: #059669;
+      }
+      .pulse-range-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 600;
+        background: #f9fafb;
+        padding: 6px 12px;
+        border-radius: 6px;
+      }
+
+      /* Modals */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      /* Bottom Navigation (Mobile Only) */
+      .bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        z-index: 1050;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .bottom-nav-item {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 2px;
+        color: #9ca3af;
+        font-size: 0.65rem;
+        font-weight: 600;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .bottom-nav-item.active {
+        color: var(--accent-color);
+        background: #ecfdf5;
+      }
+      .bottom-nav-icon {
+        font-size: 1.3rem;
+        margin-bottom: 2px;
+      }
+
+      /* --- Error Overlay --- */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+
+      /* --- Error Overlay --- */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+
+      /* --- Mobile Responsive Overrides --- */
+      @media (max-width: 768px) {
+        body {
+          font-size: 13px;
+        }
+        .sidebar {
+          display: none !important;
+        }
+        .bottom-nav {
+          display: flex !important;
+        }
+
+        .main-content {
+          padding: 12px;
+          padding-bottom: calc(100px + env(safe-area-inset-bottom));
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Top Bar */
+        .top-bar {
+          padding: 0 12px;
+          height: 50px;
+        }
+        .brand {
+          font-size: 0.95rem;
+          gap: 6px;
+        }
+        .store-badge {
+          font-size: 0.6rem;
+          padding: 2px 6px;
+        }
+        .user-info {
+          font-size: 0.7rem;
+          gap: 8px;
+        }
+        .logout-btn {
+          padding: 4px 8px;
+          font-size: 0.7rem;
+        }
+
+        /* App Grid (Top Page) */
+        .app-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .app-link-card {
+          padding: 16px;
+        }
+        .app-icon {
+          font-size: 2rem;
+          margin-bottom: 8px;
+        }
+        .app-title {
+          font-size: 1rem;
+        }
+        .app-desc {
+          font-size: 0.75rem;
+        }
+
+        /* Items Grid */
+        .items-grid {
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 10px;
+        }
+        .item-img {
+          height: 100px;
+        }
+        .item-body {
+          padding: 8px;
+        }
+        .item-name {
+          font-size: 0.85rem;
+        }
+        .item-price {
+          font-size: 0.85rem;
+        }
+        .btn-sm {
+          padding: 5px 8px;
+          font-size: 0.75rem;
+        }
+
+        /* Sales Dashboard */
+        #view-sales .summary-row {
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+        #view-sales .summary-card {
+          padding: 24px 12px;
+          min-width: 0;
+          flex: 1;
+          text-align: center;
+        }
+        #view-sales .summary-title {
+          font-size: 0.9rem;
+          margin-bottom: 8px;
+          font-weight: 700;
+          color: #4b5563;
+        }
+        #view-sales .summary-value {
+          font-size: 1.8rem;
+          font-weight: 800;
+        }
+
+        /* Sales Date Picker */
+        #view-sales > div:first-child {
+          flex-direction: column;
+          align-items: stretch !important;
+          margin-bottom: 24px;
+        }
+        #view-sales > div:first-child h2 {
+          font-size: 1.6rem;
+          margin-bottom: 12px;
+          font-weight: 800;
+        }
+        #view-sales > div:first-child > div {
+          width: 100%;
+          justify-content: space-between;
+          padding: 12px 16px;
+          height: auto;
+        }
+        #view-sales > div:first-child input {
+          font-size: 1.1rem;
+        }
+
+        /* Sales Charts - Larger display */
+        #view-sales > div:last-child {
+          flex-direction: column;
+          gap: 24px;
+        }
+        #view-sales .card {
+          padding: 24px;
+          min-height: fit-content !important;
+          max-width: 100%;
+          margin: 0;
+          width: 100%;
+        }
+        #view-sales .card canvas {
+          height: 240px !important;
+        }
+        #view-sales .card h3 {
+          font-size: 1.1rem;
+          margin-bottom: 16px;
+          font-weight: 700;
+        }
+
+        /* Analysis Section Mobile */
+        .analysis-section {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .analysis-card {
+          padding: 20px;
+        }
+        .analysis-card h4 {
+          font-size: 1.1rem;
+        }
+        .rank-list li {
+          font-size: 1.1rem;
+          padding: 12px 0;
+        }
+
+        /* Timeline Inspector Mobile */
+        .pulse-header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .zoom-controls {
+          justify-content: space-between;
+          order: 2;
+        }
+        .pulse-title {
+          order: 1;
+          margin-bottom: 8px;
+        }
+        .zoom-btn {
+          padding: 8px 12px;
+          font-size: 0.8rem;
+        }
+        .pulse-range-label {
+          order: 3;
+          text-align: center;
+        }
+        .hoh-badge {
+          font-size: 0.9rem;
+          padding: 4px 8px;
+        }
+
+        /* Search View */
+        #view-search .card {
+          flex-direction: column !important;
+          gap: 12px !important;
+          align-items: stretch !important;
+        }
+        #view-search .card > div {
+          width: 100% !important;
+          min-width: 0 !important;
+        }
+        #view-search .input-field,
+        #view-search select {
+          font-size: 16px !important;
+          padding: 10px;
+        }
+
+        /* Table */
+        .table-wrapper {
+          border-radius: 8px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        table {
+          min-width: 520px;
+        }
+        th,
+        td {
+          padding: 8px 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+        }
+
+        /* Modal Full-screen on Mobile */
+        .modal-content {
+          width: 100%;
+          max-width: 100%;
+          max-height: calc(100vh - 70px);
+          padding: 16px;
+          border-radius: 16px 16px 0 0;
+          margin-top: auto;
+          margin-bottom: 0;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+        }
+        .modal-overlay {
+          align-items: flex-end !important;
+        }
+
+        /* Training View */
+        #view-training .card {
+          padding: 30px 16px;
+        }
+        #view-training h2 {
+          font-size: 1.4rem;
+        }
+        #view-training p {
+          font-size: 0.85rem;
+        }
+        #view-training .btn-primary {
+          font-size: 1rem;
+          padding: 12px 24px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+          padding: 10px 14px;
+          font-size: 0.85rem;
+        }
+
+        /* Auth Card */
+        .auth-card {
+          padding: 24px 20px;
+          margin: 16px;
+        }
+      }
+
+      /* --- Extra Small Screens (< 480px) --- */
+      @media (max-width: 480px) {
+        body {
+          font-size: 12px;
+        }
+
+        .main-content {
+          padding: 8px;
+        }
+
+        /* Top Bar ultra-compact */
+        .top-bar {
+          height: 44px;
+          padding: 0 8px;
+        }
+        .brand {
+          font-size: 0.85rem;
+        }
+        .store-badge {
+          display: none;
+        }
+        .user-info span {
+          display: none;
+        }
+
+        /* App Grid: single column */
+        .app-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .app-link-card {
+          padding: 12px;
+        }
+        .app-icon {
+          font-size: 1.6rem;
+          margin-bottom: 6px;
+        }
+        .app-title {
+          font-size: 0.85rem;
+        }
+        .app-desc {
+          display: none;
+        }
+
+        /* Items: 2 col tight */
+        .items-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .item-img {
+          height: 80px;
+          font-size: 0.65rem;
+        }
+        .item-body {
+          padding: 6px;
+        }
+        .item-name {
+          font-size: 0.8rem;
+        }
+        .item-actions-row {
+          flex-direction: column;
+          gap: 4px;
+        }
+        .btn-sm {
+          width: 100%;
+          text-align: center;
+          padding: 6px;
+        }
+
+        /* Sales Summary: keep horizontal & compact */
+        #view-sales .summary-row {
+          gap: 6px;
+        }
+        #view-sales .summary-card {
+          padding: 8px 4px;
+        }
+        #view-sales .summary-value {
+          font-size: 1rem;
+        }
+        #view-sales .card canvas {
+          height: 160px !important;
+        }
+        .hoh-badge {
+          font-size: 0.55rem;
+          padding: 2px 3px;
+        }
+
+        /* Modal */
+        .modal-content {
+          padding: 12px;
+        }
+        .modal-content h3 {
+          font-size: 1rem;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+          height: 54px;
+        }
+        .bottom-nav-item {
+          font-size: 0.6rem;
+        }
+        .bottom-nav-icon {
+          font-size: 1.1rem;
+        }
+      }
+
+      /* Badge CSS for dynamic classes */
+      .badge {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        color: white;
+        white-space: nowrap;
+      }
+      .status-unpaid {
+        background-color: var(--status-unpaid);
+      }
+      .status-preparing {
+        background-color: var(--status-preparing);
+      }
+      .status-ready {
+        background-color: var(--status-ready);
+      }
+      .status-completed {
+        background-color: var(--status-completed);
+      }
+      .status-canceled {
+        background-color: var(--status-canceled);
+      }
+      .status-abandoned {
+        background-color: var(--status-abandoned);
+      }
+      .status-authorized {
+        background-color: var(--status-authorized);
+      }
+      /* Modal Styles Revised */
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+      }
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #111827;
+      }
+      .modal-close {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #9ca3af;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .modal-close:hover {
+        background: #f3f4f6;
+        color: #111827;
+      }
+
+      .receipt-number {
+        font-family: "Courier New", monospace;
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+        text-align: center;
+      }
+      .order-detail-list {
+        background: #f9fafb;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+        font-family: "Courier New", monospace;
+      }
+      .order-item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 6px 0;
+        border-bottom: 1px dashed #e5e7eb;
+      }
+      .order-item-row:last-child {
+        border-bottom: none;
+      }
+      .order-item-name {
+        font-weight: 600;
+        flex: 1;
+        margin-right: 12px;
+      }
+      .order-item-price {
+        font-weight: 700;
+        color: #4b5563;
+      }
+
+      .status-select-container {
+        margin-bottom: 20px;
+      }
+      .status-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .status-select {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        background-color: white;
+        color: #111827;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em;
+      }
+      .status-select:hover {
+        border-color: #d1d5db;
+      }
+      .status-select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .save-btn {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        transition: all 0.2s;
+      }
+      .save-btn:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -2px rgba(16, 185, 129, 0.3);
+      }
+
+      /* --- Search View Styles --- */
+      .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: 100%;
+      }
+
+      .search-form-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .search-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 16px;
+        align-items: end;
+      }
+
+      .search-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .search-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4b5563;
+      }
+
+      /* Modern Table Styles */
+      .table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9rem;
+      }
+
+      .modern-table th {
+        background: #f9fafb;
+        color: #6b7280;
+        font-weight: 600;
+        padding: 16px;
+        text-align: left;
+        border-bottom: 2px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+      }
+
+      .modern-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        color: #1f2937;
+      }
+
+      .modern-table tr:hover td {
+        background: #f9fafb;
+        cursor: pointer;
+      }
+
+      .modern-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .text-right {
+        text-align: right;
+      }
+      .font-mono {
+        font-family: "Inter", "Noto Sans JP", sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      /* Status Badges */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .badge.status-unpaid {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      .badge.status-authorized {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+      .badge.status-preparing {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .badge.status-ready {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+      .badge.status-completed {
+        background-color: #f3f4f6;
+        color: #374151;
+      }
+      .badge.status-abandoned {
+        background-color: #e5e7eb;
+        color: #6b7280;
+      }
+      .badge.status-canceled {
+        background-color: #1f2937;
+        color: #f9fafb;
+      }
+
+      /* --- Mobile Table (Card View) --- */
+      @media (max-width: 768px) {
+        .search-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .search-grid > .search-group:first-child {
+          grid-column: auto;
+        }
+        .search-form-card {
+          padding: 12px;
+        }
+
+        .modern-table thead {
+          display: none;
+        }
+
+        .modern-table,
+        .modern-table tbody,
+        .modern-table tr,
+        .modern-table td {
+          display: block;
+          width: 100%;
+        }
+
+        .modern-table tr {
+          margin-bottom: 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background: white;
+          padding: 12px;
+        }
+
+        .modern-table td {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid #f3f4f6;
+          text-align: right;
+        }
+
+        .modern-table td:last-child {
+          border-bottom: none;
+        }
+
+        .modern-table td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 0.8rem;
+          margin-right: 12px;
+          white-space: nowrap;
+        }
+
+        /* Adjust specific columns */
+        .modern-table td[data-label="商品内容"] {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .modern-table td[data-label="商品内容"]::after {
+          /* Move content to next line if needed, but flex-col handles it */
+          text-align: left;
+        }
+      }
+
+      /* Use dvh (dynamic viewport height) for Safari compatibility */
+      @supports (height: 100dvh) {
+        body {
+          height: 100dvh;
+        }
+      }
+
+      /* --- Tablet (1024px以下): サイドバーを下部ナビに変換 --- */
+      @media (max-width: 1024px) {
+        body {
+          overflow: hidden;
+        }
+
+        .top-bar {
+          height: 48px;
+          padding: 0 12px;
+        }
+        .brand {
+          font-size: 0.95rem;
+          gap: 6px;
+        }
+        .store-badge {
+          font-size: 0.65rem;
+          padding: 2px 6px;
+        }
+        .user-info {
+          font-size: 0.7rem;
+          gap: 8px;
+        }
+        .user-info #user-email {
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .app-container {
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        /* Sidebar → Bottom Navigation Bar */
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          border-right: none;
+          border-top: 1px solid #e5e7eb;
+          padding: 4px 8px;
+          gap: 4px;
+          order: 2; /* Move below main content */
+          flex-shrink: 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          justify-content: space-around;
+          background: #fff;
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .nav-item {
+          padding: 8px 12px;
+          font-size: 0.7rem;
+          flex-direction: column;
+          gap: 2px;
+          white-space: nowrap;
+          min-width: fit-content;
+          text-align: center;
+        }
+        .nav-icon {
+          font-size: 1.3rem;
+        }
+
+        /* Main Content: Ensure scrollability */
+        .main-content {
+          order: 1;
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding: 16px;
+          min-height: 0; /* Critical for flex children to shrink */
+        }
+
+        .view-section {
+          min-height: unset;
+        }
+
+        /* Summary Row: 2x2 grid on tablet */
+        .summary-row {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        /* Analysis Card grid: stack vertically */
+        .analysis-section {
+          grid-template-columns: 1fr;
+        }
+
+        /* Charts: stack vertically */
+        .main-content > .view-section > div[style*="display: flex; gap: 20px"] {
+          flex-direction: column !important;
+        }
+
+        /* Search grid: 2-column on tablet */
+        .search-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .search-grid > .search-group:first-child {
+          grid-column: 1 / -1;
+        }
+
+        /* Search form card: tighter padding */
+        .search-form-card {
+          padding: 16px;
+        }
+
+        /* Form elements: larger touch targets */
+        .search-form-card .input-field,
+        .search-form-card select {
+          font-size: 16px; /* Prevent iOS zoom on focus */
+        }
+
+        /* Search table: smaller text */
+        table {
+          font-size: 0.8rem;
+        }
+
+        /* Pulse chart controls */
+        .pulse-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      /* --- Small Tablet & Phone (768px以下) --- */
+      @media (max-width: 768px) {
+        .top-bar {
+          height: 44px;
+          padding: 0 10px;
+        }
+        .brand {
+          font-size: 0.85rem;
+        }
+
+        .main-content {
+          padding: 12px;
+          gap: 12px;
+        }
+
+        .summary-card {
+          padding: 12px;
+        }
+        .summary-value {
+          font-size: 1.2rem;
+        }
+
+        /* Card padding */
+        .card {
+          padding: 12px;
+        }
+        .analysis-card {
+          padding: 16px;
+        }
+
+        /* Pulse chart height */
+        .pulse-chart-card {
+          padding: 16px;
+        }
+
+        /* Items grid */
+        .items-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        /* App grid links */
+        .app-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      /* --- Phone (480px以下) --- */
+      @media (max-width: 480px) {
+        .top-bar {
+          height: 40px;
+          padding: 0 8px;
+        }
+        .brand {
+          font-size: 0.8rem;
+        }
+        .logout-btn {
+          padding: 4px 8px;
+          font-size: 0.7rem;
+        }
+
+        .main-content {
+          padding: 8px;
+        }
+
+        /* Summary row: single column on phones */
+        .summary-row {
+          grid-template-columns: 1fr;
+        }
+
+        /* Items grid: single column */
+        .items-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .app-grid {
+          grid-template-columns: 1fr;
+        }
+
+        /* Sidebar nav items */
+        .nav-item {
+          font-size: 0.6rem;
+          padding: 6px 8px;
+        }
+        .nav-icon {
+          font-size: 1.1rem;
+        }
+      }
+
+      /* --- Live Feed Styles --- */
+      .live-feed-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .live-feed-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .live-feed-item:last-child {
+        border-bottom: none;
+      }
+      .feed-icon {
+        width: 36px;
+        height: 36px;
+        background: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #6b7280;
+        margin-right: 12px;
+        flex-shrink: 0;
+      }
+      .feed-content {
+        flex: 1;
+        min-width: 0; /* for truncation */
+      }
+      .feed-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .feed-time {
+        font-size: 0.75rem;
+        color: #9ca3af;
+      }
+      .feed-amount {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1f2937;
+        margin-left: 12px;
+        white-space: nowrap;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error Overlay -->
+
+    <!-- Error Overlay -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
+    <!-- Error Overlay -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:inherit;">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+      <div id="step-google" class="auth-card">
+        <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px">
+          ポータル
+        </h1>
+        <p style="color: #6b7280; margin-bottom: 4px">南陵高校から配布された<br><strong style="color: #10b981;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください</p>
+        <button
+          id="btn-google-login"
+          class="btn-primary"
+          style="
+            width: 100%;
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+          "
+        >
+          <span style="font-weight: bold">G</span> Googleでログイン
+        </button>
+        <p
+          id="google-error"
+          style="color: red; margin-top: 12px; font-size: 0.9rem"
+        ></p>
+
+        <!-- Popup Blocked Guidance -->
+        <div id="popup-blocked-guidance" class="popup-blocked-warning">
+          <h3>⚠️ ポップアップがブロックされました</h3>
+          <p>
+            ブラウザの設定により、ログイン画面（ポップアップ）の表示がブロックされました。
+          </p>
+          <div style="background: rgba(245,158,11,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 0.85rem;">解除方法：</p>
+            <ol style="margin-bottom: 0;">
+              <li>アドレスバー（URLバー）の右端にある「ブロックアイコン」をクリック。</li>
+              <li><strong>「ポップアップとリダイレクトを常に許可」</strong>を選択して完了をクリック。</li>
+              <li>下の「再試行」ボタンを押してください。</li>
+            </ol>
+          </div>
+          <p style="font-size: 0.8rem; color: #78350f; font-style: italic;">
+            ※ LINEやInstagram内ブラウザでは正常に動作しません。右上のメニューから「ブラウザで開く」を選択してください。
+          </p>
+          <button id="btn-retry-login" class="btn-redirect" style="background: #374151;">
+            設定を完了したので再試行する
+          </button>
+        </div>
+      </div>
+
+      <div id="step-store" class="auth-card" style="display: none">
+        <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px">
+          店舗ログイン
+        </h1>
+        <div
+          id="store-select-wrapper"
+          style="margin-bottom: 16px; text-align: left"
+        >
+          <label style="font-size: 0.8rem; font-weight: bold"
+            >ログインする団体</label
+          >
+          <select id="store-select" class="input-field" style="margin-top: 4px">
+            <option value="" disabled selected>読み込み中...</option>
+          </select>
+        </div>
+        <div style="position: relative; width: 100%">
+          <input
+            type="password"
+            id="store-pass"
+            class="input-field"
+            placeholder="パスワード"
+            style="padding-right: 40px"
+          />
+          <button
+            type="button"
+            id="toggle-store-pass"
+            style="
+              position: absolute;
+              right: 10px;
+              top: 22px;
+              transform: translateY(-50%);
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: #6b7280;
+              font-size: 1.2rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0;
+            "
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+              <path
+                d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"
+              />
+              <path
+                d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"
+              />
+              <line x1="2" x2="22" y1="2" y2="22" />
+            </svg>
+          </button>
+        </div>
+        <button
+          id="btn-store-login"
+          class="btn-primary"
+          style="width: 100%; margin-top: 10px; background: #111827"
+        >
+          ポータルへ移動
+        </button>
+        <p
+          id="store-error"
+          style="color: red; margin-top: 12px; font-size: 0.9rem"
+        ></p>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" style="display: none; flex-direction: column; height: 100%">
+      <div class="top-bar">
+        <div class="brand">
+          <span>店舗管理ポータル</span>
+          <span id="header-store-name" class="store-badge">---</span>
+        </div>
+        <div class="user-info">
+          <span id="user-email"></span>
+
+          <button class="logout-btn" onclick="logout()">ログアウト</button>
+        </div>
+      </div>
+
+      <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+          <div class="nav-item active" onclick="switchView('top')">
+            <span class="nav-icon">🏠</span> トップ
+          </div>
+          <div class="nav-item" onclick="switchView('items')">
+            <span class="nav-icon">🍔</span> 商品管理
+          </div>
+          <div class="nav-item" onclick="switchView('sales')">
+            <span class="nav-icon">📊</span> 売上
+          </div>
+          <div class="nav-item" onclick="switchView('search')">
+            <span class="nav-icon">🔍</span> 注文検索
+          </div>
+          <div class="nav-item" onclick="switchView('training')">
+            <span class="nav-icon">🎓</span> トレーニング
+          </div>
+        </div>
+
+        <div class="main-content">
+          <!-- 1. Top View -->
+          <div id="view-top" class="view-section active">
+            <h2 style="margin: 0">ページ</h2>
+            <div class="app-grid">
+              <a href="#" id="link-pos" class="app-link-card">
+                <span class="app-icon">📱</span>
+                <span class="app-title">POSレジ</span>
+                <span class="app-desc">注文・会計画面へ</span>
+              </a>
+              <a href="#" id="link-kitchen" class="app-link-card">
+                <span class="app-icon">👨‍🍳</span>
+                <span class="app-title">キッチンモニター</span>
+                <span class="app-desc">厨房モニター</span>
+              </a>
+              <a href="#" id="link-monitor" class="app-link-card">
+                <span class="app-icon">📺</span>
+                <span class="app-title">呼び出しモニター</span>
+                <span class="app-desc">呼び出しモニター</span>
+              </a>
+              <a href="#" id="link-presenter" class="app-link-card">
+                <span class="app-icon">🎁</span>
+                <span class="app-title">プレゼンターモニター</span>
+                <span class="app-desc">商品提供口</span>
+              </a>
+              <a
+                href="#"
+                id="link-spreadsheet"
+                class="app-link-card"
+                target="_blank"
+                style="
+                  display: none;
+                  background: #ecfdf5;
+                  border-color: #10b981;
+                "
+              >
+                <span class="app-icon" style="color: #10b981">📈</span>
+                <span class="app-title" style="color: #065f46"
+                  >売上スプレッドシート</span
+                >
+                <span class="app-desc" style="color: #047857"
+                  >自動記録シートを開く</span
+                >
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. Items View -->
+          <div id="view-items" class="view-section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h2 style="margin: 0">商品管理</h2>
+              <button class="btn-primary" onclick="openItemModal()">
+                ＋ 新規商品を追加
+              </button>
+            </div>
+
+            <div id="items-grid" class="items-grid">
+              <!-- Items rendered here -->
+              <div
+                style="
+                  grid-column: 1/-1;
+                  text-align: center;
+                  padding: 40px;
+                  color: #9ca3af;
+                "
+              >
+                商品を読み込み中...
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Sales View -->
+          <div id="view-sales" class="view-section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 10px;
+              "
+            >
+              <h2 style="margin: 0">売上状況</h2>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  background: white;
+                  padding: 5px 12px;
+                  border-radius: 8px;
+                  box-shadow: var(--shadow);
+                "
+              >
+                <label
+                  style="font-size: 0.8rem; font-weight: bold; color: #6b7280"
+                  >表示日:</label
+                >
+                <input
+                  type="date"
+                  id="sales-date-input"
+                  class="input-field"
+                  style="
+                    margin-bottom: 0;
+                    border: none;
+                    padding: 5px;
+                    background: transparent;
+                    font-weight: 600;
+                  "
+                />
+              </div>
+            </div>
+
+            <div class="summary-row">
+              <div class="summary-card">
+                <div class="summary-title">
+                  売上
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      期間内の売上合計金額です。<br />（キャンセルされた注文は含まれません）
+                    </div>
+                  </div>
+                </div>
+                <div class="summary-value val-money" id="sales-total">
+                  ¥0
+                  <span id="hoh-sales" class="hoh-badge hoh-neutral">--</span>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-title">
+                  注文数
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      完了した会計の回数です。<br />※商品点数ではなく、レジを通った回数を表します。
+                    </div>
+                  </div>
+                </div>
+                <div class="summary-value" id="sales-count">
+                  0 <span id="hoh-count" class="hoh-badge hoh-neutral">--</span>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-title">
+                  客単価
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1人のお客様が1回のお会計で支払った平均金額です。<br />(売上合計
+                      ÷ 注文回数)
+                    </div>
+                  </div>
+                </div>
+                <div class="summary-value" id="sales-avg">¥0</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-title">
+                  セット率
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1 回の注文で購入された平均商品数です。<br />この数字が高いほど、セット販売や合わせ買いが成功しています。
+                    </div>
+                  </div>
+                </div>
+                <div class="summary-value" id="sales-ipt">0品</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap">
+              <div
+                class="card"
+                style="
+                  flex: 2;
+                  min-height: fit-content;
+                  max-width: 500px;
+                  margin: 0 auto;
+                  width: 100%;
+                "
+              >
+                <h3 style="margin-top: 0; font-size: 0.75rem; color: #6b7280">
+                  時間別売上 & 注文数
+                </h3>
+                <div style="flex: 1; position: relative">
+                  <canvas id="chart-hourly"></canvas>
+                </div>
+              </div>
+              <div
+                class="card"
+                style="
+                  flex: 2;
+                  min-height: fit-content;
+                  max-width: 500px;
+                  margin: 0 auto;
+                  width: 100%;
+                "
+              >
+                <h3 style="margin-top: 0; font-size: 0.75rem; color: #6b7280">
+                  累積売上推移
+                </h3>
+                <div style="flex: 1; position: relative">
+                  <canvas id="chart-cumulative"></canvas>
+                </div>
+              </div>
+              <div
+                class="card"
+                style="
+                  flex: 1;
+                  min-height: fit-content;
+                  max-width: 500px;
+                  margin: 0 auto;
+                  width: 100%;
+                "
+              >
+                <h3 style="margin-top: 0; font-size: 0.9rem; color: #6b7280">
+                  商品別売上
+                </h3>
+                <div style="flex: 1; position: relative">
+                  <canvas id="chart-products"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="analysis-section">
+              <!-- 瞬間風速 (Real-time Pace) -->
+              <div class="analysis-card">
+                <h4>
+                  <span>🔥</span> 直近30分の人気
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      直近30分間に売れた商品のランキングです。<br />「今」何が売れているかを把握し、調理優先度や呼び込みに活用してください。
+                    </div>
+                  </div>
+                </h4>
+                <ul class="rank-list" id="realtime-ranking">
+                  <li style="color: #9ca3af">データなし</li>
+                </ul>
+              </div>
+              <!-- 併売分析 (Basket) -->
+              <div class="analysis-card">
+                <h4>
+                  <span>📊</span> 最強の組み合わせ
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      一緒に買われることが多い商品の組み合わせランキングです。<br />セット販売の提案や、メニュー配置の参考にしてください。
+                    </div>
+                  </div>
+                </h4>
+                <ul class="rank-list" id="combo-ranking">
+                  <li style="color: #9ca3af">データなし</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Live Feed (New) -->
+            <div class="card" style="margin-top: 20px">
+              <h3
+                style="
+                  margin-top: 0;
+                  font-size: 1rem;
+                  color: #111827;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span>最近の注文 (Live Feed)</span>
+                <span style="font-size: 0.8rem; color: #10b981"
+                  >⚡️ Realtime</span
+                >
+              </h3>
+              <p style="color: #6b7280; font-size: 0.8rem; margin-bottom: 12px">
+                直近20件の販売履歴
+              </p>
+              <ul id="live-feed-list" class="live-feed-list">
+                <li style="color: #9ca3af; text-align: center">
+                  データ読み込み中...
+                </li>
+              </ul>
+            </div>
+
+            <!-- New: Timeline Inspector (Pulse Chart) -->
+            <div class="pulse-chart-card">
+              <div class="pulse-header">
+                <div class="pulse-title">
+                  <span>📡</span> 24h トレンド詳細 (1分単位)
+                  <div class="help-container" onclick="toggleTooltip(this)">
+                    <span class="help-icon">?</span>
+                    <div class="tooltip-text">
+                      1分単位の精密な売上推移グラフです。<br />マウスや指で直接ドラッグして、ピーク時の波を直感的に分析できます。
+                    </div>
+                  </div>
+                </div>
+                <div class="zoom-controls">
+                  <button class="zoom-btn" onclick="moveTimeline(-1)">◀</button>
+                  <button class="zoom-btn" onclick="zoomTimeline(0.5)">
+                    <span>➕</span> 拡大
+                  </button>
+                  <button class="zoom-btn" onclick="zoomTimeline(2)">
+                    <span>➖</span> 縮小
+                  </button>
+                  <button class="zoom-btn" onclick="moveTimeline(1)">▶</button>
+                  <button class="zoom-btn" onclick="resetTimeline()">
+                    リセット
+                  </button>
+                </div>
+                <div id="pulse-range-label" class="pulse-range-label">
+                  8:00 - 18:00
+                </div>
+              </div>
+              <div style="height: 300px; position: relative">
+                <canvas id="chart-detailed-pulse"></canvas>
+              </div>
+              <p
+                style="
+                  margin-top: 16px;
+                  color: #6b7280;
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                "
+              >
+                ※拡大ボタンで注文の「波」をズームして分析できます。左右ボタンで時間を移動します。
+              </p>
+            </div>
+          </div>
+
+          <!-- 4. Search View -->
+          <div id="view-search" class="view-section">
+            <div class="search-container">
+              <!-- Search Form -->
+              <div class="search-form-card">
+                <div class="search-grid">
+                  <div class="search-group">
+                    <label class="search-label" for="search-keyword"
+                      >キーワード検索</label
+                    >
+                    <input
+                      type="text"
+                      id="search-keyword"
+                      class="input-field"
+                      placeholder="レシート番号 No..."
+                      style="margin-bottom: 0"
+                    />
+                  </div>
+                  <div class="search-group">
+                    <label class="search-label" for="search-date">日付</label>
+                    <input
+                      type="date"
+                      id="search-date"
+                      class="input-field"
+                      style="margin-bottom: 0"
+                    />
+                  </div>
+                  <div class="search-group">
+                    <label class="search-label" for="search-status"
+                      >ステータス</label
+                    >
+                    <div style="position: relative">
+                      <select
+                        id="search-status"
+                        class="input-field"
+                        style="
+                          margin-bottom: 0;
+                          appearance: none;
+                          cursor: pointer;
+                        "
+                      >
+                        <option value="all">すべて</option>
+                        <option value="unpaid">POS注文済み (未会計)</option>
+                        <option value="active">調理中・呼出</option>
+                        <option value="completed">受取完了</option>
+                        <option value="abandoned">受取期限切れ</option>
+                        <option value="canceled">キャンセル</option>
+                      </select>
+                      <!-- Dropdown Arrow -->
+                      <div
+                        style="
+                          position: absolute;
+                          right: 12px;
+                          top: 50%;
+                          transform: translateY(-50%);
+                          pointer-events: none;
+                          color: #6b7280;
+                          font-size: 0.8rem;
+                        "
+                      >
+                        ▼
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Results Table -->
+              <div class="table-wrapper">
+                <div style="overflow-y: auto; flex: 1">
+                  <table id="search-table" class="modern-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 120px">番号</th>
+                        <th style="width: 100px">時刻</th>
+                        <th>内容</th>
+                        <th style="width: 120px">ステータス</th>
+                        <th style="width: 100px" class="text-right">金額</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Rendered via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Training View -->
+          <div id="view-training" class="view-section">
+            <div class="card" style="text-align: center; padding: 60px">
+              <h2 style="font-size: 2rem; margin-bottom: 20px">
+                🎓 トレーニングモード
+              </h2>
+              <p style="color: #6b7280; margin-bottom: 40px">
+                ここでは従業員・生徒が模擬注文を作成して練習することができます。<br />（作成された注文は売上に計上されません）
+              </p>
+              <button
+                class="btn-primary"
+                style="font-size: 1.2rem; padding: 16px 32px"
+                onclick="openTraining()"
+              >
+                トレーニングポータルへ移動
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Bottom Nav (Mobile) -->
+      <div class="bottom-nav">
+        <div class="bottom-nav-item active" onclick="switchView('top')">
+          <span class="bottom-nav-icon">🏠</span> <span>トップ</span>
+        </div>
+        <div class="bottom-nav-item" onclick="switchView('items')">
+          <span class="bottom-nav-icon">🍔</span> <span>商品</span>
+        </div>
+        <div class="bottom-nav-item" onclick="switchView('sales')">
+          <span class="bottom-nav-icon">📊</span> <span>売上</span>
+        </div>
+        <div class="bottom-nav-item" onclick="switchView('search')">
+          <span class="bottom-nav-icon">🔍</span> <span>検索</span>
+        </div>
+        <div class="bottom-nav-item" onclick="switchView('training')">
+          <span class="bottom-nav-icon">🎓</span> <span>練習</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Edit/Add Modal -->
+    <div id="item-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3
+          id="modal-title"
+          style="
+            margin-top: 0;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+          "
+        >
+          商品編集
+        </h3>
+        <input type="hidden" id="edit-id" />
+
+        <div style="margin-bottom: 15px">
+          <label
+            style="
+              font-weight: bold;
+              font-size: 0.85rem;
+              display: block;
+              margin-bottom: 5px;
+            "
+            >商品名</label
+          >
+          <input
+            type="text"
+            id="edit-name"
+            class="input-field"
+            style="margin-bottom: 0"
+          />
+        </div>
+
+        <div style="margin-bottom: 15px">
+          <label
+            style="
+              font-weight: bold;
+              font-size: 0.85rem;
+              display: block;
+              margin-bottom: 5px;
+            "
+            >価格 (円)</label
+          >
+          <input
+            type="number"
+            id="edit-price"
+            class="input-field"
+            style="margin-bottom: 0"
+          />
+        </div>
+
+        <div style="margin-bottom: 15px">
+          <label
+            style="
+              font-weight: bold;
+              font-size: 0.85rem;
+              display: block;
+              margin-bottom: 5px;
+            "
+            >説明文</label
+          >
+          <textarea
+            id="edit-desc"
+            class="input-field"
+            style="height: 100px; resize: none; margin-bottom: 0"
+          ></textarea>
+        </div>
+
+        <div style="margin-bottom: 15px">
+          <label
+            style="
+              font-weight: bold;
+              font-size: 0.85rem;
+              display: block;
+              margin-bottom: 5px;
+            "
+            >商品画像</label
+          >
+          <input
+            type="file"
+            id="edit-image"
+            class="input-field"
+            style="margin-bottom: 0"
+          />
+        </div>
+
+        <div style="margin-bottom: 20px">
+          <label
+            style="
+              font-weight: bold;
+              font-size: 0.85rem;
+              display: block;
+              margin-bottom: 10px;
+            "
+            >トッピング・オプション</label
+          >
+          <div id="edit-toppings-container"></div>
+          <button
+            type="button"
+            class="btn-sm"
+            style="
+              background: #f3f4f6;
+              color: #4b5563;
+              border: 1px solid #d1d5db;
+              margin-top: 8px;
+              width: 100%;
+              height: 36px;
+              font-weight: 600;
+            "
+            onclick="addToppingInput()"
+          >
+            ＋ オプションを追加
+          </button>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+            border-top: 2px solid #f3f4f6;
+            padding-top: 20px;
+          "
+        >
+          <button
+            onclick="deleteItem()"
+            style="
+              background: var(--danger-color);
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 6px;
+              cursor: pointer;
+              margin-right: auto;
+            "
+          >
+            削除
+          </button>
+          <button
+            onclick="closeItemModal()"
+            style="
+              background: #f3f4f6;
+              border: 1px solid #d1d5db;
+              color: #374151;
+              padding: 10px 20px;
+              border-radius: 6px;
+              cursor: pointer;
+            "
+          >
+            キャンセル
+          </button>
+          <button
+            id="btn-save-item"
+            onclick="saveItem()"
+            class="btn-primary"
+            style="padding: 10px 30px"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Detail Modal (Reused from sales-report) -->
+    <div id="order-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">注文詳細</div>
+          <button class="modal-close" onclick="closeOrderModal()">×</button>
+        </div>
+
+        <span id="order-receipt-no" class="receipt-number">#---</span>
+
+        <div id="order-items-list" class="order-detail-list">
+          <!-- Items populated by JS -->
+        </div>
+
+        <div class="status-select-container">
+          <label class="status-label">ステータス変更</label>
+          <select id="order-status-select" class="status-select">
+            <option value="unpaid_at_pos">🔴 POS注文済み (未会計)</option>
+            <option value="authorized">🔵 モバイルセルフ注文済み</option>
+            <option value="cooking">🔥 調理中</option>
+            <option value="ready_to_serve">🟠 調理完了 (呼び出し前)</option>
+            <option value="ready_for_pickup">🟢 お呼び出し中</option>
+            <option value="completed_at_store">⚫️ 受取完了</option>
+            <option value="abandoned_and_paid">🗑️ 受取期限切れ (廃棄)</option>
+            <option value="cancelled">🚫 キャンセル</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button class="save-btn" onclick="updateOrderStatus()">
+            変更を保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+        getDocs,
+        getDoc,
+        doc,
+        updateDoc,
+        addDoc,
+        deleteDoc,
+        Timestamp,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getStorage,
+        ref,
+        uploadBytes,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket:
+          "nanryosai-2026-a4091.firebasestorage.app" /* Corrected bucket domain usually ends with appspot logging elsewhere, but user config had firebasestorage.app or appspot.com. Using generic logic. */,
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      const app = initializeApp(firebaseConfig);
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+
+      const auth = getAuth(app);
+
+      const db = getFirestore(app);
+      const storage = getStorage(app);
+      const functions = getFunctions(app, "asia-northeast1");
+
+      // コンソールからの手動実行用 (Admin/Debug用)
+      window.firebaseFunctions = functions;
+      window.httpsCallable = httpsCallable;
+
+      // State
+      let currentStoreId = null;
+      let storeData = null;
+      let ordersUnsubscribe = null;
+      let itemsUnsubscribe = null;
+      let ordersData = [];
+      let itemsData = [];
+      let hourlyChart = null;
+      let productChart = null;
+      let cumulativeChart = null;
+      let pulseChart = null;
+      let pulseChartRange = { start: 480, end: 1080 }; // 8:00 - 18:00 (1分単位: 60 * 8 - 60 * 18)
+      let pulseDataCache = null;
+
+      // URL parameters for Auth Hub routing
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnUrl = urlParams.get("return");
+      const storeParam = urlParams.get("s");
+
+      // Handle redirect result (signInWithPopup の popup-blocked フォールバック用)
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result && result.user) {
+            console.log("[Portal Auth] Redirect login success:", result.user.email);
+          }
+        })
+        .catch((error) => {
+          if (error.code === "auth/popup-closed-by-user") return;
+          console.error("Redirect Login Error:", error);
+          document.getElementById("google-error").innerText = error.message;
+        });
+
+      // --- Tooltip Logic ---
+      window.toggleTooltip = (element) => {
+        event.stopPropagation(); // Stop bubble to document
+        const container = element;
+        const isActive = container.classList.contains("active");
+
+        // Close others
+        document.querySelectorAll(".help-container.active").forEach((el) => {
+          el.classList.remove("active");
+        });
+
+        if (!isActive) {
+          container.classList.add("active");
+        }
+      };
+
+      // Close tooltips on outside click
+      document.addEventListener("click", () => {
+        document.querySelectorAll(".help-container.active").forEach((el) => {
+          el.classList.remove("active");
+        });
+      });
+
+      // --- Navigation ---
+      window.switchView = (viewName) => {
+        // Update Sidebar
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        // Find the nav item - simply by index or adding ID. For now assume order.
+        // A bit hacky but simple selector:
+        const navs = document.querySelectorAll(".nav-item");
+        if (viewName === "top") navs[0].classList.add("active");
+        if (viewName === "items") navs[1].classList.add("active");
+        if (viewName === "sales") navs[2].classList.add("active");
+        if (viewName === "search") navs[3].classList.add("active");
+        if (viewName === "training") navs[4].classList.add("active");
+
+        // Update Bottom Nav
+        document
+          .querySelectorAll(".bottom-nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        const bottoms = document.querySelectorAll(".bottom-nav-item");
+        if (bottoms.length > 0) {
+          if (viewName === "top") bottoms[0].classList.add("active");
+          if (viewName === "items") bottoms[1].classList.add("active");
+          if (viewName === "sales") bottoms[2].classList.add("active");
+          if (viewName === "search") bottoms[3].classList.add("active");
+          if (viewName === "training") bottoms[4].classList.add("active");
+        }
+
+        // Update Views
+        document
+          .querySelectorAll(".view-section")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById(`view-${viewName}`).classList.add("active");
+
+        // Trigger renders if needed
+        if (viewName === "sales") renderSalesDashboard();
+        if (viewName === "search") renderSearchTable();
+      };
+
+      // ドメインチェックヘルパー
+      const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+      const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+      function isAuthorizedUser(user) {
+        if (!user || !user.email) return false;
+        return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+      }
+      function showDomainError(user) {
+        const overlay = document.getElementById("domain-error-overlay");
+        const emailEl = document.getElementById("domain-error-email");
+        if (emailEl && user) emailEl.textContent = `ログイン中: ${user.email}`;
+        overlay.style.display = "flex";
+        document.getElementById("auth-overlay").style.display = "none";
+      }
+      document.getElementById("btn-domain-logout").addEventListener("click", async () => {
+        await signOut(auth);
+        document.getElementById("domain-error-overlay").style.display = "none";
+        document.getElementById("auth-overlay").style.display = "flex";
+        document.getElementById("step-google").style.display = "block";
+        document.getElementById("step-store").style.display = "none";
+      });
+
+      // --- Auth Logic ---
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // ドメインチェック（最優先）
+          if (!isAuthorizedUser(user)) {
+            showDomainError(user);
+            return;
+          }
+          document.getElementById("step-google").style.display = "none";
+          document.getElementById("user-email").innerText = user.email; // FIX: Always show email
+
+          // Check Cached Login
+          const cachedId = localStorage.getItem("nanryosai_store_id");
+          // AUTO LOGIN IMPROVEMENT: If we have a cached ID, verify it exists (mentally) and just GO.
+          // We trust the local storage for friction reduction.
+          if (cachedId) {
+            currentStoreId = cachedId;
+            // We can skip the "step-store" screen entirely
+            // But we might want to fetch store name for the header.
+            // For now, let's just startApp and let listeners fetch data.
+            startApp();
+            return;
+          }
+
+          // Show Store Login only if no cache
+          document.getElementById("step-store").style.display = "block";
+          loadStoreOptions();
+        } else {
+          document.getElementById("auth-overlay").style.display = "flex";
+          document.getElementById("step-google").style.display = "block";
+          document.getElementById("step-store").style.display = "none";
+          document.getElementById("app").style.display = "none";
+        }
+      });
+
+      // アプリ内ブラウザ検出
+      function detectInAppBrowser() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        return (
+          ua.indexOf("FBAN") > -1 ||
+          ua.indexOf("FBAV") > -1 ||
+          ua.indexOf("Instagram") > -1 ||
+          ua.indexOf("Line/") > -1 ||
+          ua.indexOf("LINE/") > -1 ||
+          (ua.indexOf("wv") > -1 && ua.indexOf("Android") > -1)
+        );
+      }
+
+      document.getElementById("btn-google-login").onclick = () => {
+        // アプリ内ブラウザ警告
+        if (detectInAppBrowser()) {
+          const proceed = confirm(
+            "⚠️ アプリ内ブラウザが検出されました\n\n" +
+            "ログインに失敗する場合があります。\n" +
+            "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
+            "このまま続行しますか？"
+          );
+          if (!proceed) return;
+        }
+
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+
+        // Triple Fallback: Popup → Redirect → Error
+        signInWithPopup(auth, provider)
+          .then((result) => {
+            if (result && result.user) {
+              console.log("[Portal Auth] Popup login success:", result.user.email);
+            }
+          })
+          .catch(async (error) => {
+            if (error.code === "auth/popup-blocked") {
+              console.warn("[Portal Auth] Popup blocked, showing guidance...");
+              document.getElementById("popup-blocked-guidance").style.display = "block";
+              
+              // Re-trigger the same logic on retry
+              document.getElementById("btn-retry-login").onclick = () => {
+                document.getElementById("popup-blocked-guidance").style.display = "none";
+                document.getElementById("btn-google-login").click();
+              };
+              return;
+            }
+            if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+              return; // ユーザーがキャンセル
+            }
+            console.error("[Portal Auth] Login error:", error);
+            document.getElementById("google-error").innerText = error.message;
+          });
+      };
+
+      async function loadStoreOptions() {
+        const q = query(collection(db, "stores"), orderBy("teamName"));
+        const snap = await getDocs(q);
+        const select = document.getElementById("store-select");
+        select.innerHTML =
+          '<option value="" disabled selected>▼ 選択してください</option>';
+        snap.forEach((d) => {
+          const data = d.data();
+          const op = document.createElement("option");
+          op.value = d.id;
+          op.textContent = `${data.teamName} - ${data.name}`;
+          // op.dataset.password = data.password; // SECURITY FIX: Do not expose password in DOM
+          select.appendChild(op);
+        });
+
+        // If 's' param is present, pre-select it
+        if (storeParam) {
+          select.value = storeParam;
+        }
+      }
+
+      document.getElementById("btn-store-login").onclick = async () => {
+        const select = document.getElementById("store-select");
+        const pass = document.getElementById("store-pass").value;
+        const storeId = select.value;
+
+        if (!storeId || !pass) return;
+
+        const btn = document.getElementById("btn-store-login");
+        btn.disabled = true;
+        btn.innerText = "認証中...";
+        document.getElementById("store-error").innerText = "";
+
+        try {
+          const loginStore = httpsCallable(functions, "loginStore");
+          const result = await loginStore({ storeId: storeId, password: pass });
+
+          if (result.data.success) {
+            currentStoreId = storeId;
+            localStorage.setItem("nanryosai_store_id", currentStoreId);
+
+            // Custom Claimsを反映させるためにトークンを強制リフレッシュ
+            await auth.currentUser.getIdToken(true);
+
+            loadStoreData(currentStoreId).then(() => startApp());
+          }
+        } catch (e) {
+          console.error(e);
+          document.getElementById("store-error").innerText =
+            "パスワードが違います(サーバー認証)";
+          btn.disabled = false;
+          btn.innerText = "ポータルへ移動";
+        }
+      };
+
+      async function loadStoreData(id) {
+        // Placeholder: currently we just need the name
+        // real app would fetch doc(db, 'stores', id)
+        // But we already have logic to fetch all in loadStoreOptions?
+        // If cached, we might need to fetch.
+        // Let's rely on basic info for now.
+      }
+
+      window.logout = () => {
+        if (confirm("ログアウトしますか？")) {
+          signOut(auth);
+          localStorage.removeItem("nanryosai_store_id");
+          location.reload();
+        }
+      };
+
+      let prevDayData = { total: 0, count: 0 };
+
+      async function startApp() {
+        // If there's a return URL, redirect immediately instead of showing the portal
+        if (returnUrl) {
+          window.location.href = returnUrl;
+          return;
+        }
+
+        document.getElementById("auth-overlay").style.display = "none";
+        document.getElementById("app").style.display = "flex";
+
+        // 店舗情報の取得と表示の更新
+        try {
+          const storeRef = doc(db, "stores", currentStoreId);
+          const storeSnap = await getDoc(storeRef);
+
+          if (storeSnap.exists()) {
+            const data = storeSnap.data();
+            document.getElementById("header-store-name").innerText =
+              `${data.teamName} - ${data.name}`;
+
+            // スプレッドシートURLが存在する場合はリンクを表示
+            if (data.spreadsheetUrl) {
+              const linkSpreadsheet =
+                document.getElementById("link-spreadsheet");
+              if (linkSpreadsheet) {
+                linkSpreadsheet.href = data.spreadsheetUrl;
+                linkSpreadsheet.style.display = "block"; // CSSのデフォルトを適用
+              }
+            }
+          } else {
+            document.getElementById("header-store-name").innerText =
+              `ID: ${currentStoreId}`;
+          }
+        } catch (e) {
+          console.error("Store data load error:", e);
+          document.getElementById("header-store-name").innerText =
+            `ID: ${currentStoreId}`;
+        }
+
+        // Set up Links
+        document.getElementById("link-pos").href =
+          `pos.html?storeId=${currentStoreId}`;
+        document.getElementById("link-kitchen").href =
+          `kitchen.html?storeId=${currentStoreId}`;
+        document.getElementById("link-monitor").href =
+          `monitor.html?storeId=${currentStoreId}`;
+        document.getElementById("link-presenter").href =
+          `presenter.html?storeId=${currentStoreId}`;
+
+        setupRealtimeListeners();
+
+        // Set Date Picker to today (Local Time)
+        const now = new Date();
+        const localDate = new Date(
+          now.getTime() - now.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("search-date").value = localDate;
+        document.getElementById("sales-date-input").value = localDate;
+
+        // Default view
+        switchView("top");
+      }
+
+      function setupRealtimeListeners(targetDate = null) {
+        // 1. Items (Once is enough, but keep it clean)
+        if (itemsUnsubscribe) itemsUnsubscribe();
+        const qItems = query(
+          collection(db, "items"),
+          where("storeId", "==", currentStoreId),
+        );
+        itemsUnsubscribe = onSnapshot(qItems, (snap) => {
+          itemsData = [];
+          snap.forEach((d) => itemsData.push({ id: d.id, ...d.data() }));
+          renderItems();
+        });
+
+        // 2. Orders (By Date)
+        if (ordersUnsubscribe) ordersUnsubscribe();
+
+        const selectedDate = targetDate || new Date();
+        const start = new Date(selectedDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(selectedDate);
+        end.setHours(23, 59, 59, 999);
+
+        const qOrders = query(
+          collection(db, "orders"),
+          where("storeId", "==", currentStoreId),
+          where("createdAt", ">=", Timestamp.fromDate(start)),
+          where("createdAt", "<=", Timestamp.fromDate(end)),
+          orderBy("createdAt", "desc"),
+        );
+        ordersUnsubscribe = onSnapshot(qOrders, (snap) => {
+          ordersData = [];
+          snap.forEach((d) => ordersData.push({ id: d.id, ...d.data() }));
+          renderSalesDashboard();
+          renderSearchTable();
+        });
+
+        // Fetch Previous Day stats for DoD
+        const prevDate = new Date(selectedDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        fetchPreviousDayStats(prevDate);
+      }
+
+      async function fetchPreviousDayStats(date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        const q = query(
+          collection(db, "orders"),
+          where("storeId", "==", currentStoreId),
+          where("createdAt", ">=", Timestamp.fromDate(start)),
+          where("createdAt", "<=", Timestamp.fromDate(end)),
+        );
+
+        try {
+          const snap = await getDocs(q);
+          let total = 0;
+          let count = 0;
+          snap.forEach((doc) => {
+            const o = doc.data();
+            if (
+              o.status !== "cancelled" &&
+              o.status !== "canceled" &&
+              o.status !== "abandoned"
+            ) {
+              count++;
+              if (o.items) {
+                o.items.forEach((i) => {
+                  total += i.price * i.quantity;
+                });
+              }
+            }
+          });
+          prevDayData = { total, count };
+          renderSalesDashboard();
+        } catch (e) {
+          console.error("Failed to fetch prev day stats:", e);
+          prevDayData = { total: 0, count: 0 };
+          renderSalesDashboard();
+        }
+      }
+
+      // --- Items Logic ---
+      function renderItems() {
+        const grid = document.getElementById("items-grid");
+        grid.innerHTML = "";
+        itemsData.forEach((item) => {
+          const div = document.createElement("div");
+          div.className = "item-card";
+          const imgHtml = item.imageUrl
+            ? `<img src="${item.imageUrl}" class="item-img" alt="${item.name}">`
+            : `<div class="item-img">画像が登録されていません</div>`;
+
+          div.innerHTML = `
+                    ${imgHtml}
+                    <div class="item-body">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">¥${item.price}</div>
+                        <div class="item-actions-row">
+                             <button class="btn-sm btn-edit" onclick="openItemModal('${item.id}')">編集</button>
+                             <button class="btn-sm btn-toggle ${item.isAvailable ? "is-active" : "is-inactive"}" 
+                                 onclick="toggleItemStatus('${item.id}', ${!item.isAvailable})">
+                                 ${item.isAvailable ? "販売中" : "売切"}
+                             </button>
+                        </div>
+                    </div>
+                `;
+          grid.appendChild(div);
+        });
+      }
+
+      // --- Toppings Helpers ---
+      window.addToppingInput = (val = "") => {
+        const container = document.getElementById("edit-toppings-container");
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.gap = "8px";
+        div.style.marginBottom = "8px";
+        div.innerHTML = `
+                <input type="text" class="input-field topping-input" value="${val}" placeholder="トッピング名" style="margin-bottom:0; flex:1;">
+                <button type="button" onclick="this.parentElement.remove()" style="background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer; padding:0 12px;">削除</button>
+            `;
+        container.appendChild(div);
+      };
+
+      function getToppings() {
+        const inputs = document.querySelectorAll(".topping-input");
+        return Array.from(inputs)
+          .map((i) => i.value.trim())
+          .filter((v) => v);
+      }
+
+      window.openItemModal = (id = null) => {
+        const modal = document.getElementById("item-modal");
+        const title = document.getElementById("modal-title");
+        document.getElementById("edit-id").value = id || "";
+        document.getElementById("edit-toppings-container").innerHTML = "";
+
+        if (id) {
+          const item = itemsData.find((i) => i.id === id);
+          title.innerText = "商品編集";
+          document.getElementById("edit-name").value = item.name;
+          document.getElementById("edit-price").value = item.price;
+          document.getElementById("edit-desc").value = item.description || "";
+
+          if (item.allowedToppings) {
+            item.allowedToppings.forEach((t) => addToppingInput(t));
+          }
+        } else {
+          title.innerText = "新規商品追加";
+          document.getElementById("edit-name").value = "";
+          document.getElementById("edit-price").value = "";
+          document.getElementById("edit-desc").value = "";
+        }
+        modal.style.display = "flex";
+      };
+
+      window.closeItemModal = () =>
+        (document.getElementById("item-modal").style.display = "none");
+
+      window.saveItem = async () => {
+        const id = document.getElementById("edit-id").value;
+        const name = document.getElementById("edit-name").value;
+        const price = Number(document.getElementById("edit-price").value);
+        const desc = document.getElementById("edit-desc").value;
+        const file = document.getElementById("edit-image").files[0];
+        const toppings = getToppings();
+
+        if (!name || !price) return alert("必須項目を入力してください");
+
+        const btn = document.getElementById("btn-save-item");
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:inline-block; width:1rem; height:1rem; border:2px solid; border-radius:50%; border-right-color:transparent; animation:spin .75s linear infinite; margin-right:5px; vertical-align:text-bottom;"></span> 保存中...';
+        // Simple inline spinner style just in case bootstrap/css isn't fully loaded for it
+        if (!document.getElementById("spinner-style")) {
+          const style = document.createElement("style");
+          style.id = "spinner-style";
+          style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
+          document.head.appendChild(style);
+        }
+
+        let imageUrl = null;
+        if (file) {
+          try {
+            const compressedBlob = await compressImage(file);
+            // Change extension to .webp
+            const newFileName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, "")}.webp`;
+            const refStorage = ref(
+              storage,
+              `products/${currentStoreId}/${newFileName}`,
+            );
+
+            await uploadBytes(refStorage, compressedBlob, {
+              contentType: "image/webp",
+            });
+            imageUrl = await getDownloadURL(refStorage);
+          } catch (e) {
+            console.error("Compression/Upload failed:", e);
+            alert("画像の処理に失敗しました: " + e.message);
+            btn.disabled = false;
+            btn.innerText = originalText;
+            return;
+          }
+        }
+
+        /* Helper: Compress Image to WebP */
+        function compressImage(file) {
+          return new Promise((resolve, reject) => {
+            const maxWidth = 1200;
+            const quality = 0.8;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+              const img = new Image();
+              img.src = event.target.result;
+              img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                  height = Math.round(height * (maxWidth / width));
+                  width = maxWidth;
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                  (blob) => {
+                    if (!blob)
+                      return reject(new Error("Canvas to Blob failed"));
+                    resolve(blob);
+                  },
+                  "image/webp",
+                  quality,
+                );
+              };
+              img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+          });
+        }
+
+        const data = {
+          storeId: currentStoreId,
+          name,
+          price,
+          description: desc,
+          allowedToppings: toppings,
+          isAvailable: true, // Default true for new, should probably preserve if editing?
+        };
+
+        // logic to preserve isAvailable if editing
+        if (id) {
+          const existing = itemsData.find((i) => i.id === id);
+          if (existing) data.isAvailable = existing.isAvailable;
+        }
+
+        if (imageUrl) data.imageUrl = imageUrl;
+
+        try {
+          if (id) {
+            await updateDoc(doc(db, "items", id), data);
+          } else {
+            await addDoc(collection(db, "items"), data);
+          }
+          closeItemModal();
+        } catch (e) {
+          alert("Error: " + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+      };
+
+      window.deleteItem = async () => {
+        const id = document.getElementById("edit-id").value;
+        if (!id) return;
+        if (!confirm("本当に削除しますか？")) return;
+
+        try {
+          await deleteDoc(doc(db, "items", id));
+          closeItemModal();
+        } catch (e) {
+          alert("削除エラー: " + e.message);
+        }
+      };
+
+      window.toggleItemStatus = async (id, status) => {
+        await updateDoc(doc(db, "items", id), { isAvailable: status });
+      };
+
+      // --- Sales & Search Logic ---
+      function renderSalesDashboard() {
+        let total = 0;
+        let count = 0;
+        let totalItems = 0;
+        let salesByHour = Array(24).fill(0);
+        let countsByHour = Array(24).fill(0);
+        let salesByMin = Array(1440).fill(0); // 24h * 60m
+        let countsByMin = Array(1440).fill(0);
+        let productSales = {};
+        let productCounts = {};
+        let recentProducts = {};
+        let orderBaskets = [];
+
+        const now = new Date();
+        const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+
+        // HoH logic removed in favor of DoD (Daily)
+        // hohNowStart/hohPrevStart logic is kept for potential future use or just ignored
+        const hohNowStart = new Date(now.getTime() - 60 * 60 * 1000);
+        const hohPrevStart = new Date(now.getTime() - 120 * 60 * 1000);
+        let hohCurrentSales = 0,
+          hohCurrentCount = 0; // Not used for now, but keeping local var scope clean
+
+        const validOrders = ordersData.filter(
+          (o) =>
+            o.status !== "cancelled" &&
+            o.status !== "canceled" &&
+            o.status !== "abandoned",
+        );
+
+        validOrders.forEach((o) => {
+          count++;
+          let orderTotal = 0;
+          let basket = [];
+          if (o.items) {
+            o.items.forEach((i) => {
+              const sub = i.price * i.quantity;
+              orderTotal += sub;
+              totalItems += i.quantity;
+              if (!productSales[i.name]) productSales[i.name] = 0;
+              if (!productCounts[i.name]) productCounts[i.name] = 0;
+              productSales[i.name] += sub;
+              productCounts[i.name] += i.quantity;
+              basket.push(i.name);
+            });
+          }
+          total += orderTotal;
+          if (basket.length > 0) orderBaskets.push(basket);
+
+          if (o.createdAt) {
+            const d = o.createdAt.toDate();
+            const h = d.getHours();
+            const m = d.getMinutes();
+            salesByHour[h] += orderTotal;
+            countsByHour[h] += 1;
+
+            // 1-min slot
+            const slot = h * 60 + m;
+            salesByMin[slot] += orderTotal;
+            countsByMin[slot] += 1;
+
+            // Recent 30min products
+            if (d >= thirtyMinAgo) {
+              if (o.items)
+                o.items.forEach((i) => {
+                  if (!recentProducts[i.name]) recentProducts[i.name] = 0;
+                  recentProducts[i.name] += i.quantity;
+                });
+            }
+
+            // HoH logic (currently inactive but placeholder left)
+            if (d >= hohNowStart && d < now) {
+              hohCurrentSales += orderTotal;
+              hohCurrentCount += 1;
+            }
+          }
+        });
+
+        // Cumulative
+        let cumulativeSales = Array(24).fill(0);
+        let runningTotal = 0;
+        for (let h = 0; h < 24; h++) {
+          runningTotal += salesByHour[h];
+          cumulativeSales[h] = runningTotal;
+        }
+
+        // --- Update Summary Cards ---
+        const salesTotalEl = document.getElementById("sales-total");
+        if (salesTotalEl) {
+          salesTotalEl.innerHTML = `¥${total.toLocaleString()} ${renderHoHBadge(total, prevDayData.total)}`;
+        }
+
+        const salesCountEl = document.getElementById("sales-count");
+        if (salesCountEl) {
+          salesCountEl.innerHTML = `${count} ${renderHoHBadge(count, prevDayData.count)}`;
+        }
+        document.getElementById("sales-avg").innerText =
+          "¥" + (count ? Math.round(total / count) : 0).toLocaleString();
+        document.getElementById("sales-ipt").innerText =
+          (count ? (totalItems / count).toFixed(1) : "0") + "品";
+
+        // --- Realtime Ranking ---
+        const realtimeEl = document.getElementById("realtime-ranking");
+        const recentSorted = Object.entries(recentProducts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+        if (recentSorted.length > 0) {
+          realtimeEl.innerHTML = recentSorted
+            .map((r, i) => {
+              const medals = ["🥇", "🥈", "🥉"];
+              const medal = i < 3 ? medals[i] : `${i + 1}.`;
+              return `<li>${medal} ${r[0]} <span class="rank-badge" style="background:#fef3c7;color:#92400e;">${r[1]}個</span></li>`;
+            })
+            .join("");
+        } else {
+          realtimeEl.innerHTML =
+            '<li style="color:#9ca3af;">直近30分の注文なし</li>';
+        }
+
+        // --- Combo Ranking (Basket Analysis) ---
+        const comboEl = document.getElementById("combo-ranking");
+        const comboCounts = {};
+        orderBaskets.forEach((basket) => {
+          const unique = [...new Set(basket)];
+          for (let i = 0; i < unique.length; i++) {
+            for (let j = i + 1; j < unique.length; j++) {
+              const pair = [unique[i], unique[j]].sort().join(" & ");
+              if (!comboCounts[pair]) comboCounts[pair] = 0;
+              comboCounts[pair]++;
+            }
+          }
+        });
+        const comboSorted = Object.entries(comboCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+        if (comboSorted.length > 0) {
+          comboEl.innerHTML = comboSorted
+            .map((c, i) => {
+              const medals = ["🥇", "🥈", "🥉"];
+              const medal = i < 3 ? medals[i] : `${i + 1}.`;
+              return `<li>${medal} ${c[0]} <span class="rank-badge" style="background:#dbeafe;color:#1e40af;">${c[1]}回</span></li>`;
+            })
+            .join("");
+        } else {
+          comboEl.innerHTML = '<li style="color:#9ca3af;">データ不足</li>';
+        }
+
+        // --- Pulse Chart (Timeline Inspector) ---
+        pulseDataCache = countsByMin;
+        renderPulseChart();
+
+        // --- Live Feed ---
+        const feedEl = document.getElementById("live-feed-list");
+        if (feedEl) {
+          const feedOrders = ordersData
+            .filter(
+              (o) =>
+                o.status !== "cancelled" && o.status !== "abandoned_and_paid",
+            ) // Exclude cancelled/abandoned
+            .sort(
+              (a, b) =>
+                (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
+            )
+            .slice(0, 20);
+
+          if (feedOrders.length > 0) {
+            feedEl.innerHTML = feedOrders
+              .map((o) => {
+                const time = o.createdAt
+                  ? o.createdAt.toDate().toLocaleTimeString("ja-JP", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "--:--";
+                let total = 0;
+                let title = "商品なし";
+                if (o.items && o.items.length > 0) {
+                  o.items.forEach((i) => (total += i.price * i.quantity));
+                  title = o.items[0].name;
+                  if (o.items.length > 1) title += ` 他${o.items.length - 1}点`;
+                }
+                return `
+                <li class="live-feed-item">
+                  <div class="feed-icon">🛍️</div>
+                  <div class="feed-content">
+                    <div class="feed-title">${title}</div>
+                    <div class="feed-time">${time}</div>
+                  </div>
+                  <div class="feed-amount">+¥${total.toLocaleString()}</div>
+                </li>
+              `;
+              })
+              .join("");
+          } else {
+            feedEl.innerHTML =
+              '<li style="padding: 20px; text-align: center; color: #9ca3af;">データがありません</li>';
+          }
+        }
+
+        // --- Charts ---
+        if (window.hourlyChart) window.hourlyChart.destroy();
+        const ctxH = document.getElementById("chart-hourly").getContext("2d");
+        window.hourlyChart = new Chart(ctxH, {
+          type: "bar",
+          data: {
+            labels: Array.from({ length: 24 }, (_, i) => i),
+            datasets: [
+              {
+                label: "売上(円)",
+                data: salesByHour,
+                backgroundColor: "rgba(59, 130, 246, 0.5)",
+                borderColor: "rgba(59, 130, 246, 1)",
+                borderWidth: 1,
+                yAxisID: "y",
+                order: 2,
+              },
+              {
+                type: "line",
+                label: "注文数",
+                data: countsByHour,
+                borderColor: "#ef4444", // Red
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                borderWidth: 2,
+                pointRadius: 2,
+                yAxisID: "y1",
+                order: 1,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: { boxWidth: 10, font: { size: 10 } },
+              },
+            },
+            scales: {
+              x: { ticks: { font: { size: 9 } }, grid: { display: false } },
+              y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                ticks: { font: { size: 9 } },
+                grid: { color: "#f3f4f6" },
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                ticks: { stepSize: 1, font: { size: 9 } },
+                grid: { drawOnChartArea: false },
+              },
+            },
+          },
+        });
+
+        // Cumulative Chart
+        if (window.cumulativeChart) window.cumulativeChart.destroy();
+        const ctxC = document
+          .getElementById("chart-cumulative")
+          .getContext("2d");
+
+        // Determine cut-off hour:
+        // If viewing "Today", limit to current hour.
+        // If viewing past date, show all 24h.
+
+        // This logic depends on whether 'selectedDate' in setupRealtimeListeners matches 'today'.
+        // Since we don't have global 'selectedDate' easily accessible here without refactoring,
+        // let's use the input value.
+        const dateInputVal = document.getElementById("sales-date-input").value;
+        const currentDate = new Date();
+        const todayStr = new Date(
+          currentDate.getTime() - currentDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
+
+        let showUpTo = 24;
+        if (dateInputVal === todayStr) {
+          showUpTo = currentDate.getHours() + 1; // Show up to current hour (inclusive)
+        }
+
+        const cumulativeLabels = Array.from({ length: 24 }, (_, i) => i).slice(
+          0,
+          showUpTo,
+        );
+        const cumulativeData = cumulativeSales.slice(0, showUpTo);
+
+        window.cumulativeChart = new Chart(ctxC, {
+          type: "line",
+          data: {
+            labels: cumulativeLabels,
+            datasets: [
+              {
+                label: "累積売上(円)",
+                data: cumulativeData,
+                borderColor: "#10b981", // Green
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }, // Simple label
+            scales: {
+              x: { ticks: { font: { size: 9 } }, grid: { display: false } },
+              y: {
+                ticks: { font: { size: 9 } },
+                grid: { color: "#f3f4f6" },
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        const ctx = document.getElementById("chart-products").getContext("2d");
+        if (window.productChart) window.productChart.destroy();
+        // Updated Colors for better distinction
+        const distinctColors = [
+          "#3b82f6", // Blue 500
+          "#ef4444", // Red 500
+          "#10b981", // Emerald 500
+          "#f59e0b", // Amber 500
+          "#8b5cf6", // Violet 500
+          "#ec4899", // Pink 500
+          "#6366f1", // Indigo 500
+          "#14b8a6", // Teal 500
+        ];
+
+        window.productChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: Object.entries(productSales)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5)
+              .map((s) => s[0]),
+            datasets: [
+              {
+                data: Object.entries(productSales)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map((s) => s[1]),
+                backgroundColor: distinctColors,
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  boxWidth: 12,
+                  font: { size: 10 },
+                },
+              },
+              tooltip: {
+                enabled: false, // Disable default tooltip
+              },
+              datalabels: {
+                color: "#fff",
+                textAlign: "center",
+                font: {
+                  weight: "bold",
+                  size: 10,
+                },
+                formatter: (value, ctx) => {
+                  const total = ctx.chart._metasets[ctx.datasetIndex].total;
+                  const pct = ((value / total) * 100).toFixed(0) + "%";
+                  // Include Amount and Percentage if > 4%
+                  if (value / total <= 0.04) return "";
+                  const amount =
+                    "¥" + new Intl.NumberFormat("ja-JP").format(value);
+                  return `${amount}\n${pct}`;
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
+        });
+      }
+
+      function renderHourlyChart(data) {
+        const ctx = document.getElementById("chart-hourly").getContext("2d");
+        if (hourlyChart) hourlyChart.destroy();
+        hourlyChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+            datasets: [
+              { label: "売上", data: data, backgroundColor: "#10b981" },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+
+      function renderProductChart(map) {
+        const sorted = Object.entries(map)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+        const ctx = document.getElementById("chart-products").getContext("2d");
+        if (productChart) productChart.destroy();
+        productChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: sorted.map((s) => s[0]),
+            datasets: [
+              {
+                data: sorted.map((s) => s[1]),
+                backgroundColor: [
+                  "#10b981",
+                  "#34d399",
+                  "#6ee7b7",
+                  "#a7f3d0",
+                  "#d1fae5",
+                ],
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  boxWidth: 12,
+                  font: { size: 10 },
+                },
+              },
+              tooltip: {
+                enabled: false, // Disable default tooltip
+              },
+              datalabels: {
+                color: "#fff",
+                textAlign: "center",
+                font: {
+                  weight: "bold",
+                  size: 10,
+                },
+                formatter: (value, ctx) => {
+                  const total = ctx.chart._metasets[ctx.datasetIndex].total;
+                  const pct = ((value / total) * 100).toFixed(0) + "%";
+                  // Include Amount and Percentage if > 4%
+                  if (value / total <= 0.04) return "";
+                  const amount =
+                    "¥" + new Intl.NumberFormat("ja-JP").format(value);
+                  return `${amount}\n${pct}`;
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
+        });
+      }
+
+      function renderHoHBadge(current, previous) {
+        if (previous === 0 && current === 0)
+          return `<span class="hoh-badge hoh-neutral">前日比 --</span>`;
+        const pct =
+          previous === 0
+            ? current * 100
+            : Math.round(((current - previous) / previous) * 100);
+        if (pct > 0)
+          return `<span class="hoh-badge hoh-up">前日比 ${pct}% ↑</span>`;
+        if (pct < 0)
+          return `<span class="hoh-badge hoh-down">前日比 ${Math.abs(pct)}% ↓</span>`;
+        return `<span class="hoh-badge hoh-neutral">前日比 ±0%</span>`;
+      }
+
+      // --- Search Logic ---
+      document
+        .getElementById("search-keyword")
+        .addEventListener("input", renderSearchTable);
+      document
+        .getElementById("search-status")
+        .addEventListener("change", renderSearchTable);
+
+      function renderSearchTable() {
+        const tbody = document
+          .getElementById("search-table")
+          .querySelector("tbody");
+        tbody.innerHTML = "";
+
+        const keyword = document.getElementById("search-keyword").value.trim();
+        const statusFilter = document.getElementById("search-status").value;
+
+        const filtered = ordersData.filter((o) => {
+          // Status
+          if (statusFilter !== "all") {
+            if (statusFilter === "completed" && !o.status.includes("completed"))
+              return false;
+            if (statusFilter === "unpaid" && o.status !== "unpaid_at_pos")
+              return false;
+            if (
+              statusFilter === "active" &&
+              ![
+                "authorized",
+                "cooking",
+                "ready_to_serve",
+                "ready_for_pickup",
+              ].includes(o.status)
+            )
+              return false;
+            if (
+              statusFilter === "abandoned" &&
+              o.status !== "abandoned_and_paid"
+            )
+              return false;
+            if (statusFilter === "canceled" && !o.status.includes("cancel"))
+              return false;
+          }
+          // Keyword
+          if (keyword) {
+            const txt = JSON.stringify(o).toLowerCase();
+            if (!txt.includes(keyword.toLowerCase())) return false;
+          }
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color:#9ca3af;">条件に一致する注文はありません</td></tr>`;
+          return;
+        }
+
+        // Sort by date desc (newest first)
+        filtered.sort(
+          (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
+        );
+
+        filtered.forEach((o) => {
+          const tr = document.createElement("tr");
+          // tr.className = "clickable"; // Handled by CSS on modern-table
+          tr.onclick = () => openOrderModal(o);
+
+          const time = o.createdAt
+            ? o.createdAt.toDate().toLocaleTimeString("ja-JP", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "--:--";
+          let total = 0;
+          let summary = "";
+          if (o.items) {
+            o.items.forEach((i) => (total += i.price * i.quantity));
+            summary = o.items.map((i) => `${i.name}x${i.quantity}`).join(", ");
+          }
+
+          // Use data-label for responsive view
+          tr.innerHTML = `
+                    <td data-label="番号" class="font-mono" style="font-weight:800; color:var(--text-color);">#${o.receiptNumber}</td>
+                    <td data-label="時刻" class="font-mono" style="color:var(--text-secondary); opacity:0.8;">${time}</td>
+                    <td data-label="内容">${summary || '<span style="color:#d1d5db">(商品なし)</span>'}</td>
+                    <td data-label="ステータス">${getStatusBadge(o.status)}</td>
+                    <td data-label="金額" class="text-right font-mono" style="font-weight:700;">¥${total.toLocaleString()}</td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function getStatusBadge(s) {
+        const map = {
+          unpaid_at_pos: { l: "POS注文済み", c: "status-unpaid" },
+          authorized: { l: "モバイルセルフ注文済み", c: "status-authorized" },
+          cooking: { l: "調理中", c: "status-authorized" },
+          ready_to_serve: { l: "調理完了(呼び出し前)", c: "status-preparing" },
+          ready_for_pickup: { l: "お呼び出し中", c: "status-ready" },
+          completed_at_store: { l: "受取完了", c: "status-completed" },
+          abandoned_and_paid: { l: "受取期限切れ", c: "status-abandoned" },
+          cancelled: { l: "キャンセル", c: "status-canceled" },
+          // fallback
+          canceled: { l: "キャンセル", c: "status-canceled" },
+        };
+        // Normalize status to handle potential inconsistencies
+        if (s === "canceled") s = "cancelled";
+
+        const info = map[s] || { l: s, c: "status-completed" };
+        return `<span class="badge ${info.c}">${info.l}</span>`;
+      }
+
+      // --- Order Modal ---
+      let selectedOrder = null;
+      window.openOrderModal = (o) => {
+        selectedOrder = o;
+        document.getElementById("order-modal").style.display = "flex";
+        document.getElementById("order-receipt-no").innerText =
+          `#${o.receiptNumber}`;
+        document.getElementById("order-status-select").value = o.status;
+
+        const list = document.getElementById("order-items-list");
+        list.innerHTML = "";
+        if (o.items) {
+          o.items.forEach((i) => {
+            list.innerHTML += `
+                    <div class="order-item-row">
+                        <span class="order-item-name">${i.name} x${i.quantity}</span>
+                        <span class="order-item-price">¥${(i.price * i.quantity).toLocaleString()}</span>
+                    </div>`;
+          });
+        }
+      };
+      window.closeOrderModal = () =>
+        (document.getElementById("order-modal").style.display = "none");
+      window.updateOrderStatus = async () => {
+        const newStatus = document.getElementById("order-status-select").value;
+        if (selectedOrder) {
+          await updateDoc(doc(db, "orders", selectedOrder.id), {
+            status: newStatus,
+          });
+          closeOrderModal();
+        }
+      };
+
+      window.openTraining = () => {
+        if (!currentStoreId) return alert("店舗IDが読み込まれていません");
+        // Open in new tab or same? Use new window to keep portal open.
+        window.open(`training/index.html?storeId=${currentStoreId}`, "_blank");
+      };
+
+      // Initialize Date Change Listeners
+      const handleDateChange = (e) => {
+        const val = e.target.value;
+        document.getElementById("sales-date-input").value = val;
+        document.getElementById("search-date").value = val;
+        setupRealtimeListeners(new Date(val));
+      };
+      document
+        .getElementById("sales-date-input")
+        .addEventListener("change", handleDateChange);
+      document
+        .getElementById("search-date")
+        .addEventListener("change", handleDateChange);
+
+      // Global Assign (Modules scope)
+      let labelsForPulse = null; // Cache labels
+
+      function renderPulseChart(updateOnly = false) {
+        if (!pulseDataCache) return;
+        setupTimelineInteractions();
+
+        if (!labelsForPulse) {
+          labelsForPulse = Array.from({ length: 1440 }, (_, i) => {
+            const h = Math.floor(i / 60);
+            const m = i % 60;
+            return `${h}:${String(m).padStart(2, "0")}`;
+          });
+        }
+
+        const minIdx = Math.max(0, pulseChartRange.start);
+        const maxIdx = Math.min(1439, pulseChartRange.end);
+        const minVal = labelsForPulse[minIdx];
+        const maxVal = labelsForPulse[maxIdx];
+
+        if (pulseChart && updateOnly) {
+          pulseChart.options.scales.x.min = minVal;
+          pulseChart.options.scales.x.max = maxVal;
+          // Dynamically adjust point radius if zoomed in
+          const range = pulseChartRange.end - pulseChartRange.start;
+          pulseChart.data.datasets[0].pointRadius = (ctx) => range < 60 ? 4 : 0;
+          pulseChart.update("none");
+        } else {
+          const ctxP = document.getElementById("chart-detailed-pulse").getContext("2d");
+          if (pulseChart) pulseChart.destroy();
+          pulseChart = new Chart(ctxP, {
+            type: "line",
+            data: {
+              labels: labelsForPulse,
+              datasets: [
+                {
+                  label: "注文数",
+                  data: pulseDataCache,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: (context) => (pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0),
+                  pointBackgroundColor: "#10b981",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false, // Performance priority
+              scales: {
+                x: {
+                  min: minVal,
+                  max: maxVal,
+                  grid: { display: false },
+                  ticks: {
+                    maxRotation: 0,
+                    autoSkip: false,
+                    callback: function (value, index, ticks) {
+                      const label = labelsForPulse[value];
+                      if (!label) return "";
+                      const range = pulseChartRange.end - pulseChartRange.start;
+                      const minute = value;
+                      let interval = 5;
+                      if (range > 600) interval = 60;
+                      else if (range > 300) interval = 30;
+                      else if (range > 120) interval = 15;
+                      else if (range > 60) interval = 10;
+                      if (minute % interval === 0) return label;
+                      return "";
+                    },
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                  ticks: { stepSize: 1, precision: 0 },
+                },
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "rgba(17, 24, 39, 0.9)",
+                  titleFont: { size: 14 },
+                  bodyFont: { size: 14, weight: "bold" },
+                  padding: 12,
+                  displayColors: false,
+                  callbacks: {
+                    title: (items) => `⏰ ${items[0].label}`,
+                    label: (item) => `注文数: ${item.formattedValue} 件`,
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        const labelEl = document.getElementById("pulse-range-label");
+        if (labelEl) {
+          labelEl.innerText = `${minVal} - ${maxVal}`;
+        }
+      }
+
+      // --- Timeline Interaction Logic ---
+      let isInteractionAttached = false;
+      let isDragging = false;
+      let lastX = 0;
+      let lastTouchDist = 0;
+
+      function setupTimelineInteractions() {
+        const canvas = document.getElementById("chart-detailed-pulse");
+        if (!canvas || isInteractionAttached) return;
+
+        isInteractionAttached = true;
+        canvas.style.touchAction = "none"; // Disable browser scrolling on chart
+        canvas.style.cursor = "grab";
+
+        // --- Mouse Events ---
+        canvas.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          lastX = e.clientX;
+          canvas.style.cursor = "grabbing";
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          e.preventDefault(); // Prevent text selection
+          const deltaX = e.clientX - lastX;
+          lastX = e.clientX;
+          handlePan(deltaX);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (isDragging) {
+            isDragging = false;
+            canvas.style.cursor = "grab";
+          }
+        });
+
+        // --- Touch Events ---
+        canvas.addEventListener(
+          "touchstart",
+          (e) => {
+            if (e.touches.length === 1) {
+              isDragging = true;
+              lastX = e.touches[0].clientX;
+            } else if (e.touches.length === 2) {
+              isDragging = false; // Pinch overrides pan
+              lastTouchDist = getTouchDist(e);
+            }
+          },
+          { passive: false },
+        );
+
+        canvas.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault(); // Stop scroll
+            if (e.touches.length === 1 && isDragging) {
+              const deltaX = e.touches[0].clientX - lastX;
+              lastX = e.touches[0].clientX;
+              handlePan(deltaX);
+            } else if (e.touches.length === 2) {
+              const dist = getTouchDist(e);
+              if (lastTouchDist > 0 && dist > 0) {
+                // dist increasing -> zoom in? no, logic:
+                // spread fingers -> zoom in (range smaller) -> factor < 1
+                // pinch fingers -> zoom out (range larger) -> factor > 1
+                // factor = last / current
+                const factor = lastTouchDist / dist;
+                // Dampen the factor to avoid super fast zoom
+                // e.g. factor 0.9 -> 0.95
+                const dampened = 1 + (factor - 1) * 0.5;
+                handleZoom(dampened);
+              }
+              lastTouchDist = dist;
+            }
+          },
+          { passive: false },
+        );
+
+        canvas.addEventListener("touchend", (e) => {
+          isDragging = false;
+          lastTouchDist = 0;
+          if (e.touches.length === 0) canvas.style.cursor = "grab";
+        });
+
+        // --- Wheel Zoom ---
+        canvas.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            // Up (neg) -> Zoom In (factor < 1). Down (pos) -> Zoom Out (factor > 1)
+            // Use 1.1 or 0.9
+            const factor = e.deltaY > 0 ? 1.1 : 0.9;
+            handleZoom(factor);
+          },
+          { passive: false },
+        );
+      }
+
+      function getTouchDist(e) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function handlePan(pxDelta) {
+        const canvas = document.getElementById("chart-detailed-pulse");
+        if (!canvas) return;
+        const width = canvas.clientWidth;
+        const currentRange = pulseChartRange.end - pulseChartRange.start;
+        // pxDelta is movement of MOUSE.
+        // Mouse moves RIGHT (pos), we want to see LEFT content (earlier time).
+        // So start decreases.
+        // pxDelta / width = ratio of screen moved
+        // minutes moved = ratio * currentRange
+        const minsMoved = Math.round((pxDelta / width) * currentRange);
+        if (minsMoved === 0) return;
+
+        let newStart = pulseChartRange.start - minsMoved;
+        let newEnd = pulseChartRange.end - minsMoved;
+
+        if (newStart < 0) {
+          const diff = 0 - newStart;
+          newStart += diff;
+          newEnd += diff;
+        }
+        if (newEnd > 1440) {
+          const diff = newEnd - 1440;
+          newStart += diff;
+          newEnd += diff;
+        }
+        if (newStart < 0) newStart = 0;
+
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newEnd;
+
+        // Use requestAnimationFrame for smooth UI update
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(() => renderPulseChart(true));
+        } else {
+          renderPulseChart(true);
+        }
+      }
+
+      function handleZoom(factor) {
+        window.zoomTimeline(factor);
+      }
+
+      window.zoomTimeline = (factor) => {
+        const currentRange = pulseChartRange.end - pulseChartRange.start;
+        let newRange = Math.round(currentRange * factor);
+
+        if (newRange < 10) newRange = 10;
+        if (newRange > 1440) newRange = 1440;
+
+        if (newRange === currentRange) return;
+
+        const center = (pulseChartRange.start + pulseChartRange.end) / 2;
+        let newStart = Math.round(center - newRange / 2);
+        let newEnd = newStart + newRange;
+
+        if (newStart < 0) {
+          newStart = 0;
+          newEnd = newRange;
+        }
+        if (newEnd > 1440) {
+          newEnd = 1440;
+          newStart = 1440 - newRange;
+        }
+
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newEnd;
+        renderPulseChart(true); // Smooth zoom
+      };
+
+      window.moveTimeline = (dir) => {
+        const range = pulseChartRange.end - pulseChartRange.start;
+        const step = Math.max(1, Math.round(range * 0.2)) * dir;
+        const newStart = Math.max(
+          0,
+          Math.min(1439 - range, pulseChartRange.start + step),
+        );
+        pulseChartRange.start = newStart;
+        pulseChartRange.end = newStart + range;
+        renderPulseChart();
+      };
+
+      window.resetTimeline = () => {
+        pulseChartRange = { start: 480, end: 1080 }; // 8am - 6pm
+        renderPulseChart();
+      };
+
+      // --- パスワード入力の半角英数字変換と表示トグル ---
+      document.addEventListener("DOMContentLoaded", () => {
+        const storePass = document.getElementById("store-pass");
+        const toggleBtn = document.getElementById("toggle-store-pass");
+
+        if (storePass) {
+          storePass.addEventListener("input", function (e) {
+            let val = e.target.value;
+            // 全角英数字を半角に変換
+            val = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {
+              return String.fromCharCode(s.charCodeAt(0) - 0xfee0);
+            });
+            // 半角英数字以外を削除
+            val = val.replace(/[^a-zA-Z0-9]/g, "");
+            e.target.value = val;
+          });
+        }
+
+        if (toggleBtn && storePass) {
+          toggleBtn.addEventListener("click", () => {
+            const isPassword = storePass.type === "password";
+            storePass.type = isPassword ? "text" : "password";
+            toggleBtn.innerHTML = isPassword
+              ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>'
+              : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1495 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>モニター | 南陵祭2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&family=Noto+Sans+JP:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================
+         Monitor Display - Outdoor iPad 10" Design
+         Light Theme / High Contrast / Large Typography
+         ============================================ */
+
+      /* --- CSS Variables --- */
+      :root {
+        --bg: #ffffff;
+        --surface: #f5f5f5;
+        --surface-alt: #eeeeee;
+        --text: #1a1a1a;
+        --text-muted: #666;
+        --ready-color: #00c853;
+        --ready-bg: #00c853;
+        --preparing-color: #e65100;
+        --preparing-bg: #fff3e0;
+        --au-orange: #ed6c00;
+        --border: #ddd;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --font: "Inter", "Noto Sans JP", sans-serif;
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* --- View Management --- */
+      .view {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        background: var(--bg);
+      }
+      .view.active {
+        opacity: 1;
+        visibility: visible;
+        z-index: 10;
+      }
+
+      /* --- Common Buttons --- */
+      .btn {
+        border: none;
+        border-radius: var(--radius);
+        padding: 20px 28px;
+        font-size: 1.5rem;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: var(--font);
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .btn-primary {
+        background: var(--ready-color);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: var(--surface-alt);
+        color: var(--text);
+        border: 2px solid var(--border);
+      }
+      .btn-google {
+        background: #fff;
+        color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border: 2px solid #ccc;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      /* =============================================
+         View 0: Login
+         ============================================= */
+      #view-auth {
+        justify-content: center;
+        align-items: center;
+        background: #f0f0f0;
+      }
+      .login-card {
+        background: var(--surface);
+        padding: 50px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 460px;
+        text-align: center;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .login-card h1 {
+        color: var(--text);
+        margin-bottom: 10px;
+      }
+
+      /* =============================================
+         View 1: IDLE (Main Monitor)
+         ============================================= */
+      #view-idle {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+      }
+
+      .monitor-split {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* --- Panel Layout --- */
+      .panel-column {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .col-ready {
+        flex: 2;
+        border-right: 3px solid var(--border);
+      }
+      .col-preparing {
+        flex: 1;
+        background: var(--surface-alt);
+      }
+
+      /* --- Panel Headers --- */
+      .panel-header {
+        padding: 16px 20px;
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+        letter-spacing: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-shrink: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .panel-header .header-icon {
+        font-size: 1.6rem;
+      }
+      .header-ready {
+        background: linear-gradient(135deg, #1b5e20, #2e7d32);
+        box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+      }
+      .header-preparing {
+        background: linear-gradient(135deg, #4a3800, #6d5200);
+        box-shadow: 0 4px 12px rgba(255, 171, 0, 0.2);
+      }
+
+      /* --- Panel Content --- */
+      .panel-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        position: relative;
+      }
+      /* Hide scrollbar */
+      .panel-content::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* --- Ready Grid (Left Panel) --- */
+      .ready-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 16px;
+        justify-content: center;
+      }
+      .item-ready {
+        flex: 1 0 200px;
+        max-width: 320px;
+        height: 130px;
+        background: linear-gradient(145deg, #00c853, #00e676);
+        color: #fff;
+        font-size: 5.5rem;
+        font-weight: 900;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 200, 83, 0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        letter-spacing: 4px;
+      }
+
+      /* --- Preparing List (Right Panel) --- */
+      .preparing-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .item-preparing {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--preparing-color);
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #ccc;
+        padding: 8px 0;
+        letter-spacing: 3px;
+      }
+
+      /* --- Monitor Footer (CTA) --- */
+      .monitor-footer {
+        background: var(--surface-alt);
+        border-top: 2px solid var(--border);
+        padding: 14px 20px;
+        text-align: center;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        animation: pulse-footer 2.5s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+      @keyframes pulse-footer {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+          color: var(--text);
+        }
+      }
+
+      /* --- Employee Menu --- */
+      .menu-btn {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 2000;
+        background: rgba(240, 240, 240, 0.8);
+        color: #666;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.3;
+        transition: opacity 0.3s;
+      }
+      .menu-btn:hover,
+      .menu-btn:active {
+        opacity: 1;
+      }
+
+      .side-menu {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 300px;
+        height: 100%;
+        background: #fff;
+        color: var(--text);
+        z-index: 2001;
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
+        transition: right 0.3s ease;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .side-menu.open {
+        right: 0;
+      }
+      .menu-header {
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .menu-close {
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: #666;
+      }
+      .menu-item {
+        margin-bottom: 8px;
+        color: #555;
+        font-size: 0.95rem;
+      }
+      .zoom-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 16px 0;
+      }
+      .btn-zoom {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        background: #f0f0f0;
+        color: #333;
+        cursor: pointer;
+      }
+      .btn-zoom:active {
+        background: #ddd;
+      }
+      .logout-btn {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      /* =============================================
+         View 2: Input (Keypad)
+         ============================================= */
+      #view-input {
+        background: var(--bg);
+        justify-content: center;
+        align-items: center;
+      }
+      .input-wrapper {
+        max-width: 420px;
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .input-header-text {
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: 1px;
+      }
+      .display-screen {
+        background: var(--surface);
+        border: 3px solid var(--ready-color);
+        border-radius: var(--radius);
+        height: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4.5rem;
+        font-weight: 900;
+        color: var(--ready-color);
+        letter-spacing: 8px;
+      }
+      .keypad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .key-btn {
+        background: var(--surface-alt);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        height: 90px;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--text);
+        cursor: pointer;
+        font-family: var(--font);
+        transition: background 0.1s;
+      }
+      .key-btn:active {
+        transform: translateY(2px);
+        background: #ddd;
+      }
+      .key-enter {
+        background: var(--ready-bg);
+        color: #fff;
+        border-color: var(--ready-color);
+        box-shadow: 0 4px 0 #1b5e20;
+      }
+      .key-enter:active {
+        box-shadow: none;
+      }
+      .key-clear {
+        background: #fde8e8;
+        color: #d32f2f;
+        border-color: #f5c6c6;
+      }
+
+      /* =============================================
+         View 3: Confirm
+         ============================================= */
+      #view-confirm {
+        justify-content: center;
+        align-items: center;
+        background: var(--bg);
+      }
+      .confirm-wrapper {
+        background: var(--surface);
+        width: 90%;
+        max-width: 560px;
+        border-radius: 20px;
+        padding: 36px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        text-align: center;
+        border: 1px solid var(--border);
+      }
+      .confirm-wrapper h2 {
+        color: var(--text);
+      }
+      .order-list {
+        margin: 24px 0;
+        text-align: left;
+        border-top: 2px solid var(--border);
+        border-bottom: 2px solid var(--border);
+        padding: 16px 0;
+      }
+      .order-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.4rem;
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+        color: #333;
+      }
+      .total-price {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: var(--ready-color);
+        margin: 20px 0;
+      }
+      /* auPay button */
+      #btn-pay-online,
+      #view-confirm .btn-primary {
+        background: linear-gradient(135deg, #ed6c00, #ff8f00);
+        color: #fff;
+        font-size: 1.6rem;
+        padding: 22px;
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: 0 4px 16px rgba(237, 108, 0, 0.4);
+      }
+      /* POS message card */
+      #msg-pay-pos {
+        font-size: 1.5rem;
+        background: #fff8e1;
+        border: 2px solid #ffe082;
+        padding: 24px;
+        border-radius: var(--radius);
+        color: var(--preparing-color);
+        line-height: 1.8;
+      }
+
+      /* =============================================
+         View 4: Complete
+         ============================================= */
+      #view-complete {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: var(--bg);
+      }
+      .success-icon {
+        width: 150px;
+        height: 150px;
+        fill: var(--ready-color);
+        margin-bottom: 24px;
+        animation: popIn 0.5s;
+      }
+      .success-text {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      /* =============================================
+         Animations
+         ============================================= */
+      @keyframes popIn {
+        from {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* =============================================
+         Utility Classes
+         ============================================= */
+      .hidden {
+        display: none !important;
+      }
+
+      /* =============================================
+         Store Login Modal
+         ============================================= */
+      #store-login-modal {
+        position: fixed;
+        inset: 0;
+        background: #f0f0f0;
+        z-index: 15000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .store-login-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 90%;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .store-login-input {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.3em;
+        margin: 20px 0;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+      }
+      .store-login-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.2em;
+        background: var(--ready-bg);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      /* =============================================
+         Payment Demo Overlay
+         ============================================= */
+      #payment-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        color: #1a1a1a;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #payment-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .overlay-content {
+        text-align: center;
+        transform: scale(0.95);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #payment-overlay.active .overlay-content {
+        transform: scale(1);
+      }
+
+      /* Spinner */
+      .au-spinner {
+        width: 80px;
+        height: 80px;
+        border: 5px solid rgba(0, 0, 0, 0.08);
+        border-left-color: var(--au-orange);
+        border-radius: 50%;
+        animation: auSpin 1s linear infinite;
+        margin: 0 auto 40px;
+      }
+      @keyframes auSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .payment-status-text {
+        font-size: 2.6rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        margin-bottom: 20px;
+      }
+      .payment-sub-text {
+        font-size: 1.3rem;
+        color: #777;
+      }
+
+      /* Success Checkmark */
+      .checkmark-circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 2;
+        stroke-miterlimit: 10;
+        stroke: var(--au-orange);
+        fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      }
+      .checkmark {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 2;
+        stroke: #fff;
+        stroke-miterlimit: 10;
+        margin: 0 auto 40px;
+        box-shadow: inset 0px 0px 0px var(--au-orange);
+        animation:
+          fill-check 0.4s ease-in-out 0.4s forwards,
+          scale 0.3s ease-in-out 0.9s both;
+      }
+      .checkmark-check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+      }
+      @keyframes stroke {
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes scale {
+        0%,
+        100% {
+          transform: none;
+        }
+        50% {
+          transform: scale3d(1.1, 1.1, 1);
+        }
+      }
+      @keyframes fill-check {
+        100% {
+          box-shadow: inset 0px 0px 0px 50px var(--au-orange);
+        }
+      }
+
+      /* =============================================
+         Error Overlay (No Store ID)
+         ============================================= */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error Overlay (Strict Mode) -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
+
+    <!-- 店舗ログインモーダル -->
+    <div id="store-login-modal">
+      <div class="store-login-card">
+        <h2>店舗認証</h2>
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <div class="store-password-wrapper" style="position: relative; margin: 20px 0;">
+          <input
+            type="password"
+            id="store-password-input"
+            class="store-login-input"
+            placeholder="パスワード"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            style="margin: 0; padding-right: 40px;"
+          />
+          <button type="button" id="toggle-store-pass" class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0; color: #666;"
+            >👁️</button>
+        </div>
+        <button class="store-login-btn" id="store-login-btn">認証する</button>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
+      </div>
+    </div>
+
+    <!-- Payment Processing Overlay -->
+    <div id="payment-overlay">
+      <div class="overlay-content">
+        <div id="payment-spinner-container">
+          <div class="au-spinner"></div>
+        </div>
+        <div id="payment-success-icon" style="display: none">
+          <svg
+            class="checkmark"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 52 52"
+          >
+            <circle
+              class="checkmark-circle"
+              cx="26"
+              cy="26"
+              r="25"
+              fill="none"
+            />
+            <path
+              class="checkmark-check"
+              fill="none"
+              d="M14.1 27.2l7.1 7.2 16.7-16.8"
+            />
+          </svg>
+        </div>
+        <div class="payment-status-text" id="payment-status">Connecting...</div>
+        <div class="payment-sub-text" id="payment-sub-status">
+          auPay 決済サーバーへ接続中
+        </div>
+      </div>
+    </div>
+
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:var(--font);">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+
+    <!-- View 0: Authentication -->
+    <div id="view-auth" class="view active">
+      <div class="login-card">
+        <h1>Staff Login</h1>
+        <p style="margin: 12px 0 4px; color: var(--text-muted); line-height:1.6;">
+          南陵高校から配布された<br><strong style="color:#1a1a1a;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください
+        </p>
+        <p style="margin: 0 0 20px; color: var(--text-muted)">
+          Store ID:
+          <span id="auth-store-id" style="font-weight: bold; color: var(--text)"
+            >-</span
+          >
+        </p>
+        <button
+          id="btn-google-login"
+          class="btn btn-google"
+          style="width: 100%"
+        >
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            width="24"
+            alt="G"
+          />
+          Googleでログイン
+        </button>
+      </div>
+    </div>
+
+    <!-- View 1: IDLE (Monitor Mode) -->
+    <div id="view-idle" class="view">
+      <!-- Employee Menu Trigger -->
+      <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
+
+      <!-- Employee Side Menu -->
+      <div id="side-menu" class="side-menu">
+        <div class="menu-header">
+          <span>従業員メニュー</span>
+          <span class="menu-close" onclick="app.toggleMenu()">×</span>
+        </div>
+        <div class="menu-item">
+          Store ID: <span id="menu-store-id" style="font-weight: bold">--</span>
+        </div>
+        <div class="menu-item">
+          User: <span id="menu-user" style="font-weight: bold">--</span>
+        </div>
+
+        <div class="zoom-controls">
+          <button class="btn-zoom" onclick="app.adjustZoom(-0.1)">-</button>
+          <button class="btn-zoom" onclick="app.adjustZoom(0.1)">+</button>
+        </div>
+
+        <button
+          onclick="app.logout()"
+          class="logout-btn"
+          style="width: 100%; margin-top: auto"
+        >
+          ログアウト
+        </button>
+      </div>
+
+      <div class="monitor-split">
+        <!-- Ready Column (Left, Wide) -->
+        <div class="panel-column col-ready">
+          <div class="panel-header header-ready">
+            <span class="header-icon">🔔</span> お呼出中 / Ready
+          </div>
+          <div class="panel-content">
+            <div id="grid-ready" class="ready-grid"></div>
+          </div>
+        </div>
+
+        <!-- Preparing Column (Right, Narrow) -->
+        <div class="panel-column col-preparing">
+          <div class="panel-header header-preparing">
+            <span class="header-icon">⏳</span> 準備中 / Preparing
+          </div>
+          <div class="panel-content">
+            <div id="list-preparing" class="preparing-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="monitor-footer">
+        📱 画面をタップして番号を入力 / Tap to enter your number
+      </div>
+    </div>
+
+    <!-- View 2: INPUT_MODE -->
+    <div id="view-input" class="view">
+      <div class="input-wrapper">
+        <div class="input-header-text">受付番号を入力</div>
+        <div id="input-display" class="display-screen"></div>
+        <div
+          id="input-msg"
+          style="
+            text-align: center;
+            color: #ff5252;
+            height: 1.5em;
+            font-weight: bold;
+          "
+        ></div>
+
+        <div class="keypad">
+          <button class="key-btn" onclick="app.keyPress('7')">7</button>
+          <button class="key-btn" onclick="app.keyPress('8')">8</button>
+          <button class="key-btn" onclick="app.keyPress('9')">9</button>
+          <button class="key-btn" onclick="app.keyPress('4')">4</button>
+          <button class="key-btn" onclick="app.keyPress('5')">5</button>
+          <button class="key-btn" onclick="app.keyPress('6')">6</button>
+          <button class="key-btn" onclick="app.keyPress('1')">1</button>
+          <button class="key-btn" onclick="app.keyPress('2')">2</button>
+          <button class="key-btn" onclick="app.keyPress('3')">3</button>
+          <button class="key-btn key-clear" onclick="app.keyClear()">C</button>
+          <button class="key-btn" onclick="app.keyPress('0')">0</button>
+          <button class="key-btn key-enter" onclick="app.keyEnter()">OK</button>
+        </div>
+        <button
+          class="btn btn-secondary"
+          style="width: 100%; margin-top: 10px"
+          onclick="app.transitionTo('idle')"
+        >
+          キャンセル
+        </button>
+      </div>
+    </div>
+
+    <!-- View 3: CONFIRM_MODE -->
+    <div id="view-confirm" class="view">
+      <div class="confirm-wrapper">
+        <h2 style="font-size: 2rem; margin: 0">注文確認</h2>
+        <div id="order-list" class="order-list"></div>
+        <div style="font-size: 1rem; color: var(--text-muted)">合計金額</div>
+        <div class="total-price">¥<span id="order-total">0</span></div>
+
+        <div id="action-area">
+          <button
+            id="btn-pay-online"
+            class="btn btn-primary"
+            style="width: 100%; font-size: 1.8rem; padding: 25px"
+          >
+            auPay で支払う (デモ)
+          </button>
+          <div
+            id="msg-pay-pos"
+            class="hidden"
+            style="
+              font-size: 1.2rem;
+              background: #eee;
+              padding: 20px;
+              border-radius: 8px;
+            "
+          >
+            お会計はレジにてお願いします
+          </div>
+        </div>
+        <button
+          class="btn btn-secondary"
+          style="margin-top: 20px; width: 100%"
+          onclick="app.transitionTo('idle')"
+        >
+          戻る
+        </button>
+      </div>
+    </div>
+
+    <!-- View 4: COMPLETE_MODE -->
+    <div id="view-complete" class="view">
+      <svg class="success-icon" viewBox="0 0 24 24">
+        <path
+          d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.25 17.292l-4.5-4.5 1.762-1.766L10.75 13.76l7.5-7.5 1.766 1.766-9.266 9.266z"
+        />
+      </svg>
+      <div class="success-text">Thank you</div>
+      <p style="font-size: 1.5rem; color: var(--text-muted)">
+        商品をお受け取りください
+      </p>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        onSnapshot,
+        getDocs,
+        doc,
+        updateDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+      // Firebase設定
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      // URLパラメータ取得 (storeId)
+      const urlParams = new URLSearchParams(window.location.search);
+      const STORE_ID = urlParams.get("storeId");
+
+      class KioskApp {
+        constructor() {
+          this.app = initializeApp(firebaseConfig);
+          // App Check Initialization
+          this.appCheck = initializeAppCheck(this.app, {
+            provider: new ReCaptchaV3Provider(
+              "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
+            ),
+            isTokenAutoRefreshEnabled: true,
+          });
+
+          this.db = getFirestore(this.app);
+
+          this.auth = getAuth(this.app);
+          this.functions = getFunctions(this.app, "asia-northeast1");
+
+          this.currentInput = "";
+          this.currentOrder = null;
+          this.timerId = null;
+          this.unsubOrderListener = null;
+          this.currentZoom = 1.0;
+          this.views = {
+            auth: document.getElementById("view-auth"),
+            idle: document.getElementById("view-idle"),
+            input: document.getElementById("view-input"),
+            confirm: document.getElementById("view-confirm"),
+            complete: document.getElementById("view-complete"),
+          };
+
+          document.getElementById("auth-store-id").innerText = STORE_ID;
+          document.getElementById("menu-store-id").innerText = STORE_ID;
+
+          this.processingPayment = false;
+          this.init();
+        }
+
+        init() {
+          this.setupAuthListeners();
+          this.setupUIListeners();
+        }
+
+        setupAuthListeners() {
+          const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+          const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+          function isAuthorizedUser(user) {
+            if (!user || !user.email) return false;
+            return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+          }
+
+          onAuthStateChanged(this.auth, (user) => {
+            if (!STORE_ID) {
+              this.showParamError();
+              return;
+            }
+            const LS_KEY = "nanryosai_store_id";
+            const cachedId = localStorage.getItem(LS_KEY);
+
+            if (!user || !isAuthorizedUser(user) || cachedId !== STORE_ID) {
+              const currentUrl = encodeURIComponent(window.location.href);
+              const storeParam = STORE_ID ? `&s=${STORE_ID}` : '';
+              window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+            } else {
+              const uName = user.email.split("@")[0];
+              const menuUser = document.getElementById("menu-user");
+              if (menuUser) menuUser.innerText = uName;
+              this.startApp();
+              this.transitionTo("idle");
+            }
+          });
+        }
+
+        setupUIListeners() {
+          // モニター画面全体のどこをタップしても入力画面へ (メニューなどを除く)
+          this.views.idle.addEventListener("click", (e) => {
+            // メニューやボタンクリック時は遷移しない
+            if (
+              e.target.closest(".menu-btn") ||
+              e.target.closest(".side-menu") ||
+              e.target.closest("button")
+            )
+              return;
+            this.transitionTo("input");
+          });
+
+        }
+
+
+
+        logout() {
+          signOut(this.auth).catch((error) => {
+            console.error("Sign out error", error);
+          });
+        }
+
+        toggleMenu() {
+          const menu = document.getElementById("side-menu");
+          menu.classList.toggle("open");
+        }
+
+        adjustZoom(delta) {
+          this.currentZoom = Math.round((this.currentZoom + delta) * 10) / 10;
+          if (this.currentZoom < 0.5) this.currentZoom = 0.5;
+          if (this.currentZoom > 2.0) this.currentZoom = 2.0;
+          document.body.style.zoom = this.currentZoom;
+        }
+
+        showParamError() {
+          document.getElementById("error-overlay").style.display = "flex";
+          this.stopApp();
+          // Hide other views to be sure
+          Object.values(this.views).forEach((el) =>
+            el.classList.remove("active"),
+          );
+        }
+
+        startApp() {
+          if (this.unsubReady || this.unsubPreparing) return;
+          this.subscribeReadyOrders();
+          this.subscribePreparingOrders();
+        }
+
+        subscribeReadyOrders() {
+          const qReady = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "==", "ready_for_pickup")
+          );
+
+          this.unsubReady = onSnapshot(qReady, (snapshot) => {
+            const container = document.getElementById("grid-ready");
+            if (container) {
+              const docs = [];
+              snapshot.forEach((d) => docs.push(d.data()));
+              // 新しいもの（createdAtが大きい）が下に来るように昇順ソート
+              docs.sort(
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+              );
+
+              container.innerHTML = "";
+              docs.forEach((data) => {
+                const div = document.createElement("div");
+                div.className = "item-ready";
+                div.innerText = data.receiptNumber;
+                container.appendChild(div);
+              });
+            }
+          });
+        }
+
+        subscribePreparingOrders() {
+          const qPreparing = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "in", [
+              "unpaid_at_pos",
+              "authorized",
+              "cooking",
+              "pending",
+              "ready_to_serve",
+            ])
+          );
+
+          this.unsubPreparing = onSnapshot(qPreparing, (snapshot) => {
+            const container = document.getElementById("list-preparing");
+            if (container) {
+              const docs = [];
+              snapshot.forEach((d) => docs.push(d.data()));
+              docs.sort(
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+              );
+
+              container.innerHTML = "";
+              docs.forEach((data) => {
+                const div = document.createElement("div");
+                div.className = "item-preparing";
+                div.innerText = data.receiptNumber;
+                container.appendChild(div);
+              });
+            }
+          });
+        }
+
+        stopApp() {
+          if (this.unsubReady) {
+            this.unsubReady();
+            this.unsubReady = null;
+          }
+          if (this.unsubPreparing) {
+            this.unsubPreparing();
+            this.unsubPreparing = null;
+          }
+        }
+
+        transitionTo(stateName) {
+          if (this.timerId) clearTimeout(this.timerId);
+
+          // Clean up order listener if leaving confirm/input flow
+          if (stateName !== "confirm" && this.unsubOrderListener) {
+            this.unsubOrderListener();
+            this.unsubOrderListener = null;
+          }
+
+          Object.values(this.views).forEach((el) =>
+            el.classList.remove("active"),
+          );
+          this.views[stateName].classList.add("active");
+
+          if (stateName === "idle") {
+            this.currentInput = "";
+            this.updateInputDisplay();
+          } else if (stateName === "input") {
+            this.updateInputDisplay();
+            this.resetTimer("idle", 30000);
+          } else if (stateName === "confirm") {
+            this.renderConfirmView();
+            // confirm view updates are handled by the listener
+          } else if (stateName === "complete") {
+            this.resetTimer("idle", 8000);
+          }
+        }
+
+        resetTimer(targetState, ms) {
+          if (this.timerId) clearTimeout(this.timerId);
+          this.timerId = setTimeout(() => {
+            this.transitionTo(targetState);
+          }, ms);
+        }
+
+        keyPress(char) {
+          if (this.currentInput.length < 5) {
+            this.currentInput += char;
+            this.updateInputDisplay();
+            this.resetTimer("idle", 30000); // Reset idle timer on interaction
+          }
+        }
+
+        keyClear() {
+          this.currentInput = "";
+          this.updateInputDisplay();
+          this.resetTimer("idle", 30000);
+        }
+
+        updateInputDisplay() {
+          document.getElementById("input-display").innerText =
+            this.currentInput;
+          // Clear error message when typing
+          if (this.currentInput.length > 0) {
+            document.getElementById("input-msg").innerText = "";
+          }
+        }
+
+        async keyEnter() {
+          if (!this.currentInput) return;
+          const num = parseInt(this.currentInput, 10);
+          const msg = document.getElementById("input-msg");
+
+          // Clean up any previous listener
+          if (this.unsubOrderListener) {
+            this.unsubOrderListener();
+            this.unsubOrderListener = null;
+          }
+
+          try {
+            const q = query(
+              collection(this.db, "orders"),
+              where("storeId", "==", STORE_ID),
+              where("receiptNumber", "==", num),
+              // We want to find the order even if it's already completed?
+              // Usually the user enters the number for a 'ready_for_pickup' order.
+              // We'll search for 'ready_for_pickup' initially.
+              where("status", "==", "ready_for_pickup"),
+            );
+
+            // First, get the doc ID to set up a specific listener
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const docSnap = snap.docs[0];
+              const orderId = docSnap.id;
+
+              // Subscribe to this specific order
+              this.unsubOrderListener = onSnapshot(
+                doc(this.db, "orders", orderId),
+                (docSnapshot) => this.handleOrderUpdate(docSnapshot)
+              );
+            } else {
+              msg.innerText = "番号が見つかりません";
+              this.currentInput = "";
+              document.getElementById("input-display").innerText = "";
+            }
+          } catch (e) {
+            console.error(e);
+            msg.innerText = "通信エラー";
+          }
+        }
+
+        handleOrderUpdate(docSnapshot) {
+          const msg = document.getElementById("input-msg");
+          if (!docSnapshot.exists()) {
+            msg.innerText = "注文が見つかりません";
+            this.transitionTo("input");
+            return;
+          }
+
+          const data = docSnapshot.data();
+          this.currentOrder = { id: docSnapshot.id, ...data };
+
+          if (data.status === "completed_at_store" || data.status === "completed_online") {
+            if (this.processingPayment) {
+              console.log("Suppressing auto-transition due to active payment demo");
+              return;
+            }
+            if (
+              this.views.confirm.classList.contains("active") ||
+              this.views.input.classList.contains("active")
+            ) {
+              this.transitionTo("complete");
+            }
+          } else if (data.status === "ready_for_pickup") {
+            if (this.views.input.classList.contains("active")) {
+              this.transitionTo("confirm");
+            } else if (this.views.confirm.classList.contains("active")) {
+              this.renderConfirmView();
+            }
+          } else {
+            msg.innerText = "ステータスが変更されました: " + data.status;
+          }
+        }
+
+        // --- Confirm Logic ---
+        renderConfirmView() {
+          const list = document.getElementById("order-list");
+          const total = document.getElementById("order-total");
+          const btn = document.getElementById("btn-pay-online");
+          const msg = document.getElementById("msg-pay-pos");
+
+          let html = "";
+          let totalPrice = this.currentOrder.totalPrice || 0;
+
+          if (this.currentOrder.items) {
+            this.currentOrder.items.forEach((item) => {
+              html += `
+                        <div class="order-item">
+                            <span style="font-weight:bold;">${item.name}</span>
+                            <span>x${item.quantity}</span>
+                        </div>`;
+            });
+          }
+          list.innerHTML = html;
+          total.innerText = totalPrice.toLocaleString();
+
+          // ボタンのクローンと置換（イベントリスナー重複防止）
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+
+          // POS注文以外はすべてオンライン決済デモ対象とする
+          if (this.currentOrder.paymentMethod !== "pos") {
+            newBtn.style.display = "block";
+            // 文言を変更: 設計図に基づき「この内容で決済を確定する」へ
+            newBtn.innerText = "この内容で決済を確定する";
+            msg.classList.add("hidden");
+            newBtn.addEventListener("click", () => this.startPaymentDemo());
+          } else {
+            newBtn.style.display = "none";
+            msg.classList.remove("hidden");
+            // 現金案内を削除し、手動のQRコード読み取りと提示を促す
+            msg.innerHTML = `お会計は <strong>¥${totalPrice.toLocaleString()}</strong> です。<br>右の auPay QRコードを読み取って決済し、<strong style="color: #c2185b;">提供口のスタッフに完了画面を提示</strong>してください。`;
+          }
+        }
+
+        async startPaymentDemo() {
+          if (!this.currentOrder) return;
+
+          const overlay = document.getElementById("payment-overlay");
+          const statusText = document.getElementById("payment-status");
+          const subText = document.getElementById("payment-sub-status");
+          const spinnerContainer = document.getElementById(
+            "payment-spinner-container",
+          );
+          const successIcon = document.getElementById("payment-success-icon");
+
+          // 1. Initialize & Show Overlay
+          this.processingPayment = true; // Flag to suppress auto-transition from listener
+
+          statusText.innerText = "Processing...";
+          subText.innerText = "auPay 決済サーバーに接続中";
+          spinnerContainer.style.display = "block";
+          successIcon.style.display = "none";
+          overlay.classList.add("active");
+
+          try {
+            // 2. Call Cloud Function
+            const mockPayment = httpsCallable(
+              this.functions,
+              "mockAuPayPayment",
+            );
+            await mockPayment({ orderId: this.currentOrder.id });
+
+            // 3. Success UI Update (Animation)
+            spinnerContainer.style.display = "none";
+            successIcon.style.display = "block";
+            statusText.innerText = "Authorized";
+            subText.innerText = "支払いが完了しました";
+
+            // 4. Slight pause for user to enjoy the success animation before transition
+            setTimeout(() => {
+              overlay.classList.remove("active");
+              // Wait for fade out
+              setTimeout(() => {
+                this.processingPayment = false; // Reset flag before manual transition
+                this.transitionTo("complete");
+              }, 400);
+            }, 2000);
+          } catch (e) {
+            console.error(e);
+            this.processingPayment = false;
+            spinnerContainer.style.display = "none";
+            statusText.innerText = "Error";
+            subText.innerText = "決済エラー: " + (e.message || "Unknown");
+
+            // Allow close
+            overlay.onclick = () => {
+              overlay.classList.remove("active");
+              overlay.onclick = null;
+            };
+          }
+        }
+      }
+
+      window.app = new KioskApp();
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('store-password-input').addEventListener('input', function(e) {
+          this.value = this.value.replace(/[０-９A-Za-z]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+          }).replace(/[^0-9A-Za-z]/g, '');
+        });
+
+        document.getElementById('toggle-store-pass').addEventListener('click', function() {
+          const input = document.getElementById('store-password-input');
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = '🙈';
+          } else {
+            input.type = 'password';
+            this.textContent = '👁️';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -37,3 +37,4 @@ last_updated: 2026-03-19
 - [[architecture_CONTEXT]]: 全体構成
 - [[CHANGELOG]]: 変更履歴
 - [[設計図/pdf20251116.md]]: POSシステム全体構想（初期設計図）
+- [[設計図/scrap/README]]: アイデア・備忘録 (scrap)

@@ -12,6 +12,8 @@ last_updated: 2026-03-19
 
 ## ⚙️ 共通アーキテクチャ・基盤設定
 - [[architecture_CONTEXT]]: 全体のシステム構成と設計方針
+- [[設計図/南陵祭2026 POS・モバイルオーダーシステム 設計計画書.md]]: POS・モバイルオーダーの詳細設計計画書
+- [[設計図/scrap/README]]: アイデア・備忘録 (scrap)
 - [[firebase_CONTEXT]]: データベース設計、認証、セキュリティルール、Functions
 - [[data_sync_CONTEXT]]: キャッシュ戦略、オフライン対応、データ同期機構
 - [[design_CONTEXT]]: デザインシステム、共通CSS、UIガイドライン

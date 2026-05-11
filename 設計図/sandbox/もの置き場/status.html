@@ -1,0 +1,777 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.1
+  Last Modified: 2026-05-06
+  Author: Nanryosai 2026 Project Team
+-->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Order Status | 南陵祭2026</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* =========================================
+         1. Variables & Base
+         ========================================= */
+      :root {
+        /* Colors */
+        --primary-color: #1a1a1a;   /* Deep Premium Black */
+        --accent-color: #e53935;    /* Vibrant Red */
+        --brand-color: #ff9800;     /* Warm Orange */
+        --bg-color: #f0f2f5;        /* Default Light */
+        --card-bg: #ffffff;
+        
+        /* Text */
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+        /* Status Colors */
+        --status-cooking: #e53935;
+        --status-prep: #3b82f6;
+        --status-done: #10b981;
+        --status-cancelled: #f44336;
+        --status-abandoned: #9e9e9e;
+
+        /* Dimensions */
+        --radius-lg: 20px;
+        --radius-md: 16px;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        /* Animation Specific */
+        --stick-stroke: #374151;
+        --item-fill: #eff6ff;
+        
+        /* Progress Bar */
+        --progress-bg: #e5e7eb;
+        --step-circle-bg: #e5e7eb;
+        --step-text-active: #1a1a1a;
+      }
+
+      /* Dark Mode Overrides */
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
+        }
+      }
+
+      /* Explicit Dark Theme */
+      [data-theme="dark"] {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        font-family: var(--font-main);
+        color: var(--text-main);
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden; 
+        display: flex;
+        flex-direction: column;
+        /* Alignment handled by flex children and margins */
+        margin: 0;
+      }
+
+      /* =========================================
+         2. App Layout Container
+         ========================================= */
+      #app-container {
+        width: 100%;
+        max-width: 500px;
+        /* Matches mobile-order logic: fill available space */
+        flex: 1; 
+        height: auto;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg-color);
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 0 40px var(--shadow-soft);
+        /* Ensure no transform scaling messes up position */
+        transform: none !important;
+      }
+
+      @media (max-width: 500px) {
+          #app-container {
+              max-width: 100%;
+              box-shadow: none;
+              border: none;
+          }
+      }
+
+      /* =========================================
+         3. Status Page Specific Styles
+         ========================================= */
+      .status-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0;
+        padding-bottom: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom) + 20px); 
+        text-align: center;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        background-color: var(--bg-color);
+      }
+
+      /* Main Header Message */
+      .status-header-message {
+        width: 100%;
+        padding: 24px 20px 10px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      /* Status Card */
+      .status-card {
+        background: var(--card-bg);
+        width: 90%;
+        border-radius: var(--radius-lg);
+        padding: 30px 20px;
+        box-shadow: var(--shadow-card);
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        color: var(--text-main);
+        transition: transform 0.3s;
+      }
+
+      /* Colored Top Border */
+      .status-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        border-radius: 20px 20px 0 0;
+        background: var(--border-color, #ccc); /* Fallback */
+      }
+      .status-card.cooking::before { background: var(--status-cooking); }
+      .status-card.prep::before { background: var(--status-prep); }
+      .status-card.done::before { background: var(--status-done); }
+      .status-card.cancelled::before { background: var(--status-cancelled); }
+      .status-card.abandoned::before { background: var(--status-abandoned); }
+
+      /* Side-by-Side Layout */
+      .status-main-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      .anim-col {
+        flex: 0 0 120px;
+        display: flex;
+        justify-content: center;
+      }
+      .num-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* SVG Styles */
+      .stick-svg { width: 110px; height: 110px; margin: 0; }
+      .stick-stroke { stroke: var(--stick-stroke); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .stick-head { fill: var(--stick-stroke); stroke: none; }
+      .item-stroke { stroke: #3b82f6; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .item-fill { fill: var(--item-fill); stroke: #3b82f6; stroke-width: 2px; }
+
+      /* Animations Keyframes */
+      @keyframes cookArm { from { transform: rotate(0deg); } to { transform: rotate(-15deg); } }
+      .arm-cooking { transform-origin: 50px 45px; animation: cookArm 0.6s ease-in-out infinite alternate; }
+      @keyframes cookFood { 0% { transform: translate(0, 0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(5px, -15px) rotate(10deg); opacity: 0; } }
+      .pan-content { opacity: 0; animation: cookFood 0.6s ease-in-out infinite; }
+      @keyframes packArm { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(20deg); } }
+      .arm-packing { transform-origin: 50px 45px; animation: packArm 1.5s ease-in-out infinite; }
+      @keyframes packItem { 0%, 20% { transform: translate(0, -20px); opacity: 0; } 40%, 60% { transform: translate(0, 0); opacity: 1; } 80%, 100% { transform: translate(0, 10px); opacity: 0; } }
+      .item-packing { animation: packItem 1.5s ease-in-out infinite; }
+      @keyframes wave { from { transform: rotate(-160deg); } to { transform: rotate(-130deg); } }
+      .arm-wave { transform-origin: 50px 45px; animation: wave 1s ease-in-out infinite alternate; }
+      @keyframes bagSway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+      .bag-hold { transform-origin: 70px 60px; animation: bagSway 2s ease-in-out infinite alternate; }
+      @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+      .stick-man-done { animation: bounce 2s ease-in-out infinite; transform-origin: bottom center; }
+      @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
+      
+      /* Order Number */
+      .big-number {
+        font-size: 3.5rem; 
+        margin-bottom: 0;
+        line-height: 1;
+        color: var(--text-main);
+        font-weight: 900;
+        letter-spacing: -2px;
+      }
+      .label-order-num {
+        margin-bottom: 5px;
+        text-align: center;
+        color: var(--text-sub);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      /* Title & Desc */
+      .status-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin: 10px 0 5px;
+        color: var(--text-main);
+      }
+      .status-desc {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        white-space: pre-wrap;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+
+      /* Improved Progress Stepper */
+      .progress-stepper {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin: 10px 0 20px;
+        position: relative;
+      }
+      /* Background Line */
+      .progress-stepper::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 15%;
+        right: 15%;
+        height: 4px;
+        background: var(--progress-bg);
+        z-index: 0;
+        border-radius: 4px;
+      }
+      .step-item {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 33%;
+        opacity: 0.6;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .step-item.active { opacity: 1; transform: scale(1.05); }
+      .step-item.completed { opacity: 1; }
+
+      .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--step-circle-bg);
+        color: var(--text-sub);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        transition: all 0.3s;
+        border: 2px solid var(--bg-color); /* Cutout effect */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+      .step-label {
+        margin-top: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        transition: color 0.3s;
+      }
+      
+      /* Active & Completed States */
+      .step-item.active .step-circle { 
+        background: var(--text-main); 
+        color: var(--bg-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      }
+      .step-item.active .step-label { color: var(--text-main); }
+      
+      .step-item.completed .step-circle { 
+        background: var(--status-done); 
+        color: white; 
+      }
+      
+      /* Dynamic Colors per status */
+      .status-card.cooking .step-item.active .step-circle { background: var(--status-cooking); color: white; }
+      .status-card.prep .step-item.active .step-circle { background: var(--status-prep); color: white; }
+      .status-card.done .step-item.active .step-circle { background: var(--status-done); color: white; }
+
+      /* Info & List Sections */
+      .info-section {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .info-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-bottom: 8px;
+        padding-left: 5px;
+      }
+      .info-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-md); /* Matching border radius */
+        padding: 16px 20px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-main);
+      }
+      
+      .item-list-container {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .order-item-row {
+         display: flex; 
+         justify-content: space-between; 
+         align-items: flex-start;
+         margin-bottom: 12px;
+         border-bottom: 1px dashed var(--border-color, #eee);
+         padding-bottom: 12px;
+      }
+      .order-item-row:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+      }
+      .total-price-row {
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px solid var(--border-color, #eee);
+          display: flex;
+          justify-content: space-between;
+          font-weight: 800;
+          font-size: 1.1rem;
+          color: var(--text-main);
+      }
+
+      /* Dark Mode Specific Tweaks for inner elements */
+      [data-theme="dark"] .order-item-row { border-bottom-color: #334155; }
+      [data-theme="dark"] .total-price-row { border-top-color: #334155; }
+
+    </style>
+  </head>
+  <body data-status="waiting">
+    <!-- App Container -->
+    <div id="app-container">
+      
+      <!-- Sub Element that acts as the scrollable screen with themes -->
+      <div class="status-container">
+        
+        <div class="status-header-message">
+           ご注文ありがとうございます
+        </div>
+
+        <!-- Dynamic Status Card -->
+        <div id="status-card" class="status-card cooking">
+            
+            <!-- Row: Animation (Left) + Number (Right) -->
+            <div class="status-main-row">
+                <div class="anim-col" id="anim-container">
+                     <!-- Animation Injected Here -->
+                     <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div class="num-col">
+                    <div class="label-order-num">ご注文番号</div>
+                    <div id="display-number" class="big-number">----</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-stepper" id="progress-stepper">
+                <div class="step-item" id="step-cooking">
+                    <div class="step-circle"><i class="bi bi-fire"></i></div>
+                    <div class="step-label">調理中</div>
+                </div>
+                <div class="step-item" id="step-prep">
+                    <div class="step-circle"><i class="bi bi-box-seam"></i></div>
+                    <div class="step-label">準備中</div>
+                </div>
+                <div class="step-item" id="step-done">
+                    <div class="step-circle"><i class="bi bi-megaphone"></i></div>
+                    <div class="step-label">お呼出</div>
+                </div>
+            </div>
+
+            <div id="status-title" class="status-title">読み込み中...</div>
+            <div id="status-desc" class="status-desc">
+                注文情報を取得しています
+            </div>
+        </div>
+
+        <!-- Store Info -->
+        <div class="info-section">
+            <div class="info-label">受け取り店舗</div>
+            <div class="info-card">
+                 <div style="font-weight: 800; font-size: 1.1rem; flex: 1;" id="store-name-display">読込中...</div>
+            </div>
+        </div>
+
+        <!-- Item List -->
+        <div class="item-list-container">
+             <div class="info-label">注文内容</div>
+             <div class="info-card" style="display: block; padding: 20px;">
+                 <div id="items-list"></div>
+                 <div class="total-price-row">
+                     <span>合計</span>
+                     <span id="total-price">¥0</span>
+                 </div>
+             </div>
+        </div>
+
+      </div>
+
+      </div>
+    
+    </div><!-- End App Container -->
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Firestore モジュールから必要な関数のみ import
+      import {
+        doc,
+        onSnapshot,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // Auth モジュールから必要な関数のみ import
+      import {
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+      /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
+      import { app, auth, db, login } from "../main/auth.js";
+
+      // --- Logic ---
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+
+      if (!orderId) {
+        document.getElementById("status-title").textContent = "Order ID Missing";
+        document.getElementById("status-desc").textContent = "正しいURLでアクセスしてください";
+        document.querySelector(".spinner-border").style.display = "none";
+      } else {
+        // PERMISSION FIX: Wait for Auth
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            startListener();
+          } else {
+            // Not logged in.
+            document.getElementById("status-title").textContent = "認証が必要です";
+            document.getElementById("status-desc").innerHTML =
+              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-dark mt-3 rounded-pill px-4">ログインする</button>';
+            document.querySelector(".spinner-border").style.display = "none";
+
+            document.getElementById("btn-login-status").onclick = () => {
+              login().catch((e) =>
+                alert(e.message)
+              );
+            };
+          }
+        });
+      }
+
+      function startListener() {
+        console.log("Starting Firestore Listener for:", orderId);
+        onSnapshot(
+          doc(db, "orders", orderId),
+          (docSnap) => {
+            if (!docSnap.exists()) {
+              console.log("Doc does not exist");
+              document.getElementById("status-title").textContent = "Order Not Found";
+              return;
+            }
+            const data = docSnap.data();
+            console.log("Order Data Update:", data); 
+            updateUI(data);
+            fetchStoreName(data.storeId);
+            
+            updateUI(data);
+            fetchStoreName(data.storeId);
+          },
+          (error) => {
+            console.error("Snapshot Error:", error);
+            if (error.code === 'permission-denied') {
+                 document.getElementById("status-title").textContent = "アクセス権限がありません";
+                 document.getElementById("status-desc").textContent = "再読み込みをお試しください";
+            } else {
+                document.getElementById("status-title").textContent = "Error";
+                document.getElementById("status-desc").textContent = error.message;
+            }
+          }
+        );
+      }
+
+      function updateUI(data) {
+        // 1. Order Number
+        // Remove "No." prefix if present in the data (though data.receiptNumber is usually just the num)
+        const numEl = document.getElementById("display-number");
+        if (numEl) numEl.textContent = `${data.receiptNumber}`;
+
+        // 2. Items List
+        const list = document.getElementById("items-list");
+        list.innerHTML = "";
+        if (data.items) {
+          data.items.forEach((item) => {
+            const row = document.createElement("div");
+            row.className = "order-item-row";
+            const itemPrice = item.price || 0; 
+            const itemQty = item.quantity || 0;
+            // Simplified item display
+            row.innerHTML = `
+                <div style="flex:1;">
+                    <div style="font-weight:700; color: var(--text-main);">${item.name}</div>
+                    <div style="font-size:0.8rem; color: var(--text-sub);">数量: ${itemQty}</div>
+                </div>
+                <div style="font-weight:700; color: var(--text-main);">¥${itemPrice * itemQty}</div>
+            `;
+            list.appendChild(row);
+          });
+        }
+        document.getElementById("total-price").textContent = `¥${data.totalPrice}`;
+
+        // 3. Status Transformation logic
+        const status = data.status;
+        const animContainer = document.getElementById("anim-container");
+        const card = document.getElementById("status-card");
+        const titleEl = document.getElementById("status-title");
+        const descEl = document.getElementById("status-desc");
+
+        // Status Mappings based on Design
+        let visualState = "cooking"; // default
+        
+        if (status === "cancelled") {
+            visualState = "cancelled";
+        } else if (status === "abandoned_and_paid") {
+            visualState = "abandoned";
+        } else if (status === "ready_to_serve") {
+             visualState = "prep";
+        } else if (status === "ready_for_pickup") {
+             visualState = "calling";
+        } else if (status && status.startsWith("completed")) {
+             visualState = "done";
+        } else {
+             // authorized, unpaid_at_pos, cooking, etc.
+             visualState = "cooking";
+        }
+
+        // --- Render SVG & Text & Progress Bar ---
+        // Reset card classes
+        card.className = "status-card"; 
+        const stepper = document.getElementById("progress-stepper");
+        stepper.style.display = "flex"; // Default show
+
+        // Helper to set progress bar
+        const setProgress = (activeId) => {
+            const steps = ["step-cooking", "step-prep", "step-done"];
+            let foundActive = false;
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove("active", "completed");
+                if (id === activeId) {
+                    el.classList.add("active");
+                    foundActive = true;
+                } else if (!foundActive) {
+                    el.classList.add("completed");
+                }
+            });
+        };
+
+        if (visualState === "cancelled") {
+            card.classList.add("cancelled");
+            stepper.style.display = "none";
+            titleEl.textContent = "キャンセルされました";
+            descEl.textContent = "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。";
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: #f44336;"><i class="bi bi-x-circle-fill"></i></div>`;
+
+        } else if (visualState === "abandoned") {
+            card.classList.add("abandoned");
+            stepper.style.display = "none";
+            titleEl.textContent = "受け取り期限切れ";
+            descEl.textContent = "指定時間を過ぎたため\n商品は破棄されました";
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: #9e9e9e;"><i class="bi bi-trash-fill"></i></div>`;
+
+        } else if (visualState === "cooking") {
+            card.classList.add("cooking");
+            setProgress("step-cooking");
+            titleEl.textContent = "ただいまお作りしています！";
+            descEl.textContent = "モニターに番号が表示されたら\nお受け取りください";
+            
+            // SVG: Cooking
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="30" r="8" class="stick-head"/>
+                    <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                    <path d="M50 45 L30 55" class="stick-stroke"/>
+                    <g class="arm-cooking">
+                        <path d="M50 45 L70 55" class="stick-stroke"/>
+                        <line x1="70" y1="55" x2="80" y2="55" class="stick-stroke"/>
+                        <path d="M80 55 A10 10 0 0 0 95 55 Z" class="stick-stroke" fill="#e5e7eb"/>
+                        <circle cx="87" cy="50" r="2" class="stick-head pan-content" fill="#ef4444"/>
+                        <rect x="85" y="48" width="4" height="4" class="stick-head pan-content" style="animation-delay: 0.1s" fill="#f59e0b"/>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "prep") { // Packing (Ready to serve -> Kitchen done)
+            card.classList.add("prep");
+            setProgress("step-prep");
+            titleEl.textContent = "まもなくお呼び出し";
+            descEl.textContent = "商品を準備しています\nもう少々お待ちください";
+
+            // SVG: Packing
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <line x1="60" y1="80" x2="100" y2="80" class="stick-stroke" style="stroke-width: 2; stroke: #9ca3af;"/>
+                    <circle cx="40" cy="30" r="8" class="stick-head"/>
+                    <line x1="40" y1="38" x2="40" y2="70" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="25" y2="95" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="55" y2="95" class="stick-stroke"/>
+                    <path d="M75 80 L75 65 L90 65 L90 80 Z" class="item-fill"/>
+                    <circle cx="82" cy="60" r="4" class="item-stroke item-packing" style="stroke: #ef4444; fill: #ef4444; border:none;"/>
+                    <g class="arm-packing">
+                        <path d="M40 45 L60 45 L75 55" class="stick-stroke" fill="none"/>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "calling") { // Ready for pickup (Presenter called)
+            card.classList.add("done"); 
+            setProgress("step-done");
+            titleEl.textContent = "商品完成！";
+            descEl.textContent = "カウンターへお越しください！\nおいしく召し上がれ！";
+
+            // SVG: Waving
+             animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <g class="stick-man-done">
+                        <circle cx="50" cy="30" r="8" class="stick-head"/>
+                        <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                        <path d="M50 45 L70 60" class="stick-stroke"/>
+                        <g class="bag-hold">
+                            <path d="M70 60 L70 75 L85 75 L85 60 Z" class="item-fill"/>
+                            <path d="M70 60 Q77 50 85 60" class="item-stroke" style="fill:none; stroke-width:2;"/>
+                        </g>
+                        <g class="arm-wave">
+                            <path d="M50 45 L80 45" class="stick-stroke"/> 
+                        </g>
+                    </g>
+                    <g>
+                        <text x="20" y="30" font-size="20" fill="#fbbf24" style="animation: pulse 1s infinite;">✨</text>
+                        <text x="80" y="20" font-size="15" fill="#fbbf24" style="animation: pulse 1s infinite 0.5s;">✨</text>
+                    </g>
+                </svg>
+            `;
+        }
+        else if (visualState === "done") {
+             card.classList.add("done");
+             setProgress("step-done"); // Stay on done
+             titleEl.textContent = "受渡完了";
+             descEl.textContent = "ご利用ありがとうございました！\n素敵な文化祭を！";
+             animContainer.innerHTML = `
+                <div style="font-size: 5rem; color: #10b981;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+             `;
+        }
+      }
+
+      async function fetchStoreName(storeId) {
+        try {
+          const storeDoc = await getDoc(doc(db, "stores", storeId));
+          if (storeDoc.exists()) {
+             console.log("Store:", storeDoc.data().name);
+             const name = storeDoc.data().name;
+             const el = document.getElementById("store-name-display");
+             if(el) el.textContent = name;
+          }
+        } catch (e) {}
+      }
+
+    </script>
+    
+    <!-- App Layout Scripts -->
+    <script>
+       // Helper to check if authorized (optional specific checks)
+
+       
+       // App Shell Config
+       window.CURRENT_PAGE = 'home'; // Default highlighting
+    </script>
+    <script type="module" src="../main/app-shell.js"></script>
+  </body>
+</html>
