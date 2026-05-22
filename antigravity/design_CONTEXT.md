@@ -156,3 +156,47 @@ iOSデバイスにおける画面回転（ランドスケープ⇔ポートレ�
   - 原則として `flowchart TD` (Top-Down) を使用し、横方向への分岐が増えすぎないように調整する。
   - 初期化ディレクティブ `%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '12px' }}}%%` を追加し、可読性を維持する。
   - ノード内のテキストが長い場合は、`<br/>` による改行を積極的に活用し、ノードの幅を抑える。
+
+---
+
+## 13. グローバルフッターおよびアンケートバナー (2026-05-22 実装)
+
+### 概要
+
+`app-shell.js` の `injectFooter()` / `injectHeader()` により、指定された**ホワイトリスト10ページ**にのみ動的挿入されます。
+
+### 適用対象ページ（ホワイトリスト）
+
+- `about.html`, `about-us.html`, `account.html`, `detail.html`, `index.html`, `map.html`
+- `mobile-order-guide.html`, `projects-list.html`, `stage-list.html`, `terms.html`, `pos/status.html`
+
+### アンケートバナー（`.survey-banner`）
+
+- ヘッダーの直前に挿入（`insertAdjacentHTML("beforebegin", ...)`）。
+- グラデーション背景（`var(--primary-gradient)`）、左右2枚のリンクカード。
+  - 左: コンピュータ科学部アンケート（Googleフォーム）
+  - 右: 生徒会人気投票（暫定: `404.html` → URL確定次第 `app-shell.js` の `voteUrl` を更新）
+
+### フッター（`.app-footer`）
+
+- ボトムナビ（`.app-bottom-nav`）の直前に挿入。
+- `padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom))` でボトムナビと重ならない設計。
+- **サイトマップ（`.footer-sitemap`）**: 4カラムグリッド。レスポンシブで700px以下は2カラム、380px以下でも2カラム維持。
+- **アンケートカード（`.footer-survey-card`）**: ホバーでprimary-colorのボーダー＋浮き上がり。
+- **巨大ロゴ（`.footer-biglogo`）**: `font-size: max(4rem, 22vw)`（高さ制限なし）、`scaleX` でwrapに合わせてフィット。
+  - `'26` 部分は `.glow-26` で `pulse-26` アニメーション（紫グロー）。
+  - クリックで全文字を `.char` スパンに動的分割し、`char-wave` キーフレームで順次ウェーブアニメーション。
+- **SNSリンク（`.footer-sns-btn`）**: GitHub（ホバーで黒系）、Instagram（ホバーで `#e1306c`）のアイコンボタン。背景透明・ボーダーのみ。
+- **コピーライト（`.footer-bottom`）**: 「© 2026 コンピュータ科学部」および横浜南陵高等学校の明記。
+
+### 人気投票リンクの更新手順
+
+生徒会の人気投票フォームURLが確定したら、`main/app-shell.js` の `injectFooter()` 内にある以下の箇所を更新する：
+
+```js
+// TODO: 人気投票フォームURL判明次第、下記を更新する
+const voteUrl = this.resolvePath("404.html");
+```
+
+また、`injectHeader()` 内のバナーの `href` も同様に更新する。
+

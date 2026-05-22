@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>アクセス拒否</title>
+  <style>
+    :root {
+      --blood-red: #8a0303;
+      --dark-bg: #050000;
+      --dim-text: #555;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: var(--dim-text);
+      font-family: 'Courier New', Courier, monospace, serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+    
+    /* 目玉のホラーアニメーション */
+    .eye-container {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .eye {
+      width: 120px;
+      height: 70px;
+      background: #111;
+      border-radius: 50%;
+      border: 1px solid var(--blood-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(138, 3, 3, 0.4) inset, 0 0 20px rgba(138, 3, 3, 0.2);
+      animation: blink 5s infinite, slight-shake 0.1s infinite alternate;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .pupil {
+      width: 40px;
+      height: 40px;
+      background: var(--blood-red);
+      border-radius: 50%;
+      box-shadow: 0 0 15px var(--blood-red);
+      position: absolute;
+      animation: look-around 8s infinite;
+    }
+
+    .pupil::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+    }
+
+    @keyframes blink {
+      0%, 94%, 98% { height: 70px; }
+      96% { height: 2px; }
+    }
+    
+    @keyframes slight-shake {
+      0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
+      100% { transform: translate(-0.5px, -1px) rotate(-0.5deg); }
+    }
+
+    @keyframes look-around {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-15px, 5px); }
+      40% { transform: translate(15px, -5px); }
+      60% { transform: translate(0, 10px); }
+      80% { transform: translate(-10px, -10px); }
+    }
+
+    h1 {
+      color: var(--blood-red);
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      letter-spacing: 3px;
+      font-weight: normal;
+      text-shadow: 0 0 10px rgba(138, 3, 3, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; text-shadow: 0 0 15px rgba(138, 3, 3, 0.8); }
+    }
+
+    .message {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 3rem;
+      text-align: center;
+      line-height: 1.8;
+      letter-spacing: 1px;
+    }
+
+    .ban-info {
+      background-color: rgba(15, 0, 0, 0.9);
+      border: 1px solid #420000;
+      padding: 1.5rem;
+      border-radius: 4px;
+      text-align: left;
+      font-size: 0.8rem;
+      color: #888;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .ban-info p {
+      margin: 0.8rem 0;
+      word-break: break-all;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .ban-info strong {
+      color: #622;
+      font-weight: normal;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ban-info span {
+      color: #aaa;
+      font-family: monospace;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      font-size: 0.75rem;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+
+    .footer:hover {
+      opacity: 1;
+    }
+
+    .footer a {
+      color: #555;
+      text-decoration: none;
+      border-bottom: 1px dashed #444;
+      padding-bottom: 2px;
+    }
+
+    .footer a:hover {
+      color: #999;
+      border-bottom-color: #999;
+    }
+    
+    /* 画面全体のノイズフィルター */
+    .noise {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.04;
+      background: url('data:image/svg+xml;utf8,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');
+    }
+    
+    /* 画面のフリッカー（明滅）効果 */
+    .flicker {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 49;
+      background-color: rgba(0,0,0,0);
+      animation: crt-flicker 8s infinite;
+    }
+
+    @keyframes crt-flicker {
+      0% { background-color: rgba(0,0,0,0); }
+      5% { background-color: rgba(0,0,0,0.1); }
+      10% { background-color: rgba(0,0,0,0); }
+      15% { background-color: rgba(20,0,0,0.05); }
+      100% { background-color: rgba(0,0,0,0); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="flicker"></div>
+  
+  <div class="eye-container">
+    <div class="eye">
+      <div class="pupil"></div>
+    </div>
+  </div>
+
+  <h1>……見ましたよね？</h1>
+  
+  <div class="message">
+    二度と、来ないでください。<br>
+    あなたのアカウントは利用を制限されています。
+  </div>
+
+  <div class="ban-info" id="banInfoContainer">
+    <!-- JSで情報が差し込まれる -->
+  </div>
+
+  <div class="footer">
+    <a href="https://forms.gle/dummy" target="_blank" rel="noopener noreferrer">お心当たりがない場合はこちら</a>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById("banInfoContainer");
+      
+      try {
+        const rawInfo = sessionStorage.getItem("ban_info");
+        
+        if (rawInfo) {
+          const info = JSON.parse(rawInfo);
+          const email = info.email || 'Unknown';
+          const reason = info.reason || '利用規約違反';
+          
+          let dateStr = 'Unknown';
+          if (info.bannedAt) {
+            const date = new Date(info.bannedAt);
+            // YYYY/MM/DD HH:mm:ss 形式に整形
+            dateStr = date.getFullYear() + '/' + 
+                      String(date.getMonth() + 1).padStart(2, '0') + '/' + 
+                      String(date.getDate()).padStart(2, '0') + ' ' + 
+                      String(date.getHours()).padStart(2, '0') + ':' + 
+                      String(date.getMinutes()).padStart(2, '0') + ':' + 
+                      String(date.getSeconds()).padStart(2, '0');
+          }
+
+          container.innerHTML = `
+            <p><strong>ACCOUNT</strong><span>${email}</span></p>
+            <p><strong>REASON</strong><span>${reason}</span></p>
+            <p><strong>BANNED_AT</strong><span>${dateStr}</span></p>
+          `;
+        } else {
+          // sessionStorageに情報がない場合
+          container.innerHTML = `<p style="text-align:center; color:#555;">アクセスが拒否されました。</p>`;
+        }
+      } catch(e) {
+        // パースエラー等の場合
+        container.innerHTML = `<p style="text-align:center; color:#555;">アクセスが拒否されました。</p>`;
+      }
+      
+      // BAN画面から戻るのを防ぐための履歴操作
+      history.pushState(null, null, location.href);
+      window.onpopstate = function () {
+          history.go(1);
+      };
+    });
+  </script>
+</body>
+</html>

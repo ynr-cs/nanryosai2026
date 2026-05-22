@@ -32,7 +32,7 @@
 ログイン成功 (UID 確定)
   ↓
 [1] BAN チェック (banned_users/{uid})
-  ├─ BAN該当 → banned.html へ強制遷移 (signOut しない)
+  ├─ BAN該当 → banned.html へ強制遷移 (signOut しない、脱出手段なし)
   └─ BAN非該当 → 次へ
   ↓
 [2] ドメインチェック (mode=student のときのみ)
@@ -61,12 +61,12 @@
 クライアントだけだと DevTools で `banCache` を書き換えれば回避できる。
 `functions/index.js` の以下の Function 冒頭にも BAN チェックを入れる:
 
-- `createOnlineOrder` — 必須
+- `createOrder` — 必須
 - `mockAuPayPayment` — 推奨
 - その他、課金・注文に絡む Function — 必須
 
 ```js
-// 例: createOnlineOrder
+// 例: createOrder
 const banDoc = await db.collection("banned_users").doc(uid).get();
 if (banDoc.exists) {
   throw new functions.https.HttpsError(
@@ -178,6 +178,7 @@ function watchUser(callback) {
           reason: banStatus.reason,
           bannedAt: banStatus.bannedAt?.toISOString(),
         }));
+        // signOut() は実行しない — banned.html に閉じ込める
         const bannedUrl = new URL("./banned.html", import.meta.url).href;
         location.replace(bannedUrl);
         return;
@@ -207,11 +208,11 @@ function watchUser(callback) {
 
 ### 5.1 構成
 - `app-shell.js` / `style.css` を読まないスタンドアロン HTML
-- 真っ黒背景＋目玉モチーフ＋「二度と、来ないでください。」のコピー
+- 真っ黒背景＋目玉モチーフ＋ホラー演出テキスト
 - 中央に BAN 情報（メール・理由・日時）を控えめに表示
-- 下部にアクション:
-  - 「別のアカウントに切り替える」ボタン → `signOut()` してから `login.html` へ
-  - 「ホームに戻る」リンク → `index.html`（BAN ユーザーは結局 `auth.js` に弾かれて戻ってくるが、未ログイン状態にすればホームは見られる）
+- 下部アクション:
+  - 異議申し立てフォームリンクのみ（「お心当たりがない場合はこちら」）
+  - ログアウトボタン・アカウント切り替え・ホームへ戻るリンクは一切設置しない
 
 ### 5.2 誤 BAN 申し立て窓口
 ページ下部に Google フォーム等への小さなリンクを設置:
@@ -237,7 +238,7 @@ function watchUser(callback) {
 
 ### 6.2 BAN 解除手順（暫定）
 1. Firestore Console から `banned_users/{uid}` を削除
-2. クライアント側のキャッシュは最大 5 分で expire するため、解除後は最大 5 分待つか、当該ユーザーに再ログインを依頼
+2. BAN解除後、対象ユーザーのブラウザでは `auth.js` のBANキャッシュが最大5分残る。解除後はキャッシュ期限切れを待つか、ユーザーにブラウザのリロードを依頼する。ただし `signOut()` していないため、認証状態は維持されており、キャッシュ期限切れ後は通常通り利用可能となる。
 
 ### 6.3 BAN ログの保管
 削除前に `banned_users_archive/{uid}_{timestamp}` などにコピーを残す運用を推奨（Cloud Functions で自動化可能）。
@@ -249,11 +250,12 @@ function watchUser(callback) {
 - [ ] `banned.html` のデザイン最終確定（現状: 真っ黒＋目玉モチーフのドラフトあり）
 - [ ] 誤 BAN 申し立てフォームの URL 確定
 - [ ] `auth.js` への `checkBanStatus` / `watchUser` 改造の実装
-- [ ] `functions/index.js` の `createOnlineOrder` ほかへサーバー側 BAN チェック追加
+- [ ] `functions/index.js` の `createOrder` ほかへサーバー側 BAN チェック追加
 - [ ] Firestore Security Rules への `banned_users` 設定追加
 - [ ] `account.html` の `authTimeout` 値の調整検討（2.5s → 4s）
 - [ ] BAN 管理画面 (`admin/ban-manage.html`) の要否判断
 - [ ] BAN 自動発動条件のロジック策定（受取期限超過カウント等を Cloud Functions で集計するか）
+- [ ] `sok-to.html` でのGoogle認証時のBANチェック（または `auth.js` 共通チェックで対応済みとしてTODOから除外）
 
 ---
 

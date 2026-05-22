@@ -23,11 +23,34 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const AppShell = {
+  // ホワイトリスト: フッターとアンケートバナーを表示するページのパス部分
+  FOOTER_WHITELIST: [
+    "about.html",
+    "about-us.html",
+    "account.html",
+    "detail.html",
+    "index.html",
+    "map.html",
+    "mobile-order-guide.html",
+    "projects-list.html",
+    "stage-list.html",
+    "terms.html",
+    "status.html", // pos/status.html
+  ],
+
+  isFooterPage: function () {
+    const path = window.location.pathname;
+    // パスの末尾のファイル名を取り出して完全一致で判定（誤マッチ防止）
+    const filename = path.split("/").pop() || "";
+    return this.FOOTER_WHITELIST.includes(filename);
+  },
+
   init: function () {
     this.injectStyles();
     this.injectHeader();
     this.injectBottomNav();
     this.injectMenuOverlay();
+    this.injectFooter();
     this.highlightActiveTab();
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
@@ -196,6 +219,193 @@ const AppShell = {
         }
       });
     }
+  },
+
+  injectFooter: function () {
+    // ホワイトリスト外のページではフッターを表示しない
+    if (!this.isFooterPage()) return;
+    if (document.querySelector(".app-footer")) return;
+
+    const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
+    const bugForm = "https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header";
+    // TODO: 人気投票フォームURL判明次第、下記を更新する
+    const voteUrl = this.resolvePath("404.html");
+
+    const footerHtml = `
+      <footer class="app-footer" id="app-footer">
+
+        <!-- サイトマップ（4カラム） -->
+        <nav class="footer-sitemap">
+
+          <div class="footer-sitemap-col">
+            <div class="footer-sitemap-heading">イベント</div>
+            <ul class="footer-sitemap-list">
+              <li><a href="${this.resolvePath("about.html")}">概要</a></li>
+              <li><a href="${this.resolvePath("projects-list.html")}">企画一覧</a></li>
+              <li><a href="${this.resolvePath("stage-list.html")}">ステージ発表</a></li>
+              <li><a href="${this.resolvePath("map.html")}">校内マップ</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-sitemap-col">
+            <div class="footer-sitemap-heading">サービス</div>
+            <ul class="footer-sitemap-list">
+              <li><a href="${this.resolvePath("mobile-order-guide.html")}">モバイルオーダーガイド</a></li>
+              <li><a href="${this.resolvePath("mobile-order.html")}">モバイルオーダー</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-sitemap-col">
+            <div class="footer-sitemap-heading">サポート</div>
+            <ul class="footer-sitemap-list">
+              <li>
+                <a href="${csForm}" target="_blank" rel="noopener">
+                  お問い合わせ<i class="bi bi-box-arrow-up-right ext-icon"></i>
+                </a>
+              </li>
+              <li>
+                <a href="${bugForm}" target="_blank" rel="noopener">
+                  不具合報告<i class="bi bi-box-arrow-up-right ext-icon"></i>
+                </a>
+              </li>
+              <li><a href="${this.resolvePath("terms.html")}">利用規約</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-sitemap-col">
+            <div class="footer-sitemap-heading">コンピュータ科学部</div>
+            <ul class="footer-sitemap-list">
+              <li><a href="${this.resolvePath("about-us.html")}">コンピュータ科学部について</a></li>
+            </ul>
+            <div class="footer-sns-row">
+              <a href="https://github.com/ynr-cs/nanryosai2026"
+                 class="footer-sns-btn github"
+                 target="_blank" rel="noopener" title="GitHub">
+                <i class="bi bi-github"></i>
+              </a>
+              <a href="https://www.instagram.com/ynr_cs"
+                 class="footer-sns-btn instagram"
+                 target="_blank" rel="noopener" title="Instagram">
+                <i class="bi bi-instagram"></i>
+              </a>
+            </div>
+          </div>
+
+        </nav>
+
+        <!-- フッター内アンケートカード -->
+        <div class="footer-survey-row">
+          <a class="footer-survey-card" href="${csForm}" target="_blank" rel="noopener">
+            <div class="footer-survey-icon"><i class="bi bi-ui-checks"></i></div>
+            <div class="footer-survey-body">
+              <span class="footer-survey-label">コンピュータ科学部 アンケート</span>
+              <span class="footer-survey-title">サイトへのご意見・感想</span>
+            </div>
+            <i class="bi bi-chevron-right footer-survey-arrow"></i>
+          </a>
+          <!-- TODO: 人気投票フォームURL判明次第、voteUrlを更新する -->
+          <a class="footer-survey-card" href="${voteUrl}" rel="noopener">
+            <div class="footer-survey-icon trophy"><i class="bi bi-trophy-fill"></i></div>
+            <div class="footer-survey-body">
+              <span class="footer-survey-label">生徒会 人気投票</span>
+              <span class="footer-survey-title">あなたの推し企画に投票！</span>
+            </div>
+            <i class="bi bi-chevron-right footer-survey-arrow"></i>
+          </a>
+        </div>
+
+        <!-- 巨大ロゴ（クリックで文字ウェーブ） -->
+        <div class="footer-biglogo-wrap">
+          <span class="footer-biglogo" id="footer-biglogo">南陵祭'<span class="glow-26" id="footer-glow26">26</span></span>
+        </div>
+
+        <!-- コピーライト -->
+        <div class="footer-bottom">
+          <span class="footer-bottom-left">
+            © 2026 コンピュータ科学部<br>
+            <span style="font-size:0.65rem; opacity:0.6;">横浜南陵高等学校 南陵祭2026 公式Webサイト</span>
+          </span>
+          <nav class="footer-bottom-links">
+            <a href="${csForm}" target="_blank" rel="noopener" class="footer-bottom-link">お問い合わせ</a>
+          </nav>
+        </div>
+
+      </footer>
+    `;
+
+    // ボトムナビの直前に挿入
+    const bottomNav = document.querySelector(".app-bottom-nav");
+    if (bottomNav) {
+      bottomNav.insertAdjacentHTML("beforebegin", footerHtml);
+    } else {
+      document.body.insertAdjacentHTML("beforeend", footerHtml);
+    }
+
+    // ロゴフィット & アニメーション初期化
+    this.initFooterLogoFit();
+  },
+
+  initFooterLogoFit: function () {
+    const logo = document.getElementById("footer-biglogo");
+    if (!logo) return;
+
+    function fitBigLogo() {
+      const wrap = logo.parentElement;
+      logo.style.transform = "scaleX(1)";
+      const wrapW = wrap.clientWidth - 32;
+      const logoW = logo.scrollWidth;
+      if (logoW > 0) {
+        const sx = wrapW / logoW;
+        logo.style.transform = `scaleX(${sx})`;
+        logo.style.transformOrigin = "left center";
+      }
+    }
+
+    fitBigLogo();
+    window.addEventListener("resize", fitBigLogo);
+
+    // 文字ウェーブ アニメーション
+    function splitIntoChars() {
+      if (logo.querySelector(".char")) return;
+      const walker = document.createTreeWalker(logo, NodeFilter.SHOW_TEXT, null);
+      const textNodes = [];
+      let node;
+      while ((node = walker.nextNode())) textNodes.push(node);
+      textNodes.forEach((tn) => {
+        const parent = tn.parentNode;
+        const frag = document.createDocumentFragment();
+        [...tn.textContent].forEach((ch) => {
+          const span = document.createElement("span");
+          span.className = "char";
+          span.textContent = ch;
+          frag.appendChild(span);
+        });
+        parent.replaceChild(frag, tn);
+      });
+    }
+
+    let waving = false;
+    logo.addEventListener("click", () => {
+      if (waving) return;
+      waving = true;
+      splitIntoChars();
+      const chars = logo.querySelectorAll(".char");
+      const stagger = 42;
+      chars.forEach((ch, i) => {
+        ch.classList.remove("animating");
+        void ch.offsetWidth;
+        ch.style.animationDelay = `${i * stagger}ms`;
+        ch.classList.add("animating");
+      });
+      const totalDuration = (chars.length - 1) * stagger + 700;
+      setTimeout(() => {
+        chars.forEach((ch) => {
+          ch.classList.remove("animating");
+          ch.style.animationDelay = "";
+        });
+        waving = false;
+      }, totalDuration + 50);
+    });
   },
 
   initTheme: function () {
