@@ -57,7 +57,7 @@ last_updated: 2026-05-07
 ## 4. データベース (Firestore)
 
 - **コレクション構成**:
-  - `users/{uid}`: プロフィール + `cart` サブコレクション。
+  - `users/{uid}`: プロフィール + `cart` サブコレクション。複数端末対応のためのPush通知トークン配列 `fcmTokens` と、利用規約の初回同意日時 `termsAgreedAt` を保持する。
   - `stores/{storeId}`: 店舗メタデータ。
     - **Field Mappings** (Comparison with `data.js`):
       | Firestore Field | Meaning | Source in `data.js` |
@@ -68,7 +68,10 @@ last_updated: 2026-05-07
       | - | 座標 (mapX/mapY) | **除外** (2026地図方式未定のため保留) |
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
-    - `paymentMethod`: `"online"` (アプリ決済), `"pos"` (POSでのQR手動確認). `"cash"` は廃止済み。
+    - `orderChannel`: `"mobile"`, `"sok"`, `"pos"` で注文経路を区別。
+    - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`) と `sokClaimedAt`。
+    - `paymentMethod`: 経路によらず `"au_pay_manual"` に統一。
+    - `readyForPickupAt`: 提供準備完了時刻。15分放置ペナルティの自動判定（Scheduled Function）の基準として重要。
   - `counters/receipt`: レシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
   - **Spreadsheet Integration**:
@@ -83,7 +86,7 @@ last_updated: 2026-05-07
   - `venue_admin_config/settings`: 会場管理画面のログイン用設定（URLトークン、パスワードのハッシュ・ソルト）。Firebase Authを使わない独立した認証に使用。
   - `venue_admin_sessions/{sessionToken}`: 会場管理の有効なセッショントークン。
 - **セキュリティルール**:
-  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは管理者/本人/SuperAdminのみ。
+  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは「自身の注文」または「SOKの未確定仮注文（`sokStatus == "pending"`）」のみ許可。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
   - `users`: 本人のみ読み書き可。
   - `store_secrets`: 読み書き完全禁止。
@@ -104,13 +107,18 @@ last_updated: 2026-05-07
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
 - **関数一覧**:
-  - `createOnlineOrder` (OnCall): 注文作成トランザクション。在庫チェック、レシート番号発番を行う。API直叩きでの不正利用を防ぐため、**`context.auth.token.email` を用いたドメイン検証**を必須要件としている。
-  - `getNextReceiptNumber` (OnCall): POS用の安全なレシート番号発番。
-  - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を送信。
-  - `mockAuPayPayment` (OnCall): auPay決済のデモ用モック処理。注文ステータスを `authorized` へ変更する。
+  - `createOnlineOrder` (OnCall): モバイルオーダー注文作成。ドメイン検証必須。
+  - `createPosOrder` (OnCall): POSレジからの注文作成。
+  - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `userId: null`）。受付番号2000番台を発番。
+  - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。
+  - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。
+  - `getNextReceiptNumber` (OnCall): 経路別の安全なレシート番号発番。
+  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から15分超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。
+  - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
+  - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。
   - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
-  - `loginVenueAdmin` (OnCall): 会場管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
+  - `loginVenueAdmin` (OnCall): ステージ発表・催し物会場（venues）管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
   - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
 
 ## 6. クラウドストレージ (Cloud Storage)
