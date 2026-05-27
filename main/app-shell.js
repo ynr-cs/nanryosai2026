@@ -25,6 +25,7 @@ import {
 const AppShell = {
   // ホワイトリスト: フッターとアンケートバナーを表示するページのパス部分
   FOOTER_WHITELIST: [
+    "404.html",
     "about.html",
     "about-us.html",
     "account.html",

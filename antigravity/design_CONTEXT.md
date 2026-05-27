@@ -163,11 +163,11 @@ iOSデバイスにおける画面回転（ランドスケープ⇔ポートレ�
 
 ### 概要
 
-`app-shell.js` の `injectFooter()` / `injectHeader()` により、指定された**ホワイトリスト10ページ**にのみ動的挿入されます。
+`app-shell.js` の `injectFooter()` / `injectHeader()` により、指定された**ホワイトリスト対象ページ**にのみ動的挿入されます。
 
 ### 適用対象ページ（ホワイトリスト）
 
-- `about.html`, `about-us.html`, `account.html`, `detail.html`, `index.html`, `map.html`
+- `404.html`, `about.html`, `about-us.html`, `account.html`, `detail.html`, `index.html`, `map.html`
 - `mobile-order-guide.html`, `projects-list.html`, `stage-list.html`, `terms.html`, `pos/status.html`
 
 ### アンケートバナー（`.survey-banner`）
