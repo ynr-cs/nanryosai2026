@@ -15,6 +15,47 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.2.171] pos/status.html: app-shell フッター表示不具合の修正 - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Claude Opus 4.6
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`pos/status.html`**:
+  - `app-shell.js` によるグローバルフッターおよびボトムナビゲーションが表示されない不具合を修正しました。
+  - **根本原因**: `body` に `height: 100dvh` と `overflow: hidden` が設定されており、`app-shell.js` が `body` 末尾に挿入するフッター・ボトムナビが表示領域外に隠れていた。
+  - **解決策**:
+    - `body` の `height: 100dvh` → `min-height: 100dvh` に変更（コンテンツ量に応じて伸縮可能に）。
+    - `body` の `overflow: hidden` → `overflow-x: hidden` に変更（縦方向のスクロールを許可）。
+    - `#app-container` の `overflow: hidden` → `overflow-y: auto; overflow-x: hidden` に変更。
+    - `#app-container` に `flex: 1 0 auto` と `min-height: calc(100dvh - var(--header-height, 56px) - var(--bottom-nav-height, 80px))` を追加。巨大なフッターによってコンテナが押しつぶされて高さ0になる問題を防止。
+
+### 得られた知見
+
+- `app-shell.js` がフッター・ボトムナビを `body` 末尾に動的挿入する設計では、ページ側が `body` に `overflow: hidden` や固定 `height` を設定していると挿入要素が不可視になる。
+- `display: flex` の親要素で `min-height` を使う場合、巨大な兄弟要素（フッター等）が存在すると `flex: 1` の子要素のスペースが0に圧縮される。`min-height` と `flex-shrink: 0` の明示指定で回避する。
+
+## [0.2.170] 404.html へのフッター適用 - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`main/app-shell.js`**:
+  - `FOOTER_WHITELIST` に `404.html` を追加。404エラーページにおいても、他のページと同様に共通のグローバルフッターが動的に挿入されるよう修正しました。
+- **`antigravity/design_CONTEXT.md`**:
+  - フッターの適用対象ページ（ホワイトリスト）の記述に `404.html` を追加し、最新の実装と同期させました。
+
+### 得られた知見
+
+- グローバルUI（ヘッダー/フッター）のホワイトリスト方式において、404エラーページなどシステム的なページへの適用可否を明示的に管理することで、サイト全体の一貫したデザインを維持できる。
+
 ## [0.2.169] 概要リンクの遷移先修正およびアンケートURLの更新 - 2026-05-22
 
 ### メタ情報
