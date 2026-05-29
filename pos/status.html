@@ -1,6 +1,6 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.1
+  Version: 0.1.2
   Last Modified: 2026-05-06
   Author: Nanryosai 2026 Project Team
 -->
@@ -48,12 +48,13 @@
         --text-sub: #636e72;
         --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-        /* Status Colors */
-        --status-cooking: #e53935;
-        --status-prep: #3b82f6;
-        --status-done: #10b981;
-        --status-cancelled: #f44336;
-        --status-abandoned: #9e9e9e;
+        /* Status Colors — 設計憲法§1.1準拠 */
+        --status-cooking: #f59e0b;          /* Amber: 調理中 */
+        --status-ready-to-serve: #3b82f6;   /* Blue: 終準備中 */
+        --status-ready-for-pickup: #10b981; /* Emerald: 呼び出し中 */
+        --status-completed: #10b981;        /* Emerald: 完了 */
+        --status-cancelled: #ef4444;        /* Red: キャンセル */
+        --status-abandoned: #9ca3af;        /* Gray: 15分放置 */
 
         /* Dimensions */
         --radius-lg: 20px;
@@ -602,36 +603,24 @@
         }
         document.getElementById("total-price").textContent = `¥${data.totalPrice}`;
 
-        // 3. Status Transformation logic
+        // 3. Status Transformation logic — 設計憲法§1.1の7ステータス対応
+        const STATUS_CONFIG = {
+          "cooking":          { visualState: "cooking",   title: "ただいまお作りしています！",          desc: "モニターに番号が表示されたら\nお受け取りください" },
+          "ready_to_serve":   { visualState: "prep",      title: "まもなくお呼び出し",            desc: "商品を準備しています\nもう少々お待ちください" },
+          "ready_for_pickup": { visualState: "calling",   title: "商品完成！",                    desc: "カウンターへお越しください！\nおいしく召し上がれ！" },
+          "completed":        { visualState: "done",      title: "受渡完了",                    desc: "ご利用ありがとうございました！\n素敵な文化瞖を！" },
+          "cancelled":        { visualState: "cancelled",  title: "キャンセルされました",              desc: "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。" },
+          "abandoned":        { visualState: "abandoned",  title: "受け取り期限切れ",                desc: "15分以内に受け取りに来られなかったため\n商品は破棄されました" },
+        };
+
         const status = data.status;
+        const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["cooking"]; // 未知は cooking 扱い
+        const visualState = cfg.visualState;
+
         const animContainer = document.getElementById("anim-container");
         const card = document.getElementById("status-card");
         const titleEl = document.getElementById("status-title");
         const descEl = document.getElementById("status-desc");
-
-        // Status Mappings based on Design
-        let visualState = "cooking"; // default
-        
-        if (status === "cancelled") {
-            visualState = "cancelled";
-        } else if (status === "abandoned_and_paid") {
-            visualState = "abandoned";
-        } else if (status === "ready_to_serve") {
-             visualState = "prep";
-        } else if (status === "ready_for_pickup") {
-             visualState = "calling";
-        } else if (status && status.startsWith("completed")) {
-             visualState = "done";
-        } else {
-             // authorized, unpaid_at_pos, cooking, etc.
-             visualState = "cooking";
-        }
-
-        // --- Render SVG & Text & Progress Bar ---
-        // Reset card classes
-        card.className = "status-card"; 
-        const stepper = document.getElementById("progress-stepper");
-        stepper.style.display = "flex"; // Default show
 
         // Helper to set progress bar
         const setProgress = (activeId) => {
@@ -649,27 +638,28 @@
             });
         };
 
+        // Reset card classes
+        card.className = "status-card";
+        const stepper = document.getElementById("progress-stepper");
+        stepper.style.display = "flex"; // Default show
+
+        // 共通テキスト居入
+        titleEl.textContent = cfg.title;
+        descEl.textContent = cfg.desc;
+
         if (visualState === "cancelled") {
             card.classList.add("cancelled");
             stepper.style.display = "none";
-            titleEl.textContent = "キャンセルされました";
-            descEl.textContent = "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。";
-            animContainer.innerHTML = `<div style="font-size: 5rem; color: #f44336;"><i class="bi bi-x-circle-fill"></i></div>`;
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-cancelled);"><i class="bi bi-x-circle-fill"></i></div>`;
 
         } else if (visualState === "abandoned") {
             card.classList.add("abandoned");
             stepper.style.display = "none";
-            titleEl.textContent = "受け取り期限切れ";
-            descEl.textContent = "指定時間を過ぎたため\n商品は破棄されました";
-            animContainer.innerHTML = `<div style="font-size: 5rem; color: #9e9e9e;"><i class="bi bi-trash-fill"></i></div>`;
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-abandoned);"><i class="bi bi-clock-fill"></i></div>`;
 
         } else if (visualState === "cooking") {
             card.classList.add("cooking");
             setProgress("step-cooking");
-            titleEl.textContent = "ただいまお作りしています！";
-            descEl.textContent = "モニターに番号が表示されたら\nお受け取りください";
-            
-            // SVG: Cooking
             animContainer.innerHTML = `
                 <svg class="stick-svg" viewBox="0 0 100 100">
                     <circle cx="50" cy="30" r="8" class="stick-head"/>
@@ -687,13 +677,9 @@
                 </svg>
             `;
 
-        } else if (visualState === "prep") { // Packing (Ready to serve -> Kitchen done)
+        } else if (visualState === "prep") {
             card.classList.add("prep");
             setProgress("step-prep");
-            titleEl.textContent = "まもなくお呼び出し";
-            descEl.textContent = "商品を準備しています\nもう少々お待ちください";
-
-            // SVG: Packing
             animContainer.innerHTML = `
                 <svg class="stick-svg" viewBox="0 0 100 100">
                     <line x1="60" y1="80" x2="100" y2="80" class="stick-stroke" style="stroke-width: 2; stroke: #9ca3af;"/>
@@ -709,14 +695,10 @@
                 </svg>
             `;
 
-        } else if (visualState === "calling") { // Ready for pickup (Presenter called)
-            card.classList.add("done"); 
+        } else if (visualState === "calling") {
+            card.classList.add("done");
             setProgress("step-done");
-            titleEl.textContent = "商品完成！";
-            descEl.textContent = "カウンターへお越しください！\nおいしく召し上がれ！";
-
-            // SVG: Waving
-             animContainer.innerHTML = `
+            animContainer.innerHTML = `
                 <svg class="stick-svg" viewBox="0 0 100 100">
                     <g class="stick-man-done">
                         <circle cx="50" cy="30" r="8" class="stick-head"/>
@@ -738,14 +720,12 @@
                     </g>
                 </svg>
             `;
-        }
-        else if (visualState === "done") {
+
+        } else if (visualState === "done") {
              card.classList.add("done");
-             setProgress("step-done"); // Stay on done
-             titleEl.textContent = "受渡完了";
-             descEl.textContent = "ご利用ありがとうございました！\n素敵な文化祭を！";
+             setProgress("step-done");
              animContainer.innerHTML = `
-                <div style="font-size: 5rem; color: #10b981;">
+                <div style="font-size: 5rem; color: var(--status-completed);">
                     <i class="bi bi-check-circle-fill"></i>
                 </div>
              `;

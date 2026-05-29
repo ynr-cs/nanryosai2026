@@ -1351,7 +1351,6 @@
         getDoc,
         setDoc,
         serverTimestamp,
-        writeBatch,
         query,
         where,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -1945,26 +1944,18 @@
         if (!confirm("本当に注文を確定してよろしいですか？")) return;
         loader.style.display = "flex";
         try {
-          const cartRef = collection(db, `users/${currentUser.uid}/cart`);
-          const batch = writeBatch(db);
-          const oldSnap = await getDocs(cartRef);
-          oldSnap.forEach((d) => batch.delete(d.ref));
-
-          cart.forEach((c) => {
-            batch.set(doc(cartRef), {
-              productId: c.productId,
+          // Phase3: createOrder (統合関数) を呼び出す
+          // カートはローカル変数のみ管理（Firestore保存なし・設計憲法§5.1）
+          const createOrderFn = httpsCallable(functions, "createOrder");
+          const result = await createOrderFn({
+            orderChannel: "mobile",
+            storeId: currentStoreId,
+            items: cart.map((c) => ({
+              itemId: c.productId,
               quantity: c.quantity,
-              customizations: c.customizations,
-              updatedAt: serverTimestamp(),
-            });
+              customizations: c.customizations || [],
+            })),
           });
-          await batch.commit();
-
-          const createOnlineOrder = httpsCallable(
-            functions,
-            "createOnlineOrder",
-          );
-          const result = await createOnlineOrder({ storeId: currentStoreId });
           if (!result.data.success)
             throw new Error(result.data.error || "Order Failed");
 

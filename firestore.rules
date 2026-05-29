@@ -58,23 +58,27 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
     }
 
-    // 3. Orders (注文)
+    // 3. Orders (注文) – 設計憲法§8 / §8.1 準拠
     match /orders/{orderId} {
-      // 読み取り: 認証済みユーザーなら許可 (Kitchen/Monitorの現在の仕様上)
-      // 読み取り: 店舗管理者(自店のみ)、注文者本人、SuperAdminのみ
-      allow read: if isStoreAdmin(resource.data.storeId) 
-                  || (request.auth.uid == resource.data.userId)
-                  || isSuperAdmin();
+      // 読み取り: 設計憲法§8.1 に基づく4条件
+      allow read: if
+        // (a) 店舗管理者（自店のみ）または SuperAdmin
+        isStoreAdmin(resource.data.storeId) || isSuperAdmin()
+        // (b) 自身の注文（userId 一致）
+        || (isAuthenticated() && request.auth.uid == resource.data.userId)
+        // (c) SOK未確定仮注文（claim前の閲覧用）
+        || (resource.data.orderChannel == "sok" && resource.data.sokStatus == "pending")
+        // (d) monitor.html 用: ready_for_pickup の注文を誰でも読める
+        || resource.data.status == "ready_for_pickup";
       
-      // 作成: 禁止 (クライアントSDKからは作成不可。Cloud Functions経由のみ)
-      // Phase 3 セキュリティ強化: これにより不正なパラメータでの注文を完全ブロック
+      // 作成: 禁止 (Cloud Functions経由のみ)
       allow create: if false; 
       
-      // 更新: 店舗管理者、SuperAdminのみ許可 (ユーザーによる変更・キャンセルは禁止)
-      allow update: if isStoreAdmin(resource.data.storeId) 
-                    || isSuperAdmin();
+      // 更新: フェーズ2完了まで既存ルールを維持（kitchen.htmlなどがまだ直接updateしているため）
+      // TODO(Phase2): allow update: if false; に変更する
+      allow update: if isStoreAdmin(resource.data.storeId) || isSuperAdmin();
                     
-      // 削除: 禁止 (SuperAdminのみ)
+      // 削除: SuperAdminのみ
       allow delete: if isSuperAdmin();
     }
 
@@ -108,6 +112,14 @@ service cloud.firestore {
     match /_metadata/{document=**} {
       allow read: if true;
       allow write: if isSuperAdmin();
+    }
+
+    // 8. Banned Users (BAN情報) – 設計憲法§8 / §10.2 準拠
+    // read は本人のみ（auth.js の watchUser() でクライアント側BANチェックに使用）
+    // write は全拒否（Cloud Functions のみがアクセス可能）
+    match /banned_users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if false;
     }
     
     // デフォルト: 全て拒否

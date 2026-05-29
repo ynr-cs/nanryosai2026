@@ -734,7 +734,7 @@
         unsubscribe = db
           .collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "in", ["unpaid_at_pos", "authorized"])
+          .where("status", "==", "cooking")
           .orderBy("createdAt", "asc")
           .onSnapshot(
             (snapshot) => {
@@ -816,8 +816,11 @@
 
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
-        if (data.status === "authorized") {
+        if (data.orderChannel === "mobile") {
           sourceLabel = "Mobile";
+          sourceClass = "badge-mobile";
+        } else if (data.orderChannel === "sok") {
+          sourceLabel = "SOK";
           sourceClass = "badge-mobile";
         }
 
@@ -841,7 +844,10 @@
                     </div>
                     <div>${itemsHtml}</div>
                 </div>
-                <button class="btn-complete" onclick="completeOrder('${orderId}')">完了</button>
+                <div style="display: flex; gap: 8px; margin-top: auto; padding: 0 15px 15px;">
+                  <button class="btn-complete" style="background-color: #ef4444; flex: 1; padding: 12px; margin-top: 0;" onclick="cancelOrder('${orderId}')">キャンセル</button>
+                  <button class="btn-complete" style="flex: 2; padding: 12px; margin-top: 0;" onclick="completeOrder('${orderId}')">調理完了</button>
+                </div>
             `;
         return div;
       }
@@ -907,19 +913,25 @@
         else timerSpan.classList.remove("timer-alert");
       }
 
-      window.completeOrder = function (orderId) {
-        const card = document.getElementById(`card-${orderId}`);
-        const currentStatus = card
-          ? card.dataset.currentStatus
-          : "unpaid_at_pos";
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: "ready_to_serve",
-            previousStatus: currentStatus,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("更新失敗: " + e.message));
+      window.completeOrder = async function (orderId) {
+        if (!confirm("調理完了にしますか？")) return;
+        try {
+          const kitchenComplete = firebase.functions("asia-northeast1").httpsCallable("kitchenComplete");
+          await kitchenComplete({ orderId });
+        } catch (e) {
+          alert("更新失敗: " + e.message);
+        }
+      };
+
+      window.cancelOrder = async function (orderId) {
+        const reason = prompt("キャンセル理由を入力してください");
+        if (!reason) return;
+        try {
+          const cancelFn = firebase.functions("asia-northeast1").httpsCallable("cancelOrder");
+          await cancelFn({ orderId, reason });
+        } catch (e) {
+          alert("キャンセル失敗: " + e.message);
+        }
       };
 
       // --- 履歴機能 ---
@@ -936,8 +948,8 @@
           '<p style="text-align:center; color:#999; margin-top:20px;">読み込み中...</p>';
         db.collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "==", "ready_to_serve")
-          .orderBy("completedAt", "desc")
+          .where("status", "in", ["completed", "cancelled", "abandoned"])
+          .orderBy("updatedAt", "desc")
           .get()
           .then((querySnapshot) => {
             if (querySnapshot.empty) {
@@ -966,14 +978,18 @@
                 itemsSummary = data.items
                   .map((i) => `${i.quantity} ${i.name}`)
                   .join(", ");
-              const prevStatus = data.previousStatus || "unpaid_at_pos";
+              const statusMap = {
+                completed: "提供完了",
+                cancelled: "キャンセル",
+                abandoned: "強制終了"
+              };
+              const stLabel = statusMap[data.status] || data.status;
               html += `
                 <div class="history-item">
                     <div class="h-info">
-                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span></div>
+                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span> <span style="margin-left: 10px; font-size: 0.9em; background: #eee; padding: 2px 8px; border-radius: 4px;">${stLabel}</span></div>
                         <div class="h-details">${itemsSummary}</div>
                     </div>
-                    <button class="btn-revert" onclick="revertOrder('${orderId}', '${prevStatus}')">元に戻す</button>
                 </div>`;
             });
             historyListEl.innerHTML = html;
@@ -992,17 +1008,7 @@
           });
       }
 
-      window.revertOrder = function (orderId, prevStatus) {
-        if (!confirm("この注文を調理中に戻しますか？")) return;
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: prevStatus,
-            completedAt: firebase.firestore.FieldValue.delete(),
-          })
-          .then(() => loadHistory())
-          .catch((e) => alert("エラー: " + e.message));
-      };
+      // (revertOrder is removed for new system)
 
       window.onclick = function (event) {
         if (event.target == historyModal) closeHistory();

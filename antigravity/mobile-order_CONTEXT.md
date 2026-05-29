@@ -47,3 +47,44 @@ body {
 - **視認性の確保**: Bootstrap標準の `text-muted` や `text-secondary` などのユーティリティクラスは、ダークモード時の背景色（`#0f172a`）に対してコントラストが不足する場合がある。
   - 設計指針として、説明テキストや補助的な情報にはプロジェクト独自のCSS変数 `var(--text-sub)` (#94a3b8) を使用し、`.text-sub-custom` 等のクラスで一貫した視認性を担保する。
 - JavaScriptによる不必要なリサイズ計算や描画のブロックを廃止し、パフォーマンスを向上させています。
+
+## 4. 注文確定フロー (Order Creation)
+
+設計憲法§5.1に準拠した注文フローの仕様（フェーズ3にて確定）。
+
+### 4.1 カート管理方針
+
+- **カートはローカル変数（メモリ上）のみで管理する。**
+- Firestoreへのカートデータの書き込みは**禁止**（`users/{uid}/cart` コレクションへのアクセスは廃止済み）。
+- `writeBatch` および関連するFirestoreカート操作はコードに含めてはならない。
+
+### 4.2 注文確定の実装
+
+注文確定時（`finalizeOrder` 関数）は `createOrder` Cloud Function を直接呼び出す：
+
+```javascript
+const createOrderFn = httpsCallable(functions, "createOrder");
+const result = await createOrderFn({
+  orderChannel: "mobile",
+  storeId: currentStoreId,
+  items: cart.map((c) => ({
+    itemId: c.productId,  // ※ Firestore の items コレクションの ID
+    quantity: c.quantity,
+    customizations: c.customizations || [],
+  })),
+});
+// result.data = { success: true, orderId: "...", receiptNumber: 7001, ... }
+window.location.href = `status.html?orderId=${result.data.orderId}`;
+```
+
+### 4.3 items フィールドのマッピング
+
+`cart` 配列の各要素と Cloud Function に渡す `items` 要素のフィールド名マッピング：
+
+| cart の属性 | createOrder の items フィールド | 説明 |
+|---|---|---|
+| `c.productId` | `itemId` | FirestoreのitemsドキュメントID |
+| `c.quantity` | `quantity` | 数量 |
+| `c.customizations` | `customizations` | カスタマイズ配列（`{mode, target}` 形式） |
+
+`name`, `price` はサーバー側（Cloud Function）が Firestore の `items` コレクションから取得し、スナップショットとして注文に記録する。クライアントからは**送らない**。

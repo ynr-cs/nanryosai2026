@@ -724,16 +724,11 @@
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
 
-        // Mobile range: 7000-7999
-        if (data.receiptNumber >= 7000 && data.receiptNumber <= 7999) {
+        if (data.orderChannel === "mobile") {
           sourceLabel = "Mobile";
           sourceClass = "badge-mobile";
-        } else if (
-          data.status === "authorized" ||
-          data.paymentMethod === "ONLINE"
-        ) {
-          // Fallback for legacy/other cases
-          sourceLabel = "Mobile";
+        } else if (data.orderChannel === "sok") {
+          sourceLabel = "SOK";
           sourceClass = "badge-mobile";
         }
 
@@ -743,35 +738,16 @@
         // フッター分岐
         if (data.status === "ready_to_serve") {
           footerHtml = `
-                <button class="btn-action btn-call" onclick="updateStatus('${orderId}', 'ready_for_pickup')">
+                <button class="btn-action btn-call" onclick="callForPickup('${orderId}')">
                     呼び出し (準備完了)
                 </button>
             `;
         } else if (data.status === "ready_for_pickup") {
-          // ★ 修正: 受付番号範囲(7000系)も含めて判定する
-          const isMobileRange =
-            data.receiptNumber >= 7000 && data.receiptNumber <= 7999;
-          const isOnline =
-            isMobileRange ||
-            data.isPrepaid === true ||
-            data.paymentMethod === "ONLINE" || // Server sets "ONLINE"
-            data.paymentMethod === "online" ||
-            data.isOnlineOrder === true;
-
-          if (isOnline) {
-            footerHtml = `
-                    <div class="status-monitor-wait">
-                        モニターで決済待機中...<br>
-                        <span style="font-size:0.8rem; font-weight:normal;">お客様の操作待ち</span>
-                    </div>
-                `;
-          } else {
-            footerHtml = `
-                    <div class="payment-actions">
-                        <button class="btn-full btn-qr" onclick="completeOrder('${orderId}', 'qr')">QR決済 完了（画面確認）</button>
-                    </div>
-                `;
-          }
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (目視確認)</button>
+                </div>
+            `;
         }
 
         const div = document.createElement("div");
@@ -882,47 +858,43 @@
         }
       }
 
-      window.updateStatus = function (orderId, newStatus) {
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("更新失敗: " + e.message));
+      window.callForPickup = async function (orderId) {
+        try {
+          const callFn = firebase.functions("asia-northeast1").httpsCallable("callForPickup");
+          await callFn({ orderId });
+        } catch (e) {
+          alert("呼出失敗: " + e.message);
+        }
       };
 
-      window.completeOrder = function (orderId, method) {
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: "completed_at_store",
-            paymentMethod: method,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("完了失敗: " + e.message));
+      window.completeOrder = async function (orderId) {
+        try {
+          const completeFn = firebase.functions("asia-northeast1").httpsCallable("completeOrder");
+          await completeFn({ orderId });
+        } catch (e) {
+          alert("完了失敗: " + e.message);
+        }
       };
 
-      window.forceComplete = function (orderId) {
+      window.forceComplete = async function (orderId) {
         if (!confirm("【緊急完了】\n強制的に完了済みに変更します。")) return;
-        db.collection("orders").doc(orderId).update({
-          status: "completed_at_store",
-          note: "緊急手動完了",
-          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+        try {
+          const adminUpdate = firebase.functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
+          await adminUpdate({ orderId, newStatus: "completed" });
+        } catch (e) {
+          alert("緊急完了失敗: " + e.message);
+        }
       };
 
-      window.cancelOrder = function (orderId) {
-        if (
-          !confirm(
-            "【キャンセル】\nこの注文を提供不可としてキャンセルしますか？",
-          )
-        )
-          return;
-        db.collection("orders").doc(orderId).update({
-          status: "cancelled",
-          cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+      window.cancelOrder = async function (orderId) {
+        const reason = prompt("【キャンセル】\n提供不可としてキャンセルしますか？\n理由を入力してください:");
+        if (!reason) return;
+        try {
+          const cancelFn = firebase.functions("asia-northeast1").httpsCallable("cancelOrder");
+          await cancelFn({ orderId, reason });
+        } catch (e) {
+          alert("キャンセル失敗: " + e.message);
+        }
       };
 
       window.toggleMenu = function (orderId, event) {

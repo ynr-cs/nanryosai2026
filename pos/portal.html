@@ -2706,13 +2706,11 @@
         <div class="status-select-container">
           <label class="status-label">ステータス変更</label>
           <select id="order-status-select" class="status-select">
-            <option value="unpaid_at_pos">🔴 POS注文済み (未会計)</option>
-            <option value="authorized">🔵 モバイルセルフ注文済み</option>
             <option value="cooking">🔥 調理中</option>
             <option value="ready_to_serve">🟠 調理完了 (呼び出し前)</option>
             <option value="ready_for_pickup">🟢 お呼び出し中</option>
-            <option value="completed_at_store">⚫️ 受取完了</option>
-            <option value="abandoned_and_paid">🗑️ 受取期限切れ (廃棄)</option>
+            <option value="completed">⚫️ 受取完了</option>
+            <option value="abandoned">🗑️ 受取放棄</option>
             <option value="cancelled">🚫 キャンセル</option>
           </select>
         </div>
@@ -4014,19 +4012,18 @@
 
       function getStatusBadge(s) {
         const map = {
-          unpaid_at_pos: { l: "POS注文済み", c: "status-unpaid" },
-          authorized: { l: "モバイルセルフ注文済み", c: "status-authorized" },
           cooking: { l: "調理中", c: "status-authorized" },
           ready_to_serve: { l: "調理完了(呼び出し前)", c: "status-preparing" },
           ready_for_pickup: { l: "お呼び出し中", c: "status-ready" },
-          completed_at_store: { l: "受取完了", c: "status-completed" },
-          abandoned_and_paid: { l: "受取期限切れ", c: "status-abandoned" },
+          completed: { l: "受取完了", c: "status-completed" },
+          abandoned: { l: "受取放棄", c: "status-abandoned" },
           cancelled: { l: "キャンセル", c: "status-canceled" },
-          // fallback
-          canceled: { l: "キャンセル", c: "status-canceled" },
         };
         // Normalize status to handle potential inconsistencies
         if (s === "canceled") s = "cancelled";
+        if (s === "completed_at_store" || s === "completed_online") s = "completed";
+        if (s === "abandoned_and_paid") s = "abandoned";
+        if (s === "unpaid_at_pos" || s === "authorized") s = "cooking"; // Fallback mapping for legacy stats
 
         const info = map[s] || { l: s, c: "status-completed" };
         return `<span class="badge ${info.c}">${info.l}</span>`;
@@ -4058,10 +4055,13 @@
       window.updateOrderStatus = async () => {
         const newStatus = document.getElementById("order-status-select").value;
         if (selectedOrder) {
-          await updateDoc(doc(db, "orders", selectedOrder.id), {
-            status: newStatus,
-          });
-          closeOrderModal();
+          try {
+            const adminUpdate = httpsCallable(functions, "adminUpdateOrderStatus");
+            await adminUpdate({ orderId: selectedOrder.id, newStatus: newStatus });
+            closeOrderModal();
+          } catch (e) {
+            alert("更新失敗: " + e.message);
+          }
         }
       };
 

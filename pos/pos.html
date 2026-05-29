@@ -1243,17 +1243,19 @@
 
         try {
           // Use Secure Cloud Function
-          const createPOSOrder = httpsCallable(functions, "createPOSOrder");
+          const createOrder = httpsCallable(functions, "createOrder");
 
           // Only send essential data: Product IDs, Quantities, Customizations
           // Price will be calculated on server.
           const itemsPayload = cart.map((i) => ({
-            productId: i.productId,
+            itemId: i.productId,
             quantity: i.quantity,
             customizations: i.customizations,
           }));
 
-          const result = await createPOSOrder({
+          const result = await createOrder({
+            orderChannel: "pos",
+            storeId: storeId,
             items: itemsPayload,
           });
 

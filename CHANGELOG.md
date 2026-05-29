@@ -15,6 +15,135 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.3.5] フェーズ3完了: 来場者向けUIの Cloud Functions 完全移行 - 2026-05-29
+
+### メタ情報
+
+- **AIモデル**: Antigravity (Gemini)
+- **筆者**: AI
+- **設計根拠**: 「南陵祭2026 POS・モバイルオーダーシステム 設計憲法 v1.0」§5.1, §1.1
+
+### 変更 (Changed)
+
+- **`pos/mobile-order.html`** (v0.4.0相当 → v0.4.1相当):
+  - `finalizeOrder` 関数を全面リライトしました。
+  - **廃止**: Firestore `users/{uid}/cart` へのカートデータ書き込み（`writeBatch` によるバッチ処理）を完全廃止。設計憲法§5.1「カート操作はローカル変数のみ・Firestore保存なし」に準拠。
+  - **廃止**: `createOnlineOrder` Cloud Function の呼び出しを削除（該当関数はフェーズ1で削除済み）。
+  - **追加**: `createOrder({ orderChannel: "mobile", storeId, items: [...] })` の直接呼び出しに変更。`items` はメモリ上の `cart` 配列から構築。
+  - **インポート整理**: `writeBatch` を Firestore import から削除（他箇所での使用なし）。`getDocs`・`serverTimestamp` は `loadStores`, `loadMenu`, `updateUserProfile` 等で引き続き使用するため残存。
+
+- **`pos/status.html`** (v0.1.1 → v0.1.2):
+  - `updateUI` 関数内のステータス判定ロジックを刷新しました。
+  - **廃止**: `abandoned_and_paid` という旧ステータス名への参照を削除（設計憲法§1.1には存在しない）。
+  - **廃止**: `status.startsWith("completed")` という曖昧な判定を削除。
+  - **追加**: 設計憲法§1.1の7ステータス（`cooking`, `ready_to_serve`, `ready_for_pickup`, `completed`, `cancelled`, `abandoned`）に対応した `STATUS_CONFIG` オブジェクトを導入。`title`, `desc`, `visualState` を宣言的にマッピングし、コードの保守性を向上。
+  - **CSS変数**: `--status-cooking` を旧設計の赤 `#e53935` から設計憲法準拠の Amber `#f59e0b` に変更。変数名を `--status-ready-to-serve`, `--status-ready-for-pickup`, `--status-completed` と整理し、ハードコードされた色値を CSS変数参照に置き換え。
+
+### 確認済み（変更なし）
+
+- **`pos/pos.html`**: すでにフェーズ3の仕様（`createOrder({ orderChannel: "pos", ... })`）に対応済み。
+- **`pos/monitor.html`**: フェーズ2でread-only化・`ready_for_pickup` 購読に変更済み。
+
+## [0.3.4] フェーズ2完了: POSシステム側のCloud Functions移行とUIクリーンアップ - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Claude Opus 4.6
+- **筆者**: AI
+- **設計根拠**: 「南陵祭2026 POS・モバイルオーダーシステム 設計憲法 v1.0」
+
+### 変更 (Changed)
+
+- **`pos/pos.html`**:
+  - `createPOSOrder` を廃止し、統合関数の `createOrder` を使用するように決済完了後のフローを修正しました。
+- **`pos/kitchen.html`**:
+  - クライアントからの直接 `updateDoc` を廃止し、`httpsCallable` による `kitchenComplete` (調理完了) および `callForPickup` (呼出開始) の呼び出しに変更しました。
+- **`pos/presenter.html`**:
+  - 同様に、`callForPickup` (呼出開始)、`completeOrder` (受取完了)、`cancelOrder` (キャンセル) などのステータス更新をすべて Cloud Functions 経由に統一しました。
+- **`pos/portal.html`**:
+  - 管理者用の手動ステータス変更機能を `adminUpdateOrderStatus` Cloud Function に移行しました。
+  - ステータスバッジ（ラベル）の表示と選択肢を、最新の憲法（`cooking`, `ready_to_serve`, `ready_for_pickup`, `completed`, `abandoned`, `cancelled`）に適合させました。
+
+### 削除 (Removed)
+
+- **`pos/monitor.html`**:
+  - かつての kiosk 入力機能や決済デモ画面（テンキー、auPayモーダル等）をすべて削除し、純粋な「呼出中（ready_for_pickup）」および「調理中（cooking）」の状況を表示する Read-only モニター画面へと大幅にスリム化・整理しました。
+- **`functions/index.js`**:
+  - レガシーとなっていたデモ決済用関数 `mockAuPayPayment` を削除し、本番想定の関数構成へと整理しました。
+
+## [0.3.3] フェーズ1: コアロジックとセキュリティルールの刷新 - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Claude Opus 4.6
+- **筆者**: AI
+- **設計根拠**: 「南陵祭2026 POS・モバイルオーダーシステム 設計憲法 v1.0」
+
+### 追加 (Added)
+
+- **`functions/index.js`**:
+  - `createOrder`: mobile / pos 両経路を統合した注文作成関数を新規追加（設計憲法§4.1）。初期ステータスは `cooking`、全フィールドを§3.1に準拠して初期化。
+  - `kitchenComplete`: cooking → ready_to_serve 遷移関数（§4.2）
+  - `callForPickup`: ready_to_serve → ready_for_pickup 遷移関数（§4.2）。`readyForPickupAt` は15分放置ペナルティの基準時刻。
+  - `completeOrder`: ready_for_pickup → completed 遷移関数（§4.2）
+  - `cancelOrder`: 任意 → cancelled 遷移関数（§4.2）。`reason` 必須。
+  - `adminUpdateOrderStatus`: super_admin / store_admin による任意ステータス強制変更関数（§4.2）
+  - `getNextReceiptNumber`: プライベート関数として内部化。経路別カウンター（`counters/receipt_{channel}`）対応。アクティブステータス判定は§7.3準拠（`cooking` / `ready_to_serve` / `ready_for_pickup`）。
+  - BANチェック（サーバー側二層防御）: `createOrder` 内で `banned_users/{uid}` を確認（mobileのみ）
+
+- **`firestore.rules`**:
+  - `orders` の read ルールを設計憲法§8.1 に準拠して強化（自身の注文・SOK pending・ready_for_pickup・store_admin/super_admin）
+  - `banned_users` コレクションのルールを新規追加（本人のみ read 可、write は全拒否 / §8・§10.2）
+
+### 削除 (Removed)
+
+- **`functions/index.js`**:
+  - `exports.getNextReceiptNumber` (onCall): クライアントからの直接呼び出しを廃止し、プライベート関数に変更
+  - `exports.createOnlineOrder`: `createOrder` に統合のため完全削除
+  - `exports.createPOSOrder`: `createOrder` に統合のため完全削除
+
+### 注意事項
+
+- `mockAuPayPayment` は旧ステータス（`completed_online`）を使用しているが、フェーズ1では削除せず維持。フェーズ2完了後に削除必須。
+- `firestore.rules` の `allow update` は既存ルールを維持（フェーズ2で `if false` に変更予定）。
+- `createOrder` の完全なE2Eテストは、`mobile-order.html` / `pos.html` がフェーズ3で対応されるまで不可能。
+
+## [0.3.2] POSシステム改修準備：countersドキュメントの分離・初期化 - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 追加 (Added) / 変更 (Changed)
+
+- **Firestore**:
+  - `counters/receipt` の単一ドキュメントを廃止しました（ステップ1で削除済み）。
+  - 新仕様に基づき、経路別のカウンタードキュメントを初期作成しました。
+    - `counters/receipt_pos` (初期値: 100)
+    - `counters/receipt_sok` (初期値: 2000)
+    - `counters/receipt_mobile` (初期値: 7000)
+
+### 得られた知見
+
+- Admin SDKを用いたデータ移行・初期化スクリプトを実行する際、ローカルにダウンロードしたサービスアカウントキーの絶対パスを直接指定することで、環境変数の設定なしに安全に管理者権限を取得できる。
+
+## [0.3.1] POSシステム改修準備：ordersコレクションの削除 - 2026-05-28
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 削除 (Removed)
+
+- **Firestore**:
+  - 新旧ステータスの互換性問題を避けるため、旧仕様で作成された `orders` コレクション内のテストデータを全件削除（リセット）しました。
+
+### 得られた知見
+
+- `firebase firestore:delete orders -r -f` コマンドを使用することで、Node.jsスクリプトを書くことなく、CLIから迅速かつ安全に不要なテストデータを一括削除できる。
+
 ## [0.3.0] POSシステム改修ステップバイステップ計画の策定と準備 - 2026-05-28
 
 ### メタ情報

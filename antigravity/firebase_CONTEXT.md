@@ -42,7 +42,8 @@ last_updated: 2026-05-07
   - **対象**: `pos.html`, `monitor.html`, `kitchen.html`, `presenter.html`
   - **認証ハブ**: `portal.html`
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
-  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
+  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。
+  - **Firestore更新の禁止**: クライアントから直接 `updateDoc` を呼ぶことは禁止。ステータス更新はすべて Cloud Functions (`kitchenComplete`, `callForPickup`, `completeOrder`, `adminUpdateOrderStatus`, `cancelOrder`) を使用する。
   - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
 - **統一ログイン画面 (`main/login.html`)** (v0.2.153, Phase C):
   - **役割**: `auth.js` の `login()` を呼び出す共通ログインページ。Phase D/E で `account.html` / `mobile-order.html` がリダイレクト先として使用する予定。
@@ -72,7 +73,7 @@ last_updated: 2026-05-07
     - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`) と `sokClaimedAt`。
     - `paymentMethod`: 経路によらず `"au_pay_manual"` に統一。
     - `readyForPickupAt`: 提供準備完了時刻。15分放置ペナルティの自動判定（Scheduled Function）の基準として重要。
-  - `counters/receipt`: レシート番号生成用アトミックカウンタ。
+  - `counters/receipt_{channel}`: 経路別（`receipt_pos`, `receipt_sok`, `receipt_mobile`）のレシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
   - **Spreadsheet Integration**:
     - **手法**: プログラムによる一括作成は高度な保護機能プログラム(APP)によりブロックされるため、別アカウント（個人のGmail）で手動で作成したスプレッドシートのURLを紐づける方式を採用。
@@ -86,7 +87,8 @@ last_updated: 2026-05-07
   - `venue_admin_config/settings`: 会場管理画面のログイン用設定（URLトークン、パスワードのハッシュ・ソルト）。Firebase Authを使わない独立した認証に使用。
   - `venue_admin_sessions/{sessionToken}`: 会場管理の有効なセッショントークン。
 - **セキュリティルール**:
-  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは「自身の注文」または「SOKの未確定仮注文（`sokStatus == "pending"`）」のみ許可。
+  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは設計憲法§8.1に基づき、「自身の注文」「SOKの未確定仮注文（`sokStatus == "pending"`）」「提供準備完了（`ready_for_pickup`）」「自店舗の管理者・スーパー管理者」のみ許可。
+  - `banned_users`: 利用規約違反等によるアクセス制限ユーザーのUIDを記録。本人のみ読み取り可能で、書き込みはクライアントから完全禁止（設計憲法§10.2）。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
   - `users`: 本人のみ読み書き可。
   - `store_secrets`: 読み書き完全禁止。
@@ -107,12 +109,15 @@ last_updated: 2026-05-07
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
 - **関数一覧**:
-  - `createOnlineOrder` (OnCall): モバイルオーダー注文作成。ドメイン検証必須。
-  - `createPosOrder` (OnCall): POSレジからの注文作成。
+  - `createOrder` (OnCall): mobile / pos 両経路を統合した注文作成関数。`banned_users` チェック（mobileのみ）、発番、初期ステータス（`cooking`）の設定を行う。
+  - `kitchenComplete` (OnCall): cooking → ready_to_serve ステータス遷移（店舗管理者のみ）。
+  - `callForPickup` (OnCall): ready_to_serve → ready_for_pickup ステータス遷移（店舗管理者のみ）。
+  - `completeOrder` (OnCall): ready_for_pickup → completed ステータス遷移（店舗管理者のみ）。
+  - `cancelOrder` (OnCall): キャンセル処理（店舗管理者のみ）。理由必須。
+  - `adminUpdateOrderStatus` (OnCall): super_admin / store_admin による強制ステータス変更。
   - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `userId: null`）。受付番号2000番台を発番。
   - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。
   - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。
-  - `getNextReceiptNumber` (OnCall): 経路別の安全なレシート番号発番。
   - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から15分超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
