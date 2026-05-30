@@ -172,10 +172,9 @@ const AppShell = {
 
         try {
           const completedStatuses = [
-            "completed_at_store",
-            "completed_online",
+            "completed",
             "cancelled",
-            "abandoned_and_paid",
+            "abandoned",
           ];
 
           // Query latest 5 orders to check for active ones
@@ -583,10 +582,9 @@ const AppShell = {
 
     try {
       const completedStatuses = [
-        "completed_at_store",
-        "completed_online",
+        "completed",
         "cancelled",
-        "abandoned_and_paid",
+        "abandoned",
       ];
 
       const q = query(

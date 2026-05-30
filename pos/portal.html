@@ -2716,7 +2716,7 @@
         </div>
 
         <div class="modal-actions">
-          <button class="save-btn" onclick="updateOrderStatus()">
+          <button class="save-btn" id="btn-save-status" onclick="updateOrderStatus()">
             変更を保存
           </button>
         </div>
@@ -4055,12 +4055,25 @@
       window.updateOrderStatus = async () => {
         const newStatus = document.getElementById("order-status-select").value;
         if (selectedOrder) {
+          const btn = document.getElementById("btn-save-status");
+          const originalText = btn.innerHTML;
+          if (btn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span> 処理中...`;
+            btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.7";
+          }
           try {
             const adminUpdate = httpsCallable(functions, "adminUpdateOrderStatus");
             await adminUpdate({ orderId: selectedOrder.id, newStatus: newStatus });
             closeOrderModal();
           } catch (e) {
             alert("更新失敗: " + e.message);
+          } finally {
+            if (btn) {
+              btn.innerHTML = originalText;
+              btn.style.pointerEvents = "auto";
+              btn.style.opacity = "1";
+            }
           }
         }
       };

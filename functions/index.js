@@ -802,7 +802,7 @@ exports.onStoreCreated = onDocumentCreated(
               "呼出番号",
               "状況",
               "合計金額",
-              "支払方法",
+              "注文方法",
               "注文日時",
               "商品詳細",
             ],
@@ -881,13 +881,13 @@ exports.bulkCreateSpreadsheets = functions
           resource: {
             values: [
               [
-                "OrderId",
-                "ReceiptNumber",
-                "Status",
-                "TotalPrice",
-                "PaymentMethod",
-                "CreatedAt",
-                "Items",
+                "注文ID",
+                "呼出番号",
+                "状況",
+                "合計金額",
+                "注文方法",
+                "注文日時",
+                "商品詳細",
               ],
             ],
           },
@@ -970,23 +970,22 @@ exports.onOrderCreatedSpreadsheet = onDocumentCreated(
         payment_failed: "決済失敗",
       };
 
-      const paymentMap = {
-        au_pay_manual: "au PAY（手動確認）",
-        pos: "店頭決済",
-        ONLINE: "オンライン決済",
-        auPay: "auPAY",
+      const channelMap = {
+        pos: "POS",
+        sok: "SOK",
+        mobile: "モバイル",
       };
 
       const statusJa = statusMap[orderData.status] || orderData.status || "";
-      const paymentJa =
-        paymentMap[orderData.paymentMethod] || orderData.paymentMethod || "";
+      const channelJa =
+        channelMap[orderData.orderChannel] || orderData.orderChannel || "不明";
 
       const row = [
         orderId,
         orderData.receiptNumber || "",
         statusJa,
         orderData.totalPrice || 0,
-        paymentJa,
+        channelJa,
         createdAtStr,
         itemsStr,
       ];
@@ -1018,10 +1017,10 @@ exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
     const oldData = event.data.before.data();
     const orderId = event.params.orderId;
 
-    // ステータスや支払い方法が変更された時のみ更新
+    // ステータスや注文方法が変更された時のみ更新
     if (
       newData.status === oldData.status &&
-      newData.paymentMethod === oldData.paymentMethod
+      newData.orderChannel === oldData.orderChannel
     ) {
       return;
     }
@@ -1094,23 +1093,22 @@ exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
           payment_failed: "決済失敗",
         };
 
-        const paymentMap = {
-          au_pay_manual: "au PAY（手動確認）",
-          pos: "店頭決済",
-          ONLINE: "オンライン決済",
-          auPay: "auPAY",
+        const channelMap = {
+          pos: "POS",
+          sok: "SOK",
+          mobile: "モバイル",
         };
 
         const statusJa = statusMap[newData.status] || newData.status || "";
-        const paymentJa =
-          paymentMap[newData.paymentMethod] || newData.paymentMethod || "";
+        const channelJa =
+          channelMap[newData.orderChannel] || newData.orderChannel || "不明";
 
         const row = [
           orderId,
           newData.receiptNumber || "",
           statusJa,
           newData.totalPrice || 0,
-          paymentJa,
+          channelJa,
           createdAtStr,
           itemsStr,
         ];

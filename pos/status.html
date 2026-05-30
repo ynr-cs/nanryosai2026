@@ -12,7 +12,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Order Status | 南陵祭2026</title>
+    <title>注文状況 | 南陵祭2026</title>
     <!-- Bootstrap 5 CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -208,8 +208,8 @@
         background: var(--border-color, #ccc); /* Fallback */
       }
       .status-card.cooking::before { background: var(--status-cooking); }
-      .status-card.prep::before { background: var(--status-prep); }
-      .status-card.done::before { background: var(--status-done); }
+      .status-card.prep::before { background: var(--status-ready-to-serve); }
+      .status-card.done::before { background: var(--status-completed); }
       .status-card.cancelled::before { background: var(--status-cancelled); }
       .status-card.abandoned::before { background: var(--status-abandoned); }
 
@@ -356,14 +356,14 @@
       .step-item.active .step-label { color: var(--text-main); }
       
       .step-item.completed .step-circle { 
-        background: var(--status-done); 
+        background: var(--status-completed); 
         color: white; 
       }
       
       /* Dynamic Colors per status */
       .status-card.cooking .step-item.active .step-circle { background: var(--status-cooking); color: white; }
-      .status-card.prep .step-item.active .step-circle { background: var(--status-prep); color: white; }
-      .status-card.done .step-item.active .step-circle { background: var(--status-done); color: white; }
+      .status-card.prep .step-item.active .step-circle { background: var(--status-ready-to-serve); color: white; }
+      .status-card.done .step-item.active .step-circle { background: var(--status-completed); color: white; }
 
       /* Info & List Sections */
       .info-section {
@@ -607,8 +607,8 @@
         const STATUS_CONFIG = {
           "cooking":          { visualState: "cooking",   title: "ただいまお作りしています！",          desc: "モニターに番号が表示されたら\nお受け取りください" },
           "ready_to_serve":   { visualState: "prep",      title: "まもなくお呼び出し",            desc: "商品を準備しています\nもう少々お待ちください" },
-          "ready_for_pickup": { visualState: "calling",   title: "商品完成！",                    desc: "カウンターへお越しください！\nおいしく召し上がれ！" },
-          "completed":        { visualState: "done",      title: "受渡完了",                    desc: "ご利用ありがとうございました！\n素敵な文化瞖を！" },
+          "ready_for_pickup": { visualState: "calling",   title: "商品完成！",                    desc: "大変お待たせいたしました！\nカウンターへお越しください！" },
+          "completed":        { visualState: "done",      title: "受渡完了",                    desc: "ご利用ありがとうございました！\n素敵な文化祭を！" },
           "cancelled":        { visualState: "cancelled",  title: "キャンセルされました",              desc: "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。" },
           "abandoned":        { visualState: "abandoned",  title: "受け取り期限切れ",                desc: "15分以内に受け取りに来られなかったため\n商品は破棄されました" },
         };

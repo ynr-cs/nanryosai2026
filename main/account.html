@@ -852,20 +852,23 @@
       }
 
       function translateStatus(s) {
+        if (s === "cooking") return "調理中";
+        if (s === "ready_to_serve") return "準備中";
         if (s === "ready_for_pickup") return "呼出中";
-        if (s === "completed_at_store" || s === "completed_online")
-          return "受取完了";
+        if (s === "completed") return "受取完了";
         if (s === "cancelled") return "キャンセル";
-        if (s === "abandoned_and_paid") return "期限切れ";
+        if (s === "abandoned") return "期限切れ";
         return "調理中";
       }
 
       function getStatusColor(s) {
-        if (s === "ready_for_pickup") return "#f59e0b"; // Warning/Attention
-        if (s === "completed_at_store" || s === "completed_online")
-          return "#10b981"; // Success
-        if (s === "cancelled" || s === "abandoned_and_paid") return "#9ca3af"; // Grey
-        return "#3b82f6"; // Blue (Cooking)
+        if (s === "cooking") return "#f59e0b";
+        if (s === "ready_to_serve") return "#3b82f6";
+        if (s === "ready_for_pickup") return "#10b981";
+        if (s === "completed") return "#10b981";
+        if (s === "cancelled") return "#ef4444";
+        if (s === "abandoned") return "#9ca3af";
+        return "#f59e0b";
       }
     </script>
   </body>

@@ -388,6 +388,28 @@
         font-weight: bold;
       }
 
+      /* --- ローディング用 --- */
+      .spinner {
+        display: inline-block;
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .btn-loading {
+        background-color: #555 !important;
+        color: #ccc !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+      }
+
       /* --- 店舗ログインモーダル --- */
       #store-login-modal {
         position: fixed;
@@ -750,6 +772,8 @@
             `;
         }
 
+        const totalPrice = data.totalPrice ? `¥${data.totalPrice.toLocaleString()}` : "¥---";
+
         const div = document.createElement("div");
         div.className = "order-card";
         div.id = `card-${orderId}`;
@@ -774,6 +798,9 @@
                     </div>
                 </div>
                 <div>${itemsHtml}</div>
+                <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; font-size: 1.2rem; font-weight: 900; color: #111;">
+                    合計: <span style="color: #d32f2f;">${totalPrice}</span>
+                </div>
             </div>
             <div class="card-footer">
                 ${footerHtml}
@@ -858,43 +885,61 @@
         }
       }
 
-      window.callForPickup = async function (orderId) {
-        try {
-          const callFn = firebase.functions("asia-northeast1").httpsCallable("callForPickup");
-          await callFn({ orderId });
-        } catch (e) {
-          alert("呼出失敗: " + e.message);
+      function setLoading(orderId, text) {
+        const menu = document.getElementById(`menu-${orderId}`);
+        if(menu) menu.classList.remove('show');
+        
+        const card = document.getElementById(`card-${orderId}`);
+        if (!card) return;
+        const mainBtn = card.querySelector('.card-footer button');
+        if (mainBtn) {
+          mainBtn.disabled = true;
+          mainBtn.classList.add('btn-loading');
+          mainBtn.innerHTML = `<div class="spinner"></div>${text || "処理中..."}`;
         }
+      }
+
+      window.callForPickup = function (orderId) {
+        setLoading(orderId, "呼出処理中...");
+        const callFn = firebase.app().functions("asia-northeast1").httpsCallable("callForPickup");
+        callFn({ orderId }).catch(e => {
+          alert("呼出失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
-      window.completeOrder = async function (orderId) {
-        try {
-          const completeFn = firebase.functions("asia-northeast1").httpsCallable("completeOrder");
-          await completeFn({ orderId });
-        } catch (e) {
-          alert("完了失敗: " + e.message);
-        }
+      window.completeOrder = function (orderId) {
+        setLoading(orderId, "完了処理中...");
+        const completeFn = firebase.app().functions("asia-northeast1").httpsCallable("completeOrder");
+        completeFn({ orderId }).catch(e => {
+          alert("完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
-      window.forceComplete = async function (orderId) {
+      window.forceComplete = function (orderId) {
         if (!confirm("【緊急完了】\n強制的に完了済みに変更します。")) return;
-        try {
-          const adminUpdate = firebase.functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
-          await adminUpdate({ orderId, newStatus: "completed" });
-        } catch (e) {
-          alert("緊急完了失敗: " + e.message);
-        }
+        setLoading(orderId, "緊急完了処理中...");
+        const adminUpdate = firebase.app().functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
+        adminUpdate({ orderId, newStatus: "completed" }).catch(e => {
+          alert("緊急完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
-      window.cancelOrder = async function (orderId) {
+      window.cancelOrder = function (orderId) {
         const reason = prompt("【キャンセル】\n提供不可としてキャンセルしますか？\n理由を入力してください:");
-        if (!reason) return;
-        try {
-          const cancelFn = firebase.functions("asia-northeast1").httpsCallable("cancelOrder");
-          await cancelFn({ orderId, reason });
-        } catch (e) {
-          alert("キャンセル失敗: " + e.message);
+        if (reason === null) return; // promptでキャンセルを押した場合は終了
+        if (reason.trim() === "") {
+          alert("キャンセル理由は必須です。理由を入力してください。");
+          return;
         }
+        setLoading(orderId, "キャンセル処理中...");
+        const cancelFn = firebase.app().functions("asia-northeast1").httpsCallable("cancelOrder");
+        cancelFn({ orderId, reason }).catch(e => {
+          alert("キャンセル失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
       window.toggleMenu = function (orderId, event) {

@@ -845,8 +845,7 @@
                     <div>${itemsHtml}</div>
                 </div>
                 <div style="display: flex; gap: 8px; margin-top: auto; padding: 0 15px 15px;">
-                  <button class="btn-complete" style="background-color: #ef4444; flex: 1; padding: 12px; margin-top: 0;" onclick="cancelOrder('${orderId}')">キャンセル</button>
-                  <button class="btn-complete" style="flex: 2; padding: 12px; margin-top: 0;" onclick="completeOrder('${orderId}')">調理完了</button>
+                  <button class="btn-complete" style="flex: 1; padding: 12px; margin-top: 0;" onclick="completeOrder('${orderId}')">調理完了</button>
                 </div>
             `;
         return div;
@@ -913,25 +912,16 @@
         else timerSpan.classList.remove("timer-alert");
       }
 
-      window.completeOrder = async function (orderId) {
-        if (!confirm("調理完了にしますか？")) return;
-        try {
-          const kitchenComplete = firebase.functions("asia-northeast1").httpsCallable("kitchenComplete");
-          await kitchenComplete({ orderId });
-        } catch (e) {
-          alert("更新失敗: " + e.message);
-        }
-      };
+      window.completeOrder = function (orderId) {
+        // 見た目上、即座にカードを消す（Optimistic UI）
+        removeCard(orderId);
 
-      window.cancelOrder = async function (orderId) {
-        const reason = prompt("キャンセル理由を入力してください");
-        if (!reason) return;
-        try {
-          const cancelFn = firebase.functions("asia-northeast1").httpsCallable("cancelOrder");
-          await cancelFn({ orderId, reason });
-        } catch (e) {
-          alert("キャンセル失敗: " + e.message);
-        }
+        // バックグラウンドでステータス更新処理を回す
+        const kitchenComplete = firebase.app().functions("asia-northeast1").httpsCallable("kitchenComplete");
+        kitchenComplete({ orderId }).catch(e => {
+          alert("更新失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
       // --- 履歴機能 ---
@@ -948,7 +938,7 @@
           '<p style="text-align:center; color:#999; margin-top:20px;">読み込み中...</p>';
         db.collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "in", ["completed", "cancelled", "abandoned"])
+          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "completed", "cancelled", "abandoned"])
           .orderBy("updatedAt", "desc")
           .get()
           .then((querySnapshot) => {
@@ -979,6 +969,8 @@
                   .map((i) => `${i.quantity} ${i.name}`)
                   .join(", ");
               const statusMap = {
+                ready_to_serve: "提供待ち",
+                ready_for_pickup: "呼出中",
                 completed: "提供完了",
                 cancelled: "キャンセル",
                 abandoned: "強制終了"
