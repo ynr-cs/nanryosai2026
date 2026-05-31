@@ -713,6 +713,13 @@
           document.getElementById("user-name").textContent = user.displayName || user.email;
           document.getElementById("display-store-id").textContent = storeId;
           
+          // POSアラート監視 (動的インポート)
+          import("./pos-alert.js").then((module) => {
+            db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
+              if (snap.exists) module.renderPosAlert(snap.data());
+            });
+          }).catch(err => console.error("Failed to load pos-alert module", err));
+          
           // AudioContext is usually blocked until user interaction. 
           // We can't automatically unlock it if we bypassed login clicks,
           // but clicking anywhere in the UI later will unlock it.

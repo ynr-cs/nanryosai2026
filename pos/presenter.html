@@ -598,6 +598,13 @@
       const auth = firebase.auth();
       const provider = new firebase.auth.GoogleAuthProvider();
 
+      // POSアラート監視 (動的インポート)
+      import("./pos-alert.js").then((module) => {
+        db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
+          if (snap.exists) module.renderPosAlert(snap.data());
+        });
+      }).catch(err => console.error("Failed to load pos-alert module", err));
+
       let unsubscribe = null;
       const urlParams = new URLSearchParams(window.location.search);
       const storeId = urlParams.get("storeId");

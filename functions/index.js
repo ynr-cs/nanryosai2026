@@ -335,11 +335,29 @@ exports.loginStore = functions
 // ============================================================
 // ヘルパー: 店舗活動時刻の更新 (自動停止・保温の判定基準)
 // ============================================================
-function updateStoreActivity(storeId) {
+async function updateStoreActivity(storeId) {
   if (!storeId) return;
-  db.collection("stores").doc(storeId)
-    .update({ lastActivityAt: admin.firestore.FieldValue.serverTimestamp() })
-    .catch((e) => console.error("updateStoreActivity Error:", e));
+  try {
+    const storeRef = db.collection("stores").doc(storeId);
+    await db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(storeRef);
+      if (!doc.exists) return;
+      
+      const data = doc.data();
+      const updates = { lastActivityAt: admin.firestore.FieldValue.serverTimestamp() };
+
+      // 自動停止(suspended)中であれば営業中(open)に自律復帰させる
+      if (data.operationStatus === "suspended" && data.isAutoSuspended === true) {
+        updates.operationStatus = "open";
+        updates.isAutoSuspended = admin.firestore.FieldValue.delete();
+        console.log(`updateStoreActivity: 店舗 ${storeId} が自動停止から復帰しました`);
+      }
+      
+      transaction.update(storeRef, updates);
+    });
+  } catch (e) {
+    console.error("updateStoreActivity Error:", e);
+  }
 }
 
 // ============================================================
@@ -1290,6 +1308,7 @@ exports.updateStoreStatus = functions
       const now = admin.firestore.FieldValue.serverTimestamp();
       const storeUpdateData = {
         operationStatus: newStatus,
+        isAutoSuspended: admin.firestore.FieldValue.delete(), // 手動操作時に自動停止フラグをクリア
         updatedAt: now,
       };
 
@@ -1368,6 +1387,7 @@ exports.manageStoreStatusAndWarmup = functions
           console.log(`manageStoreStatusAndWarmup: 店舗 ${doc.id} を suspended に変更 (放置検知)`);
           batch.update(doc.ref, {
             operationStatus: "suspended",
+            isAutoSuspended: true, // 自動停止フラグを立てる
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
         } else {

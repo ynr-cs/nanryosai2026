@@ -20,6 +20,8 @@ import {
   getDocs,
   limit,
   orderBy,
+  onSnapshot,
+  doc
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const AppShell = {
@@ -56,6 +58,60 @@ const AppShell = {
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
     this.updateVersionDisplay(); // Fetch and display version from CHANGELOG
+    this.initGlobalAlert();
+  },
+
+  initGlobalAlert: function () {
+    onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+      const existingAlert = document.getElementById("main-global-alert");
+      if (existingAlert) {
+        existingAlert.remove();
+      }
+
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.mainAlertActive && data.mainAlertMessage) {
+          let bgColor = "var(--danger-color, #ef4444)";
+          let icon = "bi-exclamation-triangle-fill";
+          if (data.mainAlertType === "warning") {
+            bgColor = "#f59e0b";
+            icon = "bi-exclamation-circle-fill";
+          } else if (data.mainAlertType === "info") {
+            bgColor = "#3b82f6";
+            icon = "bi-info-circle-fill";
+          }
+
+          const alertHtml = `
+            <div id="main-global-alert" style="
+              background-color: ${bgColor};
+              color: white;
+              padding: 10px 16px;
+              font-size: 0.9rem;
+              font-weight: bold;
+              text-align: center;
+              position: sticky;
+              top: calc(var(--header-height, 60px) + var(--safe-area-top, 0px));
+              z-index: 800;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            ">
+              <i class="bi ${icon}"></i>
+              <span>${data.mainAlertMessage.replace(/\n/g, "<br>")}</span>
+            </div>
+          `;
+          
+          const header = document.querySelector(".app-header");
+          if (header) {
+            header.insertAdjacentHTML("afterend", alertHtml);
+          } else {
+            document.body.insertAdjacentHTML("afterbegin", alertHtml);
+          }
+        }
+      }
+    });
   },
 
   resolvePath: function (path) {

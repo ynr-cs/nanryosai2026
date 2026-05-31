@@ -59,6 +59,7 @@ last_updated: 2026-05-07
 
 - **コレクション構成**:
   - `users/{uid}`: プロフィール + `cart` サブコレクション。複数端末対応のためのPush通知トークン配列 `fcmTokens` と、利用規約の初回同意日時 `termsAgreedAt` を保持する。
+  - `_metadata/system_alerts`: ディレクトリ全体（main/pos）のグローバルアラート状態を管理するドキュメント（スーパーアドミン画面から編集）。
   - `stores/{storeId}`: 店舗メタデータ。
     - **Field Mappings** (Comparison with `data.js`):
       | Firestore Field | Meaning | Source in `data.js` |
@@ -72,6 +73,7 @@ last_updated: 2026-05-07
       | :--- | :--- | :--- | :--- |
       | `operationStatus` | string | `"suspended"` / `"open"` / `"closed"` | 初期値は `"suspended"`（準備中・一時停止中）。来場者向けのモバイルオーダー注文可否に連動する。 |
       | `lastActivityAt` | Timestamp | サーバー時刻 | 注文やステータス変更等の「最新のシステム利用時刻」。15分以上更新がなければ `manageStoreStatusAndWarmup` が放置と判定し `"suspended"` に自動変更する。 |
+      | `isAutoSuspended` | boolean | `true` | `manageStoreStatusAndWarmup` によって自動的に `"suspended"` にされた場合に `true` となるフラグ。手動操作時は削除される。このフラグがある状態で何らかの操作が起きた場合、システムが自律的に `"open"` に復帰する。 |
 
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。

@@ -3042,6 +3042,7 @@
         getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { renderPosAlert } from "./pos-alert.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
@@ -3204,6 +3205,14 @@
           const cachedId = localStorage.getItem("nanryosai_store_id");
           // AUTO LOGIN IMPROVEMENT: If we have a cached ID, verify it exists (mentally) and just GO.
           // We trust the local storage for friction reduction.
+          
+          // POSアラート監視 (認証後)
+          import("./pos-alert.js").then(({ renderPosAlert }) => {
+            onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+              if (snap.exists()) renderPosAlert(snap.data());
+            });
+          }).catch(console.error);
+
           if (cachedId) {
             currentStoreId = cachedId;
             // We can skip the "step-store" screen entirely
