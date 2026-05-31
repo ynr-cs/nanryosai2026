@@ -280,7 +280,268 @@
         display: block;
       }
 
+      /* =============================================
+         営業ステータスパネル (Operation Status Panel)
+         ============================================= */
+      .operation-status-panel {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: var(--shadow);
+        border: 2px solid transparent;
+        margin-bottom: 4px;
+        transition: border-color 0.3s;
+      }
+      .operation-status-panel.status-open {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+      }
+      .operation-status-panel.status-suspended {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+      }
+      .operation-status-panel.status-closed {
+        border-color: #6b7280;
+        background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+      }
+      .status-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .status-panel-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .status-badge-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 1rem;
+      }
+      .status-badge-large.open {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .status-badge-large.suspended {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .status-badge-large.closed {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .status-badge-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: none;
+      }
+      .status-badge-large.open .status-badge-dot {
+        background: #10b981;
+        animation: pulse-dot 2s infinite;
+      }
+      .status-badge-large.suspended .status-badge-dot {
+        background: #f59e0b;
+      }
+      .status-badge-large.closed .status-badge-dot {
+        background: #9ca3af;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.3); }
+      }
+      .status-action-btns {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn-status-open {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+      .btn-status-open:hover { background: #059669; transform: translateY(-1px); }
+      .btn-status-suspend {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+      .btn-status-suspend:hover { background: #d97706; transform: translateY(-1px); }
+      .btn-status-close {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+      .btn-status-close:hover { background: #4b5563; transform: translateY(-1px); }
+
+      /* 商品選択モーダル (Open Modal) */
+      .open-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: flex-end;
+        padding: 0;
+      }
+      .open-modal-overlay.visible {
+        display: flex;
+      }
+      .open-modal-sheet {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        padding: 24px;
+        width: 100%;
+        max-height: 85dvh;
+        overflow-y: auto;
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to   { transform: translateY(0); }
+      }
+      .open-modal-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin: 0 0 4px;
+        color: #111827;
+      }
+      .open-modal-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 16px;
+      }
+      .open-modal-actions-top {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .item-checkbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .item-checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .item-checkbox-row:hover { background: #f9fafb; }
+      .item-checkbox-row input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #10b981;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .item-checkbox-label {
+        flex: 1;
+      }
+      .item-checkbox-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #111827;
+      }
+      .item-checkbox-price {
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+      .open-modal-confirm-btn {
+        width: 100%;
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .open-modal-confirm-btn:hover { background: #059669; }
+      .open-modal-confirm-btn:disabled {
+        background: #d1d5db;
+        cursor: not-allowed;
+      }
+      .open-modal-cancel-btn {
+        width: 100%;
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.2s;
+      }
+      .open-modal-cancel-btn:hover { background: #f9fafb; }
+
+      @media (prefers-color-scheme: dark) {
+        .operation-status-panel {
+          background: #1e2330;
+        }
+        .operation-status-panel.status-open {
+          background: linear-gradient(135deg, #0d2a1f 0%, #1e2330 100%);
+        }
+        .operation-status-panel.status-suspended {
+          background: linear-gradient(135deg, #2a2010 0%, #1e2330 100%);
+        }
+        .operation-status-panel.status-closed {
+          background: linear-gradient(135deg, #1a1c24 0%, #1e2330 100%);
+        }
+        .open-modal-sheet {
+          background: #1e2330;
+          color: #f3f4f6;
+        }
+        .open-modal-title { color: #f3f4f6; }
+        .item-checkbox-row {
+          border-color: #374151;
+          background: #252b3b;
+        }
+        .item-checkbox-row:hover { background: #2e3650; }
+        .item-checkbox-name { color: #f3f4f6; }
+      }
+
       /* Items Manager Specifics */
+
       .items-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -2061,7 +2322,25 @@
         <div class="main-content">
           <!-- 1. Top View -->
           <div id="view-top" class="view-section active">
+
+            <!-- 営業ステータスパネル -->
+            <div id="operation-status-panel" class="operation-status-panel status-suspended">
+              <div class="status-panel-header">
+                <span class="status-panel-title">🏪 現在の営業ステータス</span>
+                <span id="status-badge-display" class="status-badge-large suspended">
+                  <span class="status-badge-dot"></span>
+                  <span id="status-badge-text">準備中 / 一時停止中</span>
+                </span>
+              </div>
+              <div class="status-action-btns">
+                <button class="btn-status-open" id="btn-open-store">🟢 営業開始</button>
+                <button class="btn-status-suspend" id="btn-suspend-store">🟡 一時停止</button>
+                <button class="btn-status-close" id="btn-close-store">⚫ 営業終了</button>
+              </div>
+            </div>
+
             <h2 style="margin: 0">ページ</h2>
+
             <div class="app-grid">
               <a href="#" id="link-pos" class="app-link-card">
                 <span class="app-icon">📱</span>
@@ -3124,7 +3403,10 @@
 
         setupRealtimeListeners();
 
-        // Set Date Picker to today (Local Time)
+        // 営業ステータス管理の初期化
+        initOperationStatus();
+
+
         const now = new Date();
         const localDate = new Date(
           now.getTime() - now.getTimezoneOffset() * 60000,
@@ -4421,6 +4703,197 @@
           });
         }
       });
+
+      // =============================================
+      // 営業ステータス管理 (Operation Status Manager)
+      // =============================================
+
+      /** 現在のステータスのラベル・絵文字マップ */
+      const OPERATION_STATUS_CONFIG = {
+        open:      { text: "営業中",          emoji: "🟢", cls: "open" },
+        suspended: { text: "準備中 / 一時停止中", emoji: "🟡", cls: "suspended" },
+        closed:    { text: "本日の営業終了",   emoji: "⚫", cls: "closed" },
+      };
+
+      let storeStatusUnsubscribe = null;
+
+      /**
+       * 営業ステータス管理の初期化
+       * startApp() から呼ばれる
+       */
+      function initOperationStatus() {
+        // Firestore をリアルタイム監視してパネルのUIを更新
+        if (storeStatusUnsubscribe) storeStatusUnsubscribe();
+        storeStatusUnsubscribe = onSnapshot(
+          doc(db, "stores", currentStoreId),
+          (snap) => {
+            if (!snap.exists()) return;
+            const status = snap.data().operationStatus || "suspended";
+            updateStatusUI(status);
+          },
+          (err) => console.error("store status listener error:", err)
+        );
+
+        // ボタンのイベント設定
+        document.getElementById("btn-open-store").addEventListener("click", openOpenModal);
+        document.getElementById("btn-suspend-store").addEventListener("click", () => changeStoreStatus("suspended"));
+        document.getElementById("btn-close-store").addEventListener("click", () => {
+          if (confirm("今日の営業を終了します。よろしいですか？\n（この操作後、来場者は注文できなくなります）")) {
+            changeStoreStatus("closed");
+          }
+        });
+      }
+
+      /**
+       * パネルのUIをステータスに合わせて更新
+       * @param {string} status - "open" | "suspended" | "closed"
+       */
+      function updateStatusUI(status) {
+        const config = OPERATION_STATUS_CONFIG[status] || OPERATION_STATUS_CONFIG.suspended;
+        const panel = document.getElementById("operation-status-panel");
+        const badge = document.getElementById("status-badge-display");
+        const badgeText = document.getElementById("status-badge-text");
+        const btnOpen = document.getElementById("btn-open-store");
+        const btnSuspend = document.getElementById("btn-suspend-store");
+        const btnClose = document.getElementById("btn-close-store");
+
+        // パネルのクラス更新
+        panel.className = `operation-status-panel status-${status}`;
+        badge.className = `status-badge-large ${config.cls}`;
+        badgeText.textContent = `${config.emoji} ${config.text}`;
+
+        // ボタンの表示・非表示制御
+        btnOpen.style.display    = status !== "open"      ? "block" : "none";
+        btnSuspend.style.display = status === "open"      ? "block" : "none";
+        btnClose.style.display   = status !== "closed"    ? "block" : "none";
+      }
+
+      /**
+       * ステータス変更（Function 経由）
+       * @param {string} newStatus - "suspended" | "closed"
+       */
+      async function changeStoreStatus(newStatus, availableItemIds) {
+        const btn = newStatus === "suspended" ? document.getElementById("btn-suspend-store") : document.getElementById("btn-close-store");
+        const originalText = btn ? btn.textContent : "";
+        if (btn) { btn.textContent = "処理中..."; btn.disabled = true; }
+        try {
+          const updateStoreStatusFn = httpsCallable(functions, "updateStoreStatus");
+          await updateStoreStatusFn({ storeId: currentStoreId, newStatus, availableItemIds: availableItemIds || [] });
+        } catch (err) {
+          console.error("changeStoreStatus error:", err);
+          alert(`エラーが発生しました: ${err.message}`);
+        } finally {
+          if (btn) { btn.textContent = originalText; btn.disabled = false; }
+        }
+      }
+
+      // =============================================
+      // 営業開始モーダルの処理
+      // =============================================
+
+      let openModalItems = []; // モーダル内の商品リスト
+
+      /** 営業開始ボタンを押したときにモーダルを開く */
+      window.openOpenModal = async function () {
+        const modal = document.getElementById("open-store-modal");
+        const listEl = document.getElementById("open-modal-item-list");
+        modal.classList.add("visible");
+        listEl.innerHTML = '<p style="color:#9ca3af;text-align:center;">商品を読み込み中...</p>';
+
+        try {
+          const q = query(
+            collection(db, "items"),
+            where("storeId", "==", currentStoreId)
+          );
+          const snap = await getDocs(q);
+          openModalItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          // JS側で並び替え (displayOrderがない場合は最後尾扱いにするなど、必要に応じて)
+          openModalItems.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+          if (openModalItems.length === 0) {
+            listEl.innerHTML = '<p style="color:#9ca3af;text-align:center;">商品が登録されていません</p>';
+            return;
+          }
+
+          listEl.innerHTML = openModalItems.map(item => `
+            <label class="item-checkbox-row" for="item-chk-${item.id}">
+              <input type="checkbox" id="item-chk-${item.id}" value="${item.id}" checked>
+              <div class="item-checkbox-label">
+                <div class="item-checkbox-name">${item.name}</div>
+                <div class="item-checkbox-price">¥${(item.price || 0).toLocaleString()}</div>
+              </div>
+            </label>
+          `).join("");
+        } catch (err) {
+          console.error("openOpenModal items load error:", err);
+          listEl.innerHTML = `<p style="color:red;">商品の読み込みに失敗しました: ${err.message}</p>`;
+        }
+      };
+
+      /** モーダルを閉じる */
+      window.closeOpenModal = function () {
+        document.getElementById("open-store-modal").classList.remove("visible");
+      };
+
+      /** モーダルの外側クリックで閉じる */
+      window.handleOpenModalOutsideClick = function (event) {
+        if (event.target.id === "open-store-modal") window.closeOpenModal();
+      };
+
+      /** すべて選択 / 解除 */
+      window.selectAllItems = function (checked) {
+        document.querySelectorAll("#open-modal-item-list input[type='checkbox']")
+          .forEach(cb => { cb.checked = checked; });
+      };
+
+      /** 確定ボタン押下 → Function 呼び出し */
+      window.confirmOpenStore = async function () {
+        const checkedIds = [...document.querySelectorAll("#open-modal-item-list input[type='checkbox']:checked")]
+          .map(cb => cb.value);
+
+        const btn = document.getElementById("btn-confirm-open");
+        btn.textContent = "処理中...";
+        btn.disabled = true;
+
+        try {
+          const updateStoreStatusFn = httpsCallable(functions, "updateStoreStatus");
+          await updateStoreStatusFn({
+            storeId: currentStoreId,
+            newStatus: "open",
+            availableItemIds: checkedIds,
+          });
+          window.closeOpenModal();
+        } catch (err) {
+          console.error("confirmOpenStore error:", err);
+          alert(`エラーが発生しました: ${err.message}`);
+        } finally {
+          btn.textContent = "🚀 営業開始する";
+          btn.disabled = false;
+        }
+      };
+
     </script>
+
+
+    <!-- 営業開始 商品選択モーダル -->
+    <div id="open-store-modal" class="open-modal-overlay" onclick="handleOpenModalOutsideClick(event)">
+      <div class="open-modal-sheet">
+        <h3 class="open-modal-title">🟢 営業を開始する</h3>
+        <p class="open-modal-desc">販売する商品を選択してください。チェックした商品のみ「販売中」になります。</p>
+        <div class="open-modal-actions-top">
+          <button onclick="selectAllItems(true)" style="background:#ecfdf5;color:#065f46;border:1px solid #10b981;padding:8px 14px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer;">✅ すべて選択</button>
+          <button onclick="selectAllItems(false)" style="background:#f9fafb;color:#374151;border:1px solid #d1d5db;padding:8px 14px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer;">☐ すべて解除</button>
+        </div>
+        <div id="open-modal-item-list" class="item-checkbox-list">
+          <!-- JS で動的生成 -->
+          <p style="color:#9ca3af;text-align:center;">商品を読み込み中...</p>
+        </div>
+        <button id="btn-confirm-open" class="open-modal-confirm-btn" onclick="confirmOpenStore()">
+          🚀 営業開始する
+        </button>
+        <button class="open-modal-cancel-btn" onclick="closeOpenModal()">キャンセル</button>
+      </div>
+    </div>
   </body>
 </html>

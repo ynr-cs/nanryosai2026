@@ -1714,6 +1714,13 @@ console.log("data.js loaded: projectData count =", projectData.length);
         let count = 0;
 
         try {
+          // 既存ドキュメントの存在を確認するため、一度全件取得する
+          const existingSnap = await getDocs(collection(db, storesCol));
+          const existingIds = new Set();
+          existingSnap.forEach((doc) => {
+            existingIds.add(doc.id);
+          });
+
           const batch = writeBatch(db);
 
           window.localData.forEach((p) => {
@@ -1729,6 +1736,12 @@ console.log("data.js loaded: projectData count =", projectData.length);
               description: p.description || "",
               loginId: p.loginId || "", // Include loginId if user wants to sync it
             };
+
+            // 新規店舗（Firestoreにまだドキュメントが存在しない）の場合のみ、デフォルトで準備中(suspended)に設定
+            if (!existingIds.has(p.id)) {
+              storeData.operationStatus = "suspended";
+              log(`🆕 新規店舗 [${p.id}] を検出しました。operationStatus: "suspended" で初期化します。`);
+            }
 
             batch.set(storeRef, storeData, { merge: true });
             count++;

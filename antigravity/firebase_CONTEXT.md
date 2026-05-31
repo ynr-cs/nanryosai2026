@@ -67,6 +67,12 @@ last_updated: 2026-05-07
       | `teamName` | 店名・企画名 (e.g. やきそば屋) | `name` |
       | `description` | 説明文 | `description` |
       | - | 座標 (mapX/mapY) | **除外** (2026地図方式未定のため保留) |
+    - **営業ステータス関連フィールド** (v0.3.12〜):
+      | Field | Type | Values | Description |
+      | :--- | :--- | :--- | :--- |
+      | `operationStatus` | string | `"suspended"` / `"open"` / `"closed"` | 初期値は `"suspended"`（準備中・一時停止中）。来場者向けのモバイルオーダー注文可否に連動する。 |
+      | `lastActivityAt` | Timestamp | サーバー時刻 | 注文やステータス変更等の「最新のシステム利用時刻」。15分以上更新がなければ `manageStoreStatusAndWarmup` が放置と判定し `"suspended"` に自動変更する。 |
+
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
     - `orderChannel`: `"mobile"`, `"sok"`, `"pos"` で注文経路を区別。
@@ -125,6 +131,10 @@ last_updated: 2026-05-07
   - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
   - `loginVenueAdmin` (OnCall): ステージ発表・催し物会場（venues）管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
   - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
+  - `warmupPing` (OnRequest): Cloud Functions のコールドスタートを防ぐための軽量なダミー関数。スケジュール関数から定期的に叩かれる。
+  - `updateStoreStatus` (OnCall, v0.3.12〜): 店舗の営業ステータスを変更する。`newStatus === "open"` の場合、`availableItemIds` に含まれる商品のみ `isAvailable: true` にし、それ以外を `false` にバッチ更新。同時に `operationStatus` と `lastActivityAt` を更新する。`store_admin` 権限が必要。
+  - `manageStoreStatusAndWarmup` (Scheduled, 毎分実行): `operationStatus === "open"` かつ `lastActivityAt` が15分以上前の店舗を自動的に `"suspended"` に変更する（放置検知）。また、活発な店舗がある場合は `warmupPing` へリクエストを送信して Functions を保温する。
+
 
 ## 6. クラウドストレージ (Cloud Storage)
 

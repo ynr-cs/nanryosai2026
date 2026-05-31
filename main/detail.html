@@ -630,11 +630,14 @@
     <!-- Load External Data -->
     <script src="data/data.js"></script>
 
-    <script>
+    <script type="module">
+      import { db } from "./auth.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
       // Define current page for the shell
       window.CURRENT_PAGE = "detail";
 
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         // Get ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
@@ -691,6 +694,21 @@
           showError("企画が見つかりません");
           return;
         }
+        
+        // 店舗の場合、Firestoreからステータスを取得
+        if (project.contentType === "menu") {
+          try {
+            const snap = await getDoc(doc(db, "stores", project.id));
+            if (snap.exists()) {
+              project.operationStatus = snap.data().operationStatus || "suspended";
+            } else {
+              project.operationStatus = "suspended";
+            }
+          } catch (e) {
+            console.error("Status fetch error:", e);
+            project.operationStatus = "suspended";
+          }
+        }
 
         // Render the page
         renderDetail(project);
@@ -736,6 +754,17 @@
         if (tagsStr) {
           chipsHTML += `<div class="meta-chip"><i class="fas fa-tag"></i>${tagsStr}</div>`;
         }
+        
+        if (project.operationStatus) {
+           const statusConfig = {
+             open:      { text: "営業中", color: "#065f46", bg: "#d1fae5", icon: "fa-door-open" },
+             suspended: { text: "準備中", color: "#92400e", bg: "#fef3c7", icon: "fa-clock" },
+             closed:    { text: "本日の営業終了", color: "#374151", bg: "#f3f4f6", icon: "fa-door-closed" },
+           };
+           const st = statusConfig[project.operationStatus] || statusConfig.suspended;
+           chipsHTML += `<div class="meta-chip" style="background:${st.bg};color:${st.color};border-color:${st.color}"><i class="fas ${st.icon}" style="color:${st.color}"></i>${st.text}</div>`;
+        }
+        
         metaChipsEl.innerHTML = chipsHTML;
 
         // Build Tabs
@@ -794,34 +823,64 @@
             .join("");
 
           // Order Button (Mobile Order Integration)
-          const orderButtonHTML = `
-            <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
-                 <a href="../pos/mobile-order.html?store=${project.id}" 
-                    style="
-                        background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
-                        color: white;
-                        border: none;
-                        padding: 16px 40px;
-                        border-radius: 50px;
-                        font-size: 1.1rem;
-                        font-weight: 800;
-                        text-decoration: none;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 10px;
-                        box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
-                        transition: transform 0.2s;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.transform='translateY(0)'"
-                 >
-                    <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
-                 </a>
-                 <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                    <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
-                 </p>
-            </div>
-          `;
+          const isOrderable = project.operationStatus === "open";
+          
+          let orderButtonHTML = "";
+          if (isOrderable) {
+            orderButtonHTML = `
+              <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                   <a href="../pos/mobile-order.html?store=${project.id}" 
+                      style="
+                          background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
+                          color: white;
+                          border: none;
+                          padding: 16px 40px;
+                          border-radius: 50px;
+                          font-size: 1.1rem;
+                          font-weight: 800;
+                          text-decoration: none;
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 10px;
+                          box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+                          transition: transform 0.2s;
+                      "
+                      onmouseover="this.style.transform='translateY(-2px)'"
+                      onmouseout="this.style.transform='translateY(0)'"
+                   >
+                      <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
+                   </a>
+                   <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                      <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
+                   </p>
+              </div>
+            `;
+          } else {
+            orderButtonHTML = `
+              <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                   <button disabled 
+                      style="
+                          background: #ccc;
+                          color: white;
+                          border: none;
+                          padding: 16px 40px;
+                          border-radius: 50px;
+                          font-size: 1.1rem;
+                          font-weight: 800;
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 10px;
+                          cursor: not-allowed;
+                      "
+                   >
+                      <i class="fas fa-shopping-cart"></i> 現在注文できません
+                   </button>
+                   <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                      <i class="fas fa-info-circle"></i> この店舗は現在モバイルオーダーを受け付けていません
+                   </p>
+              </div>
+            `;
+          }
 
           contentsHTML += `
                     <div class="tab-content" id="tab-menu">

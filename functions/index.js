@@ -333,6 +333,16 @@ exports.loginStore = functions
   });
 
 // ============================================================
+// ヘルパー: 店舗活動時刻の更新 (自動停止・保温の判定基準)
+// ============================================================
+function updateStoreActivity(storeId) {
+  if (!storeId) return;
+  db.collection("stores").doc(storeId)
+    .update({ lastActivityAt: admin.firestore.FieldValue.serverTimestamp() })
+    .catch((e) => console.error("updateStoreActivity Error:", e));
+}
+
+// ============================================================
 // 注文作成（統合関数）
 // 設計憲法§4.1 / §3.1 準拠
 // ============================================================
@@ -463,6 +473,7 @@ exports.createOrder = functions
         return { orderId: orderRef.id, receiptNumber };
       });
 
+      updateStoreActivity(storeId);
       return { success: true, orderId: result.orderId, receiptNumber: result.receiptNumber };
     } catch (error) {
       console.error("createOrder Error:", error);
@@ -526,6 +537,7 @@ exports.kitchenComplete = functions
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    updateStoreActivity(orderData.storeId);
     return { success: true };
   });
 
@@ -550,6 +562,7 @@ exports.callForPickup = functions
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    updateStoreActivity(orderData.storeId);
     return { success: true };
   });
 
@@ -573,6 +586,7 @@ exports.completeOrder = functions
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    updateStoreActivity(orderData.storeId);
     return { success: true };
   });
 
@@ -604,6 +618,7 @@ exports.cancelOrder = functions
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    updateStoreActivity(orderData.storeId);
     return { success: true };
   });
 
@@ -667,6 +682,7 @@ exports.adminUpdateOrderStatus = functions
 
     await orderRef.update(updateData);
 
+    updateStoreActivity(orderData.storeId);
     return { success: true, message: `ステータスを ${newStatus} に変更しました。` };
   });
 
@@ -1220,5 +1236,163 @@ exports.updateVenueStatus = functions
           throw error;
       }
       throw new functions.https.HttpsError("internal", "更新中にエラーが発生しました。");
+    }
+  });
+
+// ============================================================
+// 店舗ステータス管理 & Functionsコールドスタート防止
+// ============================================================
+
+/**
+ * @name warmupPing
+ * @description Cloud Functions のコールドスタートを防ぐための軽量関数。
+ *              スケジュール関数から定期的に叩かれる。
+ */
+exports.warmupPing = functions
+  .region("asia-northeast1")
+  .https.onRequest((req, res) => {
+    res.status(200).send("pong");
+  });
+
+/**
+ * @name updateStoreStatus
+ * @description 店舗の営業ステータスを変更する。
+ *              newStatus が "open" の場合、availableItemIds にある商品を isAvailable: true に、
+ *              それ以外を false にバッチ更新する。
+ *              引数: { storeId, newStatus: "open"|"suspended"|"closed", availableItemIds?: string[] }
+ */
+exports.updateStoreStatus = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { storeId, newStatus, availableItemIds } = requestData;
+
+    if (!storeId || !newStatus) {
+      throw new functions.https.HttpsError("invalid-argument", "storeId と newStatus が必要です。");
+    }
+
+    const validStatuses = ["open", "suspended", "closed"];
+    if (!validStatuses.includes(newStatus)) {
+      throw new functions.https.HttpsError("invalid-argument", `不正なステータス: ${newStatus}`);
+    }
+
+    // store_admin 権限チェック
+    const token = context.auth.token;
+    if (token.role !== "store_admin" || token.storeId !== storeId) {
+      throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
+    }
+
+    try {
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      const storeUpdateData = {
+        operationStatus: newStatus,
+        updatedAt: now,
+      };
+
+      // 「営業中」に変更する場合は lastActivityAt を更新 (活動開始基準)
+      if (newStatus === "open") {
+        storeUpdateData.lastActivityAt = now;
+      }
+
+      // 店舗ステータスを更新
+      await db.collection("stores").doc(storeId).update(storeUpdateData);
+
+      // 「営業中」に変更する場合、商品の isAvailable を更新
+      if (newStatus === "open") {
+        const itemsSnap = await db.collection("items")
+          .where("storeId", "==", storeId)
+          .get();
+
+        if (!itemsSnap.empty) {
+          const availableSet = new Set(availableItemIds || []);
+          const batch = db.batch();
+
+          itemsSnap.docs.forEach((doc) => {
+            const shouldBeAvailable = availableSet.size === 0
+              ? true // availableItemIds が空の場合は全商品を販売中に
+              : availableSet.has(doc.id);
+            batch.update(doc.ref, {
+              isAvailable: shouldBeAvailable,
+              updatedAt: now,
+            });
+          });
+
+          await batch.commit();
+        }
+      }
+
+      return { success: true, newStatus };
+    } catch (error) {
+      console.error("updateStoreStatus Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * @name manageStoreStatusAndWarmup
+ * @description 毎分実行される定期ジョブ。
+ *              「営業中 (open)」であるにもかかわらず lastActivityAt が15分以上前の店舗を
+ *              自動的に「一時停止中 (suspended)」に変更する。
+ *              活発な店舗が存在する場合は、Functions のコールドスタートを防ぐために
+ *              自身のダミーエンドポイントへリクエストを送信する。
+ */
+exports.manageStoreStatusAndWarmup = functions
+  .region("asia-northeast1")
+  .pubsub.schedule("every 1 minutes")
+  .onRun(async () => {
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const threshold = admin.firestore.Timestamp.fromDate(fifteenMinutesAgo);
+
+    try {
+      const openStoresSnap = await db.collection("stores")
+        .where("operationStatus", "==", "open")
+        .get();
+
+      if (openStoresSnap.empty) {
+        return null;
+      }
+
+      const batch = db.batch();
+      let hasActiveStore = false;
+
+      openStoresSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        const lastActivityAt = data.lastActivityAt;
+
+        if (!lastActivityAt || lastActivityAt.toMillis() < threshold.toMillis()) {
+          console.log(`manageStoreStatusAndWarmup: 店舗 ${doc.id} を suspended に変更 (放置検知)`);
+          batch.update(doc.ref, {
+            operationStatus: "suspended",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } else {
+          hasActiveStore = true;
+        }
+      });
+
+      await batch.commit();
+
+      if (hasActiveStore) {
+        // ウォームアップリクエストを送信 (Node.js標準の https モジュールを使用)
+        const https = require("https");
+        const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "nanryosai-2026-a4091";
+        const url = `https://asia-northeast1-${projectId}.cloudfunctions.net/warmupPing`;
+        
+        https.get(url, (res) => {
+          res.on("data", () => {}); // データを消費してコネクションをクリーンアップ
+        }).on("error", (e) => {
+          console.error("Warmup ping error:", e);
+        });
+      }
+
+      return null;
+    } catch (error) {
+      console.error("manageStoreStatusAndWarmup Error:", error);
+      return null;
     }
   });

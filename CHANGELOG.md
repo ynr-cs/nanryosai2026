@@ -15,7 +15,87 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.3.14] 一般公開画面へのステータス反映とポータル画面のバグ修正 - 2026-05-31
+
+### メタ情報
+- **担当AI**: Antigravity
+- **フェーズ**: フェーズ1 (POSレジ改修 / フロントエンド微調整)
+- **目的**: 
+  - 一般公開向けの店舗一覧や詳細画面において、現在の営業状態（営業中・準備中・終了）をリアルタイムに反映する。
+  - Firestoreのクエリ仕様やJavaScriptのスコープ仕様に起因するポータル画面のバグを修正する。
+
+### Added
+- `main/projects-list.html` および `main/detail.html` に、Firestoreの `stores` コレクションを監視してリアルタイムに営業ステータスバッジを表示する処理を追加。
+- 営業終了または準備中の場合は、購入ボタンや商品一覧を「売り切れ」「販売停止中」として表示制御するUI連動を実装（`main/detail.html`）。
+
+### Changed
+- Firestoreインデックス設定の最新状態をローカルの `firestore.indexes.json` に pull し、`items` コレクションに対する複合インデックス（`storeId` + `displayOrder`）を同期。
+
+### Fixed
+- **商品が表示されないバグ**: `pos/portal.html` で商品を取得する際、`orderBy("displayOrder")` を使用していたため `displayOrder` フィールドが存在しないデータが取得できていなかった問題を修正。フロントエンド側でのソート処理に変更。
+- **キャンセル等のボタンが押せないバグ**: `pos/portal.html` がモジュールスコープ（`type="module"`)になったことで、HTMLの `onclick` 属性から関数が見えなくなっていた問題を修正。対象の関数を `window` オブジェクトに紐付けて解決。
+
+## [0.3.13] Functions自律ウォームアップと放置検知(自動停止)の実装 - 2026-05-31
+
+### メタ情報
+- **担当AI**: Antigravity
+- **フェーズ**: フェーズ1 (POSレジ改修)
+- **目的**: 
+  - ポータル画面を開きっぱなしにしないと `keepAlive` が送られず、15分で勝手に営業停止になってしまう運用上のリスクを解消する。
+  - バックエンド(Cloud Functions)単独で「最後に操作が行われた時間(`lastActivityAt`)」を基準に放置状態を検知し、安全に停止・保温(ウォームアップ)を行う。
+
+### Added
+- Cloud Functions に `warmupPing` 関数を追加。スケジュール関数からの呼び出し専用の軽量エンドポイント。
+- 注文処理（`createOrder`, `kitchenComplete`, `completeOrder`, `cancelOrder`, `adminUpdateOrderStatus`）および営業開始処理の末尾に、対象店舗の `lastActivityAt` を現在時刻で更新するヘルパー処理を追加。
+
+### Changed
+- `autoSuspendInactiveStores` を `manageStoreStatusAndWarmup` という名前と役割に変更。
+  - 対象: `operationStatus === "open"` の店舗
+  - 判定: `lastActivityAt` が 15分以上前であれば「放置状態」とみなして `suspended` に変更し保温を停止。
+  - 保温: 上記以外で1つでも活発な店舗があれば、自身の `warmupPing` を叩き、Functions 全体のコールドスタートを防ぐ。
+- `antigravity/firebase_CONTEXT.md` の `lastKeepAliveAt` を `lastActivityAt` に更新し、関数の説明を修正。
+
+### Removed
+- `pos/portal.html` から `keepAliveInterval`、`startKeepAlive`、`stopKeepAlive`、および関連するUI要素（1分おきの通信表示）を全削除。
+- Cloud Functions の `keepAlive` (Callable関数) を削除。
+
+## [0.3.12] 店舗ステータス管理 & Functionsコールドスタート防止の実装 - 2026-05-31
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`functions/index.js`**:
+  - `keepAlive` (OnCall): 店舗が「営業中」の間、`portal.html` から1分ごとに呼ばれ、`stores/{storeId}.lastKeepAliveAt` をサーバー時刻で更新する軽量関数。Functionsのコールドスタートを防ぐのが目的。
+  - `updateStoreStatus` (OnCall): `portal.html` からのステータス変更を受け付ける関数。`newStatus === "open"` の場合、`availableItemIds` で渡された商品を `isAvailable: true` に、それ以外を `false` にバッチ更新し、同時に `operationStatus` を更新する。
+  - `autoSuspendInactiveStores` (Scheduled/Cloud Scheduler, 毎分): `operationStatus === "open"` かつ `lastKeepAliveAt` が15分以上前の店舗を自動的に `"suspended"` に変更するフェイルセーフジョブ。スタッフの端末放置を自動検出する。
+
+- **`pos/portal.html`**:
+  - トップ画面（`#view-top`）上部に営業ステータスパネルを追加。現在の営業状態（営業中/準備中・一時停止中/営業終了）をリアルタイムバッジで表示する。
+  - 「営業開始」「一時停止」「営業終了」の3つのアクションボタンを設置。現在のステータスに応じて不要なボタンを非表示にする。
+  - 「営業開始」ボタン押下時、販売する商品をチェックボックスで個別選択できるボトムシートモーダルを表示。「すべて選択/解除」のトグルも搭載。
+  - 営業中（`open`）状態の間、`setInterval` で1分ごとに `keepAlive` Function を呼び続け、Functionsを温かく保つ。
+  - Firestoreの `stores/{storeId}` を `onSnapshot` でリアルタイム監視し、ステータスが変わった場合（自動サスペンド含む）にパネルのUIを即時反映する。
+
+- **`pos/mobile-order.html`**:
+  - 店舗選択画面（`loadStores`）に営業ステータスバッジ（緑/黄/グレー）を表示。
+  - `operationStatus !== "open"` の店舗は `opacity: 0.5` でグレーアウトし、`pointer-events: none` でクリック不可にする。
+
+### 仕様の決定事項
+
+- **ステータスは3段階に統一**: `"suspended"`（デフォルト初期値）、`"open"`、`"closed"`。`"before_open"` は不要として削除。`"suspended"` の表示文言を「準備中 / 一時停止中」として兼用。
+- **Keep-Aliveの通信量**: `keepAlive` は `lastKeepAliveAt` の1フィールドのみ更新する極めて軽量な書き込み（1 Write/分/営業店舗）。
+
+### 得られた知見
+
+- Cloud Functions のコールドスタート問題は、スケジューラーによる定期呼び出しよりも、営業状態に連動した「必要な時だけ温める」アプローチの方が、無駄なFunction実行コストを抑えられる。
+- `suspended` のデフォルト初期値化により `before_open` ステータスを廃止でき、状態管理をシンプルに保てる（他のAIとの設計レビューで確認）。
+
 ## [0.3.11] portal.html のステータス変更UI改善（ローディング導入） - 2026-05-31
+
 
 ### メタ情報
 

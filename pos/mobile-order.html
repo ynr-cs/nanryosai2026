@@ -1580,17 +1580,39 @@
 
             const imgSrc = `../images/${d.id}.png`;
             const el = document.createElement("div");
+            const isOpen = data.operationStatus === "open";
             el.className = "store-card animate__animated animate__fadeInUp";
+
+            // 営業中でない場合はグレーアウト
+            if (!isOpen) {
+              el.style.opacity = "0.5";
+              el.style.pointerEvents = "none";
+              el.style.cursor = "not-allowed";
+            }
+
+            // 営業ステータスのバッジを生成
+            const statusConfig = {
+              open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
+              suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
+              closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
+            };
+            const st = statusConfig[data.operationStatus] || statusConfig.suspended;
+            const statusBadge = `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};margin-top:4px;">${st.text}</span>`;
+
             el.innerHTML = `
               <img src="${imgSrc}" class="store-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
               <div class="store-info">
                  <h3>${data.name}</h3>
-                 <small style="color: var(--text-sub);">${data.teamName || ""}</small>
+                 <small style="color: var(--text-sub);">${data.teamName || ""}</small><br>
+                 ${statusBadge}
               </div>
             `;
-            el.onclick = () => selectStore(d.id, data.name);
+            if (isOpen) {
+              el.onclick = () => selectStore(d.id, data.name);
+            }
             list.appendChild(el);
           });
+
 
           // Auto Redirect if matched
           if (targetStoreId && targetStoreName) {
