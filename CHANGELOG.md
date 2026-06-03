@@ -15,6 +15,81 @@
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.3.21] 緊急停止 × Auto-Resume 競合バグ 全修正 - 2026-06-03
+
+### メタ情報
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+#### `functions/index.js`
+- **[Critical] `createOrder` に店舗ステータスチェックを追加**: 注文作成前にサーバー側で `operationStatus` を確認し、`"open"` 以外（`"suspended"` / `"closed"`）の場合は `failed-precondition` エラーで注文を拒否するようにした。緊急停止中は「緊急停止中のため注文を受け付けられません。」、通常停止中は「この店舗は現在受付を停止しています。」を返す。POSチャンネル・モバイルチャンネル共通。
+- **[Critical] `updateStoreActivity` に `isEmergencyStopped` ガードを追加**: Auto-Resume 条件に `!data.isEmergencyStopped` を追加。緊急停止フラグが立っている店舗では、POS操作（調理完了・呼び出し等）があっても `operationStatus` が `"open"` に戻らなくなった。
+- **[High] `updateStoreStatus` に緊急停止フラグ・旧フィールドのクリアを追加**: 店舗スタッフがポータルから「営業開始」操作をした際に `isEmergencyStopped` と旧フィールド `emergencySuspendedAt` も `FieldValue.delete()` で削除するようにした。
+- **[Medium] `sendOrderUpdateNotification` に `userId` null チェックを追加**: POSチャンネルの注文は `userId: null` のため `db.collection("users").doc(null)` を呼び出してエラーログが発生し続けていた問題を修正。`userId` が null の場合は早期リターンする。
+
+#### `main/admin/superadmin.html`
+- **[Critical] `executeEmergencyStop` で `isEmergencyStopped: true` を書き込むように変更**: 緊急停止実行時に全店舗の `isEmergencyStopped` を `true`、`isAutoSuspended` を `false` に設定し、旧フィールド `emergencySuspendedAt` を `deleteField()` で削除するようにした。
+- **[High] 全解除処理で `isEmergencyStopped` フラグをクリアするように変更**: 全解除ボタン押下時に全店舗の `isEmergencyStopped` を `deleteField()` で削除する処理を追加。`isAutoSuspended` は削除しない（緊急停止と無関係に自動停止中の店舗の復帰制御を破壊しないため）。トーストメッセージを「各店舗から営業開始を行ってください。」に更新。
+- **`deleteField` を Firestore の import に追加**: 上記2処理で使用するため。
+
+#### `pos/mobile-order.html`
+- **[Medium] `finalizeOrder` に注文直前のステータス再確認を追加**: 店舗選択後にメニュー画面で滞在中に緊急停止が発動した場合、ユーザーが確定ボタンを押したタイミングで `getDoc` によりステータスを再取得し、`"open"` でなければ注文を中断して店舗一覧に戻す処理を追加した。ファイル先頭で静的 import 済みの `getDoc`・`doc` をそのまま使用。
+
+### 変更の背景
+緊急停止後もPOSから注文が入り、Cloud Function の `updateStoreActivity` が Auto-Resume を発動させることで店舗ステータスが意図せず「営業中」に復帰してしまう重大な欠陥を発見・修正した。根本原因は `createOrder` のサーバー側でステータスを確認していなかったこと、および緊急停止と自動停止の区別がされていなかったことにある。
+
+## [0.3.20] superadmin.html のメッセージ文言とフォーマット調整 - 2026-06-03
+
+### メタ情報
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 変更 (Changed)
+- **`main/admin/superadmin.html`**:
+  - 全てのアラートメッセージ（Main側・POS側のプリセットおよび緊急停止実行時の初期値）の先頭から「⚠️」「🔧」「✅」「📢」などの絵文字を削除しました。
+  - POS側の緊急メッセージにおける問い合わせ先を「実行委員にお問い合わせください。」から「コンピュータ科学部までお問い合わせください」に変更しました。
+
+## [0.3.19] superadmin.html の状態サマリーのレイアウト崩れ修正 - 2026-06-03
+
+### メタ情報
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 修正 (Fixed)
+- **`main/admin/superadmin.html`**:
+  - メッセージテキストが長い場合に、CSS Gridの最小幅計算（デフォルト `auto`）によってグリッドアイテムが親要素（カード）の幅を超えて広がり、レイアウトが右側にはみ出してしまう問題を修正。
+  - `.status-summary` の `grid-template-columns` を `minmax(0, 1fr)` に変更し、`.status-chip` に `min-width: 0` を指定することで、親要素内に正しく収まり、長いテキストが `text-overflow: ellipsis` で省略されるように改善。
+
+## [0.3.18] superadmin.html の機能強化（緊急停止・プリセット・リアルタイムサマリー） - 2026-06-03
+
+### メタ情報
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+- **`main/admin/superadmin.html`**:
+  - **緊急コントロールパネル**: 「全注文受付を停止する」ボタンを追加。押下すると確認モーダルが表示され、承認後に以下を一括実行する：
+    - `_metadata/system_alerts` に Main・POS 両方の error アラートを書き込む（定型の緊急停止メッセージ付き）
+    - `stores` コレクション内の全店舗ドキュメントに対し `operationStatus: "suspended"` および `emergencySuspendedAt` を `writeBatch` でアトミックに書き込む
+  - **「アラートを全解除する」ボタン**: Main・POS アラートを一発でオフにする（店舗の営業ステータスは変更しない設計で、誤全店舗開店事故を防止）
+  - **プリセットメッセージ機能**: Main・POS それぞれに 4 種類の定型文ボタンを追加。押すと textarea に自動入力され、⚠️/🔴 系は種別を自動的に error に切り替える
+  - **リアルタイム状態サマリー**: `onSnapshot` で `_metadata/system_alerts` を常時監視し、Main・POS それぞれのアラートのオン/オフ・種別・メッセージ冒頭・最終更新時刻を画面上部に常時表示する
+  - **確認モーダル**: ネイティブの `confirm()` を廃止し、スタイルされた画面内モーダルに置き換え（緊急停止・全解除の両方に共通利用）
+  - **トースト通知**: `alert()` を廃止し、画面下部のスライドアップ式トースト通知に置き換え（success/error/warning の3種）
+  - **緊急ゾーンのアニメーション**: アラート有効時はボーダーが点滅するアニメーション（`active-alert` クラス）で視覚的に状態を伝達
+
+### 変更 (Changed)
+- **`main/admin/superadmin.html`**:
+  - 全体レイアウトをリニューアル。ダークテーマを継承しつつ、緊急停止ゾーンには赤系のグラデーション背景・グロー効果を適用し、通常設定エリアと明確に区別できるデザインに刷新
+  - ボタン UI を個別スタイルで実装（緊急停止: 赤グロー、解除: 緑枠、保存: ブルー）
+
+### 得られた知見
+- `writeBatch` で `_metadata/system_alerts`（set）と `stores/*(複数)` （update）を同一バッチにまとめることで、部分失敗なくアトミックに緊急停止が実行できる。ただし Firestore の1バッチあたり500操作上限に注意（店舗数が少ない南陵祭規模では問題なし）。
+- `isSuperAdmin()` ルールが Firestore サーバー側で強制されているため、URL が漏れても別アカウントからの緊急停止・解除は permission-denied で完全に弾かれる。フロントエンド認証だけでなくバックエンドルールが防衛の本体。
+- 「全解除で店舗ステータスは戻さない」設計は、誤って全店舗を強制開店させる事故リスクを排除する重要な意思決定。緊急停止後の営業再開は各店舗スタッフがポータルから個別に行う。
+
 ## [0.3.17] 警告画面（banned.html）のシナリオ分岐および演出強化 - 2026-06-01
 
 ### メタ情報

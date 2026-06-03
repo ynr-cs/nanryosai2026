@@ -346,8 +346,12 @@ async function updateStoreActivity(storeId) {
       const data = doc.data();
       const updates = { lastActivityAt: admin.firestore.FieldValue.serverTimestamp() };
 
-      // 自動停止(suspended)中であれば営業中(open)に自律復帰させる
-      if (data.operationStatus === "suspended" && data.isAutoSuspended === true) {
+      // 自動停止(suspended)中かつ緊急停止でなければ営業中(open)に自律復帰させる
+      if (
+        data.operationStatus === "suspended" &&
+        data.isAutoSuspended === true &&
+        !data.isEmergencyStopped
+      ) {
         updates.operationStatus = "open";
         updates.isAutoSuspended = admin.firestore.FieldValue.delete();
         console.log(`updateStoreActivity: 店舗 ${storeId} が自動停止から復帰しました`);
@@ -412,6 +416,19 @@ exports.createOrder = functions
     }
 
     try {
+      // --- 店舗ステータスチェック（緊急停止・一時停止中の注文をサーバー側でブロック）---
+      const storeDoc = await db.collection("stores").doc(storeId).get();
+      if (!storeDoc.exists) {
+        throw new functions.https.HttpsError("not-found", "店舗が見つかりません。");
+      }
+      const storeData = storeDoc.data();
+      if (storeData.operationStatus !== "open") {
+        const reason = storeData.isEmergencyStopped
+          ? "緊急停止中のため注文を受け付けられません。"
+          : "この店舗は現在受付を停止しています。";
+        throw new functions.https.HttpsError("failed-precondition", reason);
+      }
+
       // --- 商品情報取得 & 金額サーバーサイド計算 ---
       const itemRefs = items.map((i) => db.doc(`items/${i.itemId}`));
       const productDocs = await db.getAll(...itemRefs);
@@ -720,8 +737,12 @@ exports.sendOrderUpdateNotification = onDocumentUpdated(
     // ステータスが変わっていなければ何もしない
     if (newData.status === previousData.status) return;
 
-    // ユーザーIDを取得
+    // ユーザーIDを取得（POSやSOKからの注文は userId: null のため早期リターン）
     const userId = newData.userId;
+    if (!userId) {
+      console.log(`Order ${orderId}: userId が null のため通知をスキップ (channel: ${newData.orderChannel})`);
+      return;
+    }
 
     // ユーザーのFCMトークンをFirestoreから取得
     const userSnapshot = await db.collection("users").doc(userId).get();
@@ -1308,7 +1329,9 @@ exports.updateStoreStatus = functions
       const now = admin.firestore.FieldValue.serverTimestamp();
       const storeUpdateData = {
         operationStatus: newStatus,
-        isAutoSuspended: admin.firestore.FieldValue.delete(), // 手動操作時に自動停止フラグをクリア
+        isAutoSuspended: admin.firestore.FieldValue.delete(),       // 手動操作時に自動停止フラグをクリア
+        isEmergencyStopped: admin.firestore.FieldValue.delete(),    // 手動「営業開始」時に緊急停止フラグをクリア
+        emergencySuspendedAt: admin.firestore.FieldValue.delete(),  // 旧フィールドの掃除（既存ドキュメント対応）
         updatedAt: now,
       };
 

@@ -1966,6 +1966,17 @@
         if (!confirm("本当に注文を確定してよろしいですか？")) return;
         loader.style.display = "flex";
         try {
+          // 注文送信直前に店舗ステータスを再確認
+          // （メニュー画面に留まっている間に緊急停止が発動した場合に対処）
+          // getDoc / doc は L1350-L1351 で static import 済みのものを使用
+          const storeSnap = await getDoc(doc(db, "stores", currentStoreId));
+          if (storeSnap.exists() && storeSnap.data().operationStatus !== "open") {
+            loader.style.display = "none";
+            alert("この店舗は現在注文を受け付けていません。店舗一覧に戻ります。");
+            backToStores();
+            return;
+          }
+
           // Phase3: createOrder (統合関数) を呼び出す
           // カートはローカル変数のみ管理（Firestore保存なし・設計憲法§5.1）
           const createOrderFn = httpsCallable(functions, "createOrder");

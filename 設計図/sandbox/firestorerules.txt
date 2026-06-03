@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+    
+    // 認証済みかチェック
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // 店舗管理者であり、かつ操作対象の店舗ID権限を持っているかチェック
+    // data.storeId ではなく、request.auth.token.storeId (サーバーが付与) を信じる
+    function isStoreAdmin(targetStoreId) {
+      return isAuthenticated() 
+             && request.auth.token.role == 'store_admin' 
+             && request.auth.token.storeId == targetStoreId;
+    }
+
+    // スーパー管理者 (緊急メンテナンス用: ynrcs1000@gmail.com)
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.email == 'ynrcs1000@gmail.com';
+    }
+
+    // --- Collection Rules ---
+
+    // 1. Stores (店舗情報の公開)
+    // 読み取りは誰でも可能 (メニュー表示のため)
+    // ※ パスワードフィールドが含まれていないことを確認してください
+    match /stores/{storeId} {
+      allow read: if true; 
+      allow write: if isSuperAdmin(); // 管理者はコンソール等で変更
+    }
+
+    // 1-b. Store Secrets (パスワード等の機密情報)
+    // 読み書き一切禁止 (Cloud Functionsからのみアクセス)
+    match /store_secrets/{storeId} {
+      allow read, write: if false;
+    }
+
+    // 2. Items (商品情報)
+    match /items/{itemId} {
+      // 誰でも閲覧可
+      allow read: if true;
+      
+      // 作成・更新・削除: その店舗の管理者のみ
+      // resource.data.storeId (既存) または request.resource.data.storeId (新規) が権限と一致するか
+      allow create: if isStoreAdmin(request.resource.data.storeId) || isSuperAdmin();
+      allow update: if (isStoreAdmin(resource.data.storeId) && isStoreAdmin(request.resource.data.storeId)) || isSuperAdmin();
+      allow delete: if isStoreAdmin(resource.data.storeId) || isSuperAdmin();
+    }
+
+    // --- Test Collections (Super Admin Only) ---
+    match /stores_test/{storeId} {
+      allow read, write: if isSuperAdmin();
+    }
+    match /items_test/{itemId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // 3. Orders (注文) – 設計憲法§8 / §8.1 準拠
+    match /orders/{orderId} {
+      // 読み取り: 設計憲法§8.1 に基づく4条件
+      allow read: if
+        // (a) 店舗管理者（自店のみ）または SuperAdmin
+        isStoreAdmin(resource.data.storeId) || isSuperAdmin()
+        // (b) 自身の注文（userId 一致）
+        || (isAuthenticated() && request.auth.uid == resource.data.userId)
+        // (c) SOK未確定仮注文（claim前の閲覧用）
+        || (resource.data.orderChannel == "sok" && resource.data.sokStatus == "pending")
+        // (d) monitor.html 用: ready_for_pickup の注文を誰でも読める
+        || resource.data.status == "ready_for_pickup";
+      
+      // 作成: 禁止 (Cloud Functions経由のみ)
+      allow create: if false; 
+      
+      // 更新: フェーズ2完了まで既存ルールを維持（kitchen.htmlなどがまだ直接updateしているため）
+      // TODO(Phase2): allow update: if false; に変更する
+      allow update: if isStoreAdmin(resource.data.storeId) || isSuperAdmin();
+                    
+      // 削除: SuperAdminのみ
+      allow delete: if isSuperAdmin();
+    }
+
+    // 4. Users (ユーザー情報)
+    match /users/{userId}/{document=**} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 5. Counters (採番)
+    // 読み取り: 店舗管理者、SuperAdminのみ (売上推測防止)
+    match /counters/{document=**} {
+      allow read: if isAuthenticated() && (request.auth.token.role == 'store_admin' || request.auth.token.email == 'ynrcs1000@gmail.com');
+      allow write: if false; 
+    }
+
+    // 6. 会場ステータス (来場者は読み取りのみ、書き込みは Cloud Functions のみ)
+    match /venues/{venueId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // 6-b. 会場ステータス管理用設定 (Functionsからのみアクセス)
+    match /venue_admin_config/{document=**} {
+      allow read, write: if false;
+    }
+    match /venue_admin_sessions/{document=**} {
+      allow read, write: if false;
+    }
+
+    // 7. Metadata (同期ステータス等の管理用)
+    match /_metadata/{document=**} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // 8. Banned Users (BAN情報) – 設計憲法§8 / §10.2 準拠
+    // read は本人のみ（auth.js の watchUser() でクライアント側BANチェックに使用）
+    // write は全拒否（Cloud Functions のみがアクセス可能）
+    match /banned_users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if false;
+    }
+    
+    // デフォルト: 全て拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

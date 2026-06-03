@@ -60,7 +60,26 @@ last_updated: 2026-05-07
 - **コレクション構成**:
   - `users/{uid}`: プロフィール + `cart` サブコレクション。複数端末対応のためのPush通知トークン配列 `fcmTokens` と、利用規約の初回同意日時 `termsAgreedAt` を保持する。
   - `_metadata/system_alerts`: ディレクトリ全体（main/pos）のグローバルアラート状態を管理するドキュメント（スーパーアドミン画面から編集）。
+    - **フィールド一覧** (v0.3.18〜):
+      | Field | Type | Description |
+      | :--- | :--- | :--- |
+      | `mainAlertActive` | boolean | Main（来場者）向けアラートの表示フラグ |
+      | `mainAlertType` | string | `"error"` / `"warning"` / `"info"` |
+      | `mainAlertMessage` | string | 来場者向けに表示するメッセージ |
+      | `posAlertActive` | boolean | POS（店舗スタッフ）向けアラートの表示フラグ |
+      | `posAlertType` | string | `"error"` / `"warning"` / `"info"` |
+      | `posAlertMessage` | string | 店舗スタッフ向けに表示するメッセージ |
+      | `updatedAt` | string | ISO 形式の最終更新時刻 |
+      | `emergencyStopAt` | string | 緊急停止が実行された時刻（緊急停止時のみ書き込まれる） |
+    - **セキュリティ**: Firestore ルールで `write: if isSuperAdmin()` により `ynrcs1000@gmail.com` のみ書き込み可。URL が漏れても別アカウントからの書き込みはサーバー側で permission-denied になる。
+    - **緊急停止の挙動** (v0.3.21〜):
+      - `superadmin.html` の「全注文受付を停止する」ボタンを押すと、`system_alerts` の更新と全店舗の `operationStatus: "suspended"` + `isEmergencyStopped: true` + `isAutoSuspended: false` の変更を `writeBatch` で**アトミックに実行**する。旧フィールド `emergencySuspendedAt` は `deleteField()` で同時に削除される。
+      - 緊急停止中は、POSからの注文もモバイルオーダーからの注文も、`createOrder` Function が `operationStatus` チェックにより**サーバー側で完全にブロック**される（クライアント側UIによる制御だけに依存しない二重防御）。
+      - 緊急停止中に POS スタッフが調理完了・呼び出し等の操作をしても、`updateStoreActivity` の Auto-Resume は `isEmergencyStopped: true` により発動しない。
+      - 「アラートを全解除する」は `mainAlertActive: false` / `posAlertActive: false` を書き込みつつ、全店舗の `isEmergencyStopped` を `deleteField()` で削除する（`operationStatus` と `isAutoSuspended` は変更しない）。
+      - 各店舗スタッフがポータルから「営業開始」を押した時点で `operationStatus: "open"`, `isEmergencyStopped: deleted`, `isAutoSuspended: deleted` となり、モバイル・POSの注文受付が再開される。
   - `stores/{storeId}`: 店舗メタデータ。
+
     - **Field Mappings** (Comparison with `data.js`):
       | Firestore Field | Meaning | Source in `data.js` |
       | :--- | :--- | :--- |
@@ -73,7 +92,8 @@ last_updated: 2026-05-07
       | :--- | :--- | :--- | :--- |
       | `operationStatus` | string | `"suspended"` / `"open"` / `"closed"` | 初期値は `"suspended"`（準備中・一時停止中）。来場者向けのモバイルオーダー注文可否に連動する。 |
       | `lastActivityAt` | Timestamp | サーバー時刻 | 注文やステータス変更等の「最新のシステム利用時刻」。15分以上更新がなければ `manageStoreStatusAndWarmup` が放置と判定し `"suspended"` に自動変更する。 |
-      | `isAutoSuspended` | boolean | `true` | `manageStoreStatusAndWarmup` によって自動的に `"suspended"` にされた場合に `true` となるフラグ。手動操作時は削除される。このフラグがある状態で何らかの操作が起きた場合、システムが自律的に `"open"` に復帰する。 |
+      | `isAutoSuspended` | boolean | `true` | `manageStoreStatusAndWarmup` によって自動的に `"suspended"` にされた場合に `true` となるフラグ。手動操作時は削除される。このフラグがある状態で何らかの操作が起きた場合、システムが自律的に `"open"` に復帰する。**ただし `isEmergencyStopped: true` の場合は復帰しない。** |
+      | `isEmergencyStopped` | boolean | `true` | SuperAdmin による緊急停止時に `true` となるフラグ（v0.3.21〜）。このフラグが立っている場合、`updateStoreActivity` の Auto-Resume が無効化される。全解除時に削除される。店舗スタッフの「営業開始」操作時にも削除される。 |
 
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
