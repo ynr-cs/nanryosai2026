@@ -120,7 +120,7 @@ const AppShell = {
     const mainBaseUrl = new URL(".", import.meta.url).href;
     const posBaseUrl = new URL("../pos/", import.meta.url).href;
 
-    if (path.includes("mobile-order") || path.includes("status.html")) {
+    if ((path.includes("mobile-order") && !path.includes("guide")) || path.includes("status.html")) {
       return new URL(path, posBaseUrl).href;
     } else {
       return new URL(path, mainBaseUrl).href;
@@ -381,9 +381,6 @@ const AppShell = {
             © 2026 コンピュータ科学部<br>
             <span style="font-size:0.65rem; opacity:0.6;">横浜南陵高等学校 南陵祭2026 公式Webサイト</span>
           </span>
-          <nav class="footer-bottom-links">
-            <a href="${csForm}" target="_blank" rel="noopener" class="footer-bottom-link">お問い合わせ</a>
-          </nav>
         </div>
 
       </footer>

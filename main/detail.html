@@ -7,6 +7,25 @@
 <!doctype html>
 <html lang="ja">
   <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>詳細 | 南陵祭'26</title>
@@ -598,6 +617,37 @@
           font-size: 0.85rem;
         }
       }
+
+      /* Loading Spinner Styles */
+      .loading-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+      }
+
+      .standard-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loader-text {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.05em;
+      }
     </style>
   </head>
   <body>
@@ -610,7 +660,12 @@
       <!-- Title Section -->
       <div class="detail-title-section">
         <p id="detail-group-name" class="detail-group-name"></p>
-        <h1 id="detail-title" class="detail-title">読み込み中...</h1>
+        <h1 id="detail-title" class="detail-title">
+          <div class="loading-wrapper" id="detail-loading">
+            <div class="standard-spinner"></div>
+            <span class="loader-text">読み込み中...</span>
+          </div>
+        </h1>
         <p id="detail-catchphrase" class="detail-catchphrase"></p>
         <!-- Metadata Chips -->
         <div id="detail-meta-chips" class="detail-meta-chips"></div>

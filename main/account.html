@@ -10,6 +10,25 @@
 <!doctype html>
 <html lang="ja">
   <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>マイページ | 南陵祭'26</title>
