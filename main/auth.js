@@ -33,6 +33,7 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {
   getStorage,
@@ -235,6 +236,8 @@ async function logout() {
   }
 }
 
+let currentBanUnsubscribe = null;
+
 /**
  * Subscribes to auth state changes.
  * @param {Function} callback - Function to call with (user|null)
@@ -242,6 +245,23 @@ async function logout() {
 function watchUser(callback) {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+
+    if (user) {
+      if (currentBanUnsubscribe) currentBanUnsubscribe();
+      currentBanUnsubscribe = onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
+        if (snap.exists()) {
+          if (!window.location.pathname.endsWith("/banned.html")) {
+            window.location.replace("/main/banned.html");
+          }
+        }
+      });
+    } else {
+      if (currentBanUnsubscribe) {
+        currentBanUnsubscribe();
+        currentBanUnsubscribe = null;
+      }
+    }
+
     callback(user);
   });
 }

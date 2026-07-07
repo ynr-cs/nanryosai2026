@@ -570,9 +570,9 @@
         "もう一度。",
         "…………来ない。",
         "スタッフが顔を見合わせます。",
+        "1分。",
+        "3分。",
         "5分。",
-        "10分。",
-        "15分。",
         "温かかったんですよ。",
         "最初は。",
         "湯気が出ていました。",
@@ -604,7 +604,7 @@
             ["……嘘をつくんですか。", "とぼけても無駄です。", "知ってて聞いてるんでしょう。"]
           ]
         },
-        "注文から15分後...誰も来ないとわかった頃。",
+        "注文から5分後...誰も来ないとわかった頃。",
         "スタッフが、そっと手に取ります。",
         "あなただけの、その商品を。",
         "ゴミ袋を開けます。",
@@ -885,6 +885,32 @@
           }
         }, 2000);
       };
+    </script>
+    <script type="module">
+      import { auth, watchUser } from "./auth.js";
+      import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // 「戻る」操作を無効化する（履歴を上書きして戻れなくする）
+      history.pushState(null, null, location.href);
+      window.addEventListener('popstate', function () {
+          history.pushState(null, null, location.href);
+      });
+
+      const db = getFirestore();
+
+      watchUser((user) => {
+          if (user) {
+              onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
+                  if (!snap.exists()) {
+                      // BANが解除されたら account.html へ戻す
+                      window.location.replace("/main/account.html");
+                  }
+              });
+          } else {
+              // 万が一ログアウトされたらログイン画面へ
+              window.location.replace("/main/index.html");
+          }
+      });
     </script>
   </body>
 </html>

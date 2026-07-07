@@ -84,7 +84,8 @@ service cloud.firestore {
 
     // 4. Users (ユーザー情報)
     match /users/{userId}/{document=**} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if (isAuthenticated() && request.auth.uid == userId) || isSuperAdmin();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // 5. Counters (採番)
@@ -115,10 +116,10 @@ service cloud.firestore {
     }
 
     // 8. Banned Users (BAN情報) – 設計憲法§8 / §10.2 準拠
-    // read は本人のみ（auth.js の watchUser() でクライアント側BANチェックに使用）
+    // read は本人 or SuperAdmin（superadmin.html の一覧表示に使用）
     // write は全拒否（Cloud Functions のみがアクセス可能）
     match /banned_users/{userId} {
-      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if (isAuthenticated() && request.auth.uid == userId) || isSuperAdmin();
       allow write: if false;
     }
     

@@ -17,6 +17,11 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // ============================================================
+// ペナルティ免除対象（スーパー管理者等）
+// ============================================================
+const PENALTY_WHITELIST_EMAILS = ["ynrcs1000@gmail.com"];
+
+// ============================================================
 // 受付番号発番ユーティリティ（プライベート関数）
 // 設計憲法§7 準拠: 経路別カウンター + アクティブ判定
 // ============================================================
@@ -579,7 +584,7 @@ exports.kitchenComplete = functions
 /**
  * @name callForPickup
  * @description ready_to_serve → ready_for_pickup（設計憲法§1.2）
- *              readyForPickupAt は15分放置ペナルティの基準時刻
+ *              readyForPickupAt は5分放置ペナルティの基準時刻
  */
 exports.callForPickup = functions
   .region("asia-northeast1")
@@ -1439,3 +1444,143 @@ exports.manageStoreStatusAndWarmup = functions
       return null;
     }
   });
+
+// ============================================================
+// ペナルティ自動執行バッチ（設計憲法§10.2 / penalty_system_CONTEXT 準拠）
+// ============================================================
+
+/**
+ * @name abandonStaleOrders
+ * @description 毎分実行。ready_for_pickup から5分超過した注文を abandoned に遷移させ、
+ *              当該ユーザーを banned_users に登録する。
+ *              安全弁: _metadata/system_alerts の penaltyEnabled が true の場合のみ執行。
+ *              ホワイトリスト: PENALTY_WHITELIST_EMAILS のアカウントはBAN対象外。
+ */
+exports.abandonStaleOrders = functions
+  .region("asia-northeast1")
+  .pubsub.schedule("every 1 minutes")
+  .onRun(async () => {
+    try {
+      // --- 安全弁チェック: penaltyEnabled フラグ ---
+      const alertsDoc = await db.doc("_metadata/system_alerts").get();
+      const penaltyEnabled = alertsDoc.exists && alertsDoc.data().penaltyEnabled === true;
+      if (!penaltyEnabled) {
+        // penaltyEnabled が false または未設定 → 何もしない
+        return null;
+      }
+
+      // --- 5分超過の ready_for_pickup 注文を取得 ---
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const threshold = admin.firestore.Timestamp.fromDate(fiveMinutesAgo);
+
+      const staleOrdersSnap = await db.collection("orders")
+        .where("status", "==", "ready_for_pickup")
+        .where("readyForPickupAt", "<=", threshold)
+        .get();
+
+      if (staleOrdersSnap.empty) {
+        return null;
+      }
+
+      console.log(`abandonStaleOrders: ${staleOrdersSnap.size} 件の放置注文を検出`);
+
+      // --- ホワイトリスト用: メールアドレスからUIDセットを構築 ---
+      const whitelistUids = new Set();
+      for (const email of PENALTY_WHITELIST_EMAILS) {
+        try {
+          const userRecord = await admin.auth().getUserByEmail(email);
+          whitelistUids.add(userRecord.uid);
+        } catch (e) {
+          // ユーザーが存在しない場合は無視
+          console.warn(`abandonStaleOrders: ホワイトリストのメール ${email} に対応するユーザーが見つかりません`);
+        }
+      }
+
+      // --- 各注文を処理 ---
+      const batch = db.batch();
+      let processedCount = 0;
+
+      for (const doc of staleOrdersSnap.docs) {
+        const orderData = doc.data();
+        const userId = orderData.userId;
+
+        // userId が null（POS注文等）の場合はスキップ
+        if (!userId) {
+          console.log(`abandonStaleOrders: 注文 ${doc.id} は userId が null のためスキップ`);
+          continue;
+        }
+
+        // ホワイトリスト除外
+        if (whitelistUids.has(userId)) {
+          console.log(`abandonStaleOrders: 注文 ${doc.id} はホワイトリスト対象のためスキップ (uid: ${userId})`);
+          continue;
+        }
+
+        // ユーザーのメアドと名前を取得
+        let userEmail = null;
+        let userDisplayName = null;
+        try {
+          const userSnap = await db.collection("users").doc(userId).get();
+          if (userSnap.exists) {
+            const userData = userSnap.data();
+            userEmail = userData.email || null;
+            userDisplayName = userData.displayName || null;
+          }
+        } catch (e) {
+          console.error(`abandonStaleOrders: ユーザー情報取得失敗 (uid: ${userId})`, e);
+        }
+
+        // 注文ステータスを abandoned に遷移
+        batch.update(doc.ref, {
+          status: "abandoned",
+          abandonedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // banned_users に登録（既に存在する場合は上書き）
+        const banRef = db.collection("banned_users").doc(userId);
+        batch.set(banRef, {
+          bannedBy: "auto_scheduler",
+          reason: "商品受け取り放置 (ready_for_pickup 5分超過)",
+          orderId: doc.id,
+          receiptNumber: orderData.receiptNumber || null,
+          storeId: orderData.storeId || null,
+          userEmail: userEmail,
+          userDisplayName: userDisplayName,
+          bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        processedCount++;
+        console.log(`abandonStaleOrders: 注文 ${doc.id} → abandoned, ユーザー ${userId} → BAN`);
+      }
+
+      if (processedCount > 0) {
+        await batch.commit();
+        console.log(`abandonStaleOrders: ${processedCount} 件の放置注文を処理完了`);
+      }
+
+      return null;
+    } catch (error) {
+      console.error("abandonStaleOrders Error:", error);
+      return null;
+    }
+  });
+
+// ============================================================
+// unbanUser – スーパー管理者によるBAN解除 (Callable)
+// ============================================================
+exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data, context) => {
+  // スーパー管理者のみ実行可能
+  if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
+    throw new functions.https.HttpsError("permission-denied", "スーパー管理者のみ実行可能です");
+  }
+
+  const { uid } = data;
+  if (!uid || typeof uid !== "string") {
+    throw new functions.https.HttpsError("invalid-argument", "uid が必要です");
+  }
+
+  await db.collection("banned_users").doc(uid).delete();
+  console.log(`unbanUser: UID ${uid} のBANを解除しました (by ${context.auth.token.email})`);
+  return { success: true };
+});

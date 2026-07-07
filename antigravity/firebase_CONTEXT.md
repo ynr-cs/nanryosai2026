@@ -66,6 +66,7 @@ last_updated: 2026-05-07
       | `mainAlertActive` | boolean | Main（来場者）向けアラートの表示フラグ |
       | `mainAlertType` | string | `"error"` / `"warning"` / `"info"` |
       | `mainAlertMessage` | string | 来場者向けに表示するメッセージ |
+      | `penaltyEnabled` | boolean | ペナルティ自動執行（`abandonStaleOrders`）の有効/無効フラグ。`true` の場合のみ放置注文の自動BAN処理が稼働する（安全弁） |
       | `posAlertActive` | boolean | POS（店舗スタッフ）向けアラートの表示フラグ |
       | `posAlertType` | string | `"error"` / `"warning"` / `"info"` |
       | `posAlertMessage` | string | 店舗スタッフ向けに表示するメッセージ |
@@ -100,7 +101,7 @@ last_updated: 2026-05-07
     - `orderChannel`: `"mobile"`, `"sok"`, `"pos"` で注文経路を区別。
     - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`) と `sokClaimedAt`。
     - `paymentMethod`: 経路によらず `"au_pay_manual"` に統一。
-    - `readyForPickupAt`: 提供準備完了時刻。15分放置ペナルティの自動判定（Scheduled Function）の基準として重要。
+    - `readyForPickupAt`: 提供準備完了時刻。5分放置ペナルティの自動判定（`abandonStaleOrders` Scheduled Function）の基準として重要。
   - `counters/receipt_{channel}`: 経路別（`receipt_pos`, `receipt_sok`, `receipt_mobile`）のレシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
   - **Spreadsheet Integration**:
@@ -146,7 +147,7 @@ last_updated: 2026-05-07
   - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `userId: null`）。受付番号2000番台を発番。
   - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。
   - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。
-  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から15分超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。
+  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`PENALTY_WHITELIST_EMAILS`（`ynrcs1000@gmail.com`）は対象外。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。

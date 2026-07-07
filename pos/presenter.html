@@ -681,7 +681,7 @@
         unsubscribe = db
           .collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "in", ["ready_to_serve", "ready_for_pickup"])
+          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "abandoned"])
           .orderBy("createdAt", "asc")
           .onSnapshot(
             (snapshot) => {
@@ -719,6 +719,18 @@
 
       function renderCardSorted(doc) {
         const data = doc.data();
+
+        // スタッフがすでに「確認済」として消去したBAN注文は描画しない
+        if (data.status === "abandoned") {
+          if (localStorage.getItem("dismissed_" + doc.id) === "true") return;
+
+          // 別端末で開いた時用に、破棄から5分以上経過したものは自動非表示にする
+          if (data.updatedAt) {
+            const diffMin = (Date.now() - data.updatedAt.toDate().getTime()) / 60000;
+            if (diffMin > 5) return;
+          }
+        }
+
         const createdDate = data.createdAt
           ? data.createdAt.toDate()
           : new Date();
@@ -777,6 +789,12 @@
                     <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (目視確認)</button>
                 </div>
             `;
+        } else if (data.status === "abandoned") {
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full" style="background-color: #d32f2f; color: white;" onclick="dismissAbandoned('${orderId}')">確認・破棄する (表示から消去)</button>
+                </div>
+            `;
         }
 
         const totalPrice = data.totalPrice ? `¥${data.totalPrice.toLocaleString()}` : "¥---";
@@ -786,11 +804,30 @@
         div.id = `card-${orderId}`;
         div.dataset.createdAt = createdDate.getTime();
         div.dataset.status = data.status;
+        div.dataset.orderChannel = data.orderChannel || "unknown";
+        div.dataset.readyAt = data.readyForPickupAt ? data.readyForPickupAt.toDate().getTime() : "";
+        div.dataset.updatedAt = data.updatedAt ? data.updatedAt.toDate().getTime() : "";
+
+        // BANアラート用HTML
+        let abandonedAlertHtml = "";
+        if (data.status === "abandoned") {
+            abandonedAlertHtml = `
+                <div style="background-color: #ffebee; color: #c62828; padding: 12px; text-align: center; font-weight: 900; border-bottom: 2px solid #ef5350; border-radius: 6px 6px 0 0;">
+                    🚨 この注文は破棄されました (BAN)
+                </div>
+            `;
+            div.style.borderColor = "#c62828";
+            div.style.borderWidth = "2px";
+        }
 
         div.innerHTML = `
+            ${abandonedAlertHtml}
             <div class="card-body">
                 <div class="card-header-row">
                     <span class="order-id">${displayId}</span>
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;">
+                        <div id="ban-timer-${orderId}" style="text-align: right; line-height: 1.2;"></div>
+                    </div>
                     <div class="header-right-col">
                         <div style="position:relative; text-align:right;">
                             <button class="menu-btn" onclick="toggleMenu('${orderId}', event)">⋮</button>
@@ -879,16 +916,61 @@
       }
 
       function updateSingleTimer(cardEl, now) {
+        // メインのタイマー（注文からの経過時間）はBAN後も表示を維持する
         const createdAt = parseInt(cardEl.dataset.createdAt);
-        if (!createdAt) return;
-        const diffSeconds = Math.floor((now - createdAt) / 1000);
-        const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
-        const ss = String(diffSeconds % 60).padStart(2, "0");
-        const timerSpan = cardEl.querySelector(".order-timer");
-        if (timerSpan) {
-          timerSpan.textContent = `${mm}:${ss}`;
-          if (diffSeconds > 900) timerSpan.classList.add("timer-alert");
-          else timerSpan.classList.remove("timer-alert");
+        if (createdAt) {
+            const diffSeconds = Math.floor((now - createdAt) / 1000);
+            const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
+            const ss = String(diffSeconds % 60).padStart(2, "0");
+            const timerSpan = cardEl.querySelector(".order-timer");
+            if (timerSpan) {
+              timerSpan.textContent = `${mm}:${ss}`;
+              if (diffSeconds > 900) timerSpan.classList.add("timer-alert");
+              else timerSpan.classList.remove("timer-alert");
+            }
+        }
+
+        const banSpan = cardEl.querySelector(`#ban-timer-${cardEl.id.replace('card-', '')}`);
+        if (!banSpan) return;
+
+        // モバイルオーダー以外はBANタイマーを表示しない
+        if (cardEl.dataset.orderChannel !== "mobile") {
+            banSpan.innerHTML = "";
+            return;
+        }
+
+        if (cardEl.dataset.status === "abandoned") {
+            // BANからは何分経過したかを表示
+            const abandonedAt = parseInt(cardEl.dataset.updatedAt);
+            if (abandonedAt) {
+                const diffSeconds = Math.max(0, Math.floor((now - abandonedAt) / 1000));
+                const rm = String(Math.floor(diffSeconds / 60)).padStart(2, '0');
+                const rs = String(diffSeconds % 60).padStart(2, '0');
+                banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANから</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+            } else {
+                banSpan.innerHTML = `<span style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">破棄済</span>`;
+            }
+            return;
+        }
+
+        // BANタイマーの更新
+        if (cardEl.dataset.status === "ready_for_pickup") {
+            const readyAt = parseInt(cardEl.dataset.readyAt);
+            if (readyAt) {
+                const deadline = readyAt + 5 * 60 * 1000;
+                const remainDiff = Math.max(0, Math.floor((deadline - now) / 1000));
+                if (banSpan) {
+                    if (remainDiff <= 0) {
+                        banSpan.innerHTML = `<span style="font-size: 1rem; font-weight: 900; color: #d32f2f;">BAN実行中...</span>`;
+                    } else {
+                        const rm = String(Math.floor(remainDiff / 60)).padStart(2, '0');
+                        const rs = String(remainDiff % 60).padStart(2, '0');
+                        banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANまで</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+                    }
+                }
+            }
+        } else {
+            if (banSpan) banSpan.innerHTML = "";
         }
       }
 
@@ -905,6 +987,12 @@
           mainBtn.innerHTML = `<div class="spinner"></div>${text || "処理中..."}`;
         }
       }
+
+      window.dismissAbandoned = function(orderId) {
+        // バックエンド（関数）は動かさず、ローカルの画面上からのみ非表示にする
+        localStorage.setItem("dismissed_" + orderId, "true");
+        removeCard(orderId);
+      };
 
       window.callForPickup = function (orderId) {
         setLoading(orderId, "呼出処理中...");

@@ -15,6 +15,104 @@
 - **パッチ (Patch / z)**: 開発中のあらゆる変更（不具合修正、機能追加、調整等）。実用可能な「完成」に至るまでの試行錯誤のログ。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.3.59] 15分BAN表記の5分への統一修正 - 2026-07-07
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **BAN（受け取り期限切れ）に関する「15分」の表記を「5分」に統一**
+  - **背景/原因**: システム仕様としてBAN判定の時間が15分から5分に短縮されたものの、UI表示や利用規約、内部コメントなどに「15分」という表記が残存していたため。
+  - **解決策**:
+    - `pos/status.html`, `pos/presenter.html`, `pos/mobile-order.html` の画面UIおよびコメントを5分に修正。
+    - `main/terms.html`（利用規約）および `main/banned.html`（BAN警告画面）の表記を5分に修正。
+    - `functions/index.js` のコメント、および `antigravity/` 配下の仕様ドキュメントの表記を5分に修正。
+    - ※店舗の操作放置（15分で一時停止）の仕様は本件と異なるため、今回は介入せず15分のまま維持。
+  - **得られた知見**:
+    - バッチ処理のパラメーター変更に合わせて、UIや規約といった利用者接点の表記も漏れなく更新することで、利用者と運営間のトラブルを防ぐことができる。
+
+## [0.3.58] 放置BANシステムのクライアント/運営用UIおよび管理者解除機能の実装 - 2026-07-07
+
+### メタ情報
+
+- **AIモデル**: Gemini / Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`pos/status.html` (来場者用ステータス画面) に受け取り制限カウントダウンタイマーを設置**
+  - **背景/原因**: 商品完成後に放置すると自動BANされる仕様が追加されたため、来場者側に猶予時間を伝えて放置を防止する必要があった。
+  - **解決策**: 注文状態が「呼び出し中（`ready_for_pickup`）」になった場合、`readyForPickupAt` から5分間のカウントダウン（例：「🚨 あと 05:00 で破棄されます」および警告テキスト）をリアルタイムで表示する機構を実装。
+
+- **`pos/presenter.html` (店舗用画面) へのBAN表示機能と確認・破棄ボタンの追加**
+  - **背景/原因**: BAN（破棄）された注文が即座に店舗側画面から消えてしまうと、何が破棄されたか分からなくなるため、一定時間残す必要があった。また、邪魔なカードをスタッフの判断で安全に非表示にする手段が必要だった。
+  - **解決策**:
+    - 監視対象に `abandoned`（BAN済）を加え、BANされたカードは赤枠とシャドウで強調し、最上部に「🚨 この注文は破棄されました (BAN)」のバナーを表示。
+    - 各カードの点々（⋮）の左のスペースを利用して、呼び出し中は「BANまで 〇分〇秒」、BAN後は「BANから 〇分〇秒」の経過時間を表示。注文からの経過時間タイマーはBAN後も維持。
+    - 「確認・破棄する (表示から消去)」ボタンを設置。LocalStorage（`dismissed_${orderId}`）を用いて、その端末の画面からのみカードを消去する機能を追加（バックエンドへの悪影響なし）。
+    - 別端末での重複表示を防ぐため、破棄から15分以上経過した `abandoned` 注文は自動非表示にするフィルターを実装。
+
+- **`functions/index.js` にスーパー管理者用BAN解除関数 `unbanUser` を追加**
+  - **背景/原因**: `banned_users` コレクションはセキュリティルール（`write: if false`）によりクライアント側から直接 `deleteDoc` ができないため、手動解除を行う仲介ロジックが必要だった。
+  - **解決策**: スーパー管理者 (`ynrcs1000@gmail.com`) の認証時のみ実行可能な Callable Cloud Function `unbanUser` を新規実装。
+
+### 変更 (Changed)
+
+- **`firestore.rules` の `banned_users` 閲覧ルール変更**
+  - スーパー管理者 (`isSuperAdmin()`) も `banned_users` のドキュメントの `read` を行えるよう修正（`superadmin.html` でのBANユーザー一覧表示を可能にするため）。
+
+- **`main/admin/superadmin.html` のBAN解除ロジックを修正**
+  - ESモジュール版の `getFunctions` および `httpsCallable` をインポートし、解除ボタンの処理を直接の `deleteDoc` から `unbanUser` Cloud Function 経由に変更。
+
+## [0.3.57] スーパー管理者によるBANシステムのUI実装 - 2026-07-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`main/admin/superadmin.html` に「BANシステム管理 (ペナルティ機構)」セクションを追加**
+  - **背景/原因**: 自動BANシステムのON/OFF制御や、誤ってBANされたユーザーの救済措置（手動解除）を行うためのUIが必要だった。
+  - **解決策**:
+    - ペナルティ自動執行（`abandonStaleOrders`）の有効/無効を切り替えるトグルスイッチ（`penaltyEnabled` のフラグ変更）を実装。
+    - `banned_users` コレクションをリアルタイム監視し、現在BANされているユーザーの一覧を表示するリストUIを追加。
+    - リスト内の各ユーザーに対し、「解除」ボタンを設置。確認モーダルを経て Firestore 上からドキュメントを削除（手動解除）できる機能を実装。
+  - **得られた知見**:
+    - 監視（`onSnapshot`）や削除（`deleteDoc`）の際、Firestore セキュリティルールの管理権限チェックに依存せず、スーパー管理者アカウント (`ynrcs1000@gmail.com`) 以外はアクセスブロックされる前提での画面制御が機能している。
+
+## [0.3.56] ペナルティ自動執行バッチ（abandonStaleOrders）の実装 - 2026-07-07
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **`abandonStaleOrders` Cloud Functions スケジュール関数の新規実装**
+  - **背景/原因**: `penalty_system_CONTEXT.md` に定義されたペナルティ（BAN）機構のサーバーサイド部分が未実装だった。モバイルオーダーで「注文即時調理」方式を採用するにあたり、商品受け取り放置への抑止力として、自動BANの仕組みが「絶対の防波堤」として必要。
+  - **解決策**:
+    - 毎分実行のスケジュール関数 `abandonStaleOrders` を `functions/index.js` に追加。
+    - `ready_for_pickup` ステータスかつ `readyForPickupAt` から **5分超過** した注文を `abandoned` に遷移させ、当該ユーザーのUIDを `banned_users` コレクションに自動登録。
+    - **安全弁**: `_metadata/system_alerts.penaltyEnabled` フラグが `true` の場合のみ執行（デフォルトは無効で、開発・テスト中の誤爆を防止）。
+    - **ホワイトリスト**: `PENALTY_WHITELIST_EMAILS` 定数（`ynrcs1000@gmail.com`）に該当するアカウントはBAN対象外。
+    - **POS注文スキップ**: `userId` が null の注文（POS経由等）はペナルティ対象外。
+  - **得られた知見**:
+    - `status` + `readyForPickupAt` の複合クエリには Firestore 複合インデックスが必要。`firestore.indexes.json` に追加済み。
+    - `firebase_CONTEXT.md` に記載されていたタイムアウト時間（15分）は `penalty_system_CONTEXT.md` の正式仕様（5分）と不整合だったため、5分に統一修正。
+    - `createOrder` のBANチェック（mobile経路のみ）は既に実装済みだったため追加変更なし。
+
+### 変更 (Changed)
+
+- **`firebase_CONTEXT.md` のタイムアウト記載を5分に統一修正**
+- **`_metadata/system_alerts` フィールド一覧に `penaltyEnabled` を追加**
+- **`firestore.indexes.json` に `orders` の複合インデックス（`status` + `readyForPickupAt`）を追加**
+
 ## [0.3.55] フッター内アンケートカードのリンク先URLバグ修正 - 2026-07-05
 
 ### メタ情報

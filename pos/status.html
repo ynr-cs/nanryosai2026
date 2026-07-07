@@ -54,7 +54,7 @@
         --status-ready-for-pickup: #10b981; /* Emerald: 呼び出し中 */
         --status-completed: #10b981;        /* Emerald: 完了 */
         --status-cancelled: #ef4444;        /* Red: キャンセル */
-        --status-abandoned: #9ca3af;        /* Gray: 15分放置 */
+        --status-abandoned: #9ca3af;        /* Gray: 5分放置 */
 
         /* Dimensions */
         --radius-lg: 20px;
@@ -523,6 +523,12 @@
             <div id="status-desc" class="status-desc">
                 注文情報を取得しています
             </div>
+
+            <!-- カウントダウン表示エリア -->
+            <div id="countdown-container" style="display: none; margin-top: 15px; padding: 12px; background-color: #ffebee; color: #c62828; border-radius: 8px; font-weight: bold; border: 1px solid #ef5350; width: 100%;">
+                🚨 あと <span id="countdown-timer" style="font-size: 1.4rem;">05:00</span> で破棄されます
+                <div style="font-size: 0.75rem; font-weight: normal; margin-top: 4px;">期限を過ぎるとアカウントが利用停止(BAN)となります</div>
+            </div>
         </div>
 
         <!-- Details Section -->
@@ -645,6 +651,43 @@
         );
       }
 
+      let countdownInterval = null;
+
+      function stopCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const container = document.getElementById("countdown-container");
+        if (container) container.style.display = "none";
+      }
+
+      function startCountdown(readyForPickupAt) {
+        stopCountdown();
+        if (!readyForPickupAt) return;
+        
+        const container = document.getElementById("countdown-container");
+        const timerEl = document.getElementById("countdown-timer");
+        if (!container || !timerEl) return;
+        
+        // 5分 = 300000ミリ秒
+        const deadline = readyForPickupAt.toMillis() + 5 * 60 * 1000;
+        container.style.display = "block";
+        
+        const updateTimer = () => {
+          const now = Date.now();
+          const diff = deadline - now;
+          if (diff <= 0) {
+             timerEl.textContent = "00:00";
+             clearInterval(countdownInterval);
+             return;
+          }
+          const m = Math.floor(diff / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+          timerEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+        
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+      }
+
       function updateUI(data) {
         // 1. Order Number
         // Remove "No." prefix if present in the data (though data.receiptNumber is usually just the num)
@@ -712,7 +755,7 @@
           "ready_for_pickup": { visualState: "calling",   title: "商品完成！",                    desc: "大変お待たせいたしました！\nカウンターへお越しください！" },
           "completed":        { visualState: "done",      title: "受渡完了",                    desc: "ご利用ありがとうございました！\n素敵な文化祭を！" },
           "cancelled":        { visualState: "cancelled",  title: "キャンセルされました",              desc: "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。" },
-          "abandoned":        { visualState: "abandoned",  title: "受け取り期限切れ",                desc: "15分以内に受け取りに来られなかったため\n商品は破棄されました" },
+          "abandoned":        { visualState: "abandoned",  title: "受け取り期限切れ",                desc: "5分以内に受け取りに来られなかったため\n商品は破棄されました" },
         };
 
         const status = data.status;
@@ -831,6 +874,13 @@
                     <i class="bi bi-check-circle-fill"></i>
                 </div>
              `;
+        }
+
+        // カウントダウンの制御
+        if (visualState === "calling") {
+            startCountdown(data.readyForPickupAt);
+        } else {
+            stopCountdown();
         }
       }
 
