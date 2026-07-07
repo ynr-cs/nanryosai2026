@@ -48,16 +48,16 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 55vh; /* Balanced height */
-        min-height: 400px;
+        height: 35vh; /* Reduced height for cleaner look */
+        min-height: 250px;
         background-size: cover;
         background-position: center;
         z-index: 1;
         /* Mask to blend smoothly into background */
-        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
         -webkit-mask-image: linear-gradient(
           to bottom,
-          black 50%,
+          black 70%,
           transparent 100%
         );
       }
@@ -70,73 +70,67 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(
-          0,
-          0,
-          0,
-          0.6
-        ); /* Consistent darkening for text readability */
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
       }
 
-      /* Title Section */
+      /* Title Section (Now inside content wrapper) */
       .detail-title-section {
         position: relative;
         z-index: 3;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: flex-end;
-        min-height: 50vh;
-        text-align: center;
-        padding: 120px 20px 40px;
-        /* Ensure text stays white even in light mode because it sits on image */
-        color: white;
+        align-items: flex-start; /* Left align for modern look */
+        text-align: left;
+        padding: 0 0 30px 0;
+        color: var(--text-main);
       }
 
       .detail-group-name {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.95);
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        padding: 6px 16px;
-        border-radius: 50px;
+        font-size: 1.3rem; /* クラス表示を大きく */
+        font-weight: 800;
+        color: var(--primary-color);
+        background: rgba(106, 17, 203, 0.08);
+        padding: 8px 20px; /* 余白も広げる */
+        border-radius: 12px;
         margin-bottom: 16px;
         letter-spacing: 0.05em;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        display: inline-block;
+        width: fit-content;
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.05); /* ほんの少し立体感を追加 */
+      }
+
+      [data-theme="dark"] .detail-group-name {
+        background: rgba(106, 17, 203, 0.2);
+        color: #a5b4fc;
       }
 
       .detail-title {
-        font-size: clamp(2rem, 5vw, 4rem);
+        font-size: clamp(2rem, 5vw, 3.5rem);
         font-weight: 900;
-        color: #ffffff; /* FORCE WHITE */
-        line-height: 1.1;
-        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
-        margin-bottom: 20px;
-        letter-spacing: -0.02em;
+        color: var(--text-main);
+        line-height: 1.2;
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
       }
 
       .detail-catchphrase {
-        font-size: clamp(1rem, 2vw, 1.4rem);
+        font-size: clamp(1rem, 2vw, 1.2rem);
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.95);
+        color: var(--text-sub);
         max-width: 700px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
         line-height: 1.6;
       }
 
       /* Content Wrapper */
       .detail-content-wrapper {
         max-width: 900px;
-        margin: -40px auto 0; /* Overlap effect */
-        padding: 40px 20px 80px;
+        margin: 25vh auto 0; /* Starts over the image slightly */
+        padding: 40px 30px 80px;
         position: relative;
         z-index: 10;
         background: var(--bg-color);
         border-radius: 32px 32px 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
       }
 
       [data-theme="dark"] .detail-content-wrapper {
@@ -166,7 +160,7 @@
       .detail-meta-chips {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 10px;
         margin-top: 20px;
       }
@@ -175,28 +169,23 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         padding: 8px 16px;
-        border-radius: 50px;
+        border-radius: 12px; /* Less rounded for modern app feel */
         font-size: 0.85rem;
-        color: white;
+        color: var(--text-main);
         font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        transition:
-          transform 0.2s ease,
-          background 0.2s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
       }
 
       .meta-chip:hover {
         transform: translateY(-2px);
-        background: rgba(0, 0, 0, 0.65);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
 
       .meta-chip i {
-        color: #a5b4fc;
+        color: var(--primary-color);
         font-size: 0.9rem;
       }
 
@@ -213,18 +202,18 @@
 
       .detail-tabs {
         display: inline-flex;
-        background: rgba(255, 255, 255, 0.7); /* Light mode tab track */
+        background: rgba(255, 255, 255, 0.75); /* Light mode tab track */
         padding: 6px;
         border-radius: 50px;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(0, 0, 0, 0.05); /* Light border */
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4); /* Light border */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Premium shadow */
       }
 
       [data-theme="dark"] .detail-tabs {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
 
       .tab-button {
@@ -252,8 +241,8 @@
       .tab-button.active {
         background: var(--primary-color);
         color: #ffffff !important; /* Force white text on active tab */
-        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(106, 17, 203, 0.4);
+        transform: scale(1.05);
       }
 
       /* Tab Content - Always visible (scroll navigation) */
@@ -329,16 +318,14 @@
         border: 1px solid var(--border-color);
         display: flex;
         gap: 16px;
-        transition:
-          transform 0.3s ease,
-          box-shadow 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       }
 
       .menu-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        border-color: var(--primary-color); /* Highlight border on hover */
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        border-color: rgba(106, 17, 203, 0.3); /* Soft highlight border on hover */
       }
 
       .menu-item-image {
@@ -453,9 +440,20 @@
       .schedule-item {
         display: flex;
         align-items: center;
-        padding: 20px 0;
+        padding: 20px;
         border-bottom: 1px solid var(--border-color);
         position: relative;
+        transition: background 0.3s ease, transform 0.2s ease;
+        border-radius: 12px;
+      }
+
+      .schedule-item:hover {
+        background: rgba(0, 0, 0, 0.02);
+        transform: translateX(4px);
+      }
+
+      [data-theme="dark"] .schedule-item:hover {
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .schedule-item:last-child {
@@ -566,34 +564,41 @@
       /* Responsive */
       @media (max-width: 600px) {
         .detail-title-section {
-          padding-top: 100px;
+          padding-top: 0;
+          min-height: auto;
         }
 
         .detail-content-wrapper {
-          margin-top: -20px;
+          margin-top: 20vh;
+          padding: 24px 16px 80px;
+          border-radius: 24px 24px 0 0;
+        }
+
+        .detail-title {
+          font-size: 1.8rem;
         }
 
         .menu-list {
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 16px;
         }
 
         .menu-item {
           flex-direction: row;
           align-items: center;
-          padding: 12px;
-          gap: 12px;
+          padding: 16px;
+          gap: 16px;
         }
 
         .menu-item-image {
-          width: 80px;
-          height: 80px;
-          border-radius: 12px;
+          width: 88px;
+          height: 88px;
+          border-radius: 16px;
         }
 
         .menu-item-name {
-          font-size: 1rem;
-          margin-bottom: 4px;
+          font-size: 1.05rem;
+          margin-bottom: 6px;
         }
 
         .menu-item-desc {
@@ -610,43 +615,41 @@
           flex-direction: column;
           align-items: flex-start;
           gap: 12px;
+          padding: 16px 0;
         }
 
         .tab-button {
           padding: 8px 16px;
           font-size: 0.85rem;
         }
-      }
-
-      /* Loading Spinner Styles */
-      .loading-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        margin: 20px 0;
-      }
-
-      .standard-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 255, 255, 0.2);
-        border-top-color: #ffffff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+        
+        .detail-tabs {
+          overflow-x: auto;
+          max-width: 100%;
+          justify-content: flex-start;
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        .detail-tabs::-webkit-scrollbar {
+          display: none;
         }
       }
 
-      .loader-text {
-        font-size: 1rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.8);
-        letter-spacing: 0.05em;
+      /* Skeleton Loading Styles */
+      .skeleton {
+        background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.5s infinite linear;
+        border-radius: 8px;
+        display: inline-block;
+      }
+      [data-theme="dark"] .skeleton {
+        background: linear-gradient(90deg, #334155 25%, #1e293b 50%, #334155 75%);
+        background-size: 200% 100%;
+      }
+      @keyframes skeletonShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
       }
     </style>
   </head>
@@ -657,21 +660,21 @@
       <!-- Header Background (JS sets image) -->
       <div id="detail-header-bg" class="detail-header-bg"></div>
 
-      <!-- Title Section -->
-      <div class="detail-title-section">
-        <p id="detail-group-name" class="detail-group-name"></p>
-        <h1 id="detail-title" class="detail-title">
-          <div class="loading-wrapper" id="detail-loading">
-            <div class="standard-spinner"></div>
-            <span class="loader-text">読み込み中...</span>
-          </div>
-        </h1>
-        <p id="detail-catchphrase" class="detail-catchphrase"></p>
-        <!-- Metadata Chips -->
-        <div id="detail-meta-chips" class="detail-meta-chips"></div>
-      </div>
-
       <div class="detail-content-wrapper">
+        <!-- Title Section (Moved inside content wrapper) -->
+        <div class="detail-title-section">
+          <p id="detail-group-name" class="detail-group-name"><span class="skeleton" style="width: 80px; height: 20px;"></span></p>
+          <h1 id="detail-title" class="detail-title">
+            <span class="skeleton" style="width: 60%; height: 48px; max-width: 300px; display: block; margin-bottom: 12px;"></span>
+          </h1>
+          <p id="detail-catchphrase" class="detail-catchphrase"><span class="skeleton" style="width: 80%; height: 20px; max-width: 400px;"></span></p>
+          <!-- Metadata Chips -->
+          <div id="detail-meta-chips" class="detail-meta-chips">
+            <div class="skeleton" style="width: 100px; height: 32px; border-radius: 12px;"></div>
+            <div class="skeleton" style="width: 80px; height: 32px; border-radius: 12px;"></div>
+          </div>
+        </div>
+
         <!-- Tabs Navigation -->
         <div id="detail-tabs" class="detail-tabs"></div>
 
@@ -779,8 +782,9 @@
             `;
         document.getElementById("detail-group-name").style.display = "none";
         document.getElementById("detail-catchphrase").style.display = "none";
-        document.querySelector(".detail-content-wrapper").style.display =
-          "none";
+        document.getElementById("detail-meta-chips").style.display = "none";
+        if (document.getElementById("detail-tabs")) document.getElementById("detail-tabs").style.display = "none";
+        if (document.getElementById("detail-tab-contents")) document.getElementById("detail-tab-contents").style.display = "none";
       }
 
       function renderDetail(project) {
@@ -1078,23 +1082,40 @@
 
         // Update active nav on scroll (only when not programmatically scrolling)
         const sections = document.querySelectorAll(".tab-content");
+        const visibleSections = new Set();
+
         const observer = new IntersectionObserver(
           (entries) => {
             if (isScrolling) return; // Skip during click-scroll
 
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
-                const id = entry.target.id.replace("tab-", "");
-                tabButtons.forEach((btn) => {
-                  btn.classList.toggle("active", btn.dataset.tab === id);
-                });
+                visibleSections.add(entry.target.id);
+              } else {
+                visibleSections.delete(entry.target.id);
               }
             });
+
+            // Find the first section in the DOM that is currently visible
+            for (const section of sections) {
+              if (visibleSections.has(section.id)) {
+                 const activeId = section.id.replace("tab-", "");
+                 tabButtons.forEach((btn) => {
+                   btn.classList.toggle("active", btn.dataset.tab === activeId);
+                 });
+                 break; // Only activate the first visible one
+              }
+            }
           },
-          { rootMargin: "-40% 0px -50% 0px", threshold: 0.1 },
+          { rootMargin: "-20% 0px -60% 0px", threshold: 0 }
         );
 
         sections.forEach((section) => observer.observe(section));
+
+        // Force 'info' tab to be active initially to prevent glitchy state
+        tabButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.tab === "info");
+        });
       }
     </script>
 

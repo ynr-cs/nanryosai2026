@@ -282,7 +282,8 @@ const AppShell = {
     if (!this.isFooterPage()) return;
     if (document.querySelector(".app-footer")) return;
 
-    const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
+    const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSf_QdSMyrFXiZ28U50DlPoK0umuMXnkFDGzu8gWKDY8KUKqRg/viewform?usp=header";
+    const surveyForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
     const bugForm = "https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header";
     // TODO: 人気投票フォームURL判明次第、下記を更新する
     const voteUrl = this.resolvePath("404.html");
@@ -351,7 +352,7 @@ const AppShell = {
 
         <!-- フッター内アンケートカード -->
         <div class="footer-survey-row">
-          <a class="footer-survey-card" href="${csForm}" target="_blank" rel="noopener">
+          <a class="footer-survey-card" href="${surveyForm}" target="_blank" rel="noopener">
             <div class="footer-survey-icon"><i class="bi bi-ui-checks"></i></div>
             <div class="footer-survey-body">
               <span class="footer-survey-label">コンピュータ科学部 アンケート</span>

@@ -158,62 +158,85 @@
 
       /* Gantt Chart */
       .gantt-chart-container {
-        overflow-x: auto;
+        display: flex;
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        padding: 20px;
         border-radius: 24px;
         position: relative;
         max-width: 1200px;
         margin: 0 auto 20px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+
+      .gantt-sidebar {
+        flex-shrink: 0;
+        width: 120px;
+        background: var(--card-bg);
+        border-right: 2px solid var(--primary-color);
+        box-shadow: 4px 0 15px rgba(0,0,0,0.08);
+        z-index: 30;
+        position: relative;
+      }
+
+      .gantt-content {
+        flex: 1;
+        overflow-x: auto;
+        position: relative;
       }
 
       .gantt-chart {
         display: grid;
-        border-collapse: collapse;
-        min-width: 1000px;
-      }
-
-      .gantt-header,
-      .gantt-row {
-        display: contents;
+        position: relative;
       }
 
       .gantt-place-header,
-      .gantt-place,
-      .gantt-time-header,
-      .gantt-time-cell {
-        padding: 15px;
+      .gantt-time-header {
+        height: 50px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
         border-bottom: 1px solid var(--border-color);
-        border-right: 1px solid var(--border-color);
         color: var(--text-main);
       }
 
+      .gantt-place,
+      .gantt-time-cell {
+        height: 70px;
+        box-sizing: border-box;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .gantt-place {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 1.05rem; /* 少し大きくして見やすくする */
+      }
+
+      .gantt-time-cell {
+        border-right: 1px solid var(--border-color);
+      }
+
+      .gantt-time-header {
+        position: sticky;
+        top: 0;
+        background: var(--card-bg);
+        z-index: 9;
+      }
+      
       .gantt-time-header:last-child,
       .gantt-time-cell:last-child {
         border-right: none;
       }
 
-      .gantt-place-header,
-      .gantt-place {
-        font-weight: 700;
-        font-size: 1rem;
-        background: var(--item-fill);
-        position: sticky;
-        left: 0;
-        z-index: 10;
-        border-right: 1px solid var(--border-color) !important;
-      }
-
-      .gantt-time-header {
-        text-align: center;
-        font-size: 0.9em;
-        font-weight: 600;
-      }
-
       .gantt-events {
-        grid-column-start: 2;
+        grid-column-start: 1;
         position: relative;
       }
 
@@ -1183,7 +1206,9 @@
                         <div class="overview-details">
                             <h3 class="overview-label">開催日時</h3>
                             <p class="overview-value-lg">2026年 9月11日(金)・12日(土)</p>
-                            <p class="overview-sub-text">※一般公開は12日(土) 10:00-15:00</p>
+                            <p class="overview-sub-text">※1日目(11日)は非公開につき、一般の方のご来校はご遠慮ください。</p>
+                            <p class="overview-sub-text">※2日目(12日)一般公開：10:00 - 15:00</p>
+                            <p class="overview-sub-text">※2日目(12日)後夜祭：16:00 - 17:00</p>
                         </div>
                     </div>
 
@@ -1237,13 +1262,20 @@
                         </li>
                         <li>
                             <span class="note-number">7</span>
-                            <span class="note-text">お支払いは基本的にauPayのみになります。</span>
+                            <span class="note-text">お支払いはキャッシュレス決済（AirPay導入に伴い、クレジットカード・電子マネー・QR決済等）がご利用いただけます。</span>
                         </li>
                         <li>
                             <span class="note-number">8</span>
-                            <span class="note-text">auPayに関するご質問は校門横のauPayブースで受け付けています。</span>
+                            <span class="note-text">キャッシュレス決済に関するご質問は校門横の決済サポートブースで受け付けています。</span>
                         </li>
                     </ul>
+                </div>
+
+                <!-- Link to about.html -->
+                <div class="overview-more-link" style="text-align: center; margin-top: 30px;">
+                    <a href="about.html" class="about-btn-link" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: var(--primary-gradient); color: white; padding: 12px 32px; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3); transition: transform 0.2s, opacity 0.2s;">
+                        <i class="fas fa-info-circle"></i> 詳細を見る
+                    </a>
                 </div>
             </div>
         </section>
@@ -1503,6 +1535,8 @@
           "14:00",
           "15:00",
           "16:00",
+          "17:00",
+          "18:00",
         ];
         const totalMinutes = (timeHeaders.length - 1) * 60;
         
@@ -1521,7 +1555,7 @@
         }
 
         function renderGanttChart(day) {
-          if (!chartContainer || typeof stageData === "undefined") return;
+          if (!chartWrapper || typeof stageData === "undefined") return;
 
           const dayData = stageData.filter(
             (event) => event.day == day && event.time && event.time !== "不明",
@@ -1529,39 +1563,39 @@
 
           const places = [...new Set(dayData.map((event) => event.place))].sort();
           if (places.length === 0) {
-            chartContainer.innerHTML = `<div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-sub); font-weight: bold;">この日の発表予定はありません。</div>`;
-            chartContainer.style.gridTemplateColumns = "1fr";
+            chartWrapper.innerHTML = `<div style="padding: 40px; width: 100%; text-align: center; color: var(--text-sub); font-weight: bold;">この日の発表予定はありません。</div>`;
             return;
           }
 
           const columnWidth = 180;
-          chartContainer.style.gridTemplateColumns = `120px repeat(${timeHeaders.length - 1}, ${columnWidth}px)`;
           
-          let html =
-            '<div class="gantt-header"><div class="gantt-place-header">場所</div>';
-          timeHeaders.forEach((time) => {
-            html += `<div class="gantt-time-header">${time}</div>`;
+          let html = `<div class="gantt-sidebar">`;
+          html += `<div class="gantt-place-header">場所</div>`;
+          places.forEach((place) => {
+            html += `<div class="gantt-place">${place}</div>`;
           });
-          html += "</div>";
+          html += `</div>`;
+
+          html += `<div class="gantt-content" id="gantt-content-scroll">`;
+          html += `<div class="gantt-chart" id="gantt-grid" style="grid-template-columns: repeat(${timeHeaders.length - 1}, ${columnWidth}px);">`;
+          
+          timeHeaders.forEach((time, index) => {
+            html += `<div class="gantt-time-header" style="grid-row: 1; grid-column: ${index + 1};">${time}</div>`;
+          });
 
           places.forEach((place, placeIndex) => {
             const placeEvents = dayData.filter((event) => event.place === place);
-            html += `<div class="gantt-row"><div class="gantt-place" style="grid-row: ${placeIndex + 2}">${place}</div>`;
-            for (let i = 0; i < timeHeaders.length; i++) {
-              html += `<div class="gantt-time-cell" style="grid-row: ${placeIndex + 2}; grid-column: ${i + 2}"></div>`;
+            const rowIndex = placeIndex + 2;
+            for (let i = 0; i < timeHeaders.length - 1; i++) {
+              html += `<div class="gantt-time-cell" style="grid-row: ${rowIndex}; grid-column: ${i + 1};"></div>`;
             }
-            html += `<div class="gantt-events" style="grid-row: ${placeIndex + 2}; grid-column: 2 / span ${timeHeaders.length - 1}">`;
-            
+            html += `<div class="gantt-events" style="grid-row: ${rowIndex}; grid-column: 1 / span ${timeHeaders.length - 1};">`;
             placeEvents.forEach((event) => {
-              const [startTime, endTime] = (event.time || " - ")
-                .split("-")
-                .map((s) => s.trim());
+              const [startTime, endTime] = (event.time || " - ").split("-").map((s) => s.trim());
               const startMinutes = timeToMinutes(startTime);
               const endMinutes = timeToMinutes(endTime);
-              
               if (startMinutes !== null && endMinutes !== null) {
-                const left =
-                  ((startMinutes - startHour * 60) / totalMinutes) * 100;
+                const left = ((startMinutes - startHour * 60) / totalMinutes) * 100;
                 const width = ((endMinutes - startMinutes) / totalMinutes) * 100;
                 if (width > 0) {
                   html += `<div class="gantt-event-bar" 
@@ -1574,9 +1608,10 @@
                 }
               }
             });
-            html += `</div></div>`;
+            html += `</div>`;
           });
-          chartContainer.innerHTML = html;
+          html += `</div></div>`;
+          chartWrapper.innerHTML = html;
         }
 
         function renderTimelineList(day, showPastEvents) {
@@ -1665,17 +1700,22 @@
             const timeLabel = document.createElement("div");
             timeLabel.className = "time-label";
             indicator.appendChild(timeLabel);
-            chartWrapper.appendChild(indicator);
           }
           const timeLabel = indicator.querySelector(".time-label");
-          const placeHeaderWidth = 120;
 
           function update() {
-            const currentChartContainer = document.getElementById("gantt-chart");
-            if (!currentChartContainer) {
+            const contentScroll = document.getElementById("gantt-content-scroll");
+            const gridElement = document.getElementById("gantt-grid");
+            
+            if (!contentScroll || !gridElement) {
               requestAnimationFrame(update);
               return;
             }
+            
+            if (indicator.parentNode !== contentScroll) {
+               contentScroll.appendChild(indicator);
+            }
+
             const now = new Date();
             const activeDayBtn = daySelector.querySelector(".day-btn.active");
             if (!activeDayBtn) {
@@ -1699,8 +1739,7 @@
                 now.getHours() * 60 +
                 now.getMinutes() +
                 now.getSeconds() / 60;
-              const chartAreaWidth =
-                currentChartContainer.scrollWidth - placeHeaderWidth;
+              const chartAreaWidth = gridElement.scrollWidth;
               if (chartAreaWidth <= 0) {
                 requestAnimationFrame(update);
                 return;
@@ -1708,7 +1747,7 @@
               const leftPosition =
                 ((currentMinutes - startHour * 60) / totalMinutes) *
                 chartAreaWidth;
-              indicator.style.left = `${placeHeaderWidth + leftPosition}px`;
+              indicator.style.left = `${leftPosition}px`;
               indicator.classList.add("visible");
               const hours = String(now.getHours()).padStart(2, "0");
               const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -1733,12 +1772,13 @@
           if (isInitialLoad) {
             setTimeout(() => {
               const indicator = document.getElementById("current-time-indicator");
-              if (indicator && indicator.classList.contains("visible")) {
+              const contentScroll = document.getElementById("gantt-content-scroll");
+              if (indicator && contentScroll && indicator.classList.contains("visible")) {
                 const scrollPosition =
                   indicator.offsetLeft -
-                  chartWrapper.clientWidth / 2 +
+                  contentScroll.clientWidth / 2 +
                   indicator.clientWidth / 2;
-                chartWrapper.scrollTo({
+                contentScroll.scrollTo({
                   left: scrollPosition,
                   behavior: "smooth",
                 });

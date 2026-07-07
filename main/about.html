@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>開催概要 | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .about-wrapper {
+        padding: 0 20px 80px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      .page-header {
+        padding: 40px 20px 20px;
+        text-align: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="page-header">
+        <h1 class="page-title">開催概要</h1>
+      </div>
+
+      <div class="about-wrapper">
+        <!-- Theme & Poster Visual Card -->
+        <div class="overview-card" style="margin-bottom: 24px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; border-radius: 24px;">
+          <div class="key-visual" style="max-width: 280px; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <img
+              src="images/poster.jpg"
+              alt="南陵祭2026 ポスター"
+              style="width: 100%; height: auto; display: block;"
+              onerror="this.onerror=null; this.src='images/noimage.png';"
+            />
+          </div>
+          <div class="theme-statement" style="text-align: center;">
+            <span class="theme-main" style="font-size: 2rem; font-weight: 900; color: var(--text-main); display: block; margin-bottom: 8px;">南陵祭2026</span>
+            <span class="theme-sub" style="font-size: 1.1rem; color: var(--text-sub); font-weight: 600;">「南陵祭楽しすぎて滅」</span>
+          </div>
+        </div>
+
+        <!-- Detail Table (Copied from index.html) -->
+        <div class="overview-card overview-padding">
+          <div class="overview-grid">
+            <!-- Date & Time -->
+            <div class="overview-item">
+              <div class="overview-icon-box">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="overview-details">
+                <h3 class="overview-label">開催日時</h3>
+                <p class="overview-value-lg">2026年 9月11日(金)・12日(土)</p>
+                <p class="overview-sub-text">※1日目(11日)は非公開につき、一般の方のご来校はご遠慮ください。</p>
+                <p class="overview-sub-text">※2日目(12日)一般公開：10:00 - 15:00</p>
+                <p class="overview-sub-text">※2日目(12日)後夜祭：16:00 - 17:00</p>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="overview-item">
+              <div class="overview-icon-box">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="overview-details">
+                <h3 class="overview-label">場所</h3>
+                <p class="overview-value-lg">横浜南陵高等学校</p>
+                <a
+                  href="https://www.google.com/maps/place/%E7%A5%9E%E5%A5%85%E5%B7%9D%E7%9C%8C%E7%AB%8B%E6%A8%AA%E6%B5%9C%E5%8D%97%E9%99%B5%E9%AB%98%E7%AD%89%E5%AD%A6%E6%A0%A1/@35.394142,139.566861,15z/data=!4m6!3m5!1s0x60185038ec1dc97d:0xceb43f4967396a60!8m2!3d35.394142!4d139.566861!16s%2Fg%2F122d_05p?entry=ttu"
+                  target="_blank"
+                  class="overview-link"
+                >
+                  <i class="fas fa-location-arrow"></i> アクセス方法を見る
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="overview-divider"></div>
+
+          <!-- Notes Section -->
+          <div class="overview-notes-section">
+            <h3 class="overview-notes-title">
+              <i class="fas fa-exclamation-triangle"></i> 注意事項
+            </h3>
+            <ul class="overview-note-list-styled">
+              <li>
+                <span class="note-number">1</span>
+                <span class="note-text">お車での来場はご遠慮ください。</span>
+              </li>
+              <li>
+                <span class="note-number">2</span>
+                <span class="note-text">当日の入場は正門のみです。必ず受付をしてください。</span>
+              </li>
+              <li>
+                <span class="note-number">3</span>
+                <span class="note-text">校内は土足の一足制です。</span>
+              </li>
+              <li>
+                <span class="note-number">4</span>
+                <span class="note-text">体育館へ入場される際は、床を傷つける恐れのあるお履き物(ハイヒール等)はご遠慮ください。</span>
+              </li>
+              <li>
+                <span class="note-number">5</span>
+                <span class="note-text">写真撮影・ビデオ撮影はご遠慮ください。</span>
+              </li>
+              <li>
+                <span class="note-number">6</span>
+                <span class="note-text">敷地内は全面禁煙です。また、近隣住宅街での喫煙もご遠慮ください。</span>
+              </li>
+              <li>
+                <span class="note-number">7</span>
+                <span class="note-text">お支払いはキャッシュレス決済（AirPay導入に伴い、クレジットカード・電子マネー・QR決済等）がご利用いただけます。</span>
+              </li>
+              <li>
+                <span class="note-number">8</span>
+                <span class="note-text">キャッシュレス決済に関するご質問は校門横の決済サポートブースで受け付けています。</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      window.CURRENT_PAGE = 'about';
+    </script>
+    <script type="module" src="app-shell.js"></script>
+  </body>
+</html>

@@ -299,17 +299,70 @@
         margin: 10px 0 20px;
         position: relative;
       }
-      /* Background Line */
+      /* Background Line (Grey) */
       .progress-stepper::before {
         content: '';
         position: absolute;
         top: 15px;
-        left: 15%;
-        right: 15%;
+        left: 16.5%;
+        right: 16.5%;
         height: 4px;
         background: var(--progress-bg);
         z-index: 0;
         border-radius: 4px;
+      }
+      /* Active Filled Line */
+      .progress-stepper::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 16.5%;
+        width: 0%;
+        height: 4px;
+        background: var(--status-cooking);
+        z-index: 0;
+        border-radius: 4px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
+      }
+      .status-card.cooking .progress-stepper::after { width: 0%; background: var(--status-cooking); }
+      .status-card.prep .progress-stepper::after { width: 33.5%; background: var(--status-ready-to-serve); }
+      .status-card.calling .progress-stepper::after,
+      .status-card.done .progress-stepper::after { width: 67%; background: var(--status-completed); }
+
+      /* Glassmorphism Details */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+      }
+      .info-card.glass-card {
+        gap: 0px !important;
+        padding: 18px 20px !important;
+      }
+      [data-theme="dark"] .glass-card {
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .pulse-indicator {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #10b981;
+      }
+      .pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-dot 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+      }
+      @keyframes pulse-dot {
+        to { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
       }
       .step-item {
         position: relative;
@@ -472,11 +525,25 @@
             </div>
         </div>
 
-        <!-- Store Info -->
-        <div class="info-section">
-            <div class="info-label">受け取り店舗</div>
-            <div class="info-card">
-                 <div style="font-weight: 800; font-size: 1.1rem; flex: 1;" id="store-name-display">読込中...</div>
+        <!-- Details Section -->
+        <div class="info-section mb-4">
+            <div class="info-label ms-1">注文詳細</div>
+            <div class="info-card flex-column align-items-stretch glass-card">
+                 <!-- Store Link -->
+                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                     <div>
+                         <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-bottom: 4px;">受け取り店舗</div>
+                         <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);" id="store-name-display">読込中...</div>
+                     </div>
+                     <button id="btn-store-link" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="display: none; border-width: 2px;">
+                         詳細 <i class="bi bi-chevron-right ms-1"></i>
+                     </button>
+                 </div>
+                 <!-- Order Date -->
+                 <div>
+                     <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-bottom: 4px;">注文日時</div>
+                     <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" id="order-date-display">----/--/-- --:--</div>
+                 </div>
             </div>
         </div>
 
@@ -497,6 +564,9 @@
       </div>
     
     </div><!-- End App Container -->
+
+    <!-- Load External Data -->
+    <script src="../main/data/data.js"></script>
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -581,6 +651,18 @@
         const numEl = document.getElementById("display-number");
         if (numEl) numEl.textContent = `${data.receiptNumber}`;
 
+        // 1.5 Order Date
+        const dateEl = document.getElementById("order-date-display");
+        if (dateEl && data.createdAt) {
+          const date = data.createdAt.toDate();
+          const y = date.getFullYear();
+          const m = String(date.getMonth() + 1).padStart(2, '0');
+          const d = String(date.getDate()).padStart(2, '0');
+          const hr = String(date.getHours()).padStart(2, '0');
+          const min = String(date.getMinutes()).padStart(2, '0');
+          dateEl.textContent = `${y}/${m}/${d} ${hr}:${min}`;
+        }
+
         // 2. Items List
         const list = document.getElementById("items-list");
         list.innerHTML = "";
@@ -590,13 +672,33 @@
             row.className = "order-item-row";
             const itemPrice = item.price || 0; 
             const itemQty = item.quantity || 0;
-            // Simplified item display
+            
+            // Generate customizations HTML
+            let optionsHtml = "";
+            if (item.customizations && Array.isArray(item.customizations) && item.customizations.length > 0) {
+               const modsHtmlStr = item.customizations.map(m => {
+                   const colorClass = m.mode === "NO" ? "text-danger border-danger" : "text-success border-success";
+                   const modeStr = m.mode === "NO" ? "抜き" : "追加";
+                   return `<span class="badge border ${colorClass} me-1 mt-1" style="background: var(--bg-color); font-size:0.7rem; font-weight:700;">${m.target} ${modeStr}</span>`;
+               }).join("");
+               optionsHtml = `<div class="d-flex flex-wrap">${modsHtmlStr}</div>`;
+            }
+
+            // Fallback for older options formats
+            if (!optionsHtml && item.options && Array.isArray(item.options) && item.options.length > 0) {
+               const optsHtmlStr = item.options.map(opt => `<span class="badge border border-primary text-primary me-1 mt-1" style="background: var(--bg-color); font-size:0.7rem;">${opt}</span>`).join("");
+               optionsHtml = `<div class="d-flex flex-wrap">${optsHtmlStr}</div>`;
+            } else if (!optionsHtml && item.optionText) {
+               optionsHtml = `<div class="d-flex flex-wrap"><span class="badge border border-primary text-primary mt-1" style="background: var(--bg-color); font-size:0.7rem;">${item.optionText}</span></div>`;
+            }
+
             row.innerHTML = `
                 <div style="flex:1;">
-                    <div style="font-weight:700; color: var(--text-main);">${item.name}</div>
-                    <div style="font-size:0.8rem; color: var(--text-sub);">数量: ${itemQty}</div>
+                    <div style="font-weight:700; color: var(--text-main); font-size: 1.05rem;">${item.name || "名称未設定"}</div>
+                    ${optionsHtml}
+                    <div style="font-size:0.85rem; color: var(--text-sub); margin-top: 6px; font-weight: 600;">数量: ${itemQty}</div>
                 </div>
-                <div style="font-weight:700; color: var(--text-main);">¥${itemPrice * itemQty}</div>
+                <div style="font-weight:800; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center;">¥${itemPrice * itemQty}</div>
             `;
             list.appendChild(row);
           });
@@ -733,15 +835,49 @@
       }
 
       async function fetchStoreName(storeId) {
+        if (!storeId) return;
+        
+        let orgName = "";
+        let storeName = "";
+        
+        // 1. まずローカルの projectData からデータを検索する
+        if (typeof projectData !== "undefined") {
+          const project = projectData.find(p => p.id === storeId);
+          if (project) {
+            orgName = project.groupName || "";
+            storeName = project.name || "";
+          }
+        }
+        
+        // 2. 次に Firestore からデータを取得して補完する
         try {
           const storeDoc = await getDoc(doc(db, "stores", storeId));
           if (storeDoc.exists()) {
-             console.log("Store:", storeDoc.data().name);
-             const name = storeDoc.data().name;
-             const el = document.getElementById("store-name-display");
-             if(el) el.textContent = name;
+             const data = storeDoc.data();
+             // ローカルデータに無い場合のみ Firestore の値を使用
+             if (!orgName) orgName = data.name || "";
+             if (!storeName) storeName = data.teamName || "";
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("fetchStoreName error:", e);
+        }
+        
+        const el = document.getElementById("store-name-display");
+        if (el) {
+          if (orgName && storeName && orgName !== storeName) {
+             el.innerHTML = `<span style="font-size: 0.85rem; color: var(--text-sub); margin-right: 8px; font-weight: 700;">${orgName}</span>${storeName}`;
+          } else {
+             el.textContent = storeName || orgName || "名称未設定";
+          }
+        }
+
+        const btn = document.getElementById("btn-store-link");
+        if (btn) {
+          btn.style.display = "inline-block";
+          btn.onclick = () => {
+            window.location.href = `../main/detail.html?id=${storeId}`;
+          };
+        }
       }
 
     </script>
