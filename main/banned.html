@@ -254,6 +254,9 @@
 
     <!-- 確定文言（最初は非表示） -->
     <div id="final-warning">
+      <div style="margin-bottom: 12px; font-weight: bold; color: #ff6666;">
+        <span id="final-username"></span> (<span id="final-email"></span>)
+      </div>
       あなたは利用規約に違反したためすべての機能が停止されました。異議申し立ては<a
         href="https://docs.google.com/forms/d/e/1FAIpQLSe28Niogcshp9sSpYXtSdnV47NCFb_cN71NF_TZcIobe7-x2A/viewform?usp=dialog"
         target="_blank"
@@ -529,8 +532,8 @@
 
       // --- 語り手のセリフ（シナリオ） ---
       // 実際の運用時は localStorage 等からユーザー情報を取得してください
-      const userName = "ゲスト";
-      const userEmail = "guest@example.com";
+      let userName = "ゲスト";
+      let userEmail = "guest@example.com";
 
       // アスタリスク (*) で囲んだ部分が赤字になります
       const scenario = [
@@ -854,6 +857,7 @@
 
       // 最後の警告文を表示
       function showFinalWarning() {
+        localStorage.setItem("ban_story_read", "true");
         clickIndicator.classList.remove("show");
         // 目をCanvasごと消して絶望感を出す
         canvas.style.opacity = "0";
@@ -873,8 +877,30 @@
       // 画面全体をクリックしたときのイベントリスナー
       document.body.addEventListener("click", nextLine);
 
-      // 初期化：最初のセリフを表示開始
-      window.onload = () => {
+      // 初期化：Firebaseからユーザー情報を受け取って開始する関数としてグローバルに公開
+      window.startScenario = (name, email) => {
+        if (name) userName = name;
+        if (email) userEmail = email;
+
+        // 既読フラグがある場合はアニメーションをスキップ
+        if (localStorage.getItem("ban_story_read") === "true") {
+          canvas.style.opacity = "0";
+          const msgEl = document.getElementById("message-text");
+          if (msgEl) msgEl.style.display = "none";
+          clickIndicator.classList.remove("show");
+          
+          document.getElementById("final-username").textContent = userName;
+          document.getElementById("final-email").textContent = userEmail;
+          finalWarning.classList.add("show");
+          
+          document.body.removeEventListener("click", nextLine);
+          document.body.style.cursor = "default";
+          return;
+        }
+
+        // 最終画面用に情報をセットしておく
+        document.getElementById("final-username").textContent = userName;
+        document.getElementById("final-email").textContent = userEmail;
         // 少し待ってから開始
         setTimeout(() => {
           const item = scenario[lineIndex];
@@ -900,6 +926,11 @@
 
       watchUser((user) => {
           if (user) {
+              // ユーザー情報をセットしてシナリオ開始
+              if (window.startScenario) {
+                  window.startScenario(user.displayName || "ゲスト", user.email || "guest@example.com");
+                  window.startScenario = null; // 重複実行防止
+              }
               onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
                   if (!snap.exists()) {
                       // BANが解除されたら account.html へ戻す
