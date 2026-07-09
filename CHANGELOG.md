@@ -15,6 +15,43 @@
 - **パッチ (Patch / z)**: 開発中のあらゆる変更（不具合修正、機能追加、調整等）。実用可能な「完成」に至るまでの試行錯誤のログ。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.3.61] 企画カテゴリ再設計・モバイルオーダーフラグ導入・projects-list検索改善・detail.html拡張 - 2026-07-09
+
+### メタ情報
+
+- **AIモデル**: Claude Opus 4.6
+- **筆者**: AI
+
+### 追加・変更 (Added / Changed)
+
+- **`main/data/data.js` にカテゴリシステムを導入**
+  - **背景/原因**: `contentType` が「UIのタブ表示形式」と「企画の本質的な種別」を兼任しており、非モバイルオーダーの食品団体（茶道部等）や物販団体（美術部等）にまで「準備中」バッジやオーダーボタンが誤表示される構造的課題があった。
+  - **解決策**:
+    - 全企画に `category` フィールドを追加（`"food"` / `"shop"` / `"exhibit"` / `"stage"`）。
+    - モバイルオーダー対象団体にのみ `useMobileOrder: true` を明示的に設定。
+    - `contentType` を配列対応に拡張（例: `["menu","gallery"]` で両タブ表示可能に）。
+    - 新規スキーマフィールド（`sns`, `votingEnabled`, `allergens`, `note`, `menuNote`, `performers`）を定義。
+
+- **`main/projects-list.html` のフィルター・検索を全面改善**
+  - **ジャンルフィルター**: タグベース（食品/展示/ゲーム…）から `category` ベース（🍱飲食 / 🛍️物販 / 🎨展示・体験）に刷新。
+  - **ステージ除外**: `tags.includes("ステージ")` から `category !== "stage"` に変更し、タグに依存しない堅牢なフィルタリングに。
+  - **検索範囲拡充**: 企画名・団体名に加え、場所名・キャッチコピー・タグでも検索可能に。
+  - **営業ステータス判定**: `contentType === "menu"` → `useMobileOrder === true` に修正。
+
+- **`main/detail.html` のタブ拡張**
+  - **SNSリンクボタン**: `project.sns` が定義されていれば基本情報タブにInstagram/Twitter等のリンクボタンを表示。
+  - **来場者投票機能**: `project.votingEnabled === true` で投票ボタンを表示。
+  - **アレルギー表示**: メニュー項目に `allergens` フィールドがあればバッジ表示。
+  - **こだわりメモ**: 個別メニューの `note` とメニュー全体の `menuNote` を表示。
+  - **出演者タブ**: `category === "stage"` で `performers` データがあれば出演者プロフィールタブを追加。
+  - **モバイルオーダーボタン条件修正**: `useMobileOrder === true` の場合のみ注文ボタンを表示。
+
+- **`main/admin_sync.html` の同期条件修正**
+  - `syncStores()` / `syncItems()` の対象判定を `contentType !== "menu"` から `useMobileOrder !== true` に変更。展示・手売り団体がFirestoreに誤同期されなくなった。
+
+- **`antigravity/data_sync_CONTEXT.md` の更新**
+  - 同期対象の判定基準変更に関する仕様ドキュメントを更新。
+
 ## [0.3.60] BAN（ペナルティ）発動時の前置きポップアップ演出の追加とbanned.htmlのユーザー情報表示対応 - 2026-07-08
 
 ### メタ情報

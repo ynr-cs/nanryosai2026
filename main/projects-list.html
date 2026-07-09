@@ -576,13 +576,9 @@
             <button class="filter-btn active" data-filter="すべて">
               すべて
             </button>
-            <button class="filter-btn" data-filter="食品">食品</button>
-            <button class="filter-btn" data-filter="展示">展示</button>
-            <button class="filter-btn" data-filter="ゲーム">ゲーム</button>
-            <button class="filter-btn" data-filter="アトラクション">
-              アトラクション
-            </button>
-            <button class="filter-btn" data-filter="体験">体験</button>
+            <button class="filter-btn" data-filter="food">🍱 飲食</button>
+            <button class="filter-btn" data-filter="shop">🛍️ 物販</button>
+            <button class="filter-btn" data-filter="exhibit">🎨 展示・体験</button>
           </div>
         </div>
       </div>
@@ -648,7 +644,7 @@
 
         let activeFilters = {
           grade: "すべて",
-          type: "すべて",
+          category: "すべて",
           search: "",
           sort: "id-asc",
         };
@@ -701,31 +697,34 @@
                 .map((tag) => `<span class="card-tag">${tag}</span>`)
                 .join("");
 
-              const isFood =
-                project.contentType === "menu" || tags.includes("食品");
+              const useMobileOrder = project.useMobileOrder === true;
                 
               let statusBadge = "";
-              let isOrderable = isFood;
+              let isOrderable = useMobileOrder;
               const opStatus = storeStatuses[project.id];
               
-              if (opStatus) {
-                const statusConfig = {
-                  open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
-                  suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
-                  closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
-                };
-                const st = statusConfig[opStatus] || statusConfig.suspended;
-                statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};">${st.text}</span></div>`;
-                
-                if (opStatus !== "open") isOrderable = false;
-              } else if (isFood) {
+              if (useMobileOrder) {
+                if (opStatus) {
+                  const statusConfig = {
+                    open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
+                    suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
+                    closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
+                  };
+                  const st = statusConfig[opStatus] || statusConfig.suspended;
+                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};">${st.text}</span></div>`;
+                  
+                  if (opStatus !== "open") isOrderable = false;
+                } else {
+                  isOrderable = false;
+                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
+                }
+              } else {
                 isOrderable = false;
-                statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
               }
 
               const orderBtnHTML = isOrderable
                 ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order"><i class="fas fa-shopping-cart"></i> オーダー</a>`
-                : (isFood ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
+                : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
 
               return `
                     <div class="project-card" style="animation-delay: ${index * 0.02}s">
@@ -771,7 +770,7 @@
           function processDataAndRender() {
             // 1. 基本的な除外
             let result = projectData.filter(
-              (p) => !p.tags || !p.tags.includes("ステージ"),
+              (p) => p.category !== "stage",
             );
 
             // 2. Filter
@@ -785,9 +784,9 @@
                 );
               });
             }
-            if (activeFilters.type !== "すべて") {
+            if (activeFilters.category !== "すべて") {
               result = result.filter(
-                (p) => p.tags && p.tags.includes(activeFilters.type),
+                (p) => p.category === activeFilters.category,
               );
             }
             if (activeFilters.search) {
@@ -795,7 +794,10 @@
               result = result.filter(
                 (p) =>
                   p.name.toLowerCase().includes(term) ||
-                  (p.groupName && p.groupName.toLowerCase().includes(term)),
+                  (p.groupName && p.groupName.toLowerCase().includes(term)) ||
+                  (p.place && p.place.toLowerCase().includes(term)) ||
+                  (p.catchphrase && p.catchphrase.toLowerCase().includes(term)) ||
+                  (p.tags && p.tags.some(t => t.toLowerCase().includes(term))),
               );
             }
 
@@ -831,7 +833,7 @@
             if (group.id === "filter-by-grade")
               activeFilters.grade = e.target.dataset.filter;
             if (group.id === "filter-by-type")
-              activeFilters.type = e.target.dataset.filter;
+              activeFilters.category = e.target.dataset.filter;
             applyFiltersAndSort(true); // Show loading on filter change
           });
         });

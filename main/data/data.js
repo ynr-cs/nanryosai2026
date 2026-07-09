@@ -1,7 +1,7 @@
 /**
  * Nanryosai 2026
- * Version: 0.1.0
- * Last Modified: 2026-02-05
+ * Version: 0.2.0
+ * Last Modified: 2026-07-09
  * Author: Nanryosai 2026 Project Team
  */
 // =======================================================
@@ -24,6 +24,8 @@ const projectData = [
     name: "やきそばスター",
     place: "中庭テントA",
     floor: 1,
+    category: "food",
+    useMobileOrder: true,
     // [2026年度メモ] mapX, mapY (地図座標)は要件定義待ちのため、現在はデータ定義から除外しています。
     // 必要になった場合は、2D/3Dどちらの方式になるか確定後に再定義してください。
     description:
@@ -69,6 +71,8 @@ const projectData = [
     name: "タピオカヘブン",
     place: "昇降口前",
     floor: 1,
+    category: "food",
+    useMobileOrder: true,
     description:
       "もちもち食感がたまらない！究極のタピオカドリンク専門店。インスタ映え間違いなし。",
     catchphrase: "極上のモチモチ体験",
@@ -111,6 +115,8 @@ const projectData = [
     name: "情熱のチュロス",
     place: "中庭テントB",
     floor: 1,
+    category: "food",
+    useMobileOrder: true,
     description:
       "テーマパークのあの味を再現！サクサク揚げたてのロングチュロス。",
     catchphrase: "カリッ、サクッ、甘〜い幸せ",
@@ -145,6 +151,7 @@ const projectData = [
     name: "ホラーハウス「廃校舎」",
     place: "南棟 2F 201",
     floor: 2,
+    category: "exhibit",
     description:
       "かつて実験室だった場所で起きた悲劇...。あなたは無事に脱出できるか？最恐のお化け屋敷。",
     catchphrase: "絶叫、保証します。",
@@ -160,6 +167,7 @@ const projectData = [
     name: "カジノ・ロワイヤル",
     place: "南棟 2F 202",
     floor: 2,
+    category: "exhibit",
     description:
       "ポーカー、ブラックジャック、ルーレット。大人の社交場を教室に再現。※金銭は賭けません",
     catchphrase: "運命のカードを引け",
@@ -175,6 +183,7 @@ const projectData = [
     name: "VS 南陵",
     place: "体育館サブアリーナ",
     floor: 1,
+    category: "exhibit",
     description:
       "あの人気番組のような巨大アスレチック＆キッキングスナイパー！体力自慢集まれ！",
     catchphrase: "最強は誰だ",
@@ -190,6 +199,7 @@ const projectData = [
     name: "縁日「夏祭り」",
     place: "北棟 2F 204",
     floor: 2,
+    category: "exhibit",
     description:
       "射的、ヨーヨー釣り、スーパーボールすくい。懐かしいお祭りの雰囲気を楽しんで。",
     catchphrase: "日本の夏、2-4の夏",
@@ -205,6 +215,8 @@ const projectData = [
     name: "めちゃうまポテイト",
     place: "北棟 3F 301",
     floor: 3,
+    category: "food",
+    useMobileOrder: true,
     description: "マッククルーによるめちゃくちゃうまいポテトです",
     catchphrase: "カリカリの奇跡",
     tags: ["食品", "軽食"],
@@ -248,6 +260,7 @@ const projectData = [
     name: "フォトスポット「映えの森」",
     place: "北棟 3F 302",
     floor: 3,
+    category: "exhibit",
     description:
       "教室全体がフォトスタジオに！黒板アートや風船で飾られた空間で思い出の一枚を。",
     catchphrase: "キミの笑顔を撮りたい",
@@ -263,6 +276,7 @@ const projectData = [
     name: "迷路「不思議の国」",
     place: "北棟 3F 303",
     floor: 3,
+    category: "exhibit",
     description:
       "ダンボールで作った巨大迷路。アリスの世界に迷い込んだような装飾に注目！",
     catchphrase: "出口はどこだ？",
@@ -278,6 +292,7 @@ const projectData = [
     name: "「花・鳥・風・月」展示",
     place: "特別棟 1F 作法室",
     floor: 1,
+    category: "exhibit",
     description:
       "部員一同一生懸命生けたお花を展示しています。心安らぐ空間へようこそ。",
     catchphrase: "静寂と美の世界",
@@ -293,11 +308,13 @@ const projectData = [
     name: "Art Gallery 2026",
     place: "特別棟 2F 美術室",
     floor: 2,
+    category: "shop",
+    useMobileOrder: false,
     description:
       "油絵、水彩、立体作品など、個性豊かな作品を展示。ポストカード販売もあります。",
     catchphrase: "色が世界を変える",
     tags: ["展示", "文化部"],
-    contentType: "menu",
+    contentType: ["menu", "gallery"],
     menu: [
       {
         name: "オリジナルポストカード",
@@ -327,6 +344,8 @@ const projectData = [
     name: "お茶会",
     place: "特別棟 1F 作法室",
     floor: 1,
+    category: "food",
+    useMobileOrder: false,
     description:
       "結構なお手前で。お抹茶と季節の和菓子をご用意してお待ちしております。",
     catchphrase: "一期一会",
@@ -352,6 +371,7 @@ const projectData = [
     name: "Moment -瞬-",
     place: "北棟 2F 渡り廊下",
     floor: 2,
+    category: "exhibit",
     description: "南陵高校の日常を切り取った写真展。コンテスト入賞作品も展示。",
     catchphrase: "その一瞬を永遠に",
     tags: ["展示", "文化部"],
@@ -366,6 +386,7 @@ const projectData = [
     name: "サイエンス・ラボ",
     place: "特別棟 3F 化学室",
     floor: 3,
+    category: "exhibit",
     description:
       "スライム作り体験や炎色反応実験など、子供から大人まで楽しめる科学実験ショー。",
     catchphrase: "科学の不思議を体験しよう",
@@ -381,6 +402,7 @@ const projectData = [
     name: "南陵ライブ2026",
     place: "視聴覚室・体育館",
     floor: 3,
+    category: "stage",
     description:
       "総勢10バンドが出演！熱いライブをお届けします。日程によって場所が異なるのでご注意ください！",
     catchphrase: "魂を震わせろ",
@@ -397,6 +419,7 @@ const projectData = [
     name: "Autumn Concert",
     place: "音楽室・体育館",
     floor: 4,
+    category: "stage",
     description: "ポップスからクラシックまで、幅広いジャンルの曲を演奏します。",
     catchphrase: "響け、私たちの音",
     tags: ["ステージ", "文化部"],
@@ -412,6 +435,7 @@ const projectData = [
     name: "Show Time!!",
     place: "体育館",
     floor: 1,
+    category: "stage",
     description: "HipHop, Jazz, Lockなど様々なジャンルのダンスを披露します！",
     catchphrase: "We are Dancers",
     tags: ["ステージ", "運動部"],
@@ -427,6 +451,7 @@ const projectData = [
     name: "南陵祭'26 Webサイト&モバイルオーダー",
     place: "コンピュータ科学部",
     floor: 2,
+    category: "exhibit",
     contentType: "gallery",
     menu: [],
     catchphrase: "Make Nanryo Great Again",

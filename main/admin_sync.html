@@ -1725,8 +1725,8 @@ console.log("data.js loaded: projectData count =", projectData.length);
 
           window.localData.forEach((p) => {
             if (!p.id) return;
-            // User requested to only sync sales groups (contentType === 'menu') to Firestore
-            if (p.contentType !== "menu") return;
+            // Only sync mobile order enabled groups to Firestore
+            if (p.useMobileOrder !== true) return;
 
             const storeRef = doc(db, storesCol, p.id);
 
@@ -1774,7 +1774,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
 
         try {
           for (const p of window.localData) {
-            if (p.contentType !== "menu" || !p.menu || p.menu.length === 0)
+            if (p.useMobileOrder !== true || !p.menu || p.menu.length === 0)
               continue;
             if (!p.id) continue;
 

@@ -753,8 +753,8 @@
           return;
         }
         
-        // 店舗の場合、Firestoreからステータスを取得
-        if (project.contentType === "menu") {
+        // モバイルオーダー対象の場合、Firestoreからステータスを取得
+        if (project.useMobileOrder === true) {
           try {
             const snap = await getDoc(doc(db, "stores", project.id));
             if (snap.exists()) {
@@ -814,7 +814,8 @@
           chipsHTML += `<div class="meta-chip"><i class="fas fa-tag"></i>${tagsStr}</div>`;
         }
         
-        if (project.operationStatus) {
+        const useMobileOrder = project.useMobileOrder === true;
+        if (useMobileOrder && project.operationStatus) {
            const statusConfig = {
              open:      { text: "営業中", color: "#065f46", bg: "#d1fae5", icon: "fa-door-open" },
              suspended: { text: "準備中", color: "#92400e", bg: "#fef3c7", icon: "fa-clock" },
@@ -843,17 +844,48 @@
 
         // Tab 1: Info (Always)
         tabsHTML += `<button class="tab-button active" data-tab="info">基本情報</button>`;
+        
+        // SNS リンクボタン
+        let snsHTML = "";
+        if (project.sns) {
+          const snsLinks = [];
+          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;"><i class="fab fa-instagram"></i> Instagram</a>`);
+          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;"><i class="fab fa-twitter"></i> Twitter</a>`);
+          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;"><i class="fab fa-tiktok"></i> TikTok</a>`);
+          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;"><i class="fab fa-youtube"></i> YouTube</a>`);
+          if (snsLinks.length > 0) {
+            snsHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">${snsLinks.join("")}</div>`;
+          }
+        }
+
+        // 投票ボタン
+        let votingHTML = "";
+        if (project.votingEnabled) {
+          const votingLabel = project.votingLabel || "この企画に投票する";
+          votingHTML = `
+            <div style="margin-top:20px;padding:16px;background:var(--glass-bg);border:1px solid var(--border-color);border-radius:16px;text-align:center;">
+              <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:8px;"><i class="fas fa-poll"></i> 来場者投票</p>
+              <button class="vote-btn" data-project-id="${project.id}" style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-thumbs-up"></i> ${votingLabel}
+              </button>
+            </div>
+          `;
+        }
+
         contentsHTML += `
                 <div class="tab-content" id="tab-info">
                     <h2 class="section-title"><i class="fas fa-info-circle"></i>基本情報</h2>
                     <div class="detail-description">
                         ${project.description || "詳細は当日をお楽しみに！"}
                     </div>
+                    ${snsHTML}
+                    ${votingHTML}
                 </div>
             `;
 
-        // Tab 2: Menu (if exists)
-        if (project.menu && project.menu.length > 0) {
+        // Tab 2: Menu (contentType に "menu" を含む場合)
+        const contentTypes = Array.isArray(project.contentType) ? project.contentType : [project.contentType];
+        if (contentTypes.includes("menu") && project.menu && project.menu.length > 0) {
           tabsHTML += `<button class="tab-button" data-tab="menu">メニュー</button>`;
           // Sort: recommended items first
           const sortedMenu = [...project.menu].sort((a, b) => {
@@ -861,12 +893,29 @@
             if (!a.isRecommended && b.isRecommended) return 1;
             return 0;
           });
+
+          // こだわりポイント（メニュー全体）
+          let menuNoteHTML = "";
+          if (project.menuNote) {
+            menuNoteHTML = `<div style="background:var(--glass-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-sub);"><i class="fas fa-star" style="color:var(--primary-color);margin-right:6px;"></i>${project.menuNote}</div>`;
+          }
+
           const menuItemsHTML = sortedMenu
             .map((item) => {
               const imgUrl = item.imageUrl || "../images/noimage.png";
               const recommendBadge = item.isRecommended
                 ? '<span class="menu-item-badge">おすすめ</span>'
                 : "";
+              // アレルギー表示
+              let allergenHTML = "";
+              if (item.allergens && item.allergens.length > 0) {
+                allergenHTML = `<div style="margin-top:4px;font-size:0.7rem;color:#d97706;"><i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>アレルギー: ${item.allergens.join("・")}</div>`;
+              }
+              // こだわりメモ（個別）
+              let noteHTML = "";
+              if (item.note) {
+                noteHTML = `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-sub);font-style:italic;"><i class="fas fa-comment" style="margin-right:3px;"></i>${item.note}</div>`;
+              }
               return `
                         <div class="menu-item">
                             <img src="${imgUrl}" class="menu-item-image" onerror="this.onerror=null;this.src='../images/noimage.png'">
@@ -875,83 +924,87 @@
                                 ${recommendBadge}
                                 <div class="menu-item-desc">${item.description || ""}</div>
                                 <div class="menu-item-price">${item.price}</div>
+                                ${allergenHTML}
+                                ${noteHTML}
                             </div>
                         </div>
                     `;
             })
             .join("");
 
-          // Order Button (Mobile Order Integration)
-          const isOrderable = project.operationStatus === "open";
-          
+          // Order Button (Mobile Order Integration) - useMobileOrder の場合のみ表示
           let orderButtonHTML = "";
-          if (isOrderable) {
-            orderButtonHTML = `
-              <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
-                   <a href="../pos/mobile-order.html?store=${project.id}" 
-                      style="
-                          background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
-                          color: white;
-                          border: none;
-                          padding: 16px 40px;
-                          border-radius: 50px;
-                          font-size: 1.1rem;
-                          font-weight: 800;
-                          text-decoration: none;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 10px;
-                          box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
-                          transition: transform 0.2s;
-                      "
-                      onmouseover="this.style.transform='translateY(-2px)'"
-                      onmouseout="this.style.transform='translateY(0)'"
-                   >
-                      <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
-                   </a>
-                   <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                      <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
-                   </p>
-              </div>
-            `;
-          } else {
-            orderButtonHTML = `
-              <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
-                   <button disabled 
-                      style="
-                          background: #ccc;
-                          color: white;
-                          border: none;
-                          padding: 16px 40px;
-                          border-radius: 50px;
-                          font-size: 1.1rem;
-                          font-weight: 800;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 10px;
-                          cursor: not-allowed;
-                      "
-                   >
-                      <i class="fas fa-shopping-cart"></i> 現在注文できません
-                   </button>
-                   <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                      <i class="fas fa-info-circle"></i> この店舗は現在モバイルオーダーを受け付けていません
-                   </p>
-              </div>
-            `;
+          if (useMobileOrder) {
+            const isOrderable = project.operationStatus === "open";
+            if (isOrderable) {
+              orderButtonHTML = `
+                <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                     <a href="../pos/mobile-order.html?store=${project.id}" 
+                        style="
+                            background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
+                            color: white;
+                            border: none;
+                            padding: 16px 40px;
+                            border-radius: 50px;
+                            font-size: 1.1rem;
+                            font-weight: 800;
+                            text-decoration: none;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+                            transition: transform 0.2s;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'"
+                     >
+                        <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
+                     </a>
+                     <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                        <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
+                     </p>
+                </div>
+              `;
+            } else {
+              orderButtonHTML = `
+                <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                     <button disabled 
+                        style="
+                            background: #ccc;
+                            color: white;
+                            border: none;
+                            padding: 16px 40px;
+                            border-radius: 50px;
+                            font-size: 1.1rem;
+                            font-weight: 800;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            cursor: not-allowed;
+                        "
+                     >
+                        <i class="fas fa-shopping-cart"></i> 現在注文できません
+                     </button>
+                     <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                        <i class="fas fa-info-circle"></i> この店舗は現在モバイルオーダーを受け付けていません
+                     </p>
+                </div>
+              `;
+            }
           }
 
           contentsHTML += `
                     <div class="tab-content" id="tab-menu">
                         <h2 class="section-title"><i class="fas fa-utensils"></i>メニュー</h2>
+                        ${menuNoteHTML}
                         <div class="menu-list">${menuItemsHTML}</div>
                         ${orderButtonHTML}
                     </div>
                 `;
         }
 
-        // Tab 3: Gallery (if exists)
-        if (project.gallery && project.gallery.length > 0) {
+        // Tab 3: Gallery (contentType に "gallery" を含む場合、またはデータが存在する場合)
+        if ((contentTypes.includes("gallery") || true) && project.gallery && project.gallery.length > 0) {
           tabsHTML += `<button class="tab-button" data-tab="gallery">ギャラリー</button>`;
           const galleryHTML = project.gallery
             .map(
@@ -968,6 +1021,27 @@
                         <div class="gallery-grid">${galleryHTML}</div>
                     </div>
                 `;
+        }
+
+        // Tab 3.5: Performers (stage 向け)
+        if (project.category === "stage" && project.performers && project.performers.length > 0) {
+          tabsHTML += `<button class="tab-button" data-tab="performers">出演者</button>`;
+          const performersHTML = project.performers.map(p => `
+            <div style="display:flex;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:8px;">
+              ${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--glass-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:1.5rem;color:var(--text-sub);"></i></div>`}
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:0.95rem;">${p.name}</div>
+                ${p.role ? `<div style="font-size:0.75rem;color:var(--text-sub);margin-top:2px;">${p.role}</div>` : ""}
+                ${p.bio ? `<div style="font-size:0.8rem;color:var(--text-main);margin-top:6px;">${p.bio}</div>` : ""}
+              </div>
+            </div>
+          `).join("");
+          contentsHTML += `
+            <div class="tab-content" id="tab-performers">
+              <h2 class="section-title"><i class="fas fa-users"></i>出演者</h2>
+              ${performersHTML}
+            </div>
+          `;
         }
 
         // Tab 4: Schedule
