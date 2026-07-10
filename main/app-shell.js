@@ -20,6 +20,8 @@ import {
   getDocs,
   limit,
   orderBy,
+  onSnapshot,
+  doc
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const AppShell = {
@@ -56,6 +58,60 @@ const AppShell = {
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
     this.updateVersionDisplay(); // Fetch and display version from CHANGELOG
+    this.initGlobalAlert();
+  },
+
+  initGlobalAlert: function () {
+    onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+      const existingAlert = document.getElementById("main-global-alert");
+      if (existingAlert) {
+        existingAlert.remove();
+      }
+
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.mainAlertActive && data.mainAlertMessage) {
+          let bgColor = "var(--danger-color, #ef4444)";
+          let icon = "bi-exclamation-triangle-fill";
+          if (data.mainAlertType === "warning") {
+            bgColor = "#f59e0b";
+            icon = "bi-exclamation-circle-fill";
+          } else if (data.mainAlertType === "info") {
+            bgColor = "#3b82f6";
+            icon = "bi-info-circle-fill";
+          }
+
+          const alertHtml = `
+            <div id="main-global-alert" style="
+              background-color: ${bgColor};
+              color: white;
+              padding: 10px 16px;
+              font-size: 0.9rem;
+              font-weight: bold;
+              text-align: center;
+              position: sticky;
+              top: calc(var(--header-height, 60px) + var(--safe-area-top, 0px));
+              z-index: 800;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            ">
+              <i class="bi ${icon}"></i>
+              <span>${data.mainAlertMessage.replace(/\n/g, "<br>")}</span>
+            </div>
+          `;
+          
+          const header = document.querySelector(".app-header");
+          if (header) {
+            header.insertAdjacentHTML("afterend", alertHtml);
+          } else {
+            document.body.insertAdjacentHTML("afterbegin", alertHtml);
+          }
+        }
+      }
+    });
   },
 
   resolvePath: function (path) {
@@ -64,7 +120,7 @@ const AppShell = {
     const mainBaseUrl = new URL(".", import.meta.url).href;
     const posBaseUrl = new URL("../pos/", import.meta.url).href;
 
-    if (path.includes("mobile-order") || path.includes("status.html")) {
+    if ((path.includes("mobile-order") && !path.includes("guide")) || path.includes("status.html")) {
       return new URL(path, posBaseUrl).href;
     } else {
       return new URL(path, mainBaseUrl).href;
@@ -172,10 +228,9 @@ const AppShell = {
 
         try {
           const completedStatuses = [
-            "completed_at_store",
-            "completed_online",
+            "completed",
             "cancelled",
-            "abandoned_and_paid",
+            "abandoned",
           ];
 
           // Query latest 5 orders to check for active ones
@@ -227,7 +282,8 @@ const AppShell = {
     if (!this.isFooterPage()) return;
     if (document.querySelector(".app-footer")) return;
 
-    const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
+    const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSf_QdSMyrFXiZ28U50DlPoK0umuMXnkFDGzu8gWKDY8KUKqRg/viewform?usp=header";
+    const surveyForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
     const bugForm = "https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header";
     // TODO: 人気投票フォームURL判明次第、下記を更新する
     const voteUrl = this.resolvePath("404.html");
@@ -296,7 +352,7 @@ const AppShell = {
 
         <!-- フッター内アンケートカード -->
         <div class="footer-survey-row">
-          <a class="footer-survey-card" href="${csForm}" target="_blank" rel="noopener">
+          <a class="footer-survey-card" href="${surveyForm}" target="_blank" rel="noopener">
             <div class="footer-survey-icon"><i class="bi bi-ui-checks"></i></div>
             <div class="footer-survey-body">
               <span class="footer-survey-label">コンピュータ科学部 アンケート</span>
@@ -326,9 +382,6 @@ const AppShell = {
             © 2026 コンピュータ科学部<br>
             <span style="font-size:0.65rem; opacity:0.6;">横浜南陵高等学校 南陵祭2026 公式Webサイト</span>
           </span>
-          <nav class="footer-bottom-links">
-            <a href="${csForm}" target="_blank" rel="noopener" class="footer-bottom-link">お問い合わせ</a>
-          </nav>
         </div>
 
       </footer>
@@ -583,10 +636,9 @@ const AppShell = {
 
     try {
       const completedStatuses = [
-        "completed_at_store",
-        "completed_online",
+        "completed",
         "cancelled",
-        "abandoned_and_paid",
+        "abandoned",
       ];
 
       const q = query(

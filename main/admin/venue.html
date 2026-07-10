@@ -93,6 +93,9 @@
         <div id="venue-name-display" class="venue-name">読み込み中...</div>
         
         <div id="notification" class="notification hidden"></div>
+        <div id="delay-warning" class="notification error hidden" style="margin-top: -10px; font-weight: bold;">
+            ⚠ 予定終了時刻を10分以上過ぎていますが、ステータスが更新されていません。現在の演目で合っているか確認してください。
+        </div>
 
         <!-- Login -->
         <div id="login-section" class="section hidden">
@@ -174,6 +177,56 @@
             setTimeout(() => { notification.classList.add('hidden'); }, 5000);
         }
 
+        // --- Delay Check Logic ---
+        function checkDelayAlert() {
+            const currentSelId = document.getElementById('current-select')?.value;
+            const statusVal = document.getElementById('status-select')?.value;
+            const warningEl = document.getElementById('delay-warning');
+            
+            if (!warningEl) return;
+            if (!currentSelId || statusVal === 'ended') {
+                warningEl.classList.add('hidden');
+                return;
+            }
+
+            const stages = window.stageData || [];
+            const currentStage = stages.find(s => s.id === currentSelId);
+            if (!currentStage || !currentStage.time) return;
+
+            const timeParts = currentStage.time.split('-');
+            if (timeParts.length < 2) return;
+            const [endH, endM] = timeParts[1].trim().split(':').map(Number);
+            
+            const now = new Date();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+            const endMinutes = endH * 60 + endM;
+
+            const festivalDates = {
+                1: new Date(2026, 8, 11),
+                2: new Date(2026, 8, 12),
+            };
+            const targetDate = festivalDates[currentStage.day];
+            
+            const isToday = targetDate && (now.getFullYear() === targetDate.getFullYear() && 
+                             now.getMonth() === targetDate.getMonth() && 
+                             now.getDate() === targetDate.getDate());
+
+            const isTestMode = new URLSearchParams(window.location.search).has('test_delay');
+            
+            if (isToday || isTestMode) {
+                const overTime = nowMinutes - endMinutes;
+                if (overTime >= 10) {
+                    warningEl.classList.remove('hidden');
+                } else {
+                    warningEl.classList.add('hidden');
+                }
+            } else {
+                warningEl.classList.add('hidden');
+            }
+        }
+        setInterval(checkDelayAlert, 60000); // 1分ごとにチェック
+
+
         function setSaveFeedback(id, state) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -208,7 +261,10 @@
                     const data = docSnap.data();
                     document.getElementById('status-select').value = data.status || 'preparing';
                     document.getElementById('current-select').value = data.currentEventId || '';
-                    document.getElementById('next-select').value = data.nextEventId || '';
+                    
+                    const nextSel = document.getElementById('next-select');
+                    nextSel.value = data.nextEventId || '';
+                    nextSel.dataset.prevValue = nextSel.value;
                 }
             } catch(e) {
                 console.error("Data Load Error:", e);
@@ -232,9 +288,20 @@
                 return vInfo.keywords.some(kw => s.place && s.place.includes(kw));
             });
 
-            const htmlOptions = filteredStages.map(s => 
-                `<option value="${s.id}">${s.time} | ${s.groupName} - ${s.name}</option>`
-            ).join('');
+            // Dayごとにグループ化して表示
+            const days = [1, 2];
+            let htmlOptions = '';
+            
+            days.forEach(day => {
+                const dayStages = filteredStages.filter(s => s.day === day);
+                if (dayStages.length > 0) {
+                    htmlOptions += `<optgroup label="--- Day ${day} ---">`;
+                    htmlOptions += dayStages.map(s => 
+                        `<option value="${s.id}">${s.time} | ${s.groupName} - ${s.name}</option>`
+                    ).join('');
+                    htmlOptions += `</optgroup>`;
+                }
+            });
 
             currentSel.insertAdjacentHTML('beforeend', htmlOptions);
             nextSel.insertAdjacentHTML('beforeend', htmlOptions);
@@ -274,9 +341,12 @@
         function setupListeners() {
             if (isListenersAttached) return;
             
+            const nextSel = document.getElementById('next-select');
+            nextSel.dataset.prevValue = nextSel.value;
+
             ['status-select', 'current-select', 'next-select'].forEach(id => {
                 const el = document.getElementById(id);
-                el.addEventListener('change', () => {
+                el.addEventListener('change', (e) => {
                     // Auto-predict next event
                     if (id === 'current-select') {
                         const currentId = el.value;
@@ -286,19 +356,45 @@
                             const filteredStages = stages.filter(s => vInfo.keywords.some(kw => s.place && s.place.includes(kw)));
                             
                             const currentIndex = filteredStages.findIndex(s => s.id === currentId);
-                            if (currentIndex !== -1 && currentIndex < filteredStages.length - 1) {
-                                const nextId = filteredStages[currentIndex + 1].id;
-                                const nextSel = document.getElementById('next-select');
-                                if (nextSel.value !== nextId) {
-                                    nextSel.value = nextId;
-                                    handleAutoSave('next-select');
+                            if (currentIndex !== -1) {
+                                const currentEvent = filteredStages[currentIndex];
+                                // 同じDayの演目リストを取得
+                                const sameDayStages = filteredStages.filter(s => s.day === currentEvent.day);
+                                const indexInSameDay = sameDayStages.findIndex(s => s.id === currentId);
+
+                                if (indexInSameDay !== -1 && indexInSameDay < sameDayStages.length - 1) {
+                                    const nextId = sameDayStages[indexInSameDay + 1].id;
+                                    if (nextSel.value !== nextId) {
+                                        nextSel.value = nextId;
+                                        nextSel.dataset.prevValue = nextId;
+                                        handleAutoSave('next-select');
+                                    }
+                                } else {
+                                    // その日の最後の演目の場合
+                                    if (nextSel.value !== "") {
+                                        nextSel.value = "";
+                                        nextSel.dataset.prevValue = "";
+                                        handleAutoSave('next-select');
+                                        showNotification(`Day ${currentEvent.day} の演目はこれで最後です。次の演目をクリアしました。`);
+                                    }
                                 }
                             }
                         }
+                    } else if (id === 'next-select') {
+                        // 次の演目を手動で変更した場合の確認
+                        if (e.isTrusted) {
+                            if (!confirm("次の演目を手動で変更しようとしています。\nこれで合っていますか？")) {
+                                el.value = el.dataset.prevValue;
+                                return;
+                            }
+                        }
+                        el.dataset.prevValue = el.value;
                     }
 
                     if (autoSaveTimer) clearTimeout(autoSaveTimer);
                     autoSaveTimer = setTimeout(() => handleAutoSave(id), 200);
+
+                    checkDelayAlert();
                 });
             });
             isListenersAttached = true;
@@ -320,6 +416,7 @@
                 await loadInitialData();
                 showManageSection();
                 setupListeners();
+                checkDelayAlert();
             } else {
                 loginSection.classList.remove('hidden');
             }

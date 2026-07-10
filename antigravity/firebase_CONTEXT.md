@@ -42,7 +42,8 @@ last_updated: 2026-05-07
   - **対象**: `pos.html`, `monitor.html`, `kitchen.html`, `presenter.html`
   - **認証ハブ**: `portal.html`
   - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
-  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。実際のログイン処理(`signInWithRedirect`)とエラー表示（不正ドメイン時の警告オーバーレイなど）は `portal.html` が一手に引き受ける構成に集約（2026-04-23）。
+  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。
+  - **Firestore更新の禁止**: クライアントから直接 `updateDoc` を呼ぶことは禁止。ステータス更新はすべて Cloud Functions (`kitchenComplete`, `callForPickup`, `completeOrder`, `adminUpdateOrderStatus`, `cancelOrder`) を使用する。
   - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
 - **統一ログイン画面 (`main/login.html`)** (v0.2.153, Phase C):
   - **役割**: `auth.js` の `login()` を呼び出す共通ログインページ。Phase D/E で `account.html` / `mobile-order.html` がリダイレクト先として使用する予定。
@@ -58,7 +59,28 @@ last_updated: 2026-05-07
 
 - **コレクション構成**:
   - `users/{uid}`: プロフィール + `cart` サブコレクション。複数端末対応のためのPush通知トークン配列 `fcmTokens` と、利用規約の初回同意日時 `termsAgreedAt` を保持する。
+  - `_metadata/system_alerts`: ディレクトリ全体（main/pos）のグローバルアラート状態を管理するドキュメント（スーパーアドミン画面から編集）。
+    - **フィールド一覧** (v0.3.18〜):
+      | Field | Type | Description |
+      | :--- | :--- | :--- |
+      | `mainAlertActive` | boolean | Main（来場者）向けアラートの表示フラグ |
+      | `mainAlertType` | string | `"error"` / `"warning"` / `"info"` |
+      | `mainAlertMessage` | string | 来場者向けに表示するメッセージ |
+      | `penaltyEnabled` | boolean | ペナルティ自動執行（`abandonStaleOrders`）の有効/無効フラグ。`true` の場合のみ放置注文の自動BAN処理が稼働する（安全弁） |
+      | `posAlertActive` | boolean | POS（店舗スタッフ）向けアラートの表示フラグ |
+      | `posAlertType` | string | `"error"` / `"warning"` / `"info"` |
+      | `posAlertMessage` | string | 店舗スタッフ向けに表示するメッセージ |
+      | `updatedAt` | string | ISO 形式の最終更新時刻 |
+      | `emergencyStopAt` | string | 緊急停止が実行された時刻（緊急停止時のみ書き込まれる） |
+    - **セキュリティ**: Firestore ルールで `write: if isSuperAdmin()` により `ynrcs1000@gmail.com` のみ書き込み可。URL が漏れても別アカウントからの書き込みはサーバー側で permission-denied になる。
+    - **緊急停止の挙動** (v0.3.21〜):
+      - `superadmin.html` の「全注文受付を停止する」ボタンを押すと、`system_alerts` の更新と全店舗の `operationStatus: "suspended"` + `isEmergencyStopped: true` + `isAutoSuspended: false` の変更を `writeBatch` で**アトミックに実行**する。旧フィールド `emergencySuspendedAt` は `deleteField()` で同時に削除される。
+      - 緊急停止中は、POSからの注文もモバイルオーダーからの注文も、`createOrder` Function が `operationStatus` チェックにより**サーバー側で完全にブロック**される（クライアント側UIによる制御だけに依存しない二重防御）。
+      - 緊急停止中に POS スタッフが調理完了・呼び出し等の操作をしても、`updateStoreActivity` の Auto-Resume は `isEmergencyStopped: true` により発動しない。
+      - 「アラートを全解除する」は `mainAlertActive: false` / `posAlertActive: false` を書き込みつつ、全店舗の `isEmergencyStopped` を `deleteField()` で削除する（`operationStatus` と `isAutoSuspended` は変更しない）。
+      - 各店舗スタッフがポータルから「営業開始」を押した時点で `operationStatus: "open"`, `isEmergencyStopped: deleted`, `isAutoSuspended: deleted` となり、モバイル・POSの注文受付が再開される。
   - `stores/{storeId}`: 店舗メタデータ。
+
     - **Field Mappings** (Comparison with `data.js`):
       | Firestore Field | Meaning | Source in `data.js` |
       | :--- | :--- | :--- |
@@ -66,13 +88,21 @@ last_updated: 2026-05-07
       | `teamName` | 店名・企画名 (e.g. やきそば屋) | `name` |
       | `description` | 説明文 | `description` |
       | - | 座標 (mapX/mapY) | **除外** (2026地図方式未定のため保留) |
+    - **営業ステータス関連フィールド** (v0.3.12〜):
+      | Field | Type | Values | Description |
+      | :--- | :--- | :--- | :--- |
+      | `operationStatus` | string | `"suspended"` / `"open"` / `"closed"` | 初期値は `"suspended"`（準備中・一時停止中）。来場者向けのモバイルオーダー注文可否に連動する。 |
+      | `lastActivityAt` | Timestamp | サーバー時刻 | 注文やステータス変更等の「最新のシステム利用時刻」。15分以上更新がなければ `manageStoreStatusAndWarmup` が放置と判定し `"suspended"` に自動変更する。 |
+      | `isAutoSuspended` | boolean | `true` | `manageStoreStatusAndWarmup` によって自動的に `"suspended"` にされた場合に `true` となるフラグ。手動操作時は削除される。このフラグがある状態で何らかの操作が起きた場合、システムが自律的に `"open"` に復帰する。**ただし `isEmergencyStopped: true` の場合は復帰しない。** |
+      | `isEmergencyStopped` | boolean | `true` | SuperAdmin による緊急停止時に `true` となるフラグ（v0.3.21〜）。このフラグが立っている場合、`updateStoreActivity` の Auto-Resume が無効化される。全解除時に削除される。店舗スタッフの「営業開始」操作時にも削除される。 |
+
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
     - `orderChannel`: `"mobile"`, `"sok"`, `"pos"` で注文経路を区別。
     - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`) と `sokClaimedAt`。
     - `paymentMethod`: 経路によらず `"au_pay_manual"` に統一。
-    - `readyForPickupAt`: 提供準備完了時刻。15分放置ペナルティの自動判定（Scheduled Function）の基準として重要。
-  - `counters/receipt`: レシート番号生成用アトミックカウンタ。
+    - `readyForPickupAt`: 提供準備完了時刻。5分放置ペナルティの自動判定（`abandonStaleOrders` Scheduled Function）の基準として重要。
+  - `counters/receipt_{channel}`: 経路別（`receipt_pos`, `receipt_sok`, `receipt_mobile`）のレシート番号生成用アトミックカウンタ。
   - `store_secrets/{storeId}`: 店舗パスワード等の機密情報 (Functions管理)。
   - **Spreadsheet Integration**:
     - **手法**: プログラムによる一括作成は高度な保護機能プログラム(APP)によりブロックされるため、別アカウント（個人のGmail）で手動で作成したスプレッドシートのURLを紐づける方式を採用。
@@ -86,7 +116,8 @@ last_updated: 2026-05-07
   - `venue_admin_config/settings`: 会場管理画面のログイン用設定（URLトークン、パスワードのハッシュ・ソルト）。Firebase Authを使わない独立した認証に使用。
   - `venue_admin_sessions/{sessionToken}`: 会場管理の有効なセッショントークン。
 - **セキュリティルール**:
-  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは「自身の注文」または「SOKの未確定仮注文（`sokStatus == "pending"`）」のみ許可。
+  - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは設計憲法§8.1に基づき、「自身の注文」「SOKの未確定仮注文（`sokStatus == "pending"`）」「提供準備完了（`ready_for_pickup`）」「自店舗の管理者・スーパー管理者」のみ許可。
+  - `banned_users`: 利用規約違反等によるアクセス制限ユーザーのUIDを記録。本人のみ読み取り可能で、書き込みはクライアントから完全禁止（設計憲法§10.2）。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
   - `users`: 本人のみ読み書き可。
   - `store_secrets`: 読み書き完全禁止。
@@ -107,19 +138,26 @@ last_updated: 2026-05-07
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
 - **関数一覧**:
-  - `createOnlineOrder` (OnCall): モバイルオーダー注文作成。ドメイン検証必須。
-  - `createPosOrder` (OnCall): POSレジからの注文作成。
+  - `createOrder` (OnCall): mobile / pos 両経路を統合した注文作成関数。`banned_users` チェック（mobileのみ）、発番、初期ステータス（`cooking`）の設定を行う。
+  - `kitchenComplete` (OnCall): cooking → ready_to_serve ステータス遷移（店舗管理者のみ）。
+  - `callForPickup` (OnCall): ready_to_serve → ready_for_pickup ステータス遷移（店舗管理者のみ）。
+  - `completeOrder` (OnCall): ready_for_pickup → completed ステータス遷移（店舗管理者のみ）。
+  - `cancelOrder` (OnCall): キャンセル処理（店舗管理者のみ）。理由必須。
+  - `adminUpdateOrderStatus` (OnCall): super_admin / store_admin による強制ステータス変更。
   - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `userId: null`）。受付番号2000番台を発番。
   - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。
   - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。
-  - `getNextReceiptNumber` (OnCall): 経路別の安全なレシート番号発番。
-  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から15分超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。
+  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`PENALTY_WHITELIST_EMAILS`（`ynrcs1000@gmail.com`）は対象外。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。
   - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
   - `loginVenueAdmin` (OnCall): ステージ発表・催し物会場（venues）管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
   - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
+  - `warmupPing` (OnRequest): Cloud Functions のコールドスタートを防ぐための軽量なダミー関数。スケジュール関数から定期的に叩かれる。
+  - `updateStoreStatus` (OnCall, v0.3.12〜): 店舗の営業ステータスを変更する。`newStatus === "open"` の場合、`availableItemIds` に含まれる商品のみ `isAvailable: true` にし、それ以外を `false` にバッチ更新。同時に `operationStatus` と `lastActivityAt` を更新する。`store_admin` 権限が必要。
+  - `manageStoreStatusAndWarmup` (Scheduled, 毎分実行): `operationStatus === "open"` かつ `lastActivityAt` が15分以上前の店舗を自動的に `"suspended"` に変更する（放置検知）。また、活発な店舗がある場合は `warmupPing` へリクエストを送信して Functions を保温する。
+
 
 ## 6. クラウドストレージ (Cloud Storage)
 

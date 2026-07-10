@@ -33,6 +33,7 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {
   getStorage,
@@ -235,6 +236,63 @@ async function logout() {
   }
 }
 
+let currentBanUnsubscribe = null;
+
+function showBanPopupAndRedirect() {
+  if (document.getElementById("ban-popup-overlay")) return; // すでに表示中なら何もしない
+
+  // 全画面オーバーレイ
+  const overlay = document.createElement("div");
+  overlay.id = "ban-popup-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  overlay.style.zIndex = "999999";
+  overlay.style.display = "flex";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+
+  // モーダル
+  const modal = document.createElement("div");
+  modal.style.backgroundColor = "#fff";
+  modal.style.padding = "32px";
+  modal.style.borderRadius = "12px";
+  modal.style.textAlign = "center";
+  modal.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5)";
+  modal.style.maxWidth = "90%";
+  modal.style.color = "#333";
+
+  // メッセージ
+  const msg = document.createElement("div");
+  msg.textContent = "エラー 商品を取りに来てください";
+  msg.style.fontSize = "1.2rem";
+  msg.style.fontWeight = "bold";
+  msg.style.marginBottom = "24px";
+  modal.appendChild(msg);
+
+  // ボタン
+  const btn = document.createElement("button");
+  btn.textContent = "閉じる";
+  btn.style.padding = "12px 32px";
+  btn.style.fontSize = "1rem";
+  btn.style.border = "none";
+  btn.style.borderRadius = "8px";
+  btn.style.backgroundColor = "#e53935";
+  btn.style.color = "#fff";
+  btn.style.cursor = "pointer";
+  btn.style.fontWeight = "bold";
+  btn.addEventListener("click", () => {
+    window.location.replace("/main/banned.html");
+  });
+  modal.appendChild(btn);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
 /**
  * Subscribes to auth state changes.
  * @param {Function} callback - Function to call with (user|null)
@@ -242,6 +300,27 @@ async function logout() {
 function watchUser(callback) {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+
+    if (user) {
+      if (currentBanUnsubscribe) currentBanUnsubscribe();
+      currentBanUnsubscribe = onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
+        if (snap.exists()) {
+          if (!window.location.pathname.endsWith("/banned.html")) {
+            if (localStorage.getItem("ban_story_read") === "true") {
+              window.location.replace("/main/banned.html");
+            } else {
+              showBanPopupAndRedirect();
+            }
+          }
+        }
+      });
+    } else {
+      if (currentBanUnsubscribe) {
+        currentBanUnsubscribe();
+        currentBanUnsubscribe = null;
+      }
+    }
+
     callback(user);
   });
 }

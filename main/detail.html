@@ -7,6 +7,25 @@
 <!doctype html>
 <html lang="ja">
   <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>詳細 | 南陵祭'26</title>
@@ -29,16 +48,16 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 55vh; /* Balanced height */
-        min-height: 400px;
+        height: 35vh; /* Reduced height for cleaner look */
+        min-height: 250px;
         background-size: cover;
         background-position: center;
         z-index: 1;
         /* Mask to blend smoothly into background */
-        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
         -webkit-mask-image: linear-gradient(
           to bottom,
-          black 50%,
+          black 70%,
           transparent 100%
         );
       }
@@ -51,73 +70,67 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(
-          0,
-          0,
-          0,
-          0.6
-        ); /* Consistent darkening for text readability */
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
       }
 
-      /* Title Section */
+      /* Title Section (Now inside content wrapper) */
       .detail-title-section {
         position: relative;
         z-index: 3;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: flex-end;
-        min-height: 50vh;
-        text-align: center;
-        padding: 120px 20px 40px;
-        /* Ensure text stays white even in light mode because it sits on image */
-        color: white;
+        align-items: flex-start; /* Left align for modern look */
+        text-align: left;
+        padding: 0 0 30px 0;
+        color: var(--text-main);
       }
 
       .detail-group-name {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.95);
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        padding: 6px 16px;
-        border-radius: 50px;
+        font-size: 1.3rem; /* クラス表示を大きく */
+        font-weight: 800;
+        color: var(--primary-color);
+        background: rgba(106, 17, 203, 0.08);
+        padding: 8px 20px; /* 余白も広げる */
+        border-radius: 12px;
         margin-bottom: 16px;
         letter-spacing: 0.05em;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        display: inline-block;
+        width: fit-content;
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.05); /* ほんの少し立体感を追加 */
+      }
+
+      [data-theme="dark"] .detail-group-name {
+        background: rgba(106, 17, 203, 0.2);
+        color: #a5b4fc;
       }
 
       .detail-title {
-        font-size: clamp(2rem, 5vw, 4rem);
+        font-size: clamp(2rem, 5vw, 3.5rem);
         font-weight: 900;
-        color: #ffffff; /* FORCE WHITE */
-        line-height: 1.1;
-        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
-        margin-bottom: 20px;
-        letter-spacing: -0.02em;
+        color: var(--text-main);
+        line-height: 1.2;
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
       }
 
       .detail-catchphrase {
-        font-size: clamp(1rem, 2vw, 1.4rem);
+        font-size: clamp(1rem, 2vw, 1.2rem);
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.95);
+        color: var(--text-sub);
         max-width: 700px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
         line-height: 1.6;
       }
 
       /* Content Wrapper */
       .detail-content-wrapper {
         max-width: 900px;
-        margin: -40px auto 0; /* Overlap effect */
-        padding: 40px 20px 80px;
+        margin: 25vh auto 0; /* Starts over the image slightly */
+        padding: 40px 30px 80px;
         position: relative;
         z-index: 10;
         background: var(--bg-color);
         border-radius: 32px 32px 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
       }
 
       [data-theme="dark"] .detail-content-wrapper {
@@ -147,7 +160,7 @@
       .detail-meta-chips {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 10px;
         margin-top: 20px;
       }
@@ -156,28 +169,23 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         padding: 8px 16px;
-        border-radius: 50px;
+        border-radius: 12px; /* Less rounded for modern app feel */
         font-size: 0.85rem;
-        color: white;
+        color: var(--text-main);
         font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        transition:
-          transform 0.2s ease,
-          background 0.2s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
       }
 
       .meta-chip:hover {
         transform: translateY(-2px);
-        background: rgba(0, 0, 0, 0.65);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
 
       .meta-chip i {
-        color: #a5b4fc;
+        color: var(--primary-color);
         font-size: 0.9rem;
       }
 
@@ -194,18 +202,18 @@
 
       .detail-tabs {
         display: inline-flex;
-        background: rgba(255, 255, 255, 0.7); /* Light mode tab track */
+        background: rgba(255, 255, 255, 0.75); /* Light mode tab track */
         padding: 6px;
         border-radius: 50px;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(0, 0, 0, 0.05); /* Light border */
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4); /* Light border */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Premium shadow */
       }
 
       [data-theme="dark"] .detail-tabs {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
 
       .tab-button {
@@ -233,8 +241,8 @@
       .tab-button.active {
         background: var(--primary-color);
         color: #ffffff !important; /* Force white text on active tab */
-        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(106, 17, 203, 0.4);
+        transform: scale(1.05);
       }
 
       /* Tab Content - Always visible (scroll navigation) */
@@ -310,16 +318,14 @@
         border: 1px solid var(--border-color);
         display: flex;
         gap: 16px;
-        transition:
-          transform 0.3s ease,
-          box-shadow 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       }
 
       .menu-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        border-color: var(--primary-color); /* Highlight border on hover */
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        border-color: rgba(106, 17, 203, 0.3); /* Soft highlight border on hover */
       }
 
       .menu-item-image {
@@ -434,9 +440,20 @@
       .schedule-item {
         display: flex;
         align-items: center;
-        padding: 20px 0;
+        padding: 20px;
         border-bottom: 1px solid var(--border-color);
         position: relative;
+        transition: background 0.3s ease, transform 0.2s ease;
+        border-radius: 12px;
+      }
+
+      .schedule-item:hover {
+        background: rgba(0, 0, 0, 0.02);
+        transform: translateX(4px);
+      }
+
+      [data-theme="dark"] .schedule-item:hover {
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .schedule-item:last-child {
@@ -547,34 +564,41 @@
       /* Responsive */
       @media (max-width: 600px) {
         .detail-title-section {
-          padding-top: 100px;
+          padding-top: 0;
+          min-height: auto;
         }
 
         .detail-content-wrapper {
-          margin-top: -20px;
+          margin-top: 20vh;
+          padding: 24px 16px 80px;
+          border-radius: 24px 24px 0 0;
+        }
+
+        .detail-title {
+          font-size: 1.8rem;
         }
 
         .menu-list {
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 16px;
         }
 
         .menu-item {
           flex-direction: row;
           align-items: center;
-          padding: 12px;
-          gap: 12px;
+          padding: 16px;
+          gap: 16px;
         }
 
         .menu-item-image {
-          width: 80px;
-          height: 80px;
-          border-radius: 12px;
+          width: 88px;
+          height: 88px;
+          border-radius: 16px;
         }
 
         .menu-item-name {
-          font-size: 1rem;
-          margin-bottom: 4px;
+          font-size: 1.05rem;
+          margin-bottom: 6px;
         }
 
         .menu-item-desc {
@@ -591,12 +615,41 @@
           flex-direction: column;
           align-items: flex-start;
           gap: 12px;
+          padding: 16px 0;
         }
 
         .tab-button {
           padding: 8px 16px;
           font-size: 0.85rem;
         }
+        
+        .detail-tabs {
+          overflow-x: auto;
+          max-width: 100%;
+          justify-content: flex-start;
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        .detail-tabs::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      /* Skeleton Loading Styles */
+      .skeleton {
+        background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.5s infinite linear;
+        border-radius: 8px;
+        display: inline-block;
+      }
+      [data-theme="dark"] .skeleton {
+        background: linear-gradient(90deg, #334155 25%, #1e293b 50%, #334155 75%);
+        background-size: 200% 100%;
+      }
+      @keyframes skeletonShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
       }
     </style>
   </head>
@@ -607,16 +660,21 @@
       <!-- Header Background (JS sets image) -->
       <div id="detail-header-bg" class="detail-header-bg"></div>
 
-      <!-- Title Section -->
-      <div class="detail-title-section">
-        <p id="detail-group-name" class="detail-group-name"></p>
-        <h1 id="detail-title" class="detail-title">読み込み中...</h1>
-        <p id="detail-catchphrase" class="detail-catchphrase"></p>
-        <!-- Metadata Chips -->
-        <div id="detail-meta-chips" class="detail-meta-chips"></div>
-      </div>
-
       <div class="detail-content-wrapper">
+        <!-- Title Section (Moved inside content wrapper) -->
+        <div class="detail-title-section">
+          <p id="detail-group-name" class="detail-group-name"><span class="skeleton" style="width: 80px; height: 20px;"></span></p>
+          <h1 id="detail-title" class="detail-title">
+            <span class="skeleton" style="width: 60%; height: 48px; max-width: 300px; display: block; margin-bottom: 12px;"></span>
+          </h1>
+          <p id="detail-catchphrase" class="detail-catchphrase"><span class="skeleton" style="width: 80%; height: 20px; max-width: 400px;"></span></p>
+          <!-- Metadata Chips -->
+          <div id="detail-meta-chips" class="detail-meta-chips">
+            <div class="skeleton" style="width: 100px; height: 32px; border-radius: 12px;"></div>
+            <div class="skeleton" style="width: 80px; height: 32px; border-radius: 12px;"></div>
+          </div>
+        </div>
+
         <!-- Tabs Navigation -->
         <div id="detail-tabs" class="detail-tabs"></div>
 
@@ -630,11 +688,14 @@
     <!-- Load External Data -->
     <script src="data/data.js"></script>
 
-    <script>
+    <script type="module">
+      import { db } from "./auth.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
       // Define current page for the shell
       window.CURRENT_PAGE = "detail";
 
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         // Get ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
@@ -691,6 +752,21 @@
           showError("企画が見つかりません");
           return;
         }
+        
+        // モバイルオーダー対象の場合、Firestoreからステータスを取得
+        if (project.useMobileOrder === true) {
+          try {
+            const snap = await getDoc(doc(db, "stores", project.id));
+            if (snap.exists()) {
+              project.operationStatus = snap.data().operationStatus || "suspended";
+            } else {
+              project.operationStatus = "suspended";
+            }
+          } catch (e) {
+            console.error("Status fetch error:", e);
+            project.operationStatus = "suspended";
+          }
+        }
 
         // Render the page
         renderDetail(project);
@@ -706,8 +782,9 @@
             `;
         document.getElementById("detail-group-name").style.display = "none";
         document.getElementById("detail-catchphrase").style.display = "none";
-        document.querySelector(".detail-content-wrapper").style.display =
-          "none";
+        document.getElementById("detail-meta-chips").style.display = "none";
+        if (document.getElementById("detail-tabs")) document.getElementById("detail-tabs").style.display = "none";
+        if (document.getElementById("detail-tab-contents")) document.getElementById("detail-tab-contents").style.display = "none";
       }
 
       function renderDetail(project) {
@@ -736,6 +813,18 @@
         if (tagsStr) {
           chipsHTML += `<div class="meta-chip"><i class="fas fa-tag"></i>${tagsStr}</div>`;
         }
+        
+        const useMobileOrder = project.useMobileOrder === true;
+        if (useMobileOrder && project.operationStatus) {
+           const statusConfig = {
+             open:      { text: "営業中", color: "#065f46", bg: "#d1fae5", icon: "fa-door-open" },
+             suspended: { text: "準備中", color: "#92400e", bg: "#fef3c7", icon: "fa-clock" },
+             closed:    { text: "本日の営業終了", color: "#374151", bg: "#f3f4f6", icon: "fa-door-closed" },
+           };
+           const st = statusConfig[project.operationStatus] || statusConfig.suspended;
+           chipsHTML += `<div class="meta-chip" style="background:${st.bg};color:${st.color};border-color:${st.color}"><i class="fas ${st.icon}" style="color:${st.color}"></i>${st.text}</div>`;
+        }
+        
         metaChipsEl.innerHTML = chipsHTML;
 
         // Build Tabs
@@ -755,17 +844,48 @@
 
         // Tab 1: Info (Always)
         tabsHTML += `<button class="tab-button active" data-tab="info">基本情報</button>`;
+        
+        // SNS リンクボタン
+        let snsHTML = "";
+        if (project.sns) {
+          const snsLinks = [];
+          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;"><i class="fab fa-instagram"></i> Instagram</a>`);
+          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;"><i class="fab fa-twitter"></i> Twitter</a>`);
+          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;"><i class="fab fa-tiktok"></i> TikTok</a>`);
+          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;"><i class="fab fa-youtube"></i> YouTube</a>`);
+          if (snsLinks.length > 0) {
+            snsHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">${snsLinks.join("")}</div>`;
+          }
+        }
+
+        // 投票ボタン
+        let votingHTML = "";
+        if (project.votingEnabled) {
+          const votingLabel = project.votingLabel || "この企画に投票する";
+          votingHTML = `
+            <div style="margin-top:20px;padding:16px;background:var(--glass-bg);border:1px solid var(--border-color);border-radius:16px;text-align:center;">
+              <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:8px;"><i class="fas fa-poll"></i> 来場者投票</p>
+              <button class="vote-btn" data-project-id="${project.id}" style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-thumbs-up"></i> ${votingLabel}
+              </button>
+            </div>
+          `;
+        }
+
         contentsHTML += `
                 <div class="tab-content" id="tab-info">
                     <h2 class="section-title"><i class="fas fa-info-circle"></i>基本情報</h2>
                     <div class="detail-description">
                         ${project.description || "詳細は当日をお楽しみに！"}
                     </div>
+                    ${snsHTML}
+                    ${votingHTML}
                 </div>
             `;
 
-        // Tab 2: Menu (if exists)
-        if (project.menu && project.menu.length > 0) {
+        // Tab 2: Menu (contentType に "menu" を含む場合)
+        const contentTypes = Array.isArray(project.contentType) ? project.contentType : [project.contentType];
+        if (contentTypes.includes("menu") && project.menu && project.menu.length > 0) {
           tabsHTML += `<button class="tab-button" data-tab="menu">メニュー</button>`;
           // Sort: recommended items first
           const sortedMenu = [...project.menu].sort((a, b) => {
@@ -773,12 +893,29 @@
             if (!a.isRecommended && b.isRecommended) return 1;
             return 0;
           });
+
+          // こだわりポイント（メニュー全体）
+          let menuNoteHTML = "";
+          if (project.menuNote) {
+            menuNoteHTML = `<div style="background:var(--glass-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-sub);"><i class="fas fa-star" style="color:var(--primary-color);margin-right:6px;"></i>${project.menuNote}</div>`;
+          }
+
           const menuItemsHTML = sortedMenu
             .map((item) => {
               const imgUrl = item.imageUrl || "../images/noimage.png";
               const recommendBadge = item.isRecommended
                 ? '<span class="menu-item-badge">おすすめ</span>'
                 : "";
+              // アレルギー表示
+              let allergenHTML = "";
+              if (item.allergens && item.allergens.length > 0) {
+                allergenHTML = `<div style="margin-top:4px;font-size:0.7rem;color:#d97706;"><i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>アレルギー: ${item.allergens.join("・")}</div>`;
+              }
+              // こだわりメモ（個別）
+              let noteHTML = "";
+              if (item.note) {
+                noteHTML = `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-sub);font-style:italic;"><i class="fas fa-comment" style="margin-right:3px;"></i>${item.note}</div>`;
+              }
               return `
                         <div class="menu-item">
                             <img src="${imgUrl}" class="menu-item-image" onerror="this.onerror=null;this.src='../images/noimage.png'">
@@ -787,53 +924,87 @@
                                 ${recommendBadge}
                                 <div class="menu-item-desc">${item.description || ""}</div>
                                 <div class="menu-item-price">${item.price}</div>
+                                ${allergenHTML}
+                                ${noteHTML}
                             </div>
                         </div>
                     `;
             })
             .join("");
 
-          // Order Button (Mobile Order Integration)
-          const orderButtonHTML = `
-            <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
-                 <a href="../pos/mobile-order.html?store=${project.id}" 
-                    style="
-                        background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
-                        color: white;
-                        border: none;
-                        padding: 16px 40px;
-                        border-radius: 50px;
-                        font-size: 1.1rem;
-                        font-weight: 800;
-                        text-decoration: none;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 10px;
-                        box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
-                        transition: transform 0.2s;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.transform='translateY(0)'"
-                 >
-                    <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
-                 </a>
-                 <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                    <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
-                 </p>
-            </div>
-          `;
+          // Order Button (Mobile Order Integration) - useMobileOrder の場合のみ表示
+          let orderButtonHTML = "";
+          if (useMobileOrder) {
+            const isOrderable = project.operationStatus === "open";
+            if (isOrderable) {
+              orderButtonHTML = `
+                <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                     <a href="../pos/mobile-order.html?store=${project.id}" 
+                        style="
+                            background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
+                            color: white;
+                            border: none;
+                            padding: 16px 40px;
+                            border-radius: 50px;
+                            font-size: 1.1rem;
+                            font-weight: 800;
+                            text-decoration: none;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+                            transition: transform 0.2s;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'"
+                     >
+                        <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
+                     </a>
+                     <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                        <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
+                     </p>
+                </div>
+              `;
+            } else {
+              orderButtonHTML = `
+                <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                     <button disabled 
+                        style="
+                            background: #ccc;
+                            color: white;
+                            border: none;
+                            padding: 16px 40px;
+                            border-radius: 50px;
+                            font-size: 1.1rem;
+                            font-weight: 800;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            cursor: not-allowed;
+                        "
+                     >
+                        <i class="fas fa-shopping-cart"></i> 現在注文できません
+                     </button>
+                     <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+                        <i class="fas fa-info-circle"></i> この店舗は現在モバイルオーダーを受け付けていません
+                     </p>
+                </div>
+              `;
+            }
+          }
 
           contentsHTML += `
                     <div class="tab-content" id="tab-menu">
                         <h2 class="section-title"><i class="fas fa-utensils"></i>メニュー</h2>
+                        ${menuNoteHTML}
                         <div class="menu-list">${menuItemsHTML}</div>
                         ${orderButtonHTML}
                     </div>
                 `;
         }
 
-        // Tab 3: Gallery (if exists)
-        if (project.gallery && project.gallery.length > 0) {
+        // Tab 3: Gallery (contentType に "gallery" を含む場合、またはデータが存在する場合)
+        if ((contentTypes.includes("gallery") || true) && project.gallery && project.gallery.length > 0) {
           tabsHTML += `<button class="tab-button" data-tab="gallery">ギャラリー</button>`;
           const galleryHTML = project.gallery
             .map(
@@ -850,6 +1021,27 @@
                         <div class="gallery-grid">${galleryHTML}</div>
                     </div>
                 `;
+        }
+
+        // Tab 3.5: Performers (stage 向け)
+        if (project.category === "stage" && project.performers && project.performers.length > 0) {
+          tabsHTML += `<button class="tab-button" data-tab="performers">出演者</button>`;
+          const performersHTML = project.performers.map(p => `
+            <div style="display:flex;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:8px;">
+              ${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--glass-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:1.5rem;color:var(--text-sub);"></i></div>`}
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:0.95rem;">${p.name}</div>
+                ${p.role ? `<div style="font-size:0.75rem;color:var(--text-sub);margin-top:2px;">${p.role}</div>` : ""}
+                ${p.bio ? `<div style="font-size:0.8rem;color:var(--text-main);margin-top:6px;">${p.bio}</div>` : ""}
+              </div>
+            </div>
+          `).join("");
+          contentsHTML += `
+            <div class="tab-content" id="tab-performers">
+              <h2 class="section-title"><i class="fas fa-users"></i>出演者</h2>
+              ${performersHTML}
+            </div>
+          `;
         }
 
         // Tab 4: Schedule
@@ -964,23 +1156,40 @@
 
         // Update active nav on scroll (only when not programmatically scrolling)
         const sections = document.querySelectorAll(".tab-content");
+        const visibleSections = new Set();
+
         const observer = new IntersectionObserver(
           (entries) => {
             if (isScrolling) return; // Skip during click-scroll
 
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
-                const id = entry.target.id.replace("tab-", "");
-                tabButtons.forEach((btn) => {
-                  btn.classList.toggle("active", btn.dataset.tab === id);
-                });
+                visibleSections.add(entry.target.id);
+              } else {
+                visibleSections.delete(entry.target.id);
               }
             });
+
+            // Find the first section in the DOM that is currently visible
+            for (const section of sections) {
+              if (visibleSections.has(section.id)) {
+                 const activeId = section.id.replace("tab-", "");
+                 tabButtons.forEach((btn) => {
+                   btn.classList.toggle("active", btn.dataset.tab === activeId);
+                 });
+                 break; // Only activate the first visible one
+              }
+            }
           },
-          { rootMargin: "-40% 0px -50% 0px", threshold: 0.1 },
+          { rootMargin: "-20% 0px -60% 0px", threshold: 0 }
         );
 
         sections.forEach((section) => observer.observe(section));
+
+        // Force 'info' tab to be active initially to prevent glitchy state
+        tabButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.tab === "info");
+        });
       }
     </script>
 

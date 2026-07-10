@@ -9,7 +9,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>プレゼンター | 南陵祭2026</title>
+    <title>プレゼンターモニター | 南陵祭2026</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
       rel="stylesheet"
@@ -388,6 +388,28 @@
         font-weight: bold;
       }
 
+      /* --- ローディング用 --- */
+      .spinner {
+        display: inline-block;
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .btn-loading {
+        background-color: #555 !important;
+        color: #ccc !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+      }
+
       /* --- 店舗ログインモーダル --- */
       #store-login-modal {
         position: fixed;
@@ -576,6 +598,13 @@
       const auth = firebase.auth();
       const provider = new firebase.auth.GoogleAuthProvider();
 
+      // POSアラート監視 (動的インポート)
+      import("./pos-alert.js").then((module) => {
+        db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
+          if (snap.exists) module.renderPosAlert(snap.data());
+        });
+      }).catch(err => console.error("Failed to load pos-alert module", err));
+
       let unsubscribe = null;
       const urlParams = new URLSearchParams(window.location.search);
       const storeId = urlParams.get("storeId");
@@ -652,7 +681,7 @@
         unsubscribe = db
           .collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "in", ["ready_to_serve", "ready_for_pickup"])
+          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "abandoned"])
           .orderBy("createdAt", "asc")
           .onSnapshot(
             (snapshot) => {
@@ -690,6 +719,18 @@
 
       function renderCardSorted(doc) {
         const data = doc.data();
+
+        // スタッフがすでに「確認済」として消去したBAN注文は描画しない
+        if (data.status === "abandoned") {
+          if (localStorage.getItem("dismissed_" + doc.id) === "true") return;
+
+          // 別端末で開いた時用に、破棄から5分以上経過したものは自動非表示にする
+          if (data.updatedAt) {
+            const diffMin = (Date.now() - data.updatedAt.toDate().getTime()) / 60000;
+            if (diffMin > 5) return;
+          }
+        }
+
         const createdDate = data.createdAt
           ? data.createdAt.toDate()
           : new Date();
@@ -724,16 +765,11 @@
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
 
-        // Mobile range: 7000-7999
-        if (data.receiptNumber >= 7000 && data.receiptNumber <= 7999) {
+        if (data.orderChannel === "mobile") {
           sourceLabel = "Mobile";
           sourceClass = "badge-mobile";
-        } else if (
-          data.status === "authorized" ||
-          data.paymentMethod === "ONLINE"
-        ) {
-          // Fallback for legacy/other cases
-          sourceLabel = "Mobile";
+        } else if (data.orderChannel === "sok") {
+          sourceLabel = "SOK";
           sourceClass = "badge-mobile";
         }
 
@@ -743,47 +779,55 @@
         // フッター分岐
         if (data.status === "ready_to_serve") {
           footerHtml = `
-                <button class="btn-action btn-call" onclick="updateStatus('${orderId}', 'ready_for_pickup')">
+                <button class="btn-action btn-call" onclick="callForPickup('${orderId}')">
                     呼び出し (準備完了)
                 </button>
             `;
         } else if (data.status === "ready_for_pickup") {
-          // ★ 修正: 受付番号範囲(7000系)も含めて判定する
-          const isMobileRange =
-            data.receiptNumber >= 7000 && data.receiptNumber <= 7999;
-          const isOnline =
-            isMobileRange ||
-            data.isPrepaid === true ||
-            data.paymentMethod === "ONLINE" || // Server sets "ONLINE"
-            data.paymentMethod === "online" ||
-            data.isOnlineOrder === true;
-
-          if (isOnline) {
-            footerHtml = `
-                    <div class="status-monitor-wait">
-                        モニターで決済待機中...<br>
-                        <span style="font-size:0.8rem; font-weight:normal;">お客様の操作待ち</span>
-                    </div>
-                `;
-          } else {
-            footerHtml = `
-                    <div class="payment-actions">
-                        <button class="btn-full btn-qr" onclick="completeOrder('${orderId}', 'qr')">QR決済 完了（画面確認）</button>
-                    </div>
-                `;
-          }
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (目視確認)</button>
+                </div>
+            `;
+        } else if (data.status === "abandoned") {
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full" style="background-color: #d32f2f; color: white;" onclick="dismissAbandoned('${orderId}')">確認・破棄する (表示から消去)</button>
+                </div>
+            `;
         }
+
+        const totalPrice = data.totalPrice ? `¥${data.totalPrice.toLocaleString()}` : "¥---";
 
         const div = document.createElement("div");
         div.className = "order-card";
         div.id = `card-${orderId}`;
         div.dataset.createdAt = createdDate.getTime();
         div.dataset.status = data.status;
+        div.dataset.orderChannel = data.orderChannel || "unknown";
+        div.dataset.readyAt = data.readyForPickupAt ? data.readyForPickupAt.toDate().getTime() : "";
+        div.dataset.updatedAt = data.updatedAt ? data.updatedAt.toDate().getTime() : "";
+
+        // BANアラート用HTML
+        let abandonedAlertHtml = "";
+        if (data.status === "abandoned") {
+            abandonedAlertHtml = `
+                <div style="background-color: #ffebee; color: #c62828; padding: 12px; text-align: center; font-weight: 900; border-bottom: 2px solid #ef5350; border-radius: 6px 6px 0 0;">
+                    🚨 この注文は破棄されました (BAN)
+                </div>
+            `;
+            div.style.borderColor = "#c62828";
+            div.style.borderWidth = "2px";
+        }
 
         div.innerHTML = `
+            ${abandonedAlertHtml}
             <div class="card-body">
                 <div class="card-header-row">
                     <span class="order-id">${displayId}</span>
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;">
+                        <div id="ban-timer-${orderId}" style="text-align: right; line-height: 1.2;"></div>
+                    </div>
                     <div class="header-right-col">
                         <div style="position:relative; text-align:right;">
                             <button class="menu-btn" onclick="toggleMenu('${orderId}', event)">⋮</button>
@@ -798,6 +842,9 @@
                     </div>
                 </div>
                 <div>${itemsHtml}</div>
+                <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; font-size: 1.2rem; font-weight: 900; color: #111;">
+                    合計: <span style="color: #d32f2f;">${totalPrice}</span>
+                </div>
             </div>
             <div class="card-footer">
                 ${footerHtml}
@@ -869,59 +916,124 @@
       }
 
       function updateSingleTimer(cardEl, now) {
+        // メインのタイマー（注文からの経過時間）はBAN後も表示を維持する
         const createdAt = parseInt(cardEl.dataset.createdAt);
-        if (!createdAt) return;
-        const diffSeconds = Math.floor((now - createdAt) / 1000);
-        const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
-        const ss = String(diffSeconds % 60).padStart(2, "0");
-        const timerSpan = cardEl.querySelector(".order-timer");
-        if (timerSpan) {
-          timerSpan.textContent = `${mm}:${ss}`;
-          if (diffSeconds > 900) timerSpan.classList.add("timer-alert");
-          else timerSpan.classList.remove("timer-alert");
+        if (createdAt) {
+            const diffSeconds = Math.floor((now - createdAt) / 1000);
+            const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
+            const ss = String(diffSeconds % 60).padStart(2, "0");
+            const timerSpan = cardEl.querySelector(".order-timer");
+            if (timerSpan) {
+              timerSpan.textContent = `${mm}:${ss}`;
+              if (diffSeconds > 900) timerSpan.classList.add("timer-alert");
+              else timerSpan.classList.remove("timer-alert");
+            }
+        }
+
+        const banSpan = cardEl.querySelector(`#ban-timer-${cardEl.id.replace('card-', '')}`);
+        if (!banSpan) return;
+
+        // モバイルオーダー以外はBANタイマーを表示しない
+        if (cardEl.dataset.orderChannel !== "mobile") {
+            banSpan.innerHTML = "";
+            return;
+        }
+
+        if (cardEl.dataset.status === "abandoned") {
+            // BANからは何分経過したかを表示
+            const abandonedAt = parseInt(cardEl.dataset.updatedAt);
+            if (abandonedAt) {
+                const diffSeconds = Math.max(0, Math.floor((now - abandonedAt) / 1000));
+                const rm = String(Math.floor(diffSeconds / 60)).padStart(2, '0');
+                const rs = String(diffSeconds % 60).padStart(2, '0');
+                banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANから</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+            } else {
+                banSpan.innerHTML = `<span style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">破棄済</span>`;
+            }
+            return;
+        }
+
+        // BANタイマーの更新
+        if (cardEl.dataset.status === "ready_for_pickup") {
+            const readyAt = parseInt(cardEl.dataset.readyAt);
+            if (readyAt) {
+                const deadline = readyAt + 5 * 60 * 1000;
+                const remainDiff = Math.max(0, Math.floor((deadline - now) / 1000));
+                if (banSpan) {
+                    if (remainDiff <= 0) {
+                        banSpan.innerHTML = `<span style="font-size: 1rem; font-weight: 900; color: #d32f2f;">BAN実行中...</span>`;
+                    } else {
+                        const rm = String(Math.floor(remainDiff / 60)).padStart(2, '0');
+                        const rs = String(remainDiff % 60).padStart(2, '0');
+                        banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANまで</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+                    }
+                }
+            }
+        } else {
+            if (banSpan) banSpan.innerHTML = "";
         }
       }
 
-      window.updateStatus = function (orderId, newStatus) {
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("更新失敗: " + e.message));
+      function setLoading(orderId, text) {
+        const menu = document.getElementById(`menu-${orderId}`);
+        if(menu) menu.classList.remove('show');
+        
+        const card = document.getElementById(`card-${orderId}`);
+        if (!card) return;
+        const mainBtn = card.querySelector('.card-footer button');
+        if (mainBtn) {
+          mainBtn.disabled = true;
+          mainBtn.classList.add('btn-loading');
+          mainBtn.innerHTML = `<div class="spinner"></div>${text || "処理中..."}`;
+        }
+      }
+
+      window.dismissAbandoned = function(orderId) {
+        // バックエンド（関数）は動かさず、ローカルの画面上からのみ非表示にする
+        localStorage.setItem("dismissed_" + orderId, "true");
+        removeCard(orderId);
       };
 
-      window.completeOrder = function (orderId, method) {
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: "completed_at_store",
-            paymentMethod: method,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("完了失敗: " + e.message));
+      window.callForPickup = function (orderId) {
+        setLoading(orderId, "呼出処理中...");
+        const callFn = firebase.app().functions("asia-northeast1").httpsCallable("callForPickup");
+        callFn({ orderId }).catch(e => {
+          alert("呼出失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
+      };
+
+      window.completeOrder = function (orderId) {
+        setLoading(orderId, "完了処理中...");
+        const completeFn = firebase.app().functions("asia-northeast1").httpsCallable("completeOrder");
+        completeFn({ orderId }).catch(e => {
+          alert("完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
       window.forceComplete = function (orderId) {
         if (!confirm("【緊急完了】\n強制的に完了済みに変更します。")) return;
-        db.collection("orders").doc(orderId).update({
-          status: "completed_at_store",
-          note: "緊急手動完了",
-          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        setLoading(orderId, "緊急完了処理中...");
+        const adminUpdate = firebase.app().functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
+        adminUpdate({ orderId, newStatus: "completed" }).catch(e => {
+          alert("緊急完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
         });
       };
 
       window.cancelOrder = function (orderId) {
-        if (
-          !confirm(
-            "【キャンセル】\nこの注文を提供不可としてキャンセルしますか？",
-          )
-        )
+        const reason = prompt("【キャンセル】\n提供不可としてキャンセルしますか？\n理由を入力してください:");
+        if (reason === null) return; // promptでキャンセルを押した場合は終了
+        if (reason.trim() === "") {
+          alert("キャンセル理由は必須です。理由を入力してください。");
           return;
-        db.collection("orders").doc(orderId).update({
-          status: "cancelled",
-          cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        setLoading(orderId, "キャンセル処理中...");
+        const cancelFn = firebase.app().functions("asia-northeast1").httpsCallable("cancelOrder");
+        cancelFn({ orderId, reason }).catch(e => {
+          alert("キャンセル失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
         });
       };
 

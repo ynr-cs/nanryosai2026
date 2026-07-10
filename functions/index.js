@@ -16,343 +16,66 @@ const { google } = require("googleapis");
 admin.initializeApp();
 const db = admin.firestore();
 
-/**
- * @name getNextReceiptNumber
- * @description 【最終版】全ての完了・キャンセル済みステータスを考慮し、
- *              アクティブな注文で使われていない次の受付番号を安全に発行する。
- */
-exports.getNextReceiptNumber = functions
-  .region("asia-northeast1")
-  .https.onCall(async (data, context) => {
-    try {
-      console.log("getNextReceiptNumber called with:", data);
+// ============================================================
+// ペナルティ免除対象（スーパー管理者等）
+// ============================================================
+const PENALTY_WHITELIST_EMAILS = ["ynrcs1000@gmail.com"];
 
-      const counterRef = db.collection("counters").doc("receipt");
-      const ordersRef = db.collection("orders");
-
-      // 注文タイプごとの設定
-      // POS: 100-999 (デフォルト)
-      // SOK: 2000-2999
-      // Mobile: 7000-7999
-      // Gen 2 (CallableRequest) か Gen 1 かを判定してデータを取得
-      const requestData =
-        data.data && typeof data.data === "object" ? data.data : data;
-
-      const orderType = requestData.orderType || "POS";
-
-      let minNum, maxNum, fieldName;
-
-      switch (orderType) {
-        case "SOK":
-          minNum = 2000;
-          maxNum = 2999;
-          fieldName = "currentNumber_SOK";
-          break;
-        case "MOBILE":
-          minNum = 7000;
-          maxNum = 7999;
-          fieldName = "currentNumber_MOBILE";
-          break;
-        case "POS":
-        default:
-          minNum = 100;
-          maxNum = 999;
-          fieldName = "currentNumber"; // 既存互換のため POS は currentNumber を使用
-          break;
-      }
-
-      const newNumber = await db.runTransaction(async (transaction) => {
-        const counterDoc = await transaction.get(counterRef);
-        if (!counterDoc.exists) {
-          throw new Error(
-            "counters/receipt ドキュメントが存在しません。Firestoreを確認してください。",
-          );
-        }
-
-        const docData = counterDoc.data();
-        let nextNumber = docData[fieldName];
-
-        // 初回などでフィールドがない、または範囲外の場合は初期値をセット
-        if (!nextNumber || nextNumber < minNum || nextNumber > maxNum) {
-          nextNumber = minNum - 1;
-        }
-
-        // 安全装置: 範囲のサイズ分試行 (例: 900回)
-        const rangeSize = maxNum - minNum + 1;
-
-        for (let i = 0; i < rangeSize; i++) {
-          nextNumber++;
-          if (nextNumber > maxNum) {
-            nextNumber = minNum;
-          }
-
-          // 【修正点】完了済みの全ステータスを指定する
-          // これら"以外"がアクティブな注文とみなされる
-          const completedStatuses = [
-            "completed_at_store", // 店舗での提供完了
-            "completed_online", // オンライン注文の提供完了
-            "cancelled", // キャンセル済み
-            "abandoned_and_paid", // 放置・決済済み
-          ];
-
-          const query = ordersRef
-            .where("receiptNumber", "==", nextNumber)
-            .where("status", "not-in", completedStatuses);
-
-          const snapshot = await transaction.get(query);
-
-          if (snapshot.empty) {
-            transaction.update(counterRef, { [fieldName]: nextNumber });
-            return nextNumber;
-          }
-        }
-
-        throw new Error(`利用可能な受付番号がありません (${orderType})。`);
-      });
-
-      return {
-        receiptNumber: newNumber,
-        _debug_orderType: orderType,
-        success: true,
-      };
-    } catch (error) {
-      console.error("Function Error:", error);
-      // クライアントでエラー内容を確認できるように詳細を返す
-      return {
-        success: false,
-        error: error.message || "Internal Server Error",
-        // stack: error.stack, // Removed for security (Information Leak)
-        code: 500,
-      };
-    }
-  });
+// ============================================================
+// 受付番号発番ユーティリティ（プライベート関数）
+// 設計憲法§7 準拠: 経路別カウンター + アクティブ判定
+// ============================================================
 
 /**
- * @name createOnlineOrder
- * @description モバイルオーダーからの注文を作成する
- *              receiptNumberの発行と注文作成をトランザクションで実行
+ * 経路ごとに安全な受付番号を発番する（内部専用）
+ * @param {string} channel - "pos" | "mobile" | "sok"
+ * @param {FirebaseFirestore.Transaction} transaction - Firestore トランザクション
+ * @returns {Promise<number>} 発番された受付番号
  */
-exports.createOnlineOrder = functions
-  .region("asia-northeast1")
-  .https.onCall(async (data, context) => {
-    // 1. 認証チェック
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "ログインが必要です。",
+async function getNextReceiptNumber(channel, transaction) {
+  const ranges = {
+    pos:    { min: 100,  max: 999  },
+    mobile: { min: 7000, max: 7999 },
+    sok:    { min: 2000, max: 2999 },
+  };
+
+  if (!ranges[channel]) {
+    throw new functions.https.HttpsError("invalid-argument", `不正な経路: ${channel}`);
+  }
+
+  const { min, max } = ranges[channel];
+  const rangeSize = max - min + 1;
+
+  const counterRef = db.doc(`counters/receipt_${channel}`);
+  const counterSnap = await transaction.get(counterRef);
+  let candidate = (counterSnap.exists && counterSnap.data().current != null)
+    ? counterSnap.data().current + 1
+    : min;
+
+  // アクティブステータス（設計憲法§7.3）: これらの注文と番号が衝突してはならない
+  const activeStatuses = ["cooking", "ready_to_serve", "ready_for_pickup"];
+
+  for (let attempt = 0; attempt < rangeSize; attempt++) {
+    if (candidate > max) candidate = min;
+
+    const dupQuery = db.collection("orders")
+      .where("receiptNumber", "==", candidate)
+      .where("status", "in", activeStatuses);
+    const dupSnap = await transaction.get(dupQuery);
+
+    if (dupSnap.empty) {
+      transaction.set(
+        counterRef,
+        { current: candidate, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
+        { merge: true },
       );
+      return candidate;
     }
+    candidate++;
+  }
 
-    // ドメイン制限チェック
-    const email = context.auth.token.email || "";
-    if (!email.endsWith("@gl.pen-kanagawa.ed.jp") && email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "モバイルオーダーは在校生（@gl.pen-kanagawa.ed.jp）のみ利用可能です。"
-      );
-    }
-
-    const uid = context.auth.uid;
-    const requestData =
-      data.data && typeof data.data === "object" ? data.data : data;
-    const storeId = requestData.storeId;
-
-    if (!storeId) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "店舗IDが指定されていません。",
-      );
-    }
-
-    try {
-      // 2. カートの中身と商品情報を取得
-      const cartSnapshot = await db.collection(`users/${uid}/cart`).get();
-
-      if (cartSnapshot.empty) {
-        throw new functions.https.HttpsError(
-          "failed-precondition",
-          "カートが空です。",
-        );
-      }
-
-      const orderItems = [];
-      let totalPrice = 0;
-
-      // カート内容をパースして必要な商品IDを収集
-      const cartItems = [];
-      const productIds = new Set();
-
-      cartSnapshot.forEach((doc) => {
-        const d = doc.data();
-        // 数量とproductIdがあるものだけ対象
-        if (d.quantity > 0 && d.productId) {
-          cartItems.push({
-            productId: d.productId,
-            quantity: d.quantity,
-            customizations: d.customizations || [],
-          });
-          productIds.add(d.productId);
-        }
-      });
-
-      if (cartItems.length === 0) {
-        throw new functions.https.HttpsError(
-          "failed-precondition",
-          "有効な商品がありません。",
-        );
-      }
-
-      // 商品マスタを一括取得
-      const itemRefs = Array.from(productIds).map((id) =>
-        db.collection("items").doc(id),
-      );
-      const productDocs = await db.getAll(...itemRefs);
-      const productMap = new Map();
-
-      productDocs.forEach((doc) => {
-        if (doc.exists) {
-          productMap.set(doc.id, doc.data());
-        }
-      });
-
-      // 注文明細の構築
-      for (const item of cartItems) {
-        const pData = productMap.get(item.productId);
-
-        if (!pData) continue; // 商品マスタが存在しない（削除済みなど）
-
-        // バリデーション: 店舗一致チェック
-        // ※String/Numberの型不一致を防ぐため == で比較、あるいは String()変換
-        if (String(pData.storeId) !== String(storeId)) continue;
-
-        // [Medium] 売り切れチェック
-        if (!pData.isAvailable) {
-          throw new functions.https.HttpsError(
-            "failed-precondition",
-            `商品「${pData.name}」は売り切れのため注文できません。`,
-          );
-        }
-
-        const subTotal = pData.price * item.quantity;
-        totalPrice += subTotal;
-
-        orderItems.push({
-          itemId: item.productId, // 注文履歴上の互換性のため itemId とする
-          productId: item.productId,
-          name: pData.name,
-          price: pData.price,
-          quantity: item.quantity,
-          options: pData.options || [],
-          customizations: item.customizations,
-        });
-      }
-
-      if (orderItems.length === 0) {
-        throw new functions.https.HttpsError(
-          "failed-precondition",
-          "注文可能な商品がありません（店舗ID不一致または商品削除）。",
-        );
-      }
-
-      // 3. トランザクション：受付番号発行 -> 注文作成
-      const result = await db.runTransaction(async (transaction) => {
-        // --- A. 受付番号発行ロジック (Mobile: 7000-7999) ---
-        const counterRef = db.collection("counters").doc("receipt");
-        const counterDoc = await transaction.get(counterRef);
-
-        let nextNumber = 6999;
-        if (counterDoc.exists && counterDoc.data().currentNumber_MOBILE) {
-          nextNumber = counterDoc.data().currentNumber_MOBILE;
-        }
-
-        const minNum = 7000;
-        const maxNum = 7999;
-        const maxNumLoop = 7999;
-
-        if (nextNumber < minNum || nextNumber >= maxNum) {
-          nextNumber = minNum - 1;
-        }
-
-        let determinedNumber = null;
-        const rangeSize = maxNum - minNum + 1; // 1000
-        const loopLimit = 50; // 安全のため50回試行
-
-        for (let i = 0; i < loopLimit; i++) {
-          nextNumber++;
-          if (nextNumber > maxNumLoop) nextNumber = minNum;
-
-          const ordersRef = db.collection("orders");
-          const completedStatuses = [
-            "completed_at_store",
-            "completed_online",
-            "cancelled",
-            "abandoned_and_paid",
-          ];
-
-          // Transaction Query
-          const dupQuery = ordersRef
-            .where("receiptNumber", "==", nextNumber)
-            .where("status", "not-in", completedStatuses);
-
-          const dupSnap = await transaction.get(dupQuery);
-
-          if (dupSnap.empty) {
-            determinedNumber = nextNumber;
-            break;
-          }
-        }
-
-        if (!determinedNumber) {
-          throw new functions.https.HttpsError(
-            "resource-exhausted",
-            "受付番号の空きがありません (混雑中)",
-          );
-        }
-
-        // カウンター更新
-        transaction.set(
-          counterRef,
-          { currentNumber_MOBILE: determinedNumber },
-          { merge: true },
-        );
-
-        // --- B. 注文作成 ---
-        const newOrderRef = db.collection("orders").doc();
-        const orderData = {
-          userId: uid,
-          storeId: storeId,
-          receiptNumber: determinedNumber,
-          items: orderItems,
-          totalPrice: totalPrice,
-          status: "authorized",
-          paymentMethod: "ONLINE",
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        };
-
-        transaction.set(newOrderRef, orderData);
-        return { orderId: newOrderRef.id, receiptNumber: determinedNumber };
-      });
-
-      // 4. カートをクリア
-      const batch = db.batch();
-      cartSnapshot.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-
-      return {
-        success: true,
-        orderId: result.orderId,
-        receiptNumber: result.receiptNumber,
-      };
-    } catch (error) {
-      console.error("Order Creation Error:", error);
-      // HttpsErrorならそのまま投げる
-      if (error.code && error.details) throw error;
-      throw new functions.https.HttpsError("internal", error.message);
-    }
-  });
+  throw new functions.https.HttpsError("resource-exhausted", `受付番号の空きがありません (${channel})`);
+}
 
 // 1. cryptoモジュールの読み込み
 const crypto = require("crypto");
@@ -614,244 +337,397 @@ exports.loginStore = functions
     }
   });
 
+// ============================================================
+// ヘルパー: 店舗活動時刻の更新 (自動停止・保温の判定基準)
+// ============================================================
+async function updateStoreActivity(storeId) {
+  if (!storeId) return;
+  try {
+    const storeRef = db.collection("stores").doc(storeId);
+    await db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(storeRef);
+      if (!doc.exists) return;
+      
+      const data = doc.data();
+      const updates = { lastActivityAt: admin.firestore.FieldValue.serverTimestamp() };
+
+      // 自動停止(suspended)中かつ緊急停止でなければ営業中(open)に自律復帰させる
+      if (
+        data.operationStatus === "suspended" &&
+        data.isAutoSuspended === true &&
+        !data.isEmergencyStopped
+      ) {
+        updates.operationStatus = "open";
+        updates.isAutoSuspended = admin.firestore.FieldValue.delete();
+        console.log(`updateStoreActivity: 店舗 ${storeId} が自動停止から復帰しました`);
+      }
+      
+      transaction.update(storeRef, updates);
+    });
+  } catch (e) {
+    console.error("updateStoreActivity Error:", e);
+  }
+}
+
+// ============================================================
+// 注文作成（統合関数）
+// 設計憲法§4.1 / §3.1 準拠
+// ============================================================
+
 /**
- * @name createPOSOrder
- * @description POSレジからの注文を作成する（サーバーサイド価格計算）
- *              receiptNumberの発行と注文作成をトランザクションで実行
+ * @name createOrder
+ * @description mobile / pos 両経路を統合した注文作成関数
+ *              設計憲法§4.1: createOrder({ orderChannel, storeId, items })
  */
-exports.createPOSOrder = functions
+exports.createOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    // 1. 認証チェック
     if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "ログインが必要です。",
-      );
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
 
-    // 店舗管理者権限チェック
-    const token = context.auth.token;
-    if (token.role !== "store_admin" || !token.storeId) {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "店舗管理者権限が必要です。",
-      );
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderChannel, storeId, items } = requestData;
+
+    // --- バリデーション ---
+    if (!["mobile", "pos"].includes(orderChannel)) {
+      throw new functions.https.HttpsError("invalid-argument", "orderChannel は mobile または pos である必要があります。");
+    }
+    if (!storeId || !Array.isArray(items) || items.length === 0) {
+      throw new functions.https.HttpsError("invalid-argument", "storeId と items が必要です。");
     }
 
-    const storeId = token.storeId;
-    const requestData =
-      data.data && typeof data.data === "object" ? data.data : data;
-    const items = requestData.items || [];
+    const uid = context.auth.uid;
 
-    if (items.length === 0) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "商品が含まれていません。",
-      );
+    // mobile はドメイン制限 + BANチェック（設計憲法§9, §10.2）
+    if (orderChannel === "mobile") {
+      const email = context.auth.token.email || "";
+      if (!email.endsWith("@gl.pen-kanagawa.ed.jp") && email !== "ynrcs1000@gmail.com") {
+        throw new functions.https.HttpsError("permission-denied", "モバイルオーダーは在校生のみ利用可能です。");
+      }
+      // BAN チェック（サーバー側二層防御）
+      const banDoc = await db.doc(`banned_users/${uid}`).get();
+      if (banDoc.exists) {
+        throw new functions.https.HttpsError("permission-denied", "利用が制限されています。");
+      }
+    }
+
+    // pos は store_admin 権限チェック
+    if (orderChannel === "pos") {
+      const token = context.auth.token;
+      if (token.role !== "store_admin" || token.storeId !== storeId) {
+        throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
+      }
     }
 
     try {
-      // 2. 商品情報の取得と合計金額計算
-      const itemRefs = items.map((i) =>
-        db.collection("items").doc(i.productId),
-      );
-      if (itemRefs.length === 0) throw new Error("Item refs empty");
+      // --- 店舗ステータスチェック（緊急停止・一時停止中の注文をサーバー側でブロック）---
+      const storeDoc = await db.collection("stores").doc(storeId).get();
+      if (!storeDoc.exists) {
+        throw new functions.https.HttpsError("not-found", "店舗が見つかりません。");
+      }
+      const storeData = storeDoc.data();
+      if (storeData.operationStatus !== "open") {
+        const reason = storeData.isEmergencyStopped
+          ? "緊急停止中のため注文を受け付けられません。"
+          : "この店舗は現在受付を停止しています。";
+        throw new functions.https.HttpsError("failed-precondition", reason);
+      }
 
+      // --- 商品情報取得 & 金額サーバーサイド計算 ---
+      const itemRefs = items.map((i) => db.doc(`items/${i.itemId}`));
       const productDocs = await db.getAll(...itemRefs);
-      const productMap = new Map();
-      productDocs.forEach((d) => {
-        if (d.exists) productMap.set(d.id, d.data());
-      });
+      const productMap = new Map(
+        productDocs.filter((d) => d.exists).map((d) => [d.id, d.data()]),
+      );
 
       let totalPrice = 0;
       const orderItems = [];
-
       for (const item of items) {
-        const product = productMap.get(item.productId);
-        if (!product) continue; // 商品が存在しない場合はスキップまたはエラー
+        const product = productMap.get(item.itemId);
+        if (!product) continue;
 
-        // [Critical] 数量バリデーション
-        if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
-          throw new functions.https.HttpsError(
-            "invalid-argument",
-            "数量が不正です (1以上の整数である必要があります)。",
-          );
-        }
-
-        // 店舗IDの一致確認
         if (product.storeId !== storeId) {
-          throw new functions.https.HttpsError(
-            "permission-denied",
-            "他店舗の商品は注文できません。",
-          );
+          throw new functions.https.HttpsError("permission-denied", "他店舗の商品は注文できません。");
         }
-
-        // [Medium] 売り切れチェック
         if (!product.isAvailable) {
-          throw new functions.https.HttpsError(
-            "failed-precondition",
-            `商品「${product.name}」は売り切れのため注文できません。`,
-          );
+          throw new functions.https.HttpsError("failed-precondition", `「${product.name}」は売り切れです。`);
+        }
+        // 数量バリデーション
+        if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+          throw new functions.https.HttpsError("invalid-argument", "数量は1以上の整数である必要があります。");
         }
 
-        const subTotal = product.price * item.quantity;
-        totalPrice += subTotal;
-
+        totalPrice += product.price * item.quantity;
+        // 設計憲法§3.1.1 フィールドのみ
         orderItems.push({
-          productId: item.productId,
+          itemId: item.itemId,
           name: product.name,
           price: product.price,
           quantity: item.quantity,
-          customizations: item.customizations || [], // トッピング情報などはそのまま保存（価格変動なし前提）
+          customizations: item.customizations || [],
         });
       }
 
-      // 3. トランザクション：受付番号発行 -> 注文作成
-      const result = await db.runTransaction(async (transaction) => {
-        // 受付番号発行 (POS: 100-999)
-        const counterRef = db.collection("counters").doc("receipt");
-        const counterDoc = await transaction.get(counterRef);
+      if (orderItems.length === 0) {
+        throw new functions.https.HttpsError("failed-precondition", "注文可能な商品がありません。");
+      }
 
-        let nextNumber = 99;
-        // 既存互換：POSは currentNumber を使用
-        if (counterDoc.exists && counterDoc.data().currentNumber) {
-          nextNumber = counterDoc.data().currentNumber;
-        }
+      // --- トランザクション: 受付番号発番 + 注文作成 ---
+      const result = await db.runTransaction(async (tx) => {
+        const receiptNumber = await getNextReceiptNumber(orderChannel, tx);
 
-        const minNum = 100;
-        const maxNum = 999;
-        const maxNumLoop = 999;
-
-        if (nextNumber < minNum || nextNumber >= maxNum) {
-          nextNumber = minNum - 1;
-        }
-
-        let determinedNumber = null;
-        const loopLimit = 50;
-
-        for (let i = 0; i < loopLimit; i++) {
-          nextNumber++;
-          if (nextNumber > maxNumLoop) nextNumber = minNum;
-
-          const ordersRef = db.collection("orders");
-          // POS注文でレシート被りを防ぐためにstatusチェック
-          const completedStatuses = [
-            "completed_at_store",
-            "cancelled",
-            "abandoned_and_paid",
-          ];
-
-          const dupQuery = ordersRef
-            .where("receiptNumber", "==", nextNumber)
-            .where("status", "not-in", completedStatuses); // 終わってない注文と被らないように
-
-          const dupSnap = await transaction.get(dupQuery);
-
-          if (dupSnap.empty) {
-            determinedNumber = nextNumber;
-            break;
-          }
-        }
-
-        if (!determinedNumber) {
-          throw new functions.https.HttpsError(
-            "resource-exhausted",
-            "受付番号の空きがありません",
-          );
-        }
-
-        // カウンター更新
-        transaction.set(
-          counterRef,
-          { currentNumber: determinedNumber },
-          { merge: true },
-        );
-
-        // 注文作成
-        const newOrderRef = db.collection("orders").doc();
+        const orderRef = db.collection("orders").doc();
+        const now = admin.firestore.FieldValue.serverTimestamp();
+        // 設計憲法§3.1 フィールド辞書に完全準拠
         const orderData = {
-          storeId: storeId,
-          receiptNumber: determinedNumber,
-          items: orderItems,
-          totalPrice: totalPrice,
-          status: "unpaid_at_pos", // POSからの注文は未払い開始
-          paymentMethod: "pos", // 現金を廃止し、pos（QR手動確認）とする
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          // userId は POS操作者（店員）のIDになるが、注文者としては記録しない、あるいは店員IDとして記録
-          createdBy: context.auth.uid,
+          status:             "cooking",
+          orderChannel,
+          storeId,
+          items:              orderItems,
+          totalPrice,
+          receiptNumber,
+          userId:             orderChannel === "mobile" ? uid : null,
+          createdBy:          orderChannel === "pos"    ? uid : null,
+          paymentMethod:      "au_pay_manual",
+          // SOK専用（mobile/posでは null）
+          sokStatus:          null,
+          sokClaimedAt:       null,
+          sokConfirmedAt:     null,
+          expiredAt:          null,
+          // キャンセル・メモ
+          cancellationReason: null,
+          note:               null,
+          // 規約同意（§10.1: mobile必須, pos不要）
+          termsAgreedAt:      orderChannel === "mobile" ? (requestData.termsAgreedAt || now) : null,
+          // タイムスタンプ群
+          createdAt:          now,
+          updatedAt:          now,
+          readyToServeAt:     null,
+          readyForPickupAt:   null,
+          completedAt:        null,
+          cancelledAt:        null,
+          abandonedAt:        null,
         };
-
-        transaction.set(newOrderRef, orderData);
-        return { orderId: newOrderRef.id, receiptNumber: determinedNumber };
+        tx.set(orderRef, orderData);
+        return { orderId: orderRef.id, receiptNumber };
       });
 
-      return {
-        success: true,
-        orderId: result.orderId,
-        receiptNumber: result.receiptNumber,
-      };
+      updateStoreActivity(storeId);
+      return { success: true, orderId: result.orderId, receiptNumber: result.receiptNumber };
     } catch (error) {
-      console.error("POS Order Error:", error);
-      if (error.code && error.details) throw error;
+      console.error("createOrder Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
 
-// ... (previous code)
+// ============================================================
+// ステータス遷移関数（設計憲法§4.2 準拠）
+// ============================================================
 
 /**
- * @name mockAuPayPayment
- * @description 【デモ用】auPay決済の擬似処理を行い、注文を完了済みに更新する
+ * ステータス遷移の共通ヘルパー
+ * @param {object} context - Cloud Functions コンテキスト
+ * @param {string} orderId - 注文ID
+ * @returns {Promise<{orderRef, orderData}>} 注文リファレンスとデータ
  */
-exports.mockAuPayPayment = functions
+async function getOrderForTransition(context, orderId) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+  }
+  if (!orderId) {
+    throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
+  }
+
+  const orderRef = db.collection("orders").doc(orderId);
+  const orderDoc = await orderRef.get();
+  if (!orderDoc.exists) {
+    throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+  }
+
+  const orderData = orderDoc.data();
+  const token = context.auth.token;
+
+  // store_admin 権限チェック + storeId 一致チェック
+  if (token.role !== "store_admin" || token.storeId !== orderData.storeId) {
+    throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
+  }
+
+  return { orderRef, orderData };
+}
+
+/**
+ * @name kitchenComplete
+ * @description cooking → ready_to_serve（設計憲法§1.2）
+ */
+exports.kitchenComplete = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    // 1. 引数チェック
-    const requestData =
-      data.data && typeof data.data === "object" ? data.data : data;
-    const orderId = requestData.orderId;
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
-    if (!orderId) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "orderId が必要です。",
-      );
+    if (orderData.status !== "cooking") {
+      throw new functions.https.HttpsError("failed-precondition", `現在のステータスが cooking ではありません (${orderData.status})。`);
     }
 
-    try {
-      // 2. 注文データの取得
-      const orderRef = db.collection("orders").doc(orderId);
-      const orderDoc = await orderRef.get();
+    await orderRef.update({
+      status: "ready_to_serve",
+      readyToServeAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
 
-      if (!orderDoc.exists) {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "注文が見つかりません。",
-        );
-      }
-
-      // 3. ステータス更新 (決済完了 -> 提供完了)
-      // 本番フローでは「決済完了」->「提供完了」だが、デモなので一気に完了にする
-      await orderRef.update({
-        status: "completed_online",
-        paymentMethod: "auPay", // 記録用
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      return {
-        success: true,
-        message: "auPay決済が完了しました (Demo)",
-      };
-    } catch (error) {
-      console.error("mockAuPayPayment Error:", error);
-      throw new functions.https.HttpsError(
-        "internal",
-        "決済処理中にエラーが発生しました。",
-      );
-    }
+    updateStoreActivity(orderData.storeId);
+    return { success: true };
   });
+
+/**
+ * @name callForPickup
+ * @description ready_to_serve → ready_for_pickup（設計憲法§1.2）
+ *              readyForPickupAt は5分放置ペナルティの基準時刻
+ */
+exports.callForPickup = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
+
+    if (orderData.status !== "ready_to_serve") {
+      throw new functions.https.HttpsError("failed-precondition", `現在のステータスが ready_to_serve ではありません (${orderData.status})。`);
+    }
+
+    await orderRef.update({
+      status: "ready_for_pickup",
+      readyForPickupAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    updateStoreActivity(orderData.storeId);
+    return { success: true };
+  });
+
+/**
+ * @name completeOrder
+ * @description ready_for_pickup → completed（設計憲法§1.2）
+ */
+exports.completeOrder = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
+
+    if (orderData.status !== "ready_for_pickup") {
+      throw new functions.https.HttpsError("failed-precondition", `現在のステータスが ready_for_pickup ではありません (${orderData.status})。`);
+    }
+
+    await orderRef.update({
+      status: "completed",
+      completedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    updateStoreActivity(orderData.storeId);
+    return { success: true };
+  });
+
+/**
+ * @name cancelOrder
+ * @description 任意 → cancelled（設計憲法§1.2）
+ *              reason は必須
+ */
+exports.cancelOrder = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
+
+    const reason = requestData.reason;
+    if (!reason) {
+      throw new functions.https.HttpsError("invalid-argument", "キャンセル理由 (reason) が必要です。");
+    }
+
+    // 完了済み/キャンセル済み/放置済みからのキャンセルは不可
+    if (["completed", "cancelled", "abandoned"].includes(orderData.status)) {
+      throw new functions.https.HttpsError("failed-precondition", `ステータス ${orderData.status} の注文はキャンセルできません。`);
+    }
+
+    await orderRef.update({
+      status: "cancelled",
+      cancellationReason: reason,
+      cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    updateStoreActivity(orderData.storeId);
+    return { success: true };
+  });
+
+/**
+ * @name adminUpdateOrderStatus
+ * @description 任意 → 任意（設計憲法§4.2）
+ *              super_admin または store_admin 権限で強制ステータス変更
+ */
+exports.adminUpdateOrderStatus = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderId, newStatus, reason } = requestData;
+
+    if (!orderId || !newStatus) {
+      throw new functions.https.HttpsError("invalid-argument", "orderId と newStatus が必要です。");
+    }
+
+    const validStatuses = ["cooking", "ready_to_serve", "ready_for_pickup", "completed", "cancelled", "abandoned"];
+    if (!validStatuses.includes(newStatus)) {
+      throw new functions.https.HttpsError("invalid-argument", `不正なステータス: ${newStatus}`);
+    }
+
+    const token = context.auth.token;
+    const isSuperAdmin = token.email === "ynrcs1000@gmail.com";
+
+    const orderRef = db.collection("orders").doc(orderId);
+    const orderDoc = await orderRef.get();
+    if (!orderDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+    }
+
+    const orderData = orderDoc.data();
+
+    // super_admin でなければ store_admin + storeId 一致チェック
+    if (!isSuperAdmin) {
+      if (token.role !== "store_admin" || token.storeId !== orderData.storeId) {
+        throw new functions.https.HttpsError("permission-denied", "権限がありません。");
+      }
+    }
+
+    // ステータスに応じたタイムスタンプを設定
+    const timestampMap = {
+      ready_to_serve: { readyToServeAt: admin.firestore.FieldValue.serverTimestamp() },
+      ready_for_pickup: { readyForPickupAt: admin.firestore.FieldValue.serverTimestamp() },
+      completed: { completedAt: admin.firestore.FieldValue.serverTimestamp() },
+      cancelled: { cancelledAt: admin.firestore.FieldValue.serverTimestamp(), cancellationReason: reason || "管理者による強制変更" },
+      abandoned: { abandonedAt: admin.firestore.FieldValue.serverTimestamp() },
+    };
+
+    const updateData = {
+      status: newStatus,
+      note: reason || `管理者 (${token.email}) による手動変更`,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...(timestampMap[newStatus] || {}),
+    };
+
+    await orderRef.update(updateData);
+
+    updateStoreActivity(orderData.storeId);
+    return { success: true, message: `ステータスを ${newStatus} に変更しました。` };
+  });
+
+
+
 
 exports.sendOrderUpdateNotification = onDocumentUpdated(
   {
@@ -866,8 +742,12 @@ exports.sendOrderUpdateNotification = onDocumentUpdated(
     // ステータスが変わっていなければ何もしない
     if (newData.status === previousData.status) return;
 
-    // ユーザーIDを取得
+    // ユーザーIDを取得（POSやSOKからの注文は userId: null のため早期リターン）
     const userId = newData.userId;
+    if (!userId) {
+      console.log(`Order ${orderId}: userId が null のため通知をスキップ (channel: ${newData.orderChannel})`);
+      return;
+    }
 
     // ユーザーのFCMトークンをFirestoreから取得
     const userSnapshot = await db.collection("users").doc(userId).get();
@@ -982,7 +862,7 @@ exports.onStoreCreated = onDocumentCreated(
               "呼出番号",
               "状況",
               "合計金額",
-              "支払方法",
+              "注文方法",
               "注文日時",
               "商品詳細",
             ],
@@ -1061,13 +941,13 @@ exports.bulkCreateSpreadsheets = functions
           resource: {
             values: [
               [
-                "OrderId",
-                "ReceiptNumber",
-                "Status",
-                "TotalPrice",
-                "PaymentMethod",
-                "CreatedAt",
-                "Items",
+                "注文ID",
+                "呼出番号",
+                "状況",
+                "合計金額",
+                "注文方法",
+                "注文日時",
+                "商品詳細",
               ],
             ],
           },
@@ -1129,37 +1009,43 @@ exports.onOrderCreatedSpreadsheet = onDocumentCreated(
         });
       }
 
-      // ステータスの日本語化
+      // ステータスの日本語化（新ステータス + 旧ステータス後方互換）
       const statusMap = {
+        // 新ステータス（設計憲法§1.1）
+        cooking: "🍳 調理中",
+        ready_to_serve: "✅ 提供口で準備中",
+        ready_for_pickup: "📢 呼び出し中",
+        completed: "🎉 提供完了",
+        cancelled: "❌ キャンセル",
+        abandoned: "⚠️ 放置終了",
+        // 旧ステータス（後方互換）
         unpaid_at_pos: "未払い(POS)",
         authorized: "決済枠確保(オンライン)",
         paid_online: "支払済(オンライン)",
-        ready_for_pickup: "完成/呼出中",
         completed_online: "提供済(オンライン)",
         completed_at_store: "提供済(店頭)",
-        cancelled: "キャンセル",
         abandoned_unpaid: "放置/未払い",
         abandoned_and_paid: "放置/支払済",
         refunded: "返金済",
         payment_failed: "決済失敗",
       };
 
-      const paymentMap = {
-        pos: "店頭決済",
-        ONLINE: "オンライン決済",
-        auPay: "auPAY",
+      const channelMap = {
+        pos: "POS",
+        sok: "SOK",
+        mobile: "モバイル",
       };
 
       const statusJa = statusMap[orderData.status] || orderData.status || "";
-      const paymentJa =
-        paymentMap[orderData.paymentMethod] || orderData.paymentMethod || "";
+      const channelJa =
+        channelMap[orderData.orderChannel] || orderData.orderChannel || "不明";
 
       const row = [
         orderId,
         orderData.receiptNumber || "",
         statusJa,
         orderData.totalPrice || 0,
-        paymentJa,
+        channelJa,
         createdAtStr,
         itemsStr,
       ];
@@ -1191,10 +1077,10 @@ exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
     const oldData = event.data.before.data();
     const orderId = event.params.orderId;
 
-    // ステータスや支払い方法が変更された時のみ更新
+    // ステータスや注文方法が変更された時のみ更新
     if (
       newData.status === oldData.status &&
-      newData.paymentMethod === oldData.paymentMethod
+      newData.orderChannel === oldData.orderChannel
     ) {
       return;
     }
@@ -1246,37 +1132,43 @@ exports.onOrderUpdatedSpreadsheet = onDocumentUpdated(
           });
         }
 
-        // ステータスの日本語化
+        // ステータスの日本語化（新ステータス + 旧ステータス後方互換）
         const statusMap = {
+          // 新ステータス（設計憲法§1.1）
+          cooking: "🍳 調理中",
+          ready_to_serve: "✅ 提供口で準備中",
+          ready_for_pickup: "📢 呼び出し中",
+          completed: "🎉 提供完了",
+          cancelled: "❌ キャンセル",
+          abandoned: "⚠️ 放置終了",
+          // 旧ステータス（後方互換）
           unpaid_at_pos: "未払い(POS)",
           authorized: "決済枠確保(オンライン)",
           paid_online: "支払済(オンライン)",
-          ready_for_pickup: "完成/呼出中",
           completed_online: "提供済(オンライン)",
           completed_at_store: "提供済(店頭)",
-          cancelled: "キャンセル",
           abandoned_unpaid: "放置/未払い",
           abandoned_and_paid: "放置/支払済",
           refunded: "返金済",
           payment_failed: "決済失敗",
         };
 
-        const paymentMap = {
-          pos: "店頭決済",
-          ONLINE: "オンライン決済",
-          auPay: "auPAY",
+        const channelMap = {
+          pos: "POS",
+          sok: "SOK",
+          mobile: "モバイル",
         };
 
         const statusJa = statusMap[newData.status] || newData.status || "";
-        const paymentJa =
-          paymentMap[newData.paymentMethod] || newData.paymentMethod || "";
+        const channelJa =
+          channelMap[newData.orderChannel] || newData.orderChannel || "不明";
 
         const row = [
           orderId,
           newData.receiptNumber || "",
           statusJa,
           newData.totalPrice || 0,
-          paymentJa,
+          channelJa,
           createdAtStr,
           itemsStr,
         ];
@@ -1390,3 +1282,305 @@ exports.updateVenueStatus = functions
       throw new functions.https.HttpsError("internal", "更新中にエラーが発生しました。");
     }
   });
+
+// ============================================================
+// 店舗ステータス管理 & Functionsコールドスタート防止
+// ============================================================
+
+/**
+ * @name warmupPing
+ * @description Cloud Functions のコールドスタートを防ぐための軽量関数。
+ *              スケジュール関数から定期的に叩かれる。
+ */
+exports.warmupPing = functions
+  .region("asia-northeast1")
+  .https.onRequest((req, res) => {
+    res.status(200).send("pong");
+  });
+
+/**
+ * @name updateStoreStatus
+ * @description 店舗の営業ステータスを変更する。
+ *              newStatus が "open" の場合、availableItemIds にある商品を isAvailable: true に、
+ *              それ以外を false にバッチ更新する。
+ *              引数: { storeId, newStatus: "open"|"suspended"|"closed", availableItemIds?: string[] }
+ */
+exports.updateStoreStatus = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { storeId, newStatus, availableItemIds } = requestData;
+
+    if (!storeId || !newStatus) {
+      throw new functions.https.HttpsError("invalid-argument", "storeId と newStatus が必要です。");
+    }
+
+    const validStatuses = ["open", "suspended", "closed"];
+    if (!validStatuses.includes(newStatus)) {
+      throw new functions.https.HttpsError("invalid-argument", `不正なステータス: ${newStatus}`);
+    }
+
+    // store_admin 権限チェック
+    const token = context.auth.token;
+    if (token.role !== "store_admin" || token.storeId !== storeId) {
+      throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
+    }
+
+    try {
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      const storeUpdateData = {
+        operationStatus: newStatus,
+        isAutoSuspended: admin.firestore.FieldValue.delete(),       // 手動操作時に自動停止フラグをクリア
+        isEmergencyStopped: admin.firestore.FieldValue.delete(),    // 手動「営業開始」時に緊急停止フラグをクリア
+        emergencySuspendedAt: admin.firestore.FieldValue.delete(),  // 旧フィールドの掃除（既存ドキュメント対応）
+        updatedAt: now,
+      };
+
+      // 「営業中」に変更する場合は lastActivityAt を更新 (活動開始基準)
+      if (newStatus === "open") {
+        storeUpdateData.lastActivityAt = now;
+      }
+
+      // 店舗ステータスを更新
+      await db.collection("stores").doc(storeId).update(storeUpdateData);
+
+      // 「営業中」に変更する場合、商品の isAvailable を更新
+      if (newStatus === "open") {
+        const itemsSnap = await db.collection("items")
+          .where("storeId", "==", storeId)
+          .get();
+
+        if (!itemsSnap.empty) {
+          const availableSet = new Set(availableItemIds || []);
+          const batch = db.batch();
+
+          itemsSnap.docs.forEach((doc) => {
+            const shouldBeAvailable = availableSet.size === 0
+              ? true // availableItemIds が空の場合は全商品を販売中に
+              : availableSet.has(doc.id);
+            batch.update(doc.ref, {
+              isAvailable: shouldBeAvailable,
+              updatedAt: now,
+            });
+          });
+
+          await batch.commit();
+        }
+      }
+
+      return { success: true, newStatus };
+    } catch (error) {
+      console.error("updateStoreStatus Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * @name manageStoreStatusAndWarmup
+ * @description 毎分実行される定期ジョブ。
+ *              「営業中 (open)」であるにもかかわらず lastActivityAt が15分以上前の店舗を
+ *              自動的に「一時停止中 (suspended)」に変更する。
+ *              活発な店舗が存在する場合は、Functions のコールドスタートを防ぐために
+ *              自身のダミーエンドポイントへリクエストを送信する。
+ */
+exports.manageStoreStatusAndWarmup = functions
+  .region("asia-northeast1")
+  .pubsub.schedule("every 1 minutes")
+  .onRun(async () => {
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const threshold = admin.firestore.Timestamp.fromDate(fifteenMinutesAgo);
+
+    try {
+      const openStoresSnap = await db.collection("stores")
+        .where("operationStatus", "==", "open")
+        .get();
+
+      if (openStoresSnap.empty) {
+        return null;
+      }
+
+      const batch = db.batch();
+      let hasActiveStore = false;
+
+      openStoresSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        const lastActivityAt = data.lastActivityAt;
+
+        if (!lastActivityAt || lastActivityAt.toMillis() < threshold.toMillis()) {
+          console.log(`manageStoreStatusAndWarmup: 店舗 ${doc.id} を suspended に変更 (放置検知)`);
+          batch.update(doc.ref, {
+            operationStatus: "suspended",
+            isAutoSuspended: true, // 自動停止フラグを立てる
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } else {
+          hasActiveStore = true;
+        }
+      });
+
+      await batch.commit();
+
+      if (hasActiveStore) {
+        // ウォームアップリクエストを送信 (Node.js標準の https モジュールを使用)
+        const https = require("https");
+        const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "nanryosai-2026-a4091";
+        const url = `https://asia-northeast1-${projectId}.cloudfunctions.net/warmupPing`;
+        
+        https.get(url, (res) => {
+          res.on("data", () => {}); // データを消費してコネクションをクリーンアップ
+        }).on("error", (e) => {
+          console.error("Warmup ping error:", e);
+        });
+      }
+
+      return null;
+    } catch (error) {
+      console.error("manageStoreStatusAndWarmup Error:", error);
+      return null;
+    }
+  });
+
+// ============================================================
+// ペナルティ自動執行バッチ（設計憲法§10.2 / penalty_system_CONTEXT 準拠）
+// ============================================================
+
+/**
+ * @name abandonStaleOrders
+ * @description 毎分実行。ready_for_pickup から5分超過した注文を abandoned に遷移させ、
+ *              当該ユーザーを banned_users に登録する。
+ *              安全弁: _metadata/system_alerts の penaltyEnabled が true の場合のみ執行。
+ *              ホワイトリスト: PENALTY_WHITELIST_EMAILS のアカウントはBAN対象外。
+ */
+exports.abandonStaleOrders = functions
+  .region("asia-northeast1")
+  .pubsub.schedule("every 1 minutes")
+  .onRun(async () => {
+    try {
+      // --- 安全弁チェック: penaltyEnabled フラグ ---
+      const alertsDoc = await db.doc("_metadata/system_alerts").get();
+      const penaltyEnabled = alertsDoc.exists && alertsDoc.data().penaltyEnabled === true;
+      if (!penaltyEnabled) {
+        // penaltyEnabled が false または未設定 → 何もしない
+        return null;
+      }
+
+      // --- 5分超過の ready_for_pickup 注文を取得 ---
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const threshold = admin.firestore.Timestamp.fromDate(fiveMinutesAgo);
+
+      const staleOrdersSnap = await db.collection("orders")
+        .where("status", "==", "ready_for_pickup")
+        .where("readyForPickupAt", "<=", threshold)
+        .get();
+
+      if (staleOrdersSnap.empty) {
+        return null;
+      }
+
+      console.log(`abandonStaleOrders: ${staleOrdersSnap.size} 件の放置注文を検出`);
+
+      // --- ホワイトリスト用: メールアドレスからUIDセットを構築 ---
+      const whitelistUids = new Set();
+      for (const email of PENALTY_WHITELIST_EMAILS) {
+        try {
+          const userRecord = await admin.auth().getUserByEmail(email);
+          whitelistUids.add(userRecord.uid);
+        } catch (e) {
+          // ユーザーが存在しない場合は無視
+          console.warn(`abandonStaleOrders: ホワイトリストのメール ${email} に対応するユーザーが見つかりません`);
+        }
+      }
+
+      // --- 各注文を処理 ---
+      const batch = db.batch();
+      let processedCount = 0;
+
+      for (const doc of staleOrdersSnap.docs) {
+        const orderData = doc.data();
+        const userId = orderData.userId;
+
+        // userId が null（POS注文等）の場合はスキップ
+        if (!userId) {
+          console.log(`abandonStaleOrders: 注文 ${doc.id} は userId が null のためスキップ`);
+          continue;
+        }
+
+        // ホワイトリスト除外
+        if (whitelistUids.has(userId)) {
+          console.log(`abandonStaleOrders: 注文 ${doc.id} はホワイトリスト対象のためスキップ (uid: ${userId})`);
+          continue;
+        }
+
+        // ユーザーのメアドと名前を取得
+        let userEmail = null;
+        let userDisplayName = null;
+        try {
+          const userSnap = await db.collection("users").doc(userId).get();
+          if (userSnap.exists) {
+            const userData = userSnap.data();
+            userEmail = userData.email || null;
+            userDisplayName = userData.displayName || null;
+          }
+        } catch (e) {
+          console.error(`abandonStaleOrders: ユーザー情報取得失敗 (uid: ${userId})`, e);
+        }
+
+        // 注文ステータスを abandoned に遷移
+        batch.update(doc.ref, {
+          status: "abandoned",
+          abandonedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // banned_users に登録（既に存在する場合は上書き）
+        const banRef = db.collection("banned_users").doc(userId);
+        batch.set(banRef, {
+          bannedBy: "auto_scheduler",
+          reason: "商品受け取り放置 (ready_for_pickup 5分超過)",
+          orderId: doc.id,
+          receiptNumber: orderData.receiptNumber || null,
+          storeId: orderData.storeId || null,
+          userEmail: userEmail,
+          userDisplayName: userDisplayName,
+          bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        processedCount++;
+        console.log(`abandonStaleOrders: 注文 ${doc.id} → abandoned, ユーザー ${userId} → BAN`);
+      }
+
+      if (processedCount > 0) {
+        await batch.commit();
+        console.log(`abandonStaleOrders: ${processedCount} 件の放置注文を処理完了`);
+      }
+
+      return null;
+    } catch (error) {
+      console.error("abandonStaleOrders Error:", error);
+      return null;
+    }
+  });
+
+// ============================================================
+// unbanUser – スーパー管理者によるBAN解除 (Callable)
+// ============================================================
+exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data, context) => {
+  // スーパー管理者のみ実行可能
+  if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
+    throw new functions.https.HttpsError("permission-denied", "スーパー管理者のみ実行可能です");
+  }
+
+  const { uid } = data;
+  if (!uid || typeof uid !== "string") {
+    throw new functions.https.HttpsError("invalid-argument", "uid が必要です");
+  }
+
+  await db.collection("banned_users").doc(uid).delete();
+  console.log(`unbanUser: UID ${uid} のBANを解除しました (by ${context.auth.token.email})`);
+  return { success: true };
+});

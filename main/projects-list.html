@@ -7,6 +7,25 @@
 <!doctype html>
 <html lang="ja">
   <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>企画一覧 | 南陵祭'26</title>
@@ -557,13 +576,9 @@
             <button class="filter-btn active" data-filter="すべて">
               すべて
             </button>
-            <button class="filter-btn" data-filter="食品">食品</button>
-            <button class="filter-btn" data-filter="展示">展示</button>
-            <button class="filter-btn" data-filter="ゲーム">ゲーム</button>
-            <button class="filter-btn" data-filter="アトラクション">
-              アトラクション
-            </button>
-            <button class="filter-btn" data-filter="体験">体験</button>
+            <button class="filter-btn" data-filter="food">🍱 飲食</button>
+            <button class="filter-btn" data-filter="shop">🛍️ 物販</button>
+            <button class="filter-btn" data-filter="exhibit">🎨 展示・体験</button>
           </div>
         </div>
       </div>
@@ -613,10 +628,13 @@
     <script src="data/data.js"></script>
     <script type="module" src="app-shell.js"></script>
 
-    <script>
+    <script type="module">
+      import { db } from "./auth.js";
+      import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
       window.CURRENT_PAGE = "projects";
 
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
         const gridContainer = document.getElementById("projects-grid");
         const noResultsMessage = document.getElementById("no-results-message");
         const searchInput = document.getElementById("search-input");
@@ -626,10 +644,12 @@
 
         let activeFilters = {
           grade: "すべて",
-          type: "すべて",
+          category: "すべて",
           search: "",
           sort: "id-asc",
         };
+        
+        let storeStatuses = {}; // 店舗の営業ステータスマップ
 
         // Skeleton Generation
         function renderSkeletons(count = 9) {
@@ -677,11 +697,34 @@
                 .map((tag) => `<span class="card-tag">${tag}</span>`)
                 .join("");
 
-              const isFood =
-                project.contentType === "menu" || tags.includes("食品");
-              const orderBtnHTML = isFood
+              const useMobileOrder = project.useMobileOrder === true;
+                
+              let statusBadge = "";
+              let isOrderable = useMobileOrder;
+              const opStatus = storeStatuses[project.id];
+              
+              if (useMobileOrder) {
+                if (opStatus) {
+                  const statusConfig = {
+                    open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
+                    suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
+                    closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
+                  };
+                  const st = statusConfig[opStatus] || statusConfig.suspended;
+                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};">${st.text}</span></div>`;
+                  
+                  if (opStatus !== "open") isOrderable = false;
+                } else {
+                  isOrderable = false;
+                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
+                }
+              } else {
+                isOrderable = false;
+              }
+
+              const orderBtnHTML = isOrderable
                 ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order"><i class="fas fa-shopping-cart"></i> オーダー</a>`
-                : "";
+                : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
 
               return `
                     <div class="project-card" style="animation-delay: ${index * 0.02}s">
@@ -691,6 +734,7 @@
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>
                             <h3 class="card-project-title">${project.name}</h3>
+                            ${statusBadge}
                             <p class="card-catchphrase">${catchphrase}</p>
                             <div class="card-place">
                                 <i class="fas fa-map-marker-alt"></i> ${place}
@@ -726,7 +770,7 @@
           function processDataAndRender() {
             // 1. 基本的な除外
             let result = projectData.filter(
-              (p) => !p.tags || !p.tags.includes("ステージ"),
+              (p) => p.category !== "stage",
             );
 
             // 2. Filter
@@ -740,9 +784,9 @@
                 );
               });
             }
-            if (activeFilters.type !== "すべて") {
+            if (activeFilters.category !== "すべて") {
               result = result.filter(
-                (p) => p.tags && p.tags.includes(activeFilters.type),
+                (p) => p.category === activeFilters.category,
               );
             }
             if (activeFilters.search) {
@@ -750,7 +794,10 @@
               result = result.filter(
                 (p) =>
                   p.name.toLowerCase().includes(term) ||
-                  (p.groupName && p.groupName.toLowerCase().includes(term)),
+                  (p.groupName && p.groupName.toLowerCase().includes(term)) ||
+                  (p.place && p.place.toLowerCase().includes(term)) ||
+                  (p.catchphrase && p.catchphrase.toLowerCase().includes(term)) ||
+                  (p.tags && p.tags.some(t => t.toLowerCase().includes(term))),
               );
             }
 
@@ -786,7 +833,7 @@
             if (group.id === "filter-by-grade")
               activeFilters.grade = e.target.dataset.filter;
             if (group.id === "filter-by-type")
-              activeFilters.type = e.target.dataset.filter;
+              activeFilters.category = e.target.dataset.filter;
             applyFiltersAndSort(true); // Show loading on filter change
           });
         });
@@ -814,9 +861,19 @@
 
         // Initial Render
         renderSkeletons(12);
+        
+        try {
+          const snap = await getDocs(collection(db, "stores"));
+          snap.forEach(doc => {
+            storeStatuses[doc.id] = doc.data().operationStatus || "suspended";
+          });
+        } catch (e) {
+          console.error("Firestore status fetch error:", e);
+        }
+
         setTimeout(() => {
           applyFiltersAndSort(false);
-        }, 600); // Initial load delay
+        }, 100); // Render quickly after fetch
       });
     </script>
   </body>

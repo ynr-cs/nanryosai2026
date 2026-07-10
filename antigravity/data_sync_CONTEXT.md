@@ -2,7 +2,7 @@
 title: データ同期アーキテクチャ分析レポート
 tags: [infra, context, spec]
 status: active
-last_updated: 2026-04-20
+last_updated: 2026-07-09
 ---
 
 # データ同期アーキテクチャ分析レポート
@@ -52,8 +52,9 @@ last_updated: 2026-04-20
 
 `data.js` の `projectData` から Firestore `stores` コレクションへの同期。
 
-- **同期対象:** `contentType: 'menu'` の団体のみ。
-  - 展示 (`gallery`) やステージ発表のみの団体は、現状モバイルオーダー機能を使用しないため、Firestore には同期されません。
+- **同期対象:** `useMobileOrder: true` の団体のみ。
+  - 展示 (`exhibit`)、ステージ (`stage`)、物販 (`shop`) のみの団体や、食品でも現金手売りのみ (`useMobileOrder: false`) の団体は Firestore には同期されません。
+  - **注意**: 以前は `contentType: 'menu'` で判定していたが、メニュー表示UIを使う非モバイルオーダー団体（茶道部・美術部等）が誤同期される問題があり、2026-07-09 に `useMobileOrder` フラグに移行しました。
 - **フィールドマッピング:**
   - 以下のようにフィールド名が変換、または**除外**されます。
 

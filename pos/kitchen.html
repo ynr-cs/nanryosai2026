@@ -9,7 +9,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>キッチン | 南陵祭2026</title>
+    <title>キッチンモニター | 南陵祭2026</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
       rel="stylesheet"
@@ -713,6 +713,13 @@
           document.getElementById("user-name").textContent = user.displayName || user.email;
           document.getElementById("display-store-id").textContent = storeId;
           
+          // POSアラート監視 (動的インポート)
+          import("./pos-alert.js").then((module) => {
+            db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
+              if (snap.exists) module.renderPosAlert(snap.data());
+            });
+          }).catch(err => console.error("Failed to load pos-alert module", err));
+          
           // AudioContext is usually blocked until user interaction. 
           // We can't automatically unlock it if we bypassed login clicks,
           // but clicking anywhere in the UI later will unlock it.
@@ -734,7 +741,7 @@
         unsubscribe = db
           .collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "in", ["unpaid_at_pos", "authorized"])
+          .where("status", "==", "cooking")
           .orderBy("createdAt", "asc")
           .onSnapshot(
             (snapshot) => {
@@ -816,8 +823,11 @@
 
         let sourceLabel = "POS";
         let sourceClass = "badge-pos";
-        if (data.status === "authorized") {
+        if (data.orderChannel === "mobile") {
           sourceLabel = "Mobile";
+          sourceClass = "badge-mobile";
+        } else if (data.orderChannel === "sok") {
+          sourceLabel = "SOK";
           sourceClass = "badge-mobile";
         }
 
@@ -841,7 +851,9 @@
                     </div>
                     <div>${itemsHtml}</div>
                 </div>
-                <button class="btn-complete" onclick="completeOrder('${orderId}')">完了</button>
+                <div style="display: flex; gap: 8px; margin-top: auto; padding: 0 15px 15px;">
+                  <button class="btn-complete" style="flex: 1; padding: 12px; margin-top: 0;" onclick="completeOrder('${orderId}')">調理完了</button>
+                </div>
             `;
         return div;
       }
@@ -908,18 +920,15 @@
       }
 
       window.completeOrder = function (orderId) {
-        const card = document.getElementById(`card-${orderId}`);
-        const currentStatus = card
-          ? card.dataset.currentStatus
-          : "unpaid_at_pos";
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: "ready_to_serve",
-            previousStatus: currentStatus,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .catch((e) => alert("更新失敗: " + e.message));
+        // 見た目上、即座にカードを消す（Optimistic UI）
+        removeCard(orderId);
+
+        // バックグラウンドでステータス更新処理を回す
+        const kitchenComplete = firebase.app().functions("asia-northeast1").httpsCallable("kitchenComplete");
+        kitchenComplete({ orderId }).catch(e => {
+          alert("更新失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
       };
 
       // --- 履歴機能 ---
@@ -936,8 +945,8 @@
           '<p style="text-align:center; color:#999; margin-top:20px;">読み込み中...</p>';
         db.collection("orders")
           .where("storeId", "==", storeId)
-          .where("status", "==", "ready_to_serve")
-          .orderBy("completedAt", "desc")
+          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "completed", "cancelled", "abandoned"])
+          .orderBy("updatedAt", "desc")
           .get()
           .then((querySnapshot) => {
             if (querySnapshot.empty) {
@@ -966,14 +975,20 @@
                 itemsSummary = data.items
                   .map((i) => `${i.quantity} ${i.name}`)
                   .join(", ");
-              const prevStatus = data.previousStatus || "unpaid_at_pos";
+              const statusMap = {
+                ready_to_serve: "提供待ち",
+                ready_for_pickup: "呼出中",
+                completed: "提供完了",
+                cancelled: "キャンセル",
+                abandoned: "強制終了"
+              };
+              const stLabel = statusMap[data.status] || data.status;
               html += `
                 <div class="history-item">
                     <div class="h-info">
-                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span></div>
+                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span> <span style="margin-left: 10px; font-size: 0.9em; background: #eee; padding: 2px 8px; border-radius: 4px;">${stLabel}</span></div>
                         <div class="h-details">${itemsSummary}</div>
                     </div>
-                    <button class="btn-revert" onclick="revertOrder('${orderId}', '${prevStatus}')">元に戻す</button>
                 </div>`;
             });
             historyListEl.innerHTML = html;
@@ -992,17 +1007,7 @@
           });
       }
 
-      window.revertOrder = function (orderId, prevStatus) {
-        if (!confirm("この注文を調理中に戻しますか？")) return;
-        db.collection("orders")
-          .doc(orderId)
-          .update({
-            status: prevStatus,
-            completedAt: firebase.firestore.FieldValue.delete(),
-          })
-          .then(() => loadHistory())
-          .catch((e) => alert("エラー: " + e.message));
-      };
+      // (revertOrder is removed for new system)
 
       window.onclick = function (event) {
         if (event.target == historyModal) closeHistory();

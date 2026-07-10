@@ -18,7 +18,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Mobile Order | 南陵祭2026</title>
+    <title>モバイルオーダー | 南陵祭2026</title>
     <!-- Bootstrap 5 CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -939,7 +939,7 @@
           </div>
           <ul class="warning-list small mb-2">
             <li>注文確定後のキャンセルはできません</li>
-            <li>受け取りは「呼出」から15分以内</li>
+            <li>受け取りは「呼出」から5分以内</li>
             <li>返金対応は致しかねます</li>
           </ul>
           <div class="ban-warning text-center p-2 fs-6 mt-2">
@@ -1042,7 +1042,7 @@
         <div class="alert alert-danger small" role="alert">
           <i class="bi bi-exclamation-triangle-fill me-1"></i>
           <strong>確定後のキャンセル・返金はできません。</strong><br />
-          調理完了通知が届いてから15分以内に受け取りに来てください。
+          調理完了通知が届いてから5分以内に受け取りに来てください。
         </div>
         <button class="btn-primary-custom mb-3" onclick="finalizeOrder()">
           注文を確定する
@@ -1351,7 +1351,6 @@
         getDoc,
         setDoc,
         serverTimestamp,
-        writeBatch,
         query,
         where,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -1581,17 +1580,39 @@
 
             const imgSrc = `../images/${d.id}.png`;
             const el = document.createElement("div");
+            const isOpen = data.operationStatus === "open";
             el.className = "store-card animate__animated animate__fadeInUp";
+
+            // 営業中でない場合はグレーアウト
+            if (!isOpen) {
+              el.style.opacity = "0.5";
+              el.style.pointerEvents = "none";
+              el.style.cursor = "not-allowed";
+            }
+
+            // 営業ステータスのバッジを生成
+            const statusConfig = {
+              open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
+              suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
+              closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
+            };
+            const st = statusConfig[data.operationStatus] || statusConfig.suspended;
+            const statusBadge = `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};margin-top:4px;">${st.text}</span>`;
+
             el.innerHTML = `
               <img src="${imgSrc}" class="store-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
               <div class="store-info">
                  <h3>${data.name}</h3>
-                 <small style="color: var(--text-sub);">${data.teamName || ""}</small>
+                 <small style="color: var(--text-sub);">${data.teamName || ""}</small><br>
+                 ${statusBadge}
               </div>
             `;
-            el.onclick = () => selectStore(d.id, data.name);
+            if (isOpen) {
+              el.onclick = () => selectStore(d.id, data.name);
+            }
             list.appendChild(el);
           });
+
 
           // Auto Redirect if matched
           if (targetStoreId && targetStoreName) {
@@ -1639,23 +1660,48 @@
             const p = d.data();
             p.id = d.id;
             products.push(p);
+          });
 
+          // おすすめ商品を優先的に表示（上にソート）
+          products.sort((a, b) => {
+            const aRec = a.isRecommended ? 1 : 0;
+            const bRec = b.isRecommended ? 1 : 0;
+            if (bRec !== aRec) return bRec - aRec;
+            return 0; // 他は元の順序を維持
+          });
+
+          products.forEach((p) => {
             const isSoldOut = p.isAvailable === false;
+            const isRec = p.isRecommended === true;
             const el = document.createElement("div");
             el.className = "menu-card animate__animated animate__fadeIn";
             if (isSoldOut) el.style.opacity = "0.7";
+            
+            // おすすめ商品はカード自体を光らせる
+            if (isRec && !isSoldOut) {
+               el.style.boxShadow = "0 0 15px rgba(255, 152, 0, 0.5)";
+               el.style.border = "2px solid #ff9800";
+            }
+
+            let badgeHtml = "";
+            if (isSoldOut) {
+              badgeHtml = '<div class="sold-out-badge"><span class="sold-out-text">SOLD OUT</span></div>';
+            } else if (isRec) {
+              // 画像を覆わないように、左上に小さくバッジを配置
+              badgeHtml = '<div style="position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); padding: 4px 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4); z-index: 10; display: flex; align-items: center;"><span style="color: white; font-weight: 800; font-size: 0.75rem; line-height: 1;"><i class="bi bi-star-fill me-1" style="font-size:0.7rem;"></i>おすすめ</span></div>';
+            }
 
             el.innerHTML = `
               <div class="menu-img-box" style="background: var(--bg-color);">
-                 ${isSoldOut ? '<div class="sold-out-badge"><span class="sold-out-text">SOLD OUT</span></div>' : ""}
+                 ${badgeHtml}
                  <div class="img-loader">
                    <div class="spinner-border text-secondary" role="status" style="width: 2rem; height: 2rem;"></div>
                  </div>
                  <img class="menu-img" id="img-${p.id}">
               </div>
               <div class="menu-info">
-                 <div class="fw-bold text-truncate">${p.name}</div>
-                 <div class="fw-bold mt-1">¥${p.price}</div>
+                 <div class="fw-bold text-truncate" style="font-size: 0.95rem;">${p.name}</div>
+                 <div class="fw-bold mt-1" style="color: var(--brand-color); font-size: 1.1rem;">¥${p.price}</div>
               </div>
             `;
 
@@ -1945,26 +1991,29 @@
         if (!confirm("本当に注文を確定してよろしいですか？")) return;
         loader.style.display = "flex";
         try {
-          const cartRef = collection(db, `users/${currentUser.uid}/cart`);
-          const batch = writeBatch(db);
-          const oldSnap = await getDocs(cartRef);
-          oldSnap.forEach((d) => batch.delete(d.ref));
+          // 注文送信直前に店舗ステータスを再確認
+          // （メニュー画面に留まっている間に緊急停止が発動した場合に対処）
+          // getDoc / doc は L1350-L1351 で static import 済みのものを使用
+          const storeSnap = await getDoc(doc(db, "stores", currentStoreId));
+          if (storeSnap.exists() && storeSnap.data().operationStatus !== "open") {
+            loader.style.display = "none";
+            alert("この店舗は現在注文を受け付けていません。店舗一覧に戻ります。");
+            backToStores();
+            return;
+          }
 
-          cart.forEach((c) => {
-            batch.set(doc(cartRef), {
-              productId: c.productId,
+          // Phase3: createOrder (統合関数) を呼び出す
+          // カートはローカル変数のみ管理（Firestore保存なし・設計憲法§5.1）
+          const createOrderFn = httpsCallable(functions, "createOrder");
+          const result = await createOrderFn({
+            orderChannel: "mobile",
+            storeId: currentStoreId,
+            items: cart.map((c) => ({
+              itemId: c.productId,
               quantity: c.quantity,
-              customizations: c.customizations,
-              updatedAt: serverTimestamp(),
-            });
+              customizations: c.customizations || [],
+            })),
           });
-          await batch.commit();
-
-          const createOnlineOrder = httpsCallable(
-            functions,
-            "createOnlineOrder",
-          );
-          const result = await createOnlineOrder({ storeId: currentStoreId });
           if (!result.data.success)
             throw new Error(result.data.error || "Order Failed");
 

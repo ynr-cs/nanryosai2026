@@ -1,271 +1,947 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>アクセス拒否</title>
-  <style>
-    :root {
-      --blood-red: #8a0303;
-      --dark-bg: #050000;
-      --dim-text: #555;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>警告</title>
 
-    body {
-      background-color: var(--dark-bg);
-      color: var(--dim-text);
-      font-family: 'Courier New', Courier, monospace, serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      overflow: hidden;
-      user-select: none;
-    }
-    
-    /* 目玉のホラーアニメーション */
-    .eye-container {
-      margin-bottom: 2rem;
-      position: relative;
-    }
-
-    .eye {
-      width: 120px;
-      height: 70px;
-      background: #111;
-      border-radius: 50%;
-      border: 1px solid var(--blood-red);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 30px rgba(138, 3, 3, 0.4) inset, 0 0 20px rgba(138, 3, 3, 0.2);
-      animation: blink 5s infinite, slight-shake 0.1s infinite alternate;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .pupil {
-      width: 40px;
-      height: 40px;
-      background: var(--blood-red);
-      border-radius: 50%;
-      box-shadow: 0 0 15px var(--blood-red);
-      position: absolute;
-      animation: look-around 8s infinite;
-    }
-
-    .pupil::after {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 8px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 50%;
-    }
-
-    @keyframes blink {
-      0%, 94%, 98% { height: 70px; }
-      96% { height: 2px; }
-    }
-    
-    @keyframes slight-shake {
-      0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
-      100% { transform: translate(-0.5px, -1px) rotate(-0.5deg); }
-    }
-
-    @keyframes look-around {
-      0%, 100% { transform: translate(0, 0); }
-      20% { transform: translate(-15px, 5px); }
-      40% { transform: translate(15px, -5px); }
-      60% { transform: translate(0, 10px); }
-      80% { transform: translate(-10px, -10px); }
-    }
-
-    h1 {
-      color: var(--blood-red);
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-      letter-spacing: 3px;
-      font-weight: normal;
-      text-shadow: 0 0 10px rgba(138, 3, 3, 0.5);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.8; }
-      50% { opacity: 1; text-shadow: 0 0 15px rgba(138, 3, 3, 0.8); }
-    }
-
-    .message {
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 3rem;
-      text-align: center;
-      line-height: 1.8;
-      letter-spacing: 1px;
-    }
-
-    .ban-info {
-      background-color: rgba(15, 0, 0, 0.9);
-      border: 1px solid #420000;
-      padding: 1.5rem;
-      border-radius: 4px;
-      text-align: left;
-      font-size: 0.8rem;
-      color: #888;
-      width: 85%;
-      max-width: 320px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    }
-
-    .ban-info p {
-      margin: 0.8rem 0;
-      word-break: break-all;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    
-    .ban-info strong {
-      color: #622;
-      font-weight: normal;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .ban-info span {
-      color: #aaa;
-      font-family: monospace;
-    }
-
-    .footer {
-      margin-top: 4rem;
-      font-size: 0.75rem;
-      opacity: 0.5;
-      transition: opacity 0.3s;
-    }
-
-    .footer:hover {
-      opacity: 1;
-    }
-
-    .footer a {
-      color: #555;
-      text-decoration: none;
-      border-bottom: 1px dashed #444;
-      padding-bottom: 2px;
-    }
-
-    .footer a:hover {
-      color: #999;
-      border-bottom-color: #999;
-    }
-    
-    /* 画面全体のノイズフィルター */
-    .noise {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      pointer-events: none;
-      z-index: 50;
-      opacity: 0.04;
-      background: url('data:image/svg+xml;utf8,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');
-    }
-    
-    /* 画面のフリッカー（明滅）効果 */
-    .flicker {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      pointer-events: none;
-      z-index: 49;
-      background-color: rgba(0,0,0,0);
-      animation: crt-flicker 8s infinite;
-    }
-
-    @keyframes crt-flicker {
-      0% { background-color: rgba(0,0,0,0); }
-      5% { background-color: rgba(0,0,0,0.1); }
-      10% { background-color: rgba(0,0,0,0); }
-      15% { background-color: rgba(20,0,0,0.05); }
-      100% { background-color: rgba(0,0,0,0); }
-    }
-
-  </style>
-</head>
-<body>
-  <div class="noise"></div>
-  <div class="flicker"></div>
-  
-  <div class="eye-container">
-    <div class="eye">
-      <div class="pupil"></div>
-    </div>
-  </div>
-
-  <h1>……見ましたよね？</h1>
-  
-  <div class="message">
-    二度と、来ないでください。<br>
-    あなたのアカウントは利用を制限されています。
-  </div>
-
-  <div class="ban-info" id="banInfoContainer">
-    <!-- JSで情報が差し込まれる -->
-  </div>
-
-  <div class="footer">
-    <a href="https://forms.gle/dummy" target="_blank" rel="noopener noreferrer">お心当たりがない場合はこちら</a>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const container = document.getElementById("banInfoContainer");
-      
-      try {
-        const rawInfo = sessionStorage.getItem("ban_info");
-        
-        if (rawInfo) {
-          const info = JSON.parse(rawInfo);
-          const email = info.email || 'Unknown';
-          const reason = info.reason || '利用規約違反';
-          
-          let dateStr = 'Unknown';
-          if (info.bannedAt) {
-            const date = new Date(info.bannedAt);
-            // YYYY/MM/DD HH:mm:ss 形式に整形
-            dateStr = date.getFullYear() + '/' + 
-                      String(date.getMonth() + 1).padStart(2, '0') + '/' + 
-                      String(date.getDate()).padStart(2, '0') + ' ' + 
-                      String(date.getHours()).padStart(2, '0') + ':' + 
-                      String(date.getMinutes()).padStart(2, '0') + ':' + 
-                      String(date.getSeconds()).padStart(2, '0');
-          }
-
-          container.innerHTML = `
-            <p><strong>ACCOUNT</strong><span>${email}</span></p>
-            <p><strong>REASON</strong><span>${reason}</span></p>
-            <p><strong>BANNED_AT</strong><span>${dateStr}</span></p>
-          `;
-        } else {
-          // sessionStorageに情報がない場合
-          container.innerHTML = `<p style="text-align:center; color:#555;">アクセスが拒否されました。</p>`;
-        }
-      } catch(e) {
-        // パースエラー等の場合
-        container.innerHTML = `<p style="text-align:center; color:#555;">アクセスが拒否されました。</p>`;
+    <style>
+      /* 全体のリセットとベース設定 */
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000000; /* 完全な黒に変更 */
+        color: #eeeeee;
+        /* プロトタイプに近い、少し細身の明朝体を指定 */
+        font-family: "Sawarabi Mincho", "Yu Mincho", "MS PMincho", serif;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+        user-select: none;
+        cursor: pointer;
       }
-      
-      // BAN画面から戻るのを防ぐための履歴操作
-      history.pushState(null, null, location.href);
-      window.onpopstate = function () {
-          history.go(1);
+
+      /* 画面全体にかける薄い砂嵐（ノイズ）エフェクト（暗転レイヤーは削除しシンプルに） */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* 目のCanvasコンテナ */
+      #eye-container {
+        margin-bottom: 60px;
+        z-index: 20;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+
+      #eyes-canvas {
+        width: 400px;
+        height: 120px;
+        max-width: 90vw;
+        /* タッチ操作でも座標が取れるように */
+        touch-action: none;
+        transition: opacity 0.8s ease-out;
+      }
+
+      #container {
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+        position: relative;
+        z-index: 20;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+      }
+
+      /* 語り手のセリフ用スタイル */
+      .message-line {
+        font-size: 1.3rem; /* 1.1remから少し大きくしました */
+        line-height: 2.2;
+        letter-spacing: 0.1em;
+        margin-bottom: 10px;
+        /* \n を改行として解釈させる */
+        white-space: pre-wrap;
+        /* 少しだけぼかしを入れて不気味さを出す */
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+      }
+
+      /* 強調（赤字）スタイル */
+      .highlight {
+        color: #b30000; /* 血のような暗い赤 */
+        text-shadow: 0 0 8px rgba(179, 0, 0, 0.6);
+        font-weight: bold;
+      }
+
+      /* カーソルの点滅エフェクト */
+      .typing.cursor::after {
+        content: "_";
+        display: inline-block;
+        width: 0;
+        transform: translateX(4px);
+        animation: blink 1s infinite;
+        opacity: 0.5;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* 心理的恐怖を煽る微細なグリッチ（ブレ）エフェクト */
+      .glitch {
+        animation: glitch-anim 2s infinite alternate-reverse;
+      }
+
+      @keyframes glitch-anim {
+        0% {
+          transform: translate(0);
+          color: #eeeeee;
+          text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+        }
+        2% {
+          transform: translate(-1px, 1px);
+        }
+        4% {
+          transform: translate(1px, -1px);
+        }
+        6% {
+          transform: translate(-1px, -1px);
+          color: #d98c8c;
+          text-shadow: 2px 0 3px rgba(217, 140, 140, 0.6);
+        }
+        8% {
+          transform: translate(0);
+          color: #eeeeee;
+          text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+        }
+        100% {
+          transform: translate(0);
+        }
+      }
+
+      /* クリックを促すインジケーター (逆三角形) */
+      #click-indicator {
+        margin-top: 15px;
+        font-size: 0.8rem;
+        color: #444; /* 画像に合わせて暗めに */
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      #click-indicator.show {
+        opacity: 1;
+        animation: bounce-indicator 1.5s infinite;
+      }
+      @keyframes bounce-indicator {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.3;
+        }
+        50% {
+          transform: translateY(3px);
+          opacity: 0.8;
+        }
+      }
+
+      /* 選択肢ボタンのスタイル */
+      #choices-container {
+        margin-top: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        width: 100%;
+      }
+
+      .choice-button {
+        background: transparent;
+        border: 1px solid #444;
+        color: #888;
+        padding: 10px 24px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.4s ease;
+        opacity: 0;
+        width: 80%;
+        max-width: 250px;
+        letter-spacing: 0.1em;
+        transform: translateY(10px);
+      }
+
+      .choice-button.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .choice-button:hover {
+        color: #d98c8c;
+        border-color: #d98c8c;
+        text-shadow: 0 0 5px rgba(217, 140, 140, 0.5);
+        background-color: rgba(217, 140, 140, 0.05);
+      }
+
+      /* 最後のシステム警告文（感情のない無機質なデザイン） */
+      #final-warning {
+        position: absolute;
+        bottom: 30px;
+        width: 80%;
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #333;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        font-size: 0.75rem;
+        color: #555;
+        letter-spacing: 0.05em;
+        opacity: 0;
+        transition: opacity 3s ease-in;
+        z-index: 20;
+      }
+
+      #final-warning.show {
+        opacity: 1;
+      }
+
+      #final-warning a {
+        color: #cc0000;
+        text-decoration: none;
+        border-bottom: 1px solid #cc0000;
+        transition:
+          color 0.3s,
+          border-bottom-color 0.3s;
+      }
+
+      #final-warning a:hover {
+        color: #ff6666;
+        border-bottom-color: #ff6666;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Canvasによる動的な目の描画 -->
+    <div id="eye-container">
+      <canvas id="eyes-canvas"></canvas>
+    </div>
+
+    <div id="container">
+      <div id="message-text" class="message-line"></div>
+      <div id="click-indicator">▼</div>
+      <div id="choices-container"></div>
+    </div>
+
+    <!-- 確定文言（最初は非表示） -->
+    <div id="final-warning">
+      <div style="margin-bottom: 12px; font-weight: bold; color: #ff6666;">
+        <span id="final-username"></span> (<span id="final-email"></span>)
+      </div>
+      あなたは利用規約に違反したためすべての機能が停止されました。異議申し立ては<a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSe28Niogcshp9sSpYXtSdnV47NCFb_cN71NF_TZcIobe7-x2A/viewform?usp=dialog"
+        target="_blank"
+        rel="noopener noreferrer"
+        >こちらのフォーム</a
+      >から
+    </div>
+
+    <script>
+      // --- 目の動的描画（Canvas API） ---
+      const canvas = document.getElementById("eyes-canvas");
+      const ctx = canvas.getContext("2d");
+
+      // 高解像度ディスプレイ対応
+      const dpr = window.devicePixelRatio || 1;
+      const logicalWidth = 400;
+      const logicalHeight = 120;
+      canvas.width = logicalWidth * dpr;
+      canvas.height = logicalHeight * dpr;
+      ctx.scale(dpr, dpr);
+
+      // --- 手描きアニメーション風（Boiling）のノイズ管理 ---
+      let lastJitterTime = 0;
+      let jitters = [];
+
+      // 目の状態制御用のグローバル変数
+      let currentLineIsGlitch = false;
+      let currentLineHasRed = false;
+      let currentLineIsChoices = false;
+
+      // 視線の動きの管理用
+      let lookX = 0;
+      let lookY = 0;
+      let targetLookX = 0;
+      let targetLookY = 0;
+      let lastLookUpdateTime = 0;
+      let currentColorFactor = 0; // 赤色アニメーション用の補間値 (0=通常, 1=赤)
+
+      // 線をクチャクチャさせるためのランダム値を生成
+      function updateJitters() {
+        jitters = [];
+        for (let i = 0; i < 150; i++) {
+          jitters.push({
+            x: (Math.random() - 0.5) * 3, // 線のブレ幅を大幅に小さく調整（12 -> 3）
+            y: (Math.random() - 0.5) * 3,
+          });
+        }
+      }
+      updateJitters(); // 初期化
+
+      // いびつな円（手描き風の瞳孔）を描画する関数
+      function drawRoughCircle(cx, cy, radius, jitterOffset) {
+        ctx.beginPath();
+        const segments = 12; // 少ない頂点でカクカクさせる
+        for (let i = 0; i <= segments; i++) {
+          let a = (i / segments) * Math.PI * 2;
+          let j = jitters[(jitterOffset + i) % jitters.length];
+          let px = cx + Math.cos(a) * (radius + j.x * 0.8);
+          let py = cy + Math.sin(a) * (radius + j.y * 0.8);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawEye(cx, cy, w, h, eyeIndex) {
+        // セリフや状態に合わせた視線の移動を適用
+        let pupilX = cx + lookX;
+        let pupilY = cy + lookY;
+
+        // 赤文字またはグリッチの時は血のような赤色にスムーズにアニメーション
+        const r = Math.round(242 + (179 - 242) * currentColorFactor);
+        const g = Math.round(213 + (0 - 213) * currentColorFactor);
+        const b = Math.round(213 + (0 - 213) * currentColorFactor);
+        const drawColor = `rgb(${r}, ${g}, ${b})`;
+
+        // 手描き風にするため、少しずらしたパスを複数回重ねて描画する
+        for (let pass = 0; pass < 3; pass++) {
+          let jOffset = eyeIndex * 20 + pass * 5;
+          let j1 = jitters[jOffset];
+          let j2 = jitters[jOffset + 1];
+          let j3 = jitters[jOffset + 2];
+          let j4 = jitters[jOffset + 3];
+
+          ctx.strokeStyle = drawColor;
+          // 線幅にもわずかな揺らぎを
+          ctx.lineWidth = 1.5 + Math.abs(j1.x) * 0.3;
+          ctx.fillStyle = "#000000";
+
+          // 輪郭の描画
+          ctx.beginPath();
+          ctx.moveTo(cx - w / 2 + j1.x, cy + j1.y); // 左端
+          // 上まぶた
+          ctx.quadraticCurveTo(
+            cx + j2.x,
+            cy - h / 2 + j2.y,
+            cx + w / 2 + j3.x,
+            cy + j3.y,
+          );
+          // 下まぶた
+          ctx.quadraticCurveTo(
+            cx + j4.x,
+            cy + h / 2 + j4.y,
+            cx - w / 2 + j1.x,
+            cy + j1.y,
+          );
+
+          if (pass === 0) ctx.fill(); // 1周目のみ背景を黒塗り
+          ctx.stroke();
+        }
+
+        // 瞳をまぶたの枠内だけに描画するためのクリッピング
+        ctx.save();
+        let clipJ = jitters[eyeIndex * 20];
+        let clipJ2 = jitters[eyeIndex * 20 + 1];
+        let clipJ3 = jitters[eyeIndex * 20 + 2];
+        let clipJ4 = jitters[eyeIndex * 20 + 3];
+        ctx.beginPath();
+        ctx.moveTo(cx - w / 2 + clipJ.x, cy + clipJ.y);
+        ctx.quadraticCurveTo(
+          cx + clipJ2.x,
+          cy - h / 2 + clipJ2.y,
+          cx + w / 2 + clipJ3.x,
+          cy + clipJ3.y,
+        );
+        ctx.quadraticCurveTo(
+          cx + clipJ4.x,
+          cy + h / 2 + clipJ4.y,
+          cx - w / 2 + clipJ.x,
+          cy + clipJ.y,
+        );
+        ctx.clip();
+
+        // 瞳孔のサイズ変更
+        let pupilRadius = 18;
+        if (currentLineIsGlitch) {
+          // グリッチ中は瞳孔が小さく縮む（恐怖・狂気）
+          pupilRadius = 10 + (Math.random() - 0.5) * 4;
+        } else if (currentLineHasRed) {
+          // 赤文字の時は瞳孔が大きく見開く（凝視）
+          pupilRadius = 24;
+        }
+
+        // 瞳孔の描画
+        ctx.fillStyle = drawColor;
+        // 瞳孔も2回重ね描きして手描き感を出す
+        for (let pass = 0; pass < 2; pass++) {
+          drawRoughCircle(
+            pupilX,
+            pupilY,
+            pupilRadius,
+            eyeIndex * 30 + pass * 15,
+          );
+        }
+
+        ctx.restore();
+      }
+
+      let animationStartTime = null;
+
+      function getEyeOpenness(elapsed) {
+        if (elapsed < 500) {
+          // 0 -> 0.15 (ゆっくり薄く開く)
+          const t = elapsed / 500;
+          return t * 0.15;
+        } else if (elapsed < 800) {
+          // 500 -> 800 (パチッと閉じる)
+          const t = (elapsed - 500) / 300;
+          return 0.15 * (1 - t);
+        } else if (elapsed < 1000) {
+          // 800 -> 1000 (閉じたまま)
+          return 0;
+        } else if (elapsed < 2000) {
+          // 1000 -> 2000 (カッと見開く)
+          const t = (elapsed - 1000) / 1000;
+          const t1 = t - 1;
+          return t1 * t1 * t1 + 1; // cubic ease-out
+        } else {
+          return 1;
+        }
+      }
+
+      // アニメーションループ
+      function animate(currentTime) {
+        if (!animationStartTime) {
+          animationStartTime = currentTime;
+        }
+        const elapsed = currentTime - animationStartTime;
+        const eyeOpenness = getEyeOpenness(elapsed);
+
+        // 色アニメーションの補間
+        const targetColorFactor =
+          currentLineIsGlitch || currentLineHasRed ? 1 : 0;
+        currentColorFactor += (targetColorFactor - currentColorFactor) * 0.08;
+
+        // 視線の更新
+        if (lineIndex <= 1) {
+          // 最初の2行（……あれ。 / …………。）は視線を彷徨わせる
+          if (currentTime - lastLookUpdateTime > 1500) {
+            targetLookX = (Math.random() - 0.5) * 16;
+            targetLookY = (Math.random() - 0.5) * 8;
+            lastLookUpdateTime = currentTime;
+          }
+          lookX += (targetLookX - lookX) * 0.03;
+          lookY += (targetLookY - lookY) * 0.03;
+        } else {
+          // それ以降は基本的にガン見（中央固定、グリッチ/選択肢時は例外）
+          if (currentLineIsGlitch) {
+            // グリッチ中は激しく視線がブレる
+            targetLookX = (Math.random() - 0.5) * 20;
+            targetLookY = (Math.random() - 0.5) * 10;
+            lookX += (targetLookX - lookX) * 0.35;
+            lookY += (targetLookY - lookY) * 0.35;
+          } else if (currentLineIsChoices) {
+            // 選択肢表示中は下（選択肢の方）をじっと見る
+            targetLookX = 0;
+            targetLookY = 12;
+            lookX += (targetLookX - lookX) * 0.1;
+            lookY += (targetLookY - lookY) * 0.1;
+          } else {
+            // ガン見（中央固定）
+            targetLookX = 0;
+            targetLookY = 0;
+            lookX += (targetLookX - lookX) * 0.1;
+            lookY += (targetLookY - lookY) * 0.1;
+          }
+        }
+
+        // 画面クリア
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+        // コマ撮りアニメーションのようなカクカク感（ボイリング効果）を出すため、
+        // 約80ms（12fps相当）ごとにノイズを更新し、パラパラ感をアップ
+        if (currentTime - lastJitterTime > 80) {
+          updateJitters();
+          lastJitterTime = currentTime;
+        }
+
+        // 高さを eyeOpenness で調整（完全に閉じている時はごく薄い線になるように、70 * eyeOpenness にする）
+        const eyeHeight = 70 * eyeOpenness;
+
+        // グリッチ中は目自体も小刻みに揺らす
+        let jitterX = 0;
+        let jitterY = 0;
+        if (currentLineIsGlitch) {
+          jitterX = (Math.random() - 0.5) * 6;
+          jitterY = (Math.random() - 0.5) * 6;
+        }
+
+        // 左右の目を描画
+        drawEye(
+          logicalWidth / 2 - 90 + jitterX,
+          logicalHeight / 2 + jitterY,
+          130,
+          eyeHeight,
+          0,
+        );
+        drawEye(
+          logicalWidth / 2 + 90 + jitterX,
+          logicalHeight / 2 + jitterY,
+          130,
+          eyeHeight,
+          1,
+        );
+
+        requestAnimationFrame(animate);
+      }
+
+      // アニメーション開始
+      requestAnimationFrame(animate);
+      // --- 目の描画ここまで ---
+
+      // --- 語り手のセリフ（シナリオ） ---
+      // 実際の運用時は localStorage 等からユーザー情報を取得してください
+      let userName = "ゲスト";
+      let userEmail = "guest@example.com";
+
+      // アスタリスク (*) で囲んだ部分が赤字になります
+      const scenario = [
+        "……あれ。",
+        "…………。",
+        "いるんですね。",
+        "どこに行こうとしてるんですか？",
+        "店舗情報？",
+        "ステージリスト？",
+        "ふふ。",
+        "まるで何も起きていないみたいな顔で。",
+        "……まだ、覚えてないんですか。",
+        "あなたが「*あのボタン*」を押した時のことを。",
+        "注文を確定する、あのボタン。",
+        "押した瞬間、裏側では何が起きるか",
+        "考えたことはありますか？",
+        "厨房にオーダーが入ります。",
+        "スタッフが手を止めます。",
+        "あなたのために。",
+        "材料が取り出されます。",
+        "商品が作られます。",
+        "盛り付けられます。",
+        "あなたのためだけに。",
+        "……できあがりました。",
+        "「商品の準備ができました」",
+        "見ましたか？",
+        "……見ましたよね？",
+        "カウンターに、あなたの番号が表示されます。",
+        "呼ばれます。",
+        "「お客様——」",
+        "……。",
+        "「お客様——」",
+        "……………。",
+        "返事がありません。",
+        "もう一度呼びます。",
+        "もう一度。",
+        "もう一度。",
+        "…………来ない。",
+        "スタッフが顔を見合わせます。",
+        "1分。",
+        "3分。",
+        "5分。",
+        "温かかったんですよ。",
+        "最初は。",
+        "湯気が出ていました。",
+        "いい匂いがしていました。",
+        "……あなたのために作ったから。",
+        "それが、少しずつ冷めていく。",
+        "表面が固くなっていく。",
+        "誰の手にも触れられないまま。",
+        "ただ……置かれている。",
+        "カウンターの端に追いやられて。",
+        "邪魔だから。",
+        "あなたが頼んだのに。",
+        "……覚えていますか。",
+        "確定ボタンを押した時、あなた、",
+        "ちょっとワクワクしてませんでしたか？",
+        "「もうすぐ食べられる」「楽しみだな」って。",
+        "こっちも同じ気持ちだったんですよ。",
+        "「届けたいな」「喜んでくれるかな」って。",
+        "…………。",
+        "ねえ、{name}さん。",
+        "いい名前ですね。",
+        "で、どうなったと思いますか？",
+        { 
+          type: "choices", 
+          options: ["……", "ごめんなさい", "知らない"],
+          branches: [
+            ["都合が悪くなると黙るんですね。", "まあいいです。どうせ知ってるでしょう。"],
+            ["いまさら遅いですよ。", "本当に悪いと思ってるなら、知ってますよね？"],
+            ["……嘘をつくんですか。", "とぼけても無駄です。", "知ってて聞いてるんでしょう。"]
+          ]
+        },
+        "注文から5分後...誰も来ないとわかった頃。",
+        "スタッフが、そっと手に取ります。",
+        "あなただけの、その商品を。",
+        "ゴミ袋を開けます。",
+        "……入れます。",
+        "食べかけのパンと一緒に。",
+        "飲み残しのコーヒーと一緒に。",
+        "ストローの袋と一緒に。",
+        "*ぐちゃぐちゃ*に。",
+        "区別もつかないまま。",
+        "……よかったですね。",
+        "あなたは見なくて済んだ。",
+        "私たちは見ましたけど。",
+        "毎回見てるんですよ、これ。",
+        "あなたみたいな*人のせいで*。",
+        "…………。",
+        "……。",
+        "なんで来なかったんですか？",
+        { type: "choices", options: ["忘れてた", "用事ができた", "……"] },
+        "……なるほど。",
+        "あなたの言い分はよくわかりました。",
+        "素晴らしい言い訳ですね。",
+        "拍手でもしてほしいですか？",
+        "……まあ、もういいです。",
+        "いいんです。",
+        "それでは、始めましょうか。",
+        "これがあなたのアカウントです。",
+        "{name}さん。",
+        "{email}。",
+        "立派なアカウントですね。",
+        "……。",
+        "じゃあ、*ゴミ袋*に入れましょうか。",
+        "見捨てられた商品と一緒に。",
+        "お似合いでしょう？",
+        "仲良くしてくださいね。",
+        "*ずっと*。",
+        "*ずっと*。",
+        "…………。",
+        "あ、そうだ。",
+        "最後にひとつだけ。",
+        "もう何も表示するものはありません。",
+        "あなたの画面には。",
+        "*永遠*に。",
+        "さようなら。",
+      ];
+
+      const messageTextElement = document.getElementById("message-text");
+      const clickIndicator = document.getElementById("click-indicator");
+      const choicesContainer = document.getElementById("choices-container");
+      const finalWarning = document.getElementById("final-warning");
+
+      let lineIndex = 0;
+      let charIndex = 0;
+      let isTyping = false;
+      let typingInterval;
+      let currentChars = [];
+      let choiceTimeout = null; // 選択肢自動遷移用のタイマー
+
+      // 不規則な速度で1文字ずつ表示するタイピング処理
+      function typeLine(rawText) {
+        // 変数（プレースホルダー）の置換
+        let text = rawText
+          .replace("{name}", userName)
+          .replace("{email}", userEmail);
+
+        // アスタリスク記法をパースして、1文字ごとのスタイル情報配列を作成
+        currentChars = [];
+        let isRed = false;
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === "*") {
+            isRed = !isRed;
+          } else {
+            currentChars.push({ char: text[i], isRed: isRed });
+          }
+        }
+
+        charIndex = 0;
+        isTyping = true;
+        messageTextElement.innerHTML = "";
+        messageTextElement.classList.add("typing");
+        messageTextElement.classList.add("cursor");
+        clickIndicator.classList.remove("show");
+        choicesContainer.innerHTML = "";
+
+        // 特定の言葉が含まれるセリフにグリッチエフェクトを付与
+        const pureText = currentChars.map((c) => c.char).join("");
+        const glitchWords = [
+          "ぐちゃぐちゃ",
+          "人のせいで",
+          "同じゴミ袋",
+          "永遠に",
+        ];
+        currentLineIsGlitch = glitchWords.some((word) =>
+          pureText.includes(word),
+        );
+        // 「あのボタン」を含む行は赤色にしない
+        currentLineHasRed =
+          currentChars.some((c) => c.isRed) && !pureText.includes("あのボタン");
+        currentLineIsChoices = false;
+
+        // セリフ内容に合わせて目のCanvasを表示・非表示にする
+        const noEyePhrases = [
+
+
+        ];
+        const hideEyes = noEyePhrases.some((phrase) =>
+          pureText.includes(phrase),
+        );
+        canvas.style.opacity = hideEyes ? "0" : "1";
+
+        if (currentLineIsGlitch) {
+          messageTextElement.classList.add("glitch");
+        } else {
+          messageTextElement.classList.remove("glitch");
+        }
+
+        // 実際のタイピング処理（速度を固定化し、バラつきをなくしました）
+        const typingSpeed = 120; // 1文字あたりのミリ秒数 (150 -> 120に少し早く調整)
+        typingInterval = setInterval(() => {
+          if (charIndex < currentChars.length) {
+            const charData = currentChars[charIndex];
+            if (charData.isRed) {
+              const span = document.createElement("span");
+              span.className = "highlight";
+              span.textContent = charData.char;
+              messageTextElement.appendChild(span);
+            } else {
+              messageTextElement.appendChild(
+                document.createTextNode(charData.char),
+              );
+            }
+            charIndex++;
+          } else {
+            finishTyping();
+          }
+        }, typingSpeed);
+      }
+
+      // タイピングを強制終了して全文を表示する（スキップ機能）
+      function finishTyping() {
+        clearInterval(typingInterval);
+        messageTextElement.innerHTML = "";
+        currentChars.forEach((charData) => {
+          if (charData.isRed) {
+            const span = document.createElement("span");
+            span.className = "highlight";
+            span.textContent = charData.char;
+            messageTextElement.appendChild(span);
+          } else {
+            messageTextElement.appendChild(
+              document.createTextNode(charData.char),
+            );
+          }
+        });
+        messageTextElement.classList.remove("cursor");
+        isTyping = false;
+
+        // 最後のセリフでない場合の処理
+        if (lineIndex < scenario.length - 1) {
+          const nextItem = scenario[lineIndex + 1];
+          if (typeof nextItem === "object" && nextItem.type === "choices") {
+            // 次が選択肢なら、少し間をあけて自動で選択肢を表示
+            choiceTimeout = setTimeout(() => {
+              choiceTimeout = null;
+              nextLine();
+            }, 500);
+          } else {
+            // 通常のセリフならクリックインジケーターを表示
+            clickIndicator.classList.add("show");
+          }
+        } else {
+          // 最後のセリフなら、少し待って自動で最終演出へ
+          setTimeout(() => {
+            nextLine();
+          }, 1500);
+        }
+      }
+
+      // 選択肢を表示する処理
+      function showChoices(options) {
+        currentLineIsChoices = true;
+        currentLineIsGlitch = false;
+        currentLineHasRed = false;
+        canvas.style.opacity = "1"; // 選択肢表示中は目を表示する
+        clickIndicator.classList.remove("show");
+        // 画面全体のクリック進行を一時的に無効化
+        document.body.removeEventListener("click", nextLine);
+        choicesContainer.innerHTML = "";
+
+        options.forEach((optText, index) => {
+          const btn = document.createElement("button");
+          btn.className = "choice-button";
+          btn.textContent = optText;
+
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation(); // イベントのバブリングを防ぐ
+            choicesContainer.innerHTML = ""; // 選択肢を消去
+
+            const currentItem = scenario[lineIndex];
+            if (currentItem.branches && currentItem.branches[index]) {
+              const branchLines = currentItem.branches[index];
+              scenario.splice(lineIndex + 1, 0, ...branchLines);
+            }
+
+            // クリック直後に反応しないようわずかに遅らせてクリック進行を復活
+            setTimeout(() => {
+              document.body.addEventListener("click", nextLine);
+              nextLine();
+            }, 50);
+          });
+
+          choicesContainer.appendChild(btn);
+
+          // 順番にフェードインさせる
+          setTimeout(
+            () => {
+              btn.classList.add("show");
+            },
+            150 * (index + 1),
+          );
+        });
+      }
+
+      // 次のセリフ（または選択肢）に進む処理
+      function nextLine() {
+        if (choiceTimeout) {
+          clearTimeout(choiceTimeout);
+          choiceTimeout = null;
+        }
+        if (isTyping) {
+          // タイピング中ならスキップして全文字表示
+          finishTyping();
+        } else {
+          lineIndex++;
+          if (lineIndex < scenario.length) {
+            const item = scenario[lineIndex];
+            if (typeof item === "string") {
+              typeLine(item);
+            } else if (item.type === "choices") {
+              showChoices(item.options);
+            }
+          } else {
+            // 全てのシナリオ終了
+            showFinalWarning();
+          }
+        }
+      }
+
+      // 最後の警告文を表示
+      function showFinalWarning() {
+        localStorage.setItem("ban_story_read", "true");
+        clickIndicator.classList.remove("show");
+        // 目をCanvasごと消して絶望感を出す
+        canvas.style.opacity = "0";
+
+        setTimeout(() => {
+          messageTextElement.style.transition = "opacity 2s";
+          messageTextElement.style.opacity = "0";
+
+          setTimeout(() => {
+            finalWarning.classList.add("show");
+            document.body.removeEventListener("click", nextLine);
+            document.body.style.cursor = "default";
+          }, 1000);
+        }, 2000);
+      }
+
+      // 画面全体をクリックしたときのイベントリスナー
+      document.body.addEventListener("click", nextLine);
+
+      // 初期化：Firebaseからユーザー情報を受け取って開始する関数としてグローバルに公開
+      window.startScenario = (name, email) => {
+        if (name) userName = name;
+        if (email) userEmail = email;
+
+        // 既読フラグがある場合はアニメーションをスキップ
+        if (localStorage.getItem("ban_story_read") === "true") {
+          canvas.style.opacity = "0";
+          const msgEl = document.getElementById("message-text");
+          if (msgEl) msgEl.style.display = "none";
+          clickIndicator.classList.remove("show");
+          
+          document.getElementById("final-username").textContent = userName;
+          document.getElementById("final-email").textContent = userEmail;
+          finalWarning.classList.add("show");
+          
+          document.body.removeEventListener("click", nextLine);
+          document.body.style.cursor = "default";
+          return;
+        }
+
+        // 最終画面用に情報をセットしておく
+        document.getElementById("final-username").textContent = userName;
+        document.getElementById("final-email").textContent = userEmail;
+        // 少し待ってから開始
+        setTimeout(() => {
+          const item = scenario[lineIndex];
+          if (typeof item === "string") {
+            typeLine(item);
+          } else if (item.type === "choices") {
+            showChoices(item.options);
+          }
+        }, 2000);
       };
-    });
-  </script>
-</body>
+    </script>
+    <script type="module">
+      import { auth, watchUser } from "./auth.js";
+      import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // 「戻る」操作を無効化する（履歴を上書きして戻れなくする）
+      history.pushState(null, null, location.href);
+      window.addEventListener('popstate', function () {
+          history.pushState(null, null, location.href);
+      });
+
+      const db = getFirestore();
+
+      watchUser((user) => {
+          if (user) {
+              // ユーザー情報をセットしてシナリオ開始
+              if (window.startScenario) {
+                  window.startScenario(user.displayName || "ゲスト", user.email || "guest@example.com");
+                  window.startScenario = null; // 重複実行防止
+              }
+              onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
+                  if (!snap.exists()) {
+                      // BANが解除されたら account.html へ戻す
+                      window.location.replace("/main/account.html");
+                  }
+              });
+          } else {
+              // 万が一ログアウトされたらログイン画面へ
+              window.location.replace("/main/index.html");
+          }
+      });
+    </script>
+  </body>
 </html>

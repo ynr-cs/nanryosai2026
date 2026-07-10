@@ -1714,12 +1714,19 @@ console.log("data.js loaded: projectData count =", projectData.length);
         let count = 0;
 
         try {
+          // 既存ドキュメントの存在を確認するため、一度全件取得する
+          const existingSnap = await getDocs(collection(db, storesCol));
+          const existingIds = new Set();
+          existingSnap.forEach((doc) => {
+            existingIds.add(doc.id);
+          });
+
           const batch = writeBatch(db);
 
           window.localData.forEach((p) => {
             if (!p.id) return;
-            // User requested to only sync sales groups (contentType === 'menu') to Firestore
-            if (p.contentType !== "menu") return;
+            // Only sync mobile order enabled groups to Firestore
+            if (p.useMobileOrder !== true) return;
 
             const storeRef = doc(db, storesCol, p.id);
 
@@ -1729,6 +1736,12 @@ console.log("data.js loaded: projectData count =", projectData.length);
               description: p.description || "",
               loginId: p.loginId || "", // Include loginId if user wants to sync it
             };
+
+            // 新規店舗（Firestoreにまだドキュメントが存在しない）の場合のみ、デフォルトで準備中(suspended)に設定
+            if (!existingIds.has(p.id)) {
+              storeData.operationStatus = "suspended";
+              log(`🆕 新規店舗 [${p.id}] を検出しました。operationStatus: "suspended" で初期化します。`);
+            }
 
             batch.set(storeRef, storeData, { merge: true });
             count++;
@@ -1761,7 +1774,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
 
         try {
           for (const p of window.localData) {
-            if (p.contentType !== "menu" || !p.menu || p.menu.length === 0)
+            if (p.useMobileOrder !== true || !p.menu || p.menu.length === 0)
               continue;
             if (!p.id) continue;
 

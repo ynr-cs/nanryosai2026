@@ -826,6 +826,7 @@
         getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { renderPosAlert } from "./pos-alert.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
@@ -906,7 +907,7 @@
       }
 
       // Auth Guard
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
 
@@ -920,6 +921,13 @@
           const loginScreen = document.getElementById("login-screen");
           if (loginScreen) loginScreen.style.display = "none";
           document.getElementById("app-container").style.display = "flex";
+
+          // POSアラートのインポートと監視
+          const { renderPosAlert } = await import("./pos-alert.js");
+          onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+            if (snap.exists()) renderPosAlert(snap.data());
+          });
+
           subscribeToProducts();
           startClock();
         }
@@ -1243,17 +1251,19 @@
 
         try {
           // Use Secure Cloud Function
-          const createPOSOrder = httpsCallable(functions, "createPOSOrder");
+          const createOrder = httpsCallable(functions, "createOrder");
 
           // Only send essential data: Product IDs, Quantities, Customizations
           // Price will be calculated on server.
           const itemsPayload = cart.map((i) => ({
-            productId: i.productId,
+            itemId: i.productId,
             quantity: i.quantity,
             customizations: i.customizations,
           }));
 
-          const result = await createPOSOrder({
+          const result = await createOrder({
+            orderChannel: "pos",
+            storeId: storeId,
             items: itemsPayload,
           });
 
