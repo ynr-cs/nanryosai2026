@@ -51,6 +51,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import {
   getAnalytics,
+  logEvent,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
 
 /* ==============================
@@ -115,6 +116,36 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app, "asia-northeast1");
 const analytics = getAnalytics(app);
+
+/* ==============================
+   6. URL短縮パラメータ (QRトラッキング) 処理
+   ============================== */
+try {
+  const urlParams = new URLSearchParams(window.location.search);
+  const source = urlParams.get("s");
+  if (source) {
+    // 短縮パラメータと正式な送信元のマッピング
+    const sourceMap = {
+      po: "poster",
+      pf: "pamphlet",
+      st: "store_front",
+      cr: "classroom",
+      ig: "instagram"
+    };
+    const sourceType = sourceMap[source] || source;
+
+    // GA4にカスタムイベントとして送信
+    logEvent(analytics, "qr_scan", { source_type: sourceType });
+
+    // アドレスバーからパラメータを消去し、綺麗なURLに戻す
+    urlParams.delete("s");
+    const newSearch = urlParams.toString() ? "?" + urlParams.toString() : "";
+    const cleanUrl = window.location.pathname + newSearch + window.location.hash;
+    window.history.replaceState({}, "", cleanUrl);
+  }
+} catch (e) {
+  console.warn("[Analytics] Tracking param cleanup failed:", e);
+}
 
 // Messaging は非対応ブラウザ（一部 iOS Safari、古いブラウザ等）で
 // エラーをスローする可能性があるため、try-catch でラップする。
