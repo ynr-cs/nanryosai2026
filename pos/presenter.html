@@ -579,6 +579,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
 
     <script>
       // --- Firebase Config ---
@@ -594,6 +595,7 @@
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
+      const analytics = firebase.analytics();
       const db = firebase.firestore();
       const auth = firebase.auth();
       const provider = new firebase.auth.GoogleAuthProvider();

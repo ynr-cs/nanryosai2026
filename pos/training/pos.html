@@ -748,6 +748,9 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
+        getAnalytics,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+      import {
         initializeAppCheck,
         ReCaptchaV3Provider,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
@@ -779,6 +782,7 @@
       };
 
       const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
 
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(

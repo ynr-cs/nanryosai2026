@@ -618,6 +618,9 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
+        getAnalytics,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+      import {
         initializeAppCheck,
         ReCaptchaV3Provider,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
@@ -659,6 +662,7 @@
       class KioskApp {
         constructor() {
           this.app = initializeApp(firebaseConfig);
+          this.analytics = getAnalytics(this.app);
           // App Check Initialization
           this.appCheck = initializeAppCheck(this.app, {
             provider: new ReCaptchaV3Provider(

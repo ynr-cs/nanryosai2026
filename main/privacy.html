@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>プライバシーポリシー | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .privacy-wrapper {
+        padding: 0 20px 80px;
+        max-width: 900px;
+        margin: 0 auto;
+        color: var(--text-main);
+        line-height: 1.6;
+      }
+      
+      .page-header {
+        padding: 40px 20px 20px;
+        text-align: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .privacy-content {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px var(--card-shadow);
+      }
+
+      .privacy-content h2 {
+        font-size: 1.4rem;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 8px;
+      }
+
+      .privacy-content h2:first-child {
+        margin-top: 0;
+      }
+
+      .privacy-content p {
+        margin-bottom: 15px;
+        color: var(--text-sub);
+      }
+
+      .privacy-content a {
+        color: var(--primary-color);
+        text-decoration: underline;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="page-header">
+        <h1 class="page-title">プライバシーポリシー</h1>
+      </div>
+
+      <div class="privacy-wrapper">
+        <div class="privacy-content">
+          <p>横浜南陵高等学校 南陵祭2026 公式Webサイト（以下「当サイト」）における、利用者の個人情報やアクセスデータの取り扱いについて以下の通り定めます。</p>
+
+          <h2>1. アクセス解析ツールについて</h2>
+          <p>
+            当サイトでは、サービスの向上や利用状況の把握を目的として、Googleによるアクセス解析ツール「Google Analytics」を利用しています。<br>
+            このGoogle Analyticsはデータの収集のためにCookie（クッキー）を使用しています。このデータは匿名で収集されており、個人を特定するものではありません。
+          </p>
+          <p>
+            この機能はCookieを無効にすることで収集を拒否することが出来ますので、お使いのブラウザの設定をご確認ください。<br>
+            この規約に関しての詳細は<a href="https://marketingplatform.google.com/about/analytics/terms/jp/" target="_blank" rel="noopener">Googleアナリティクスサービス利用規約</a>や<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleポリシーと規約</a>をご覧ください。
+          </p>
+
+          <h2>2. クッキー（Cookie）の利用について</h2>
+          <p>
+            当サイトでは、サイトの利用状況の追跡（Google Analytics等）や、ユーザー設定（テーマの切り替えなど）の保持のためにCookieやローカルストレージを使用することがあります。<br>
+            利用者はブラウザの設定により、Cookieの受け取りを拒否することができますが、その場合、当サイトの一部の機能が正しく動作しない可能性があります。
+          </p>
+
+          <h2>3. 免責事項</h2>
+          <p>
+            当サイトのコンテンツや情報につきまして、可能な限り正確な情報を掲載するよう努めておりますが、必ずしもそれらの正確性や安全性を保証するものではありません。<br>
+            当サイトに掲載された内容によって生じた損害等の一切の責任を負いかねますので、あらかじめご了承ください。
+          </p>
+
+          <h2>4. お問い合わせ</h2>
+          <p>
+            当サイトにおけるデータの取り扱いに関するお問い合わせは、コンピュータ科学部または実行委員会までご連絡ください。
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- App Shell Logic -->
+    <script type="module" src="app-shell.js"></script>
+  </body>
+</html>

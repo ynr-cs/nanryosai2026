@@ -35,6 +35,7 @@ const AppShell = {
     "index.html",
     "map.html",
     "mobile-order-guide.html",
+    "privacy.html",
     "projects-list.html",
     "stage-list.html",
     "terms.html",
@@ -326,6 +327,7 @@ const AppShell = {
                 </a>
               </li>
               <li><a href="${this.resolvePath("terms.html")}">利用規約</a></li>
+              <li><a href="${this.resolvePath("privacy.html")}">プライバシーポリシー</a></li>
             </ul>
           </div>
 

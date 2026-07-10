@@ -15,6 +15,28 @@
 - **パッチ (Patch / z)**: 開発中のあらゆる変更（不具合修正、機能追加、調整等）。実用可能な「完成」に至るまでの試行錯誤のログ。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.4.1] Google Analytics (GA4) の基本導入とプライバシーポリシーの制定 - 2026-07-10
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **筆者**: AI
+
+### 追加・変更 (Added / Changed)
+
+- **Firebase Analytics の導入 (`main/auth.js`, `pos/` 各画面)**
+  - 文化祭当日のトラフィック分析や報告書向けデータ収集の準備として、Firebase Analytics (GA4) を導入。
+  - `main/` 側は `main/auth.js` にて `getAnalytics()` を初期化し、`app-shell.js` を経由して全ページでページビュー自動計測を有効化。
+  - `pos/` 側の各画面 (`pos.html`, `portal.html`, `monitor.html`, `kitchen.html`, `presenter.html`, `training/pos.html`) にも個別に Analytics 初期化を追加。
+- **プライバシーポリシーの作成とフッター連携 (`main/privacy.html`, `main/app-shell.js`)**
+  - Analytics導入に伴い、Cookieやデータ収集に関する説明と免責事項を定めた `privacy.html` を新規作成。
+  - `app-shell.js` の `FOOTER_WHITELIST` に `privacy.html` を追加。
+  - 動的フッターの「サポート」セクション内にプライバシーポリシーへのリンクを挿入し、全ページからの導線を確保。
+- **知識の永続化 (`antigravity/firebase_CONTEXT.md`)**
+  - Analytics導入のフェーズ分け（フェーズ1: ページビュー等、フェーズ2: カスタムイベント）と構成に関するドキュメントを追記。
+
+---
+
 ## [0.4.0] POSシステム全面改修・マルチメニュー対応・データ同期機能 — mainマージ完了 - 2026-07-10
 
 ### メタ情報

@@ -49,6 +49,9 @@ import {
   ReCaptchaV3Provider,
   getToken as getAppCheckToken,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+import {
+  getAnalytics,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
 
 /* ==============================
    Firebase Configuration
@@ -111,6 +114,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app, "asia-northeast1");
+const analytics = getAnalytics(app);
 
 // Messaging は非対応ブラウザ（一部 iOS Safari、古いブラウザ等）で
 // エラーをスローする可能性があるため、try-catch でラップする。
@@ -371,6 +375,7 @@ export {
   functions,
   messaging,
   appCheck,
+  analytics,
   login,
   logout,
   watchUser,
