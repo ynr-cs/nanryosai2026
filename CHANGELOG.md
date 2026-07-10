@@ -15,6 +15,37 @@
 - **パッチ (Patch / z)**: 開発中のあらゆる変更（不具合修正、機能追加、調整等）。実用可能な「完成」に至るまでの試行錯誤のログ。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.4.0] POSシステム全面改修・マルチメニュー対応・データ同期機能 — mainマージ完了 - 2026-07-10
+
+### メタ情報
+
+- **AIモデル**: Claude Sonnet 4.6 (Thinking)
+- **筆者**: AI / ユーザー承認
+
+### 概要
+
+`feature/pos-system-overhaul` ブランチをレビューし、`main` ブランチへマージ完了。
+v0.3.0 から v0.3.61 にわたる一連のPOSシステム改修・UI強化・データモデル整理が正式に統合された。
+
+### 統合された主な変更 (Added / Changed)
+
+- **POSシステム全面改修** (`pos/portal.html`, `pos/monitor.html`, `pos/presenter.html`, `pos/mobile-order.html`, `pos/kitchen.html`, `pos/status.html`)
+  - マルチメニュー対応・リアルタイム注文管理・キッチン表示の刷新
+  - `pos/pos-alert.js` 新規追加（共通アラートコンポーネント）
+- **メインサイト強化** (`main/index.html`, `main/detail.html`, `main/stage-list.html`, `main/banned.html`, `main/about.html`)
+  - カウントダウン・企画詳細・ステージ一覧・BANシステム・Aboutページ実装
+- **管理機能** (`main/admin/superadmin.html` 新規追加、`main/admin/venue.html` 強化)
+- **認証・共通** (`main/auth.js` 大幅追加、`main/app-shell.js` 改修)
+- **バックエンド** (`functions/index.js` 全面改修、`firestore.rules` / `firestore.indexes.json` 更新)
+- **企画データ** (`main/data/data.js` カテゴリ・モバイルオーダーフラグ導入)
+- **ドキュメント** (`antigravity/` 各種CONTEXT.md 新規追加・更新)
+
+### 変更ファイル数
+
+52ファイル変更、10,807行追加、2,007行削除
+
+---
+
 ## [0.3.61] 企画カテゴリ再設計・モバイルオーダーフラグ導入・projects-list検索改善・detail.html拡張 - 2026-07-09
 
 ### メタ情報
