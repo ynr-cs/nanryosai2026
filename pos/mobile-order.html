@@ -804,7 +804,7 @@
         overflow-y: auto !important;
         overflow-x: hidden !important;
         align-items: stretch !important;
-        padding: clamp(32px, 6vh, 48px) clamp(16px, 4vw, 24px) calc(clamp(12px, 3vh, 24px) + 120px) !important;
+        padding: clamp(32px, 6vh, 48px) clamp(16px, 4vw, 24px) calc(clamp(12px, 3vh, 24px) + var(--bottom-nav-height, 80px) + var(--safe-area-bottom, 20px) + 20px) !important;
         gap: clamp(12px, 2vh, 24px);
       }
 
@@ -972,7 +972,7 @@
            ========================================= -->
       <div id="step-stores" class="screen">
         <h4 class="fw-bold mb-3">店舗を選択</h4>
-        <div id="store-list">
+        <div id="store-list" style="padding-bottom: calc(var(--bottom-nav-height, 80px) + var(--safe-area-bottom, 20px) + 20px);">
           <!-- JS Injected -->
         </div>
       </div>
@@ -1339,6 +1339,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
     <script src="../config.local.js"></script>
+    <script src="../main/data/data.js"></script>
     <script type="module">
       /* 1. Firebase Function Imports
          インスタンス(app, auth, db 等)は auth.js から import する(Single Source of Truth)。
@@ -1389,6 +1390,23 @@
 
       // DOM Elements
       const loader = document.getElementById("global-loader");
+
+      /**
+       * 外部読み込みの data.js が準備できるまで待機する
+       */
+      async function ensureData(target = "projectData") {
+        return new Promise((resolve) => {
+          const check = () => {
+            if (window[target]) {
+              resolve(window[target]);
+            } else {
+              console.log(`Waiting for ${target}...`);
+              setTimeout(check, 100);
+            }
+          };
+          check();
+        });
+      }
 
       /* 4. Core Lifecycle & Auth */
       function init() {
@@ -1559,6 +1577,8 @@
         const list = document.getElementById("store-list");
         list.innerHTML = "";
         try {
+          await ensureData("projectData");
+
           // NOTE(重要): Firestore stores.name は「団体名」、stores.teamName は「店名(企画名)」として運用している。
           // 直感と逆なので、変更する場合は admin_sync / docs を同時に修正すること。
           const snap = await getDocs(collection(db, "stores"));
@@ -1573,6 +1593,12 @@
 
           snap.forEach((d) => {
             const data = d.data();
+            
+            // data.js の projectData を参照し、モバイルオーダー対象かチェック
+            const localProject = window.projectData.find(p => p.id === d.id);
+            if (!localProject || localProject.useMobileOrder !== true) {
+              return; // 対象外の団体はスキップ
+            }
             // Check for auto-select
             if (d.id === targetStoreId) {
               targetStoreName = data.name;
