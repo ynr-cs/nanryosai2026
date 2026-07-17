@@ -585,6 +585,15 @@
 
       <!-- Control Row -->
       <div class="control-row">
+        <!-- お気に入りトグルを追加 -->
+        <label class="toggle-switch-label" style="margin-right: auto; gap: 8px;">
+          <div class="toggle-switch">
+            <input type="checkbox" id="show-favorites-toggle" />
+            <span class="slider"></span>
+          </div>
+          <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-main);"><i class="bi bi-star-fill text-warning"></i> お気に入りのみ</span>
+        </label>
+
         <div class="sort-wrapper">
           <span
             style="font-size: 0.9rem; font-weight: 700; color: var(--text-sub)"
@@ -629,7 +638,7 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { db } from "./auth.js";
+      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
       import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       window.CURRENT_PAGE = "projects";
@@ -638,7 +647,7 @@
         const gridContainer = document.getElementById("projects-grid");
         const noResultsMessage = document.getElementById("no-results-message");
         const searchInput = document.getElementById("search-input");
-        const sortSelect = document.getElementById("sort-select");
+        const showFavoritesToggle = document.getElementById("show-favorites-toggle");
 
         if (!gridContainer) return;
 
@@ -647,9 +656,26 @@
           category: "すべて",
           search: "",
           sort: "id-asc",
+          favoritesOnly: false,
         };
         
         let storeStatuses = {}; // 店舗の営業ステータスマップ
+        let userFavorites = []; // ユーザーのお気に入りIDリスト
+
+        // auth 状態の監視
+        watchUser(async (user) => {
+          if (user) {
+            userFavorites = await getFavorites();
+            applyFiltersAndSort(false);
+          } else {
+            userFavorites = [];
+            if (activeFilters.favoritesOnly) {
+              activeFilters.favoritesOnly = false;
+              if (showFavoritesToggle) showFavoritesToggle.checked = false;
+            }
+            applyFiltersAndSort(false);
+          }
+        });
 
         // Skeleton Generation
         function renderSkeletons(count = 9) {
@@ -726,6 +752,9 @@
                 ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order"><i class="fas fa-shopping-cart"></i> オーダー</a>`
                 : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
 
+              const isFavorite = userFavorites.includes(project.id);
+              const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
+
               return `
                     <div class="project-card" style="animation-delay: ${index * 0.02}s">
                         <div class="card-image">
@@ -742,6 +771,9 @@
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
                         <div class="card-button-wrapper">
+                            <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite" style="margin-right: auto;">
+                                <i class="bi bi-star"></i>
+                            </button>
                             ${orderBtnHTML}
                             <a href="detail.html?id=${project.id}" class="btn-action btn-details">詳細</a>
                         </div>
@@ -751,6 +783,43 @@
             .join("");
 
           gridContainer.innerHTML = cardsHTML;
+          
+          // お気に入りボタンのイベントリスナーを設定
+          document.querySelectorAll('.btn-favorite-star').forEach(btn => {
+             btn.addEventListener('click', async (e) => {
+                 e.preventDefault(); // 親のaタグ等があれば無効化
+                 const user = getCurrentUser();
+                 if (!user) {
+                     // 未ログイン時はログイン画面へ誘導
+                     const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                     window.location.href = `login.html?redirect=${currentUrl}&reason=favorite`;
+                     return;
+                 }
+                 
+                 const projectId = btn.dataset.projectId;
+                 // UIを先行して切り替え（オプティミスティックUI）
+                 const isActive = btn.classList.toggle('active');
+                 
+                 try {
+                     const isNowFavorite = await toggleFavorite(projectId);
+                     // 状態の同期
+                     if (isNowFavorite && !userFavorites.includes(projectId)) {
+                         userFavorites.push(projectId);
+                     } else if (!isNowFavorite && userFavorites.includes(projectId)) {
+                         userFavorites = userFavorites.filter(id => id !== projectId);
+                         // もし「お気に入りのみ表示」がONなら、画面から消すために再描画
+                         if (activeFilters.favoritesOnly) {
+                             applyFiltersAndSort(false);
+                         }
+                     }
+                 } catch (err) {
+                     console.error("Failed to toggle favorite:", err);
+                     // 失敗したら元に戻す
+                     btn.classList.toggle('active', !isActive);
+                     AppShell.showToast("お気に入りの更新に失敗しました", true);
+                 }
+             });
+          });
         }
 
         // Filter & Sort Logic
@@ -800,6 +869,9 @@
                   (p.tags && p.tags.some(t => t.toLowerCase().includes(term))),
               );
             }
+            if (activeFilters.favoritesOnly) {
+              result = result.filter(p => userFavorites.includes(p.id));
+            }
 
             // 3. Sort
             if (activeFilters.sort === "name-asc") {
@@ -838,14 +910,31 @@
           });
         });
 
-        sortSelect?.addEventListener("change", (e) => {
-          activeFilters.sort = e.target.value;
-          applyFiltersAndSort(true); // Show loading on sort change
-        });
+          if (sortSelect) {
+            sortSelect.addEventListener("change", (e) => {
+              activeFilters.sort = e.target.value;
+              applyFiltersAndSort(true);
+            });
+          }
 
-        // View Toggle
-        const gridBtn = document.getElementById("grid-view-btn");
-        const listBtn = document.getElementById("list-view-btn");
+          if (showFavoritesToggle) {
+            showFavoritesToggle.addEventListener("change", (e) => {
+              if (e.target.checked) {
+                  const user = getCurrentUser();
+                  if (!user) {
+                      e.target.checked = false;
+                      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                      window.location.href = `login.html?redirect=${currentUrl}&reason=favorite`;
+                      return;
+                  }
+              }
+              activeFilters.favoritesOnly = e.target.checked;
+              applyFiltersAndSort(true);
+            });
+          }
+
+          const gridBtn = document.getElementById("grid-view-btn");
+          const listBtn = document.getElementById("list-view-btn");
         gridBtn?.addEventListener("click", () => {
           gridContainer.classList.remove("list-view");
           gridBtn.classList.add("active");

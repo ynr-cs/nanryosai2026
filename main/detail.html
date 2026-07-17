@@ -663,10 +663,17 @@
       <div class="detail-content-wrapper">
         <!-- Title Section (Moved inside content wrapper) -->
         <div class="detail-title-section">
-          <p id="detail-group-name" class="detail-group-name"><span class="skeleton" style="width: 80px; height: 20px;"></span></p>
-          <h1 id="detail-title" class="detail-title">
-            <span class="skeleton" style="width: 60%; height: 48px; max-width: 300px; display: block; margin-bottom: 12px;"></span>
-          </h1>
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+             <div style="flex: 1; padding-right: 16px;">
+                <p id="detail-group-name" class="detail-group-name"><span class="skeleton" style="width: 80px; height: 20px;"></span></p>
+                <h1 id="detail-title" class="detail-title">
+                  <span class="skeleton" style="width: 60%; height: 48px; max-width: 300px; display: block; margin-bottom: 12px;"></span>
+                </h1>
+             </div>
+             <button id="btn-favorite-detail" class="btn-favorite-star" style="display: none; margin-top: 8px;" aria-label="Favorite">
+                 <i class="bi bi-star"></i>
+             </button>
+          </div>
           <p id="detail-catchphrase" class="detail-catchphrase"><span class="skeleton" style="width: 80%; height: 20px; max-width: 400px;"></span></p>
           <!-- Metadata Chips -->
           <div id="detail-meta-chips" class="detail-meta-chips">
@@ -689,7 +696,7 @@
     <script src="data/data.js"></script>
 
     <script type="module">
-      import { db } from "./auth.js";
+      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
       import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       // Define current page for the shell
@@ -766,6 +773,40 @@
             console.error("Status fetch error:", e);
             project.operationStatus = "suspended";
           }
+        }
+
+        // お気に入りボタンの初期化と状態監視
+        const favBtn = document.getElementById("btn-favorite-detail");
+        let currentProjectId = project.id;
+        
+        watchUser(async (user) => {
+            if (user) {
+                const favorites = await getFavorites();
+                const isFavorite = favorites.includes(currentProjectId);
+                favBtn.classList.toggle("active", isFavorite);
+            } else {
+                favBtn.classList.remove("active");
+            }
+        });
+
+        if (favBtn) {
+            favBtn.style.display = "flex";
+            favBtn.addEventListener("click", async () => {
+                const user = getCurrentUser();
+                if (!user) {
+                    const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = `login.html?redirect=${currentUrl}&reason=favorite`;
+                    return;
+                }
+                
+                const isActive = favBtn.classList.toggle("active");
+                try {
+                    await toggleFavorite(currentProjectId);
+                } catch (err) {
+                    console.error("Failed to toggle favorite:", err);
+                    favBtn.classList.toggle("active", !isActive);
+                }
+            });
         }
 
         // Render the page

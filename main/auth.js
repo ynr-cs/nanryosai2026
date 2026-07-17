@@ -34,6 +34,8 @@ import {
   setDoc,
   serverTimestamp,
   onSnapshot,
+  arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {
   getStorage,
@@ -397,6 +399,46 @@ async function requireLogin(options = {}) {
   return null;
 }
 
+/**
+ * ユーザーのお気に入り項目をトグルする
+ * @param {string} itemId 企画・ステージ等のID
+ * @returns {Promise<boolean>} トグル後の状態 (true: 登録, false: 解除)
+ */
+async function toggleFavorite(itemId) {
+  if (!currentUser) throw new Error("Not logged in");
+  const userRef = doc(db, "users", currentUser.uid);
+  
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+  const currentFavorites = data?.favoriteItemIds || [];
+  
+  if (currentFavorites.includes(itemId)) {
+    await setDoc(userRef, {
+      favoriteItemIds: arrayRemove(itemId)
+    }, { merge: true });
+    return false;
+  } else {
+    await setDoc(userRef, {
+      favoriteItemIds: arrayUnion(itemId)
+    }, { merge: true });
+    return true;
+  }
+}
+
+/**
+ * ユーザーのお気に入り項目一覧を取得する
+ * @returns {Promise<string[]>}
+ */
+async function getFavorites() {
+  if (!currentUser) return [];
+  const userRef = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(userRef);
+  if (snap.exists()) {
+    return snap.data().favoriteItemIds || [];
+  }
+  return [];
+}
+
 // Export everything needed
 export {
   app,
@@ -412,4 +454,6 @@ export {
   watchUser,
   getCurrentUser,
   requireLogin,
+  toggleFavorite,
+  getFavorites,
 };

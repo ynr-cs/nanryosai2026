@@ -505,11 +505,12 @@
     <script>
       window.CURRENT_PAGE = "account";
     </script>
+    <script src="data/data.js"></script>
     <script type="module" src="app-shell.js"></script>
 
     <!-- Account Page specific logic -->
     <script type="module">
-      import { watchUser, logout, db, app, auth } from "./auth.js";
+      import { watchUser, logout, db, app, auth, getFavorites, toggleFavorite } from "./auth.js";
       import {
         collection,
         query,
@@ -670,6 +671,7 @@
           renderProfile(user);
           fetchOrderCount(user.uid);
           fetchOrderHistory(user.uid);
+          fetchFavoritesList(user.uid);
         } else {
           const redirectTarget = encodeURIComponent("./account.html");
           window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
@@ -719,6 +721,77 @@
           if (statEl) statEl.textContent = count;
         } catch (e) {
           console.error("Order Count Error:", e);
+        }
+      }
+
+      async function fetchFavoritesList(uid) {
+        const list = document.getElementById("favorites-list");
+        const favBadge = document.getElementById("fav-count-badge");
+        const statFavs = document.getElementById("stat-favorites");
+        if (!list) return;
+
+        try {
+          const favorites = await getFavorites();
+          if (favBadge) favBadge.textContent = favorites.length;
+          if (statFavs) statFavs.textContent = favorites.length;
+
+          if (favorites.length === 0) {
+            list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">お気に入りがありません</div>`;
+            return;
+          }
+
+          list.innerHTML = "";
+          
+          favorites.forEach(favId => {
+             let item = null;
+             let typeStr = "";
+             if (typeof projectData !== "undefined") {
+                 item = projectData.find(p => p.id === favId);
+                 if (item) typeStr = "企画";
+             }
+             if (!item && typeof stageData !== "undefined") {
+                 item = stageData.find(s => s.id === favId);
+                 if (item) typeStr = "ステージ";
+             }
+             
+             if (!item) return;
+
+             const el = document.createElement("div");
+             el.className = "order-card"; // 既存のスタイルを流用
+             el.style.cursor = "pointer";
+             
+             el.innerHTML = `
+                 <div class="order-icon" style="background: rgba(245, 158, 11, 0.1);">
+                     <i class="bi bi-star-fill text-warning"></i>
+                 </div>
+                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'">
+                     <div class="order-info-top">
+                         <span class="store-name">${item.name}</span>
+                         <span class="order-date">${typeStr}</span>
+                     </div>
+                     <div class="order-items">${item.groupName}</div>
+                 </div>
+                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto; width: 32px; height: 32px; font-size: 0.9rem;" aria-label="Remove Favorite">
+                     <i class="bi bi-star"></i>
+                 </button>
+             `;
+             
+             const favBtn = el.querySelector(".btn-favorite-star");
+             favBtn.addEventListener("click", async (e) => {
+                 e.stopPropagation();
+                 favBtn.classList.remove("active");
+                 try {
+                     await toggleFavorite(favId);
+                     fetchFavoritesList(uid); // リスト再描画
+                 } catch(err) {
+                     favBtn.classList.add("active");
+                 }
+             });
+             
+             list.appendChild(el);
+          });
+        } catch (e) {
+          console.error("Fetch Favorites Error:", e);
         }
       }
 

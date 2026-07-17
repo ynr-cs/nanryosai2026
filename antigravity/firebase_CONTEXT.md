@@ -67,6 +67,7 @@ last_updated: 2026-05-07
 
 - **コレクション構成**:
   - `users/{uid}`: プロフィール + `cart` サブコレクション。複数端末対応のためのPush通知トークン配列 `fcmTokens` と、利用規約の初回同意日時 `termsAgreedAt` を保持する。
+    - **お気に入り機能**: `favoriteItemIds` (Array<string>) フィールドに、企画・ステージ等のIDを保存し、UIDベースで管理する（システムのメールアドレス仕様には依存しない）。
   - `_metadata/system_alerts`: ディレクトリ全体（main/pos）のグローバルアラート状態を管理するドキュメント（スーパーアドミン画面から編集）。
     - **フィールド一覧** (v0.3.18〜):
       | Field | Type | Description |

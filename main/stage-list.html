@@ -476,7 +476,14 @@
       </div>
 
       <div class="timeline-list-container">
-        <div class="timeline-controls">
+        <div class="timeline-controls" style="justify-content: space-between;">
+          <label class="toggle-switch-label">
+            <div class="toggle-switch">
+              <input type="checkbox" id="show-favorites-toggle" />
+              <span class="slider"></span>
+            </div>
+            <span style="color: var(--text-main);"><i class="bi bi-star-fill text-warning"></i> お気に入り</span>
+          </label>
           <label class="toggle-switch-label">
             <div class="toggle-switch">
               <input type="checkbox" id="show-past-events-toggle" />
@@ -493,7 +500,8 @@
     <script src="data/data.js"></script>
     <script type="module" src="app-shell.js"></script>
 
-    <script>
+    <script type="module">
+      import { getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
       window.CURRENT_PAGE = "stage";
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -501,9 +509,27 @@
         const chartContainer = document.getElementById("gantt-chart");
         const listContainer = document.getElementById("timeline-list");
         const daySelector = document.querySelector(".day-selector");
-        const pastEventsToggle = document.getElementById(
-          "show-past-events-toggle",
-        );
+        const pastEventsToggle = document.getElementById("show-past-events-toggle");
+        const showFavoritesToggle = document.getElementById("show-favorites-toggle");
+
+        let userFavorites = [];
+        let activeFilters = { favoritesOnly: false };
+
+        watchUser(async (user) => {
+          if (user) {
+            userFavorites = await getFavorites();
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
+          } else {
+            userFavorites = [];
+            if (activeFilters.favoritesOnly) {
+              activeFilters.favoritesOnly = false;
+              if (showFavoritesToggle) showFavoritesToggle.checked = false;
+            }
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
+          }
+        });
 
         // Festival setup
         const startHour = 9;
@@ -635,6 +661,10 @@
             });
           }
 
+            if (activeFilters.favoritesOnly) {
+              dayData = dayData.filter(event => userFavorites.includes(event.id));
+            }
+
           dayData.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
 
           let listHTML = "";
@@ -649,6 +679,9 @@
               const linkId = relatedProject ? relatedProject.id : event.id;
               const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
 
+              const isFavorite = userFavorites.includes(event.id);
+              const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
+
               listHTML += `
                 <div class="list-event-card fade-up" id="list-${event.id}">
                     <div class="list-time">${event.time}</div>
@@ -658,12 +691,49 @@
                         ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
                         <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
                     </div>
-                    ${linkHTML}
+                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                        <button class="${favBtnClass}" data-event-id="${event.id}" aria-label="Favorite" style="margin-left: auto;">
+                            <i class="bi bi-star"></i>
+                        </button>
+                        ${linkHTML}
+                    </div>
                 </div>`;
             });
           }
 
           listContainer.innerHTML = listHTML;
+          
+          // お気に入りボタンのイベントリスナー設定
+          listContainer.querySelectorAll('.btn-favorite-star').forEach(btn => {
+             btn.addEventListener('click', async (e) => {
+                 e.preventDefault();
+                 const user = getCurrentUser();
+                 if (!user) {
+                     const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                     window.location.href = `login.html?redirect=${currentUrl}&reason=favorite`;
+                     return;
+                 }
+                 
+                 const eventId = btn.dataset.eventId;
+                 const isActive = btn.classList.toggle('active');
+                 
+                 try {
+                     const isNowFavorite = await toggleFavorite(eventId);
+                     if (isNowFavorite && !userFavorites.includes(eventId)) {
+                         userFavorites.push(eventId);
+                     } else if (!isNowFavorite && userFavorites.includes(eventId)) {
+                         userFavorites = userFavorites.filter(id => id !== eventId);
+                         if (activeFilters.favoritesOnly) {
+                             const activeDayBtn = daySelector.querySelector(".day-btn.active");
+                             if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
+                         }
+                     }
+                 } catch (err) {
+                     console.error("Failed to toggle favorite:", err);
+                     btn.classList.toggle('active', !isActive);
+                 }
+             });
+          });
 
           const newCards = listContainer.querySelectorAll(".fade-up");
           newCards.forEach((card, index) => {
@@ -777,6 +847,23 @@
               .forEach((btn) => btn.classList.remove("active"));
             e.target.classList.add("active");
             renderPage(e.target.dataset.day, false);
+          });
+        }
+        
+        if (showFavoritesToggle) {
+          showFavoritesToggle.addEventListener("change", (e) => {
+            if (e.target.checked) {
+              const user = getCurrentUser();
+              if (!user) {
+                e.target.checked = false;
+                const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `login.html?redirect=${currentUrl}&reason=favorite`;
+                return;
+              }
+            }
+            activeFilters.favoritesOnly = e.target.checked;
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
           });
         }
 
