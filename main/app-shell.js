@@ -286,8 +286,7 @@ const AppShell = {
     const csForm = "https://docs.google.com/forms/d/e/1FAIpQLSf_QdSMyrFXiZ28U50DlPoK0umuMXnkFDGzu8gWKDY8KUKqRg/viewform?usp=header";
     const surveyForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
     const bugForm = "https://docs.google.com/forms/d/e/1FAIpQLSf7PQQPMjnIGnzr_dYKwudQllR7w0b9poia4n7XI_ktmkgkOQ/viewform?usp=header";
-    // TODO: 人気投票フォームURL判明次第、下記を更新する
-    const voteUrl = this.resolvePath("404.html");
+    const voteUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header";
 
     const footerHtml = `
       <footer class="app-footer" id="app-footer">
@@ -299,6 +298,7 @@ const AppShell = {
             <div class="footer-sitemap-heading">イベント</div>
             <ul class="footer-sitemap-list">
               <li><a href="${this.resolvePath("about.html")}">概要</a></li>
+              <li><a href="${this.resolvePath("access.html")}">アクセス</a></li>
               <li><a href="${this.resolvePath("projects-list.html")}">企画一覧</a></li>
               <li><a href="${this.resolvePath("stage-list.html")}">ステージ発表</a></li>
               <li><a href="${this.resolvePath("map.html")}">校内マップ</a></li>
@@ -308,6 +308,7 @@ const AppShell = {
           <div class="footer-sitemap-col">
             <div class="footer-sitemap-heading">サービス</div>
             <ul class="footer-sitemap-list">
+              <li><a href="${this.resolvePath("account.html")}">アカウント設定</a></li>
               <li><a href="${this.resolvePath("mobile-order-guide.html")}">モバイルオーダーガイド</a></li>
               <li><a href="${this.resolvePath("mobile-order.html")}">モバイルオーダー</a></li>
             </ul>
@@ -362,8 +363,7 @@ const AppShell = {
             </div>
             <i class="bi bi-chevron-right footer-survey-arrow"></i>
           </a>
-          <!-- TODO: 人気投票フォームURL判明次第、voteUrlを更新する -->
-          <a class="footer-survey-card" href="${voteUrl}" rel="noopener">
+          <a class="footer-survey-card" href="${voteUrl}" target="_blank" rel="noopener">
             <div class="footer-survey-icon trophy"><i class="bi bi-trophy-fill"></i></div>
             <div class="footer-survey-body">
               <span class="footer-survey-label">生徒会 人気投票</span>
@@ -693,6 +693,95 @@ const AppShell = {
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   },
+
+  showLoginPrompt: function (reason, redirectUrl, targetElement) {
+    const existing = document.getElementById('login-prompt-popover');
+    if (existing) existing.remove();
+
+    const msg = reason === "favorite" ? "お気に入り機能を利用するにはログインが必要です。" : "この機能を利用するにはログインが必要です。";
+
+    const popover = document.createElement("div");
+    popover.id = "login-prompt-popover";
+    Object.assign(popover.style, {
+      position: "absolute",
+      zIndex: "10000",
+      background: "var(--card-bg, #ffffff)",
+      border: "1px solid var(--border-color, #e9ecef)",
+      borderRadius: "12px",
+      padding: "16px",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+      width: "240px",
+      opacity: "0",
+      transform: "translateY(10px)",
+      transition: "opacity 0.2s ease, transform 0.2s ease"
+    });
+
+    popover.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;">
+          <i class="bi bi-info-circle text-primary me-1"></i>ログイン
+        </span>
+        <button id="popover-close" style="background: none; border: none; padding: 0; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 0; margin-bottom: 12px; line-height: 1.4;">${msg}</p>
+      <a href="${redirectUrl}" style="display: block; background: var(--primary-color, #2575fc); color: #fff; text-decoration: none; padding: 8px; border-radius: 6px; font-weight: 700; text-align: center; font-size: 0.85rem;">
+        ログイン画面へ
+      </a>
+    `;
+
+    document.body.appendChild(popover);
+
+    requestAnimationFrame(() => {
+      let top = 0;
+      let left = 0;
+      
+      if (targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+        const scrollY = window.scrollY || window.pageYOffset;
+        const scrollX = window.scrollX || window.pageXOffset;
+        
+        top = rect.top + scrollY - popover.offsetHeight - 10;
+        left = rect.left + scrollX - (240 / 2) + (rect.width / 2);
+
+        if (top < scrollY) {
+           top = rect.bottom + scrollY + 10;
+        }
+        if (left < 10) left = 10;
+        if (left + 240 > window.innerWidth - 10) left = window.innerWidth - 250;
+      } else {
+        // フォールバック: 中央配置
+        top = (window.innerHeight / 2) - (popover.offsetHeight / 2) + (window.scrollY || window.pageYOffset);
+        left = (window.innerWidth / 2) - 120;
+      }
+
+      popover.style.top = `${top}px`;
+      popover.style.left = `${left}px`;
+
+      requestAnimationFrame(() => {
+        popover.style.opacity = "1";
+        popover.style.transform = "translateY(0)";
+      });
+    });
+
+    const closeBtn = popover.querySelector("#popover-close");
+    closeBtn.addEventListener("click", () => {
+      popover.style.opacity = "0";
+      popover.style.transform = "translateY(10px)";
+      setTimeout(() => popover.remove(), 200);
+    });
+
+    setTimeout(() => {
+      const clickOutside = (e) => {
+        if (!popover.contains(e.target) && (!targetElement || !targetElement.contains(e.target))) {
+          popover.style.opacity = "0";
+          popover.style.transform = "translateY(10px)";
+          setTimeout(() => popover.remove(), 200);
+          document.removeEventListener("click", clickOutside);
+        }
+      };
+      document.addEventListener("click", clickOutside);
+    }, 0);
+  }
 };
 
 // Ensure init runs even if module is loaded after DOMContentLoaded
@@ -701,3 +790,7 @@ if (document.readyState === "loading") {
 } else {
   AppShell.init();
 }
+
+// Expose AppShell to global scope for inline scripts
+window.AppShell = AppShell;
+

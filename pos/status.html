@@ -365,6 +365,12 @@
         background: rgba(30, 41, 59, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.05);
       }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .glass-card {
+          background: rgba(30, 41, 59, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+      }
       .pulse-indicator {
         display: inline-flex;
         align-items: center;
@@ -959,7 +965,7 @@
 
        
        // App Shell Config
-       window.CURRENT_PAGE = 'home'; // Default highlighting
+       window.CURRENT_PAGE = 'order'; // Highlight order tab instead of home
     </script>
     <script type="module" src="../main/app-shell.js"></script>
   </body>

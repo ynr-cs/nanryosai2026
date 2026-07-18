@@ -449,6 +449,7 @@ const projectData = [
     loginId: "cs",
     groupName: "コンピュータ科学部",
     name: "南陵祭'26 Webサイト&モバイルオーダー",
+    linkUrl: "about-us.html",
     place: "コンピュータ科学部",
     floor: 2,
     category: "exhibit",

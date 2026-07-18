@@ -3168,7 +3168,7 @@ main {
 
 /* '26 Glow */
 .footer-biglogo .glow-26 {
-  color: var(--primary-color);
+  color: #6a11cb;
   text-shadow: 0 0 20px rgba(106, 17, 203, 0.6),
     0 0 50px rgba(106, 17, 203, 0.3), 0 0 100px rgba(37, 117, 252, 0.2);
   animation: pulse-26 3s ease-in-out infinite;
@@ -3236,7 +3236,7 @@ main {
 
 .footer-biglogo .glow-26 .char.animating {
   animation: char-wave 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  color: var(--primary-color) !important;
+  color: #6a11cb !important;
 }
 
 /* ── Footer Bottom (Copyright) ── */

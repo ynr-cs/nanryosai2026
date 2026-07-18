@@ -1411,6 +1411,7 @@
         serverTimestamp,
         query,
         where,
+        limit,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         getToken,
@@ -1504,6 +1505,22 @@
         isCheckingFlow = true;
 
         try {
+          // ─── Bug 4 修正: アクティブ注文チェック ───────────────────────
+          // 進行中の注文があれば status.html へ即座にリダイレクト
+          const activeOrderQuery = query(
+            collection(db, "orders"),
+            where("userId", "==", currentUser.uid),
+            where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"]),
+            limit(1)
+          );
+          const activeSnap = await getDocs(activeOrderQuery);
+          if (!activeSnap.empty) {
+            const existingOrderId = activeSnap.docs[0].id;
+            window.location.replace(`status.html?orderId=${existingOrderId}`);
+            return; // フローを中断（finallyでisCheckingFlowをリセット）
+          }
+          // ─────────────────────────────────────────────────────────────
+
           // ドメインチェックは init() で実施済み。ここではフロー進行のみ。
 
           // iOS Detection: iPhone/iPod or iPad, and also Skip Mac (Macintosh)

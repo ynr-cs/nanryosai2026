@@ -410,6 +410,19 @@ exports.createOrder = functions
       if (banDoc.exists) {
         throw new functions.https.HttpsError("permission-denied", "利用が制限されています。");
       }
+      // Bug 5 修正: 二重注文防止（バックエンド最終ゲート）
+      // UIでブロック済みでも、直接API呼び出しなどによる二重注文を確実に防ぐ
+      const activeOrderSnap = await db.collection("orders")
+        .where("userId", "==", uid)
+        .where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"])
+        .limit(1)
+        .get();
+      if (!activeOrderSnap.empty) {
+        throw new functions.https.HttpsError(
+          "already-exists",
+          "既に受付中の注文があります。注文状況をご確認ください。"
+        );
+      }
     }
 
     // pos は store_admin 権限チェック
