@@ -253,9 +253,11 @@
 
       .timeline-controls {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         padding: 0 10px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
       .toggle-switch-label {
@@ -404,6 +406,13 @@
         background: var(--border-color);
       }
 
+      .list-button-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
       .fade-up {
         opacity: 0;
         transform: translateY(20px);
@@ -434,8 +443,20 @@
           width: 100%;
         }
 
+        .list-button-wrapper {
+          width: 100%;
+          flex-direction: row;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 12px;
+        }
+
+        .list-button-wrapper .btn-favorite-star {
+          margin-right: 0;
+        }
+
         .list-link-button {
-          align-self: stretch;
+          padding: 8px 16px;
           text-align: center;
         }
       }
@@ -455,6 +476,45 @@
           opacity: 1;
           transform: translateY(0);
         }
+      }
+
+      /* Skeleton Loading */
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          var(--border-color) 25%,
+          rgba(255, 255, 255, 0.2) 37%,
+          var(--border-color) 63%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+        color: transparent !important;
+        user-select: none;
+      }
+
+      [data-theme="dark"] .skeleton {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.05) 25%,
+          rgba(255, 255, 255, 0.1) 37%,
+          rgba(255, 255, 255, 0.05) 63%
+        );
+      }
+
+      .list-event-card.is-loading {
+        pointer-events: none;
+        box-shadow: none;
+        border-color: transparent;
       }
     </style>
   </head>
@@ -515,11 +575,13 @@
         let userFavorites = [];
         let activeFilters = { favoritesOnly: false };
 
+        let isInitialLoadDone = false; // auth解決前に2度呼ばれるのを防ぐ
+
         watchUser(async (user) => {
           if (user) {
             userFavorites = await getFavorites();
             const activeDayBtn = daySelector.querySelector(".day-btn.active");
-            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
+            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, !isInitialLoadDone);
           } else {
             userFavorites = [];
             if (activeFilters.favoritesOnly) {
@@ -527,8 +589,9 @@
               if (showFavoritesToggle) showFavoritesToggle.checked = false;
             }
             const activeDayBtn = daySelector.querySelector(".day-btn.active");
-            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
+            if (activeDayBtn) renderPage(activeDayBtn.dataset.day, !isInitialLoadDone);
           }
+          isInitialLoadDone = true;
         });
 
         // Festival setup
@@ -661,9 +724,13 @@
             });
           }
 
-            if (activeFilters.favoritesOnly) {
-              dayData = dayData.filter(event => userFavorites.includes(event.id));
-            }
+          if (activeFilters.favoritesOnly) {
+            dayData = dayData.filter(event => {
+              const relatedProject = projectData.find(p => p.groupName === event.groupName);
+              const favId = relatedProject ? relatedProject.id : event.id;
+              return userFavorites.includes(favId);
+            });
+          }
 
           dayData.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
 
@@ -679,7 +746,7 @@
               const linkId = relatedProject ? relatedProject.id : event.id;
               const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
 
-              const isFavorite = userFavorites.includes(event.id);
+              const isFavorite = userFavorites.includes(linkId);
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
 
               listHTML += `
@@ -691,8 +758,8 @@
                         ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
                         <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-                        <button class="${favBtnClass}" data-event-id="${event.id}" aria-label="Favorite" style="margin-left: auto;">
+                    <div class="list-button-wrapper">
+                        <button class="${favBtnClass}" data-event-id="${linkId}" aria-label="Favorite">
                             <i class="bi bi-star"></i>
                         </button>
                         ${linkHTML}
@@ -901,6 +968,27 @@
           });
         }
 
+        function renderSkeletons(count = 5) {
+          if (!listContainer) return;
+          let html = "";
+          for (let i = 0; i < count; i++) {
+            html += `
+                <div class="list-event-card is-loading">
+                    <div class="list-time skeleton" style="height: 1.5em; width: 60px;"></div>
+                    <div class="list-details">
+                        <div class="list-name skeleton" style="height: 1.2em; width: 60%; margin-bottom: 4px;"></div>
+                        <div class="list-perf-name skeleton" style="height: 1em; width: 80%; margin-bottom: 4px;"></div>
+                        <div class="list-place skeleton" style="height: 1em; width: 40%; margin-top: 8px;"></div>
+                    </div>
+                    <div class="list-button-wrapper" style="opacity: 0;">
+                       <button class="btn-favorite-star"></button>
+                       <div class="list-link-button"></div>
+                    </div>
+                </div>`;
+          }
+          listContainer.innerHTML = html;
+        }
+
         // Initialize
         function initializePage() {
           const now = new Date();
@@ -923,7 +1011,9 @@
             btn.classList.toggle("active", btn.dataset.day === initialDay);
           });
 
-          renderPage(initialDay, true);
+          // auth解決までのつなぎとしてスケルトンを表示、ただしガントチャートは同期的に描画可能
+          renderSkeletons();
+          renderGanttChart(initialDay);
           manageCurrentTimeIndicator();
         }
 

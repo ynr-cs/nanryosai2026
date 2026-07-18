@@ -152,12 +152,23 @@
         max-width: 900px;
         margin: 0 auto 16px;
         padding: 0 24px;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
       .sort-wrapper {
         display: flex;
         align-items: center;
         gap: 8px;
+      }
+
+      .card-button-wrapper .btn-favorite-star {
+        margin-right: auto;
+      }
+      @media (max-width: 600px) {
+        .card-button-wrapper .btn-favorite-star {
+          margin-right: 0;
+        }
       }
 
       .sort-select {
@@ -309,6 +320,12 @@
         margin: 0 0 4px;
         color: var(--text-main);
         line-height: 1.3;
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+      
+      a.card-project-title:hover {
+        color: var(--primary-color);
       }
 
       .list-view .card-project-title {
@@ -457,14 +474,18 @@
         .list-view .card-project-title {
           font-size: 0.95rem;
         }
-        /* Buttons stack vertically on small screens */
+        /* ボタン類を縦に積んで説明領域を広く確保する */
         .list-view .card-button-wrapper {
           flex-direction: column;
-          align-items: stretch;
+          align-items: flex-end;
+          width: auto;
+          gap: 8px;
+        }
+        .list-view .card-button-wrapper .btn-favorite-star {
+          margin-right: 0;
         }
         .list-view .card-button-wrapper .btn-action {
-          width: 100%;
-          padding: 8px 12px;
+          padding: 8px 16px;
           font-size: 0.8rem;
           text-align: center;
         }
@@ -661,18 +682,22 @@
         
         let storeStatuses = {}; // 店舗の営業ステータスマップ
         let userFavorites = []; // ユーザーのお気に入りIDリスト
+        let isAuthResolved = false;
+        let isStoresLoaded = false;
 
         // auth 状態の監視
         watchUser(async (user) => {
           if (user) {
             userFavorites = await getFavorites();
-            applyFiltersAndSort(false);
           } else {
             userFavorites = [];
             if (activeFilters.favoritesOnly) {
               activeFilters.favoritesOnly = false;
               if (showFavoritesToggle) showFavoritesToggle.checked = false;
             }
+          }
+          isAuthResolved = true;
+          if (isStoresLoaded) {
             applyFiltersAndSort(false);
           }
         });
@@ -686,7 +711,7 @@
                         <div class="card-image skeleton" style="height: ${gridContainer.classList.contains("list-view") ? "80px" : "130px"}"></div>
                         <div class="card-content">
                             <span class="card-group-name skeleton" style="width: 50%; height: 1em; margin-bottom: 4px;"></span>
-                            <h3 class="card-project-title skeleton" style="width: 80%; height: 1.2em; margin-bottom: 8px;"></h3>
+                            <div class="card-project-title skeleton" style="width: 80%; height: 1.2em; margin-bottom: 8px;"></div>
                             <p class="card-catchphrase skeleton" style="width: 100%; height: 1em; margin-bottom: 4px;"></p>
                             <div class="card-place skeleton" style="width: 40%; height: 1em; margin-top: auto;"></div>
                         </div>
@@ -762,7 +787,7 @@
                         </div>
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>
-                            <h3 class="card-project-title">${project.name}</h3>
+                            <a href="detail.html?id=${project.id}" class="card-project-title">${project.name}</a>
                             ${statusBadge}
                             <p class="card-catchphrase">${catchphrase}</p>
                             <div class="card-place">
@@ -771,7 +796,7 @@
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
                         <div class="card-button-wrapper">
-                            <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite" style="margin-right: auto;">
+                            <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite">
                                 <i class="bi bi-star"></i>
                             </button>
                             ${orderBtnHTML}
@@ -910,6 +935,7 @@
           });
         });
 
+          const sortSelect = document.getElementById("sort-select");
           if (sortSelect) {
             sortSelect.addEventListener("change", (e) => {
               activeFilters.sort = e.target.value;
@@ -960,9 +986,10 @@
           console.error("Firestore status fetch error:", e);
         }
 
-        setTimeout(() => {
+        isStoresLoaded = true;
+        if (isAuthResolved) {
           applyFiltersAndSort(false);
-        }, 100); // Render quickly after fetch
+        }
       });
     </script>
   </body>
