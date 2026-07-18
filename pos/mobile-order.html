@@ -150,8 +150,8 @@
         justify-content: flex-start; /* Ensure start from top */
         align-items: center; /* Center horizontally */
 
-        /* Account for mobile safe areas (notch, home indicator) */
-        padding-top: env(safe-area-inset-top);
+        /* Account for mobile safe areas (notch, home indicator) and Header */
+        padding-top: calc(var(--header-height, 60px) + env(safe-area-inset-top));
         padding-bottom: env(safe-area-inset-bottom);
         box-sizing: border-box;
       }
@@ -280,6 +280,42 @@
         background: #ced4da;
         box-shadow: none;
         cursor: not-allowed;
+      }
+
+      /* Finalize Order Button - Gorgeous Edition */
+      #btn-finalize-order {
+        background: linear-gradient(135deg, #e53935 0%, #ff5252 100%);
+        box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: pulse-glow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        position: relative;
+        overflow: hidden;
+      }
+      #btn-finalize-order::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%; width: 50%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-20deg);
+        animation: shine 4s infinite;
+      }
+      #btn-finalize-order:active:not(:disabled) {
+        transform: scale(0.96);
+        box-shadow: 0 2px 8px rgba(229, 57, 53, 0.3);
+        animation: none;
+      }
+      #btn-finalize-order:active:not(:disabled)::after {
+        display: none;
+      }
+      @keyframes pulse-glow {
+        0% { box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4); }
+        50% { box-shadow: 0 4px 25px rgba(229, 57, 53, 0.7); }
+        100% { box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4); }
+      }
+      @keyframes shine {
+        0% { left: -100%; }
+        20% { left: 200%; }
+        100% { left: 200%; }
       }
 
       /* Store Cards */
@@ -1065,7 +1101,7 @@
           <strong>確定後のキャンセル・返金はできません。</strong><br />
           調理完了通知が届いてから5分以内に受け取りに来てください。
         </div>
-        <button class="btn-primary-custom mb-3" onclick="finalizeOrder()">
+        <button id="btn-finalize-order" class="btn-primary-custom mb-3" onclick="finalizeOrder()">
           注文を確定する
         </button>
         <button
