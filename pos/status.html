@@ -621,6 +621,35 @@
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);
       const orderId = params.get("orderId");
+      const errorMsg = params.get("error");
+
+      if (errorMsg === "duplicate_order") {
+        document.addEventListener("DOMContentLoaded", () => {
+          const alertDiv = document.createElement("div");
+          alertDiv.className = "alert alert-warning alert-dismissible fade show";
+          alertDiv.role = "alert";
+          alertDiv.style.margin = "15px 15px 0 15px";
+          alertDiv.style.width = "calc(100% - 30px)";
+          alertDiv.style.boxShadow = "var(--shadow-card)";
+          alertDiv.style.borderRadius = "var(--radius-md)";
+          alertDiv.style.fontSize = "0.9rem";
+          alertDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>すでに進行中の注文があります</strong><br>
+            複数の同時注文はできません。
+            <button type="button" class="btn-close" aria-label="Close"></button>
+          `;
+          
+          const closeBtn = alertDiv.querySelector(".btn-close");
+          closeBtn.addEventListener("click", () => {
+            alertDiv.remove();
+          });
+
+          const container = document.querySelector(".status-container");
+          if(container) {
+             container.prepend(alertDiv);
+          }
+        });
+      }
 
       if (!orderId) {
         document.getElementById("status-title").textContent = "Order ID Missing";

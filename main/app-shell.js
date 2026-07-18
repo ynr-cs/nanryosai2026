@@ -58,8 +58,168 @@ const AppShell = {
     this.highlightActiveTab();
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
+    this.initGlobalOrderWatcher(); // 注文ステータスのグローバル監視
     this.updateVersionDisplay(); // Fetch and display version from CHANGELOG
     this.initGlobalAlert();
+  },
+
+  initGlobalOrderWatcher: function() {
+    // status.html では表示不要
+    if (window.location.pathname.includes("status.html")) return;
+
+    // Inject styles for premium badge
+    if (!document.getElementById("global-order-badge-style")) {
+      const style = document.createElement("style");
+      style.id = "global-order-badge-style";
+      style.textContent = `
+        .header-order-badge {
+          display: flex;
+          align-items: center;
+          background: var(--card-bg, #ffffff);
+          border-radius: 20px;
+          padding: 4px 6px 4px 12px;
+          text-decoration: none;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          border: 1px solid var(--border-color, rgba(0,0,0,0.05));
+          transition: transform 0.2s, box-shadow 0.2s;
+          gap: 6px;
+        }
+        [data-theme="dark"] .header-order-badge {
+          background: #1e293b;
+          border-color: #334155;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .header-order-badge:active {
+          transform: scale(0.95);
+        }
+        .header-order-badge .badge-num {
+          font-weight: 800;
+          font-size: 0.8rem;
+          color: var(--text-main, #2d3436);
+          letter-spacing: 0.5px;
+        }
+        .header-order-badge .badge-status {
+          font-weight: 800;
+          font-size: 0.7rem;
+          padding: 3px 8px;
+          border-radius: 12px;
+        }
+        .header-order-badge.cooking .badge-status {
+          background: #fffbeb;
+          color: #d97706;
+        }
+        [data-theme="dark"] .header-order-badge.cooking .badge-status {
+          background: rgba(217, 119, 6, 0.2);
+          color: #fcd34d;
+        }
+        .header-order-badge.ready .badge-status {
+          background: #fef2f2;
+          color: #ef4444;
+          animation: pulse-badge 1.5s infinite;
+        }
+        [data-theme="dark"] .header-order-badge.ready .badge-status {
+          background: rgba(239, 68, 68, 0.2);
+          color: #fca5a5;
+        }
+        @keyframes pulse-badge {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    watchUser((user) => {
+      if (user) {
+        // Query active orders
+        const q = query(
+          collection(db, "orders"),
+          where("userId", "==", user.uid),
+          where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"]),
+          limit(1)
+        );
+
+        onSnapshot(q, (snap) => {
+          const container = document.getElementById("header-order-status-container");
+          if (!container) return;
+
+          // 既存のタイマーをクリア
+          if (window.globalOrderCountdownInterval) {
+            clearInterval(window.globalOrderCountdownInterval);
+            window.globalOrderCountdownInterval = null;
+          }
+
+          if (!snap.empty) {
+            const docSnap = snap.docs[0];
+            const data = docSnap.data();
+            const orderId = docSnap.id;
+            const status = data.status;
+
+            let badgeHtml = "";
+            const statusPath = window.location.pathname.includes("/pos/")
+              ? `status.html?orderId=${orderId}`
+              : `../pos/status.html?orderId=${orderId}`;
+
+            const receiptNum = data.receiptNumber ? `No.${data.receiptNumber}` : "注文";
+
+            if (status === "cooking") {
+              badgeHtml = `
+                <a href="${statusPath}" class="header-order-badge cooking">
+                  <span class="badge-num">${receiptNum}</span>
+                  <span class="badge-status"><i class="bi bi-fire me-1"></i>調理中</span>
+                </a>
+              `;
+              container.innerHTML = badgeHtml;
+            } else if (status === "ready_to_serve") {
+              badgeHtml = `
+                <a href="${statusPath}" class="header-order-badge" style="background:#e0f2fe; border-color:#bae6fd;">
+                  <span class="badge-num" style="color:#0369a1;">${receiptNum}</span>
+                  <span class="badge-status" style="background:#bae6fd; color:#0369a1;"><i class="bi bi-box-seam me-1"></i>まもなくお呼出</span>
+                </a>
+              `;
+              container.innerHTML = badgeHtml;
+            } else if (status === "ready_for_pickup") {
+              badgeHtml = `
+                <a href="${statusPath}" class="header-order-badge ready">
+                  <span class="badge-num">${receiptNum}</span>
+                  <span class="badge-status" id="header-badge-status-text"><i class="bi bi-megaphone-fill me-1"></i>お呼出中</span>
+                </a>
+              `;
+              container.innerHTML = badgeHtml;
+
+              const readyForPickupAt = data.readyForPickupAt;
+              if (readyForPickupAt) {
+                 const deadline = readyForPickupAt.toMillis() + 5 * 60 * 1000;
+                 const updateTimer = () => {
+                    const timerEl = document.getElementById("header-badge-status-text");
+                    if (!timerEl) return;
+                    const now = Date.now();
+                    const diff = deadline - now;
+                    if (diff <= 0) {
+                       timerEl.innerHTML = `<i class="bi bi-megaphone-fill me-1"></i>期限切れ`;
+                       clearInterval(window.globalOrderCountdownInterval);
+                       return;
+                    }
+                    const m = Math.floor(diff / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    timerEl.innerHTML = `<i class="bi bi-megaphone-fill me-1"></i>お呼出中 ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                 };
+                 updateTimer();
+                 window.globalOrderCountdownInterval = setInterval(updateTimer, 1000);
+              }
+            }
+          } else {
+            container.innerHTML = "";
+          }
+        }, (error) => {
+          console.error("Global order watcher error:", error);
+        });
+      } else {
+        const container = document.getElementById("header-order-status-container");
+        if (container) container.innerHTML = "";
+      }
+    });
   },
 
   initGlobalAlert: function () {
@@ -156,7 +316,8 @@ const AppShell = {
     const headerHtml = `
             <header class="app-header">
                 <a href="${this.resolvePath("index.html")}" class="app-logo">南陵祭'26</a>
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; align-items: center;">
+                    <div id="header-order-status-container" class="me-2"></div>
                     <button class="menu-btn" id="header-menu-btn" aria-label="Menu">
                         <i class="bi bi-list" style="font-size: 1.8rem;"></i>
                     </button>
@@ -257,8 +418,8 @@ const AppShell = {
           if (activeOrder) {
             const inPos = window.location.pathname.includes("/pos/");
             const statusPath = inPos
-              ? `status.html?orderId=${activeOrder}`
-              : `../pos/status.html?orderId=${activeOrder}`;
+              ? `status.html?orderId=${activeOrder}&error=duplicate_order`
+              : `../pos/status.html?orderId=${activeOrder}&error=duplicate_order`;
             window.location.href = statusPath;
           } else {
             window.location.href = targetHref;

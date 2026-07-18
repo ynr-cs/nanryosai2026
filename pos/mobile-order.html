@@ -1516,7 +1516,7 @@
           const activeSnap = await getDocs(activeOrderQuery);
           if (!activeSnap.empty) {
             const existingOrderId = activeSnap.docs[0].id;
-            window.location.replace(`status.html?orderId=${existingOrderId}`);
+            window.location.replace(`status.html?orderId=${existingOrderId}&error=duplicate_order`);
             return; // フローを中断（finallyでisCheckingFlowをリセット）
           }
           // ─────────────────────────────────────────────────────────────
