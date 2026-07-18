@@ -485,9 +485,45 @@
         font-size: 1.2rem;
         line-height: 1.6;
       }
+
+      /* --- Snackbar (非同期処理中) --- */
+      #snackbar {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 24px;
+        padding: 12px 24px;
+        position: fixed;
+        z-index: 100000;
+        right: 20px;
+        top: 20px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.3s, top 0.3s;
+        border: 1px solid #555;
+      }
+      #snackbar.show {
+        visibility: visible;
+        opacity: 1;
+        top: 20px;
+      }
+      @keyframes spin { 
+        100% { transform: rotate(360deg); } 
+      }
     </style>
   </head>
   <body>
+    <!-- Snackbar -->
+    <div id="snackbar"></div>
+
     <!-- Error Overlay -->
     <div id="error-overlay">
       <div class="error-icon">⚠️</div>
@@ -921,13 +957,36 @@
         else timerSpan.classList.remove("timer-alert");
       }
 
+      let pendingRequests = 0;
+      let snackbarTimeout = null;
+
       window.completeOrder = function (orderId) {
         // 見た目上、即座にカードを消す（Optimistic UI）
         removeCard(orderId);
 
+        const snackbar = document.getElementById("snackbar");
+        pendingRequests++;
+        snackbar.innerHTML = `<span style="display:inline-block; width:16px; height:16px; border:3px solid #fff; border-top:3px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></span> 通信中... 画面を閉じないでください`;
+        snackbar.className = "show";
+        if (snackbarTimeout) clearTimeout(snackbarTimeout);
+
         // バックグラウンドでステータス更新処理を回す
         const kitchenComplete = firebase.app().functions("asia-northeast1").httpsCallable("kitchenComplete");
-        kitchenComplete({ orderId }).catch(e => {
+        kitchenComplete({ orderId }).then(() => {
+          pendingRequests--;
+          if (pendingRequests === 0) {
+            snackbar.innerHTML = `✅ 完了しました`;
+            snackbarTimeout = setTimeout(() => { 
+              if (pendingRequests === 0) {
+                snackbar.className = snackbar.className.replace("show", ""); 
+              }
+            }, 2500);
+          }
+        }).catch(e => {
+          pendingRequests--;
+          if (pendingRequests === 0) {
+            snackbar.className = snackbar.className.replace("show", ""); 
+          }
           alert("更新失敗: " + e.message + "\n画面を再読み込みします。");
           location.reload();
         });

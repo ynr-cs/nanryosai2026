@@ -712,6 +712,14 @@
         width: 100%;
         max-width: 480px;
       }
+      .modal.mobile-fullscreen-modal {
+        z-index: 9999 !important; /* グローバルヘッダー(900)の上に被せる */
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw;
+        height: 100dvh;
+      }
       .mobile-fullscreen-modal .modal-dialog {
         width: 100%;
         max-width: 480px;
@@ -1144,7 +1152,6 @@
         id="itemModal"
         tabindex="-1"
         data-bs-backdrop="false"
-        style="position: absolute"
       >
         <div class="modal-dialog">
           <div

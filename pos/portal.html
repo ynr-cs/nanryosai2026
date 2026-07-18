@@ -514,31 +514,7 @@
       }
       .open-modal-cancel-btn:hover { background: #f9fafb; }
 
-      @media (prefers-color-scheme: dark) {
-        .operation-status-panel {
-          background: #1e2330;
-        }
-        .operation-status-panel.status-open {
-          background: linear-gradient(135deg, #0d2a1f 0%, #1e2330 100%);
-        }
-        .operation-status-panel.status-suspended {
-          background: linear-gradient(135deg, #2a2010 0%, #1e2330 100%);
-        }
-        .operation-status-panel.status-closed {
-          background: linear-gradient(135deg, #1a1c24 0%, #1e2330 100%);
-        }
-        .open-modal-sheet {
-          background: #1e2330;
-          color: #f3f4f6;
-        }
-        .open-modal-title { color: #f3f4f6; }
-        .item-checkbox-row {
-          border-color: #374151;
-          background: #252b3b;
-        }
-        .item-checkbox-row:hover { background: #2e3650; }
-        .item-checkbox-name { color: #f3f4f6; }
-      }
+
 
       /* Items Manager Specifics */
 
@@ -1111,7 +1087,7 @@
 
         .main-content {
           padding: 12px;
-          padding-bottom: calc(100px + env(safe-area-inset-bottom));
+          padding-bottom: calc(130px + env(safe-area-inset-bottom)); /* フッター干渉対策で拡張 */
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         }
