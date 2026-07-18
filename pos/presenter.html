@@ -788,7 +788,7 @@
         } else if (data.status === "ready_for_pickup") {
           footerHtml = `
                 <div class="payment-actions">
-                    <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (目視確認)</button>
+                    <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (AirPay端末確認)</button>
                 </div>
             `;
         } else if (data.status === "abandoned") {

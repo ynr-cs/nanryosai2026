@@ -62,7 +62,7 @@
 `functions/index.js` の以下の Function 冒頭にも BAN チェックを入れる:
 
 - `createOrder` — 必須
-- `mockAuPayPayment` — 推奨
+- `mockAirPayPayment` — 推奨
 - その他、課金・注文に絡む Function — 必須
 
 ```js
