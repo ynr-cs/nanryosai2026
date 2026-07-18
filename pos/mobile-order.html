@@ -713,7 +713,7 @@
         max-width: 480px;
       }
       .modal.mobile-fullscreen-modal {
-        z-index: 9999 !important; /* グローバルヘッダー(900)の上に被せる */
+        z-index: 800 !important; /* グローバルヘッダー(900)やボトムナビより背面に配置 */
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -733,6 +733,8 @@
         border: none;
         display: flex;
         flex-direction: column;
+        /* グローバルヘッダーを避けるための上部余白 */
+        padding-top: calc(var(--header-height, 60px) + env(safe-area-inset-top));
       }
       .modal-backdrop.show {
         opacity: 0.2;
@@ -771,6 +773,7 @@
         display: flex;
         flex-direction: column;
         height: 100dvh;
+        padding-top: calc(var(--header-height, 60px) + env(safe-area-inset-top)) !important;
       }
 
       #app-container {
@@ -817,10 +820,10 @@
         padding-bottom: 140px; /* Clear the cart bar */
       }
 
-      /* Cart bar position relative to container */
+      /* Cart bar position relative to viewport */
       .bottom-cart-bar {
-        position: absolute; /* Absolute within #app-container */
-        bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px);
+        position: fixed; /* Fixed to viewport instead of absolute */
+        bottom: calc(var(--bottom-nav-height, 60px) + env(safe-area-inset-bottom) + 20px);
         left: 50%;
         transform: translateX(-50%);
         width: 90%;
@@ -1119,6 +1122,8 @@
           メニューに戻る
         </button>
       </div>
+    </div>
+    <!-- End App Container -->
 
       <!-- =========================================
            Global Components: Bottom Bar
@@ -1284,7 +1289,8 @@
               style="
                 background: var(--card-bg);
                 border-top-color: var(--border-color) !important;
-                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px) !important;
+                /* ボトムナビを避けるための下部余白 */
+                padding-bottom: calc(var(--bottom-nav-height, 60px) + env(safe-area-inset-bottom) + 20px) !important;
               "
             >
               <div class="d-flex justify-content-between align-items-end mb-2">
@@ -1348,7 +1354,6 @@
         id="cartModal"
         tabindex="-1"
         data-bs-backdrop="false"
-        style="position: absolute"
       >
         <div class="modal-dialog">
           <div
@@ -1377,7 +1382,8 @@
               class="modal-footer d-block border-top-0 p-3 pt-0"
               style="
                 background: var(--bg-color);
-                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px) !important;
+                /* ボトムナビを避けるための下部余白 */
+                padding-bottom: calc(var(--bottom-nav-height, 60px) + env(safe-area-inset-bottom) + 20px) !important;
               "
             >
               <button
@@ -1396,15 +1402,20 @@
               </button>
             </div>
           </div>
-        </div>
       </div>
-    </div>
-    <!-- End App Container -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
     <script src="../config.local.js"></script>
     <script src="../main/data/data.js"></script>
     <script type="module">
+      // 確実なスタッキングコンテキスト解消のため、モーダルをbody直下へ移動
+      // type="module" は defer 相当なので DOMContentLoaded を待たず即実行可能
+      const modalsToMove = ["itemModal", "cartModal", "error-overlay", "bottom-bar"];
+      modalsToMove.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) document.body.appendChild(el);
+      });
+
       /* 1. Firebase Function Imports
          インスタンス(app, auth, db 等)は auth.js から import する(Single Source of Truth)。
          各 SDK モジュールから関数のみを import する。
@@ -1849,8 +1860,11 @@
         const collapseEl = document.getElementById("customization-collapse");
         if (collapseEl) collapseEl.classList.remove("show");
 
-        if (!itemModal)
-          itemModal = new bootstrap.Modal(document.getElementById("itemModal"));
+        if (!itemModal) {
+          const el = document.getElementById("itemModal");
+          itemModal = new bootstrap.Modal(el);
+        }
+
         itemModal.show();
       };
 
