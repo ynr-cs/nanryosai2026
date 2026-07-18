@@ -360,22 +360,8 @@
   </head>
   <body>
     <main>
-      <!-- Loading State (Visible by default) -->
-      <div id="auth-loading" style="text-align: center; padding: 40px 20px">
-        <div
-          class="loading-skeleton"
-          style="
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-          "
-        ></div>
-        <p style="color: var(--text-sub)">Loading account...</p>
-      </div>
-
       <!-- Authenticated User Content -->
-      <div id="auth-content" style="display: none">
+      <div id="auth-content">
         <div id="profile-area">
           <!-- Loaded by JS -->
           <div class="profile-header">
@@ -647,12 +633,9 @@
       // Cache stores
       let storesCache = {};
 
-      // Loader Element
-      const authLoader = document.getElementById("auth-loading");
-
       // Fallback Timeout: If auth takes too long, redirect
       const authTimeout = setTimeout(() => {
-        if (authLoader.style.display !== "none") {
+        if (!window.CURRENT_USER_OBJ) {
           console.warn("Auth timeout - redirecting to login");
           const redirectTarget = encodeURIComponent("./account.html");
           window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
@@ -664,9 +647,7 @@
         clearTimeout(authTimeout);
 
         if (user) {
-          authLoader.style.display = "none";
           window.CURRENT_USER_OBJ = user;
-          document.getElementById("auth-content").style.display = "block";
 
           renderProfile(user);
           fetchOrderCount(user.uid);
@@ -756,22 +737,35 @@
              
              if (!item) return;
 
+             let imgPath = `../images/${item.id}.png`;
+
+             let detailsHTML = `<span>${item.groupName || item.place || ''}</span>`;
+             if (typeStr === "ステージ") {
+                 detailsHTML = `
+                     <span>${item.groupName || ''}</span>
+                     <span style="display:flex;align-items:center;gap:2px;"><i class="bi bi-clock"></i> ${item.time || ''}</span>
+                     <span style="display:flex;align-items:center;gap:2px;"><i class="bi bi-geo-alt"></i> ${item.place || ''}</span>
+                 `;
+             }
+
              const el = document.createElement("div");
              el.className = "order-card"; // 既存のスタイルを流用
              el.style.cursor = "pointer";
              
              el.innerHTML = `
-                 <div class="order-icon" style="background: rgba(245, 158, 11, 0.1);">
-                     <i class="bi bi-star-fill text-warning"></i>
+                 <div style="width: 50px; height: 50px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--item-fill); border: 1px solid var(--border-color);">
+                     <img src="${imgPath}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='../images/noimage.png'">
                  </div>
-                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'">
-                     <div class="order-info-top">
-                         <span class="store-name">${item.name}</span>
-                         <span class="order-date">${typeStr}</span>
+                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'" style="padding: 2px 0;">
+                     <div class="order-info-top" style="margin-bottom: 4px;">
+                         <span class="store-name" style="font-size: 0.95rem; line-height: 1.2;">${item.name}</span>
                      </div>
-                     <div class="order-items">${item.groupName}</div>
+                     <div class="order-items" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-sub);">
+                         <span style="background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">${typeStr}</span>
+                         ${detailsHTML}
+                     </div>
                  </div>
-                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto; width: 32px; height: 32px; font-size: 0.9rem;" aria-label="Remove Favorite">
+                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto;" aria-label="Remove Favorite">
                      <i class="bi bi-star"></i>
                  </button>
              `;
