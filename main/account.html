@@ -393,7 +393,7 @@
 
         <!-- Favorites Section -->
         <div class="account-section" id="favorites-section" style="margin-top: 10px">
-          <h3 class="section-title section-closed" id="favorites-toggle">
+          <h3 class="section-title section-closed" id="favorites-toggle" data-track="click_account_accordion" data-track-section="favorites">
             <span style="display: flex; align-items: center">
               🌟 お気に入り
               <span id="fav-count-badge" class="header-count-badge">0</span>
@@ -422,7 +422,7 @@
 
         <!-- Order History Section -->
         <div class="account-section" id="order-history-section" style="margin-top: 10px">
-          <h3 class="section-title section-closed" id="order-history-toggle">
+          <h3 class="section-title section-closed" id="order-history-toggle" data-track="click_account_accordion" data-track-section="order_history">
             <span style="display: flex; align-items: center">
               📦 注文履歴
               <span id="order-count-badge" class="header-count-badge">-</span>
@@ -460,17 +460,18 @@
                 <i class="bi bi-bell"></i> 呼び出し通知
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="notification-toggle" />
+                <input type="checkbox" id="notification-toggle" data-track="toggle_notification" />
                 <span class="slider"></span>
               </label>
             </div>
-            <div class="menu-item" onclick="window.location.href = 'terms.html'">
+            <div class="menu-item" onclick="window.location.href = 'terms.html'" data-track="click_account_menu" data-track-target="terms">
               <i class="bi bi-file-text"></i> 利用規約
             </div>
             <!-- Logout Button -->
             <div
               class="menu-item"
               id="btn-logout"
+              data-track="click_account_menu" data-track-target="logout"
             >
               <i class="bi bi-box-arrow-right"></i>
               ログアウト
@@ -480,6 +481,7 @@
               class="menu-item"
               id="btn-delete-account"
               style="border-bottom: none; cursor: pointer"
+              data-track="click_account_menu" data-track-target="delete_account"
             >
               <i class="bi bi-trash"></i> アカウント削除
             </div>

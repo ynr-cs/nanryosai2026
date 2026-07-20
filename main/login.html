@@ -637,7 +637,7 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { watchUser, login, logout } from "./auth.js";
+      import { watchUser, login, logout, analytics, logEvent } from "./auth.js";
 
       /* ==============================
          1. State Management
@@ -787,6 +787,8 @@
       });
 
       document.getElementById("btn-guest-login").addEventListener("click", () => {
+        // GA4: ゲストログインボタン押下
+        logEvent(analytics, "click_login", { method: "Guest" });
         // isStudentFlow は false のまま
         showScreen("step-login");
       });
@@ -832,6 +834,8 @@
       }
 
       async function handleLogin() {
+        // GA4: ログインボタン押下イベント
+        logEvent(analytics, "click_login", { method: "Google" });
         // UI feedback
         btnLogin.disabled = true;
         btnLogin.innerHTML =

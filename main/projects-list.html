@@ -609,25 +609,25 @@
         <div class="filter-group">
           <span class="filter-label">団体</span>
           <div id="filter-by-grade" class="filter-buttons">
-            <button class="filter-btn active" data-filter="すべて">
+            <button class="filter-btn active" data-filter="すべて" data-track="click_filter_grade" data-track-grade="すべて">
               すべて
             </button>
-            <button class="filter-btn" data-filter="1年生">1年生</button>
-            <button class="filter-btn" data-filter="2年生">2年生</button>
-            <button class="filter-btn" data-filter="3年生">3年生</button>
-            <button class="filter-btn" data-filter="部活動">部活動</button>
+            <button class="filter-btn" data-filter="1年生" data-track="click_filter_grade" data-track-grade="1年生">1年生</button>
+            <button class="filter-btn" data-filter="2年生" data-track="click_filter_grade" data-track-grade="2年生">2年生</button>
+            <button class="filter-btn" data-filter="3年生" data-track="click_filter_grade" data-track-grade="3年生">3年生</button>
+            <button class="filter-btn" data-filter="部活動" data-track="click_filter_grade" data-track-grade="部活動">部活動</button>
           </div>
         </div>
 
         <div class="filter-group">
           <span class="filter-label">ジャンル</span>
           <div id="filter-by-type" class="filter-buttons">
-            <button class="filter-btn active" data-filter="すべて">
+            <button class="filter-btn active" data-filter="すべて" data-track="click_filter_type" data-track-type="すべて">
               すべて
             </button>
-            <button class="filter-btn" data-filter="food">🍱 飲食</button>
-            <button class="filter-btn" data-filter="shop">🛍️ 物販</button>
-            <button class="filter-btn" data-filter="exhibit">🎨 展示・体験</button>
+            <button class="filter-btn" data-filter="food" data-track="click_filter_type" data-track-type="food">🍱 飲食</button>
+            <button class="filter-btn" data-filter="shop" data-track="click_filter_type" data-track-type="shop">🛍️ 物販</button>
+            <button class="filter-btn" data-filter="exhibit" data-track="click_filter_type" data-track-type="exhibit">🎨 展示・体験</button>
           </div>
         </div>
       </div>
@@ -687,7 +687,7 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
+      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser, analytics, logEvent } from "./auth.js";
       import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       window.CURRENT_PAGE = "projects";
@@ -802,7 +802,7 @@
               }
 
               const orderBtnHTML = isOrderable
-                ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order"><i class="fas fa-shopping-cart"></i> オーダー</a>`
+                ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order" data-track="click_order_from_list" data-track-project-id="${project.id}"><i class="fas fa-shopping-cart"></i> オーダー</a>`
                 : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
 
               const detailUrl = project.linkUrl ? project.linkUrl : `detail.html?id=${project.id}`;
@@ -816,7 +816,7 @@
                         </div>
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>
-                            <a href="${detailUrl}" class="card-project-title">${project.name}</a>
+                            <a href="${detailUrl}" class="card-project-title" data-track="click_project" data-track-project-id="${project.id}">${project.name}</a>
                             ${statusBadge}
                             <p class="card-catchphrase">${catchphrase}</p>
                             <div class="card-place">
@@ -825,11 +825,11 @@
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
                         <div class="card-button-wrapper">
-                            <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite">
+                            <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite" data-track="click_favorite" data-track-project-id="${project.id}">
                                 <i class="bi bi-star"></i>
                             </button>
                             ${orderBtnHTML}
-                            <a href="${detailUrl}" class="btn-action btn-details">詳細</a>
+                            <a href="${detailUrl}" class="btn-action btn-details" data-track="click_detail" data-track-project-id="${project.id}">詳細</a>
                         </div>
                     </div>
                     `;
@@ -950,6 +950,13 @@
           activeFilters.search = e.target.value.trim();
           applyFiltersAndSort(false); // No loading for type-ahead search
         });
+        
+        searchInput?.addEventListener("change", (e) => {
+          const val = e.target.value.trim();
+          if (val) {
+            logEvent(analytics, "search_project", { search_keyword: val });
+          }
+        });
 
         document.querySelectorAll(".filter-btn").forEach((btn) => {
           btn.addEventListener("click", (e) => {
@@ -968,6 +975,7 @@
           if (sortSelect) {
             sortSelect.addEventListener("change", (e) => {
               activeFilters.sort = e.target.value;
+              logEvent(analytics, "change_sort", { sort_type: e.target.value });
               applyFiltersAndSort(true);
             });
           }
@@ -984,6 +992,7 @@
                   }
               }
               activeFilters.favoritesOnly = e.target.checked;
+              logEvent(analytics, "toggle_favorites_filter", { status: e.target.checked ? "on" : "off" });
               applyFiltersAndSort(true);
             });
           }
@@ -1022,7 +1031,7 @@
       });
     </script>
       <!-- Floating Vote Button (Bug 8) -->
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header" class="floating-vote-btn" target="_blank" rel="noopener" aria-label="来場者投票">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header" class="floating-vote-btn" target="_blank" rel="noopener" aria-label="来場者投票" data-track="click_floating_vote">
         <i class="bi bi-person-raised-hand"></i>
         <span>投票</span>
       </a>

@@ -996,7 +996,7 @@
             
             <div class="venue-grid">
                 <!-- 体育館 -->
-                <div class="venue-card" onclick="toggleVenueExpand(this)">
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="gym">
                     <div class="venue-header">
                         <h3>体育館</h3>
                     </div>
@@ -1021,7 +1021,7 @@
                 </div>
 
                 <!-- 音楽室 -->
-                <div class="venue-card" onclick="toggleVenueExpand(this)">
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="music_room">
                     <div class="venue-header">
                         <h3>音楽室</h3>
                     </div>
@@ -1046,7 +1046,7 @@
                 </div>
 
                 <!-- 視聴覚室 -->
-                <div class="venue-card" onclick="toggleVenueExpand(this)">
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="av_room">
                     <div class="venue-header">
                         <h3>視聴覚室</h3>
                     </div>
@@ -1084,12 +1084,12 @@
                         列に並ばずお好きな時間にご注文いただけます。<br>
                         当日の混雑を避けてスムーズに受け取り！
                     </p>
-                    <a href="../pos/mobile-order.html" class="promo-btn-white">
+                    <a href="../pos/mobile-order.html" class="promo-btn-white" data-track="click_mop_promo" data-track-section="index_hero">
                         <i class="fas fa-mobile-alt"></i>
                         モバイルオーダーを使う
                     </a>
                     
-                    <a href="mobile-order-guide.html" class="promo-link-sub">
+                    <a href="mobile-order-guide.html" class="promo-link-sub" data-track="click_mop_safety">
                         <i class="fas fa-shield-alt"></i>
                         <span>システムの安全性について</span>
                     </a>
@@ -1143,7 +1143,7 @@
         <section class="highlight-section">
             <div class="highlight-header">
                 <h2 class="highlight-title">企画・展示 ハイライト</h2>
-                <a href="projects-list.html" class="highlight-link">
+                <a href="projects-list.html" class="highlight-link" data-track="click_section_more" data-track-section="projects">
                     すべて見る <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -1162,8 +1162,8 @@
             </div>
             <div class="filter-section">
         <div class="day-selector">
-          <button class="day-btn active" data-day="1">DAY 1</button>
-          <button class="day-btn" data-day="2">DAY 2</button>
+          <button class="day-btn active" data-day="1" data-track="click_gantt_day" data-track-day="1">DAY 1</button>
+          <button class="day-btn" data-day="2" data-track="click_gantt_day" data-track-day="2">DAY 2</button>
         </div>
       </div>
 
@@ -1176,7 +1176,7 @@
 
         <!-- Event Tooltip Modal -->
         <div class="event-tooltip" id="event-popup">
-          <button class="event-tooltip-close" id="event-popup-close"><i class="fas fa-times"></i></button>
+          <button class="event-tooltip-close" id="event-popup-close" data-track="close_gantt_popup"><i class="fas fa-times"></i></button>
           <div class="event-tooltip-group" id="event-popup-group"></div>
           <div class="event-tooltip-title" id="event-popup-title"></div>
           <div class="event-tooltip-desc" id="event-popup-desc"></div>
@@ -1185,7 +1185,7 @@
             <div><i class="fas fa-map-marker-alt"></i> <span id="event-popup-place"></span></div>
           </div>
           <div style="text-align: center;">
-            <a href="#" class="event-tooltip-link" id="event-popup-link">詳細を見る</a>
+            <a href="#" class="event-tooltip-link" id="event-popup-link" data-track="click_gantt_popup_detail">詳細を見る</a>
           </div>
         </div>
 
@@ -1220,7 +1220,7 @@
                         <div class="overview-details">
                             <h3 class="overview-label">場所</h3>
                             <p class="overview-value-lg">横浜南陵高等学校</p>
-                            <a href="https://www.google.com/maps/place/%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E7%AB%8B%E6%A8%AA%E6%B5%9C%E5%8D%97%E9%99%B5%E9%AB%98%E7%AD%89%E5%AD%A6%E6%A0%A1/@35.394142,139.566861,15z/data=!4m6!3m5!1s0x60185038ec1dc97d:0xceb43f4967396a60!8m2!3d35.394142!4d139.566861!16s%2Fg%2F122d_05p?entry=ttu" target="_blank" class="overview-link">
+                            <a href="https://www.google.com/maps/place/%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E7%AB%8B%E6%A8%AA%E6%B5%9C%E5%8D%97%E9%99%B5%E9%AB%98%E7%AD%89%E5%AD%A6%E6%A0%A1/@35.394142,139.566861,15z/data=!4m6!3m5!1s0x60185038ec1dc97d:0xceb43f4967396a60!8m2!3d35.394142!4d139.566861!16s%2Fg%2F122d_05p?entry=ttu" target="_blank" class="overview-link" data-track="click_external_map">
                                 <i class="fas fa-location-arrow"></i> アクセス方法を見る
                             </a>
                         </div>
@@ -1273,9 +1273,62 @@
 
                 <!-- Link to about.html -->
                 <div class="overview-more-link" style="text-align: center; margin-top: 30px;">
-                    <a href="about.html" class="about-btn-link" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: var(--primary-gradient); color: white; padding: 12px 32px; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3); transition: transform 0.2s, opacity 0.2s;">
+                    <a href="about.html" class="about-btn-link" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: var(--primary-gradient); color: white; padding: 12px 32px; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3); transition: transform 0.2s, opacity 0.2s;" data-track="click_section_more" data-track-section="about">
                         <i class="fas fa-info-circle"></i> 詳細を見る
                     </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ★ UPDATES SECTION ★ -->
+        <section class="updates-preview-container" style="padding: 0 20px 40px; max-width: 800px; margin: 0 auto;">
+            <div class="highlight-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="highlight-title" style="font-size: 1.2rem; font-weight: 900; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-rocket" style="color: var(--primary-color);"></i> UPDATES
+                </h2>
+                <a href="updates.html" class="view-more-link" style="font-size: 0.85rem; font-weight: 700; color: var(--primary-color); text-decoration: none;">もっと見る <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <style>
+                .update-preview-item {
+                    display: flex;
+                    align-items: center;
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    text-decoration: none;
+                    color: inherit;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                    gap: 16px;
+                }
+                .update-preview-item:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                    text-decoration: none;
+                }
+                .update-preview-date {
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: var(--text-sub);
+                    white-space: nowrap;
+                    min-width: 75px;
+                }
+                .update-preview-title {
+                    font-size: 0.95rem;
+                    font-weight: 800;
+                    color: var(--text-main);
+                    margin: 0;
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+            </style>
+            <div id="updates-preview-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align:center; padding: 20px; color: var(--text-sub);">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                 </div>
             </div>
         </section>
@@ -1413,8 +1466,9 @@
                         imgSrc = `../images/${matchedProject.id}.png`;
                     }
                     
+                    const trackEventName = containerId.includes('stage') ? 'click_stage_highlight' : 'click_project_highlight';
                     return `
-                    <a href="detail.html?id=${linkId}" class="highlight-card">
+                    <a href="detail.html?id=${linkId}" class="highlight-card" data-track="${trackEventName}" data-track-id="${linkId}">
                         <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
@@ -1601,7 +1655,13 @@
                   html += `<div class="gantt-event-bar" 
                                 style="left: ${left}%; width: ${width}%" 
                                 data-target-id="list-${event.id}" 
-                                data-id="${event.id}"> 
+                                data-id="${event.id}"
+                                data-track="click_gantt_event"
+                                data-track-event-id="${event.id}"
+                                data-track-group-name="${event.groupName || ''}"
+                                data-track-event-name="${event.name || ''}"
+                                data-track-time="${event.time || ''}"
+                                data-track-place="${event.place || ''}"> 
                                 <span class="event-group-name">${event.groupName}</span>
                                 <span class="event-perf-name">${event.name}</span>
                             </div>`;
@@ -1937,6 +1997,37 @@
             }
         });
     </script>
+    
+    <!-- Updates Preview Logic -->
+    <script type="module">
+        import { updatesList } from './data/updates.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('updates-preview-list');
+            if (!container) return;
+
+            if (!updatesList || updatesList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-sub); font-size: 0.9rem;">お知らせはありません。</div>';
+                return;
+            }
+
+            const sortedList = [...updatesList].slice(0, 3);
+
+            let html = '';
+            sortedList.forEach(update => {
+                const badgeHtml = update.badge ? `<span style="background:var(--primary-color); color:white; font-size:0.6rem; padding: 2px 6px; border-radius: 4px; font-weight:bold; margin-right:6px;">${update.badge}</span>` : '';
+                html += `
+                    <a href="updates.html?id=${update.id}" class="update-preview-item" data-track="click_update_preview">
+                        <h3 class="update-preview-title">${badgeHtml}${update.title}</h3>
+                        <i class="fas fa-chevron-right" style="margin-left: auto; color: var(--text-sub); font-size: 0.8rem;"></i>
+                    </a>
+                `;
+            });
+
+            container.innerHTML = html;
+        });
+    </script>
+
     <!-- Master Data (stageData / projectData) -->
     <script src="data/data.js"></script>
     <!-- App Shell Logic -->

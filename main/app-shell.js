@@ -40,6 +40,7 @@ const AppShell = {
     "stage-list.html",
     "terms.html",
     "status.html", // pos/status.html
+    "updates.html",
   ],
 
   isFooterPage: function () {
@@ -336,16 +337,16 @@ const AppShell = {
 
     const navHtml = `
             <nav class="app-bottom-nav">
-                <a href="${this.resolvePath("index.html")}" class="nav-item" data-page="home">
+                <a href="${this.resolvePath("index.html")}" class="nav-item" data-page="home" data-track="click_nav_home">
                     <i class="bi bi-house-door-fill"></i>
                     <span class="nav-label">ホーム</span>
                 </a>
-                <a href="${this.resolvePath("projects-list.html")}" class="nav-item" data-page="projects">
+                <a href="${this.resolvePath("projects-list.html")}" class="nav-item" data-page="projects" data-track="click_nav_projects">
                     <i class="bi bi-grid-fill"></i>
                     <span class="nav-label">企画</span>
                 </a>
                 
-                <a href="${this.resolvePath("mobile-order.html")}" class="nav-item core-button" data-page="order">
+                <a href="${this.resolvePath("mobile-order.html")}" class="nav-item core-button" data-page="order" data-track="click_nav_order">
                     <div class="icon-circle" style="position: relative;">
                         <i class="bi bi-bag-check-fill" style="font-size: 1.5rem;"></i>
                         <span id="order-nav-badge" class="nav-notification-badge" style="display: none;"></span>
@@ -353,13 +354,13 @@ const AppShell = {
                     <span class="nav-label" style="font-weight: 900; color: var(--primary-color)">オーダー</span>
                 </a>
 
-                <a href="${this.resolvePath("stage-list.html")}" class="nav-item" data-page="stage">
+                <a href="${this.resolvePath("stage-list.html")}" class="nav-item" data-page="stage" data-track="click_nav_stage">
                     <i class="bi bi-mic-fill"></i>
                     <span class="nav-label">ステージ</span>
                 </a>
                 
                 <!-- Account / My Page Item with Dynamic Avatar -->
-                <a href="${this.resolvePath("account.html")}" class="nav-item" data-page="account">
+                <a href="${this.resolvePath("account.html")}" class="nav-item" data-page="account" data-track="click_nav_account">
                     <div id="nav-user-icon-container" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                         <!-- Default Icon -->
                          <i id="nav-icon-guest" class="bi bi-person-circle" style="font-size: 1.5rem;"></i>
@@ -458,20 +459,20 @@ const AppShell = {
           <div class="footer-sitemap-col">
             <div class="footer-sitemap-heading">イベント</div>
             <ul class="footer-sitemap-list">
-              <li><a href="${this.resolvePath("about.html")}">概要</a></li>
-              <li><a href="${this.resolvePath("access.html")}">アクセス</a></li>
-              <li><a href="${this.resolvePath("projects-list.html")}">企画一覧</a></li>
-              <li><a href="${this.resolvePath("stage-list.html")}">ステージ発表</a></li>
-              <li><a href="${this.resolvePath("map.html")}">校内マップ</a></li>
+              <li><a href="${this.resolvePath("about.html")}" data-track="click_footer_link" data-track-target="about">概要</a></li>
+              <li><a href="${this.resolvePath("access.html")}" data-track="click_footer_link" data-track-target="access">アクセス</a></li>
+              <li><a href="${this.resolvePath("projects-list.html")}" data-track="click_footer_link" data-track-target="projects">企画一覧</a></li>
+              <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_footer_link" data-track-target="stage">ステージ発表</a></li>
+              <li><a href="${this.resolvePath("map.html")}" data-track="click_footer_link" data-track-target="map">校内マップ</a></li>
             </ul>
           </div>
 
           <div class="footer-sitemap-col">
             <div class="footer-sitemap-heading">サービス</div>
             <ul class="footer-sitemap-list">
-              <li><a href="${this.resolvePath("account.html")}">アカウント設定</a></li>
-              <li><a href="${this.resolvePath("mobile-order-guide.html")}">モバイルオーダーガイド</a></li>
-              <li><a href="${this.resolvePath("mobile-order.html")}">モバイルオーダー</a></li>
+              <li><a href="${this.resolvePath("account.html")}" data-track="click_footer_link" data-track-target="account">アカウント設定</a></li>
+              <li><a href="${this.resolvePath("mobile-order-guide.html")}" data-track="click_footer_link" data-track-target="mop_guide">モバイルオーダーガイド</a></li>
+              <li><a href="${this.resolvePath("mobile-order.html")}" data-track="click_footer_link" data-track-target="mop">モバイルオーダー</a></li>
             </ul>
           </div>
 
@@ -479,34 +480,36 @@ const AppShell = {
             <div class="footer-sitemap-heading">サポート</div>
             <ul class="footer-sitemap-list">
               <li>
-                <a href="${csForm}" target="_blank" rel="noopener">
+                <a href="${csForm}" target="_blank" rel="noopener" data-track="click_footer_link" data-track-target="contact">
                   お問い合わせ<i class="bi bi-box-arrow-up-right ext-icon"></i>
                 </a>
               </li>
               <li>
-                <a href="${bugForm}" target="_blank" rel="noopener">
+                <a href="${bugForm}" target="_blank" rel="noopener" data-track="click_footer_link" data-track-target="bug_report">
                   不具合報告<i class="bi bi-box-arrow-up-right ext-icon"></i>
                 </a>
               </li>
-              <li><a href="${this.resolvePath("terms.html")}">利用規約</a></li>
-              <li><a href="${this.resolvePath("privacy.html")}">プライバシーポリシー</a></li>
+              <li><a href="${this.resolvePath("terms.html")}" data-track="click_footer_link" data-track-target="terms">利用規約</a></li>
+              <li><a href="${this.resolvePath("privacy.html")}" data-track="click_footer_link" data-track-target="privacy">プライバシーポリシー</a></li>
             </ul>
           </div>
 
           <div class="footer-sitemap-col">
             <div class="footer-sitemap-heading">コンピュータ科学部</div>
             <ul class="footer-sitemap-list">
-              <li><a href="${this.resolvePath("about-us.html")}">コンピュータ科学部について</a></li>
+              <li><a href="${this.resolvePath("about-us.html")}" data-track="click_footer_link" data-track-target="about_cs">コンピュータ科学部について</a></li>
             </ul>
             <div class="footer-sns-row">
               <a href="https://github.com/ynr-cs/nanryosai2026"
                  class="footer-sns-btn github"
-                 target="_blank" rel="noopener" title="GitHub">
+                 target="_blank" rel="noopener" title="GitHub"
+                 data-track="click_footer_sns" data-track-target="github">
                 <i class="bi bi-github"></i>
               </a>
               <a href="https://www.instagram.com/ynr_cs"
                  class="footer-sns-btn instagram"
-                 target="_blank" rel="noopener" title="Instagram">
+                 target="_blank" rel="noopener" title="Instagram"
+                 data-track="click_footer_sns" data-track-target="instagram">
                 <i class="bi bi-instagram"></i>
               </a>
             </div>
@@ -516,7 +519,7 @@ const AppShell = {
 
         <!-- フッター内アンケートカード -->
         <div class="footer-survey-row">
-          <a class="footer-survey-card" href="${surveyForm}" target="_blank" rel="noopener">
+          <a class="footer-survey-card" href="${surveyForm}" target="_blank" rel="noopener" data-track="click_footer_survey" data-track-target="cs_survey">
             <div class="footer-survey-icon"><i class="bi bi-ui-checks"></i></div>
             <div class="footer-survey-body">
               <span class="footer-survey-label">コンピュータ科学部 アンケート</span>
@@ -524,7 +527,7 @@ const AppShell = {
             </div>
             <i class="bi bi-chevron-right footer-survey-arrow"></i>
           </a>
-          <a class="footer-survey-card" href="${voteUrl}" target="_blank" rel="noopener">
+          <a class="footer-survey-card" href="${voteUrl}" target="_blank" rel="noopener" data-track="click_footer_survey" data-track-target="vote">
             <div class="footer-survey-icon trophy"><i class="bi bi-trophy-fill"></i></div>
             <div class="footer-survey-body">
               <span class="footer-survey-label">生徒会 人気投票</span>

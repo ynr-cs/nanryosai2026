@@ -230,6 +230,8 @@ function login() {
           },
           { merge: true },
         );
+        // GA4: ログイン完了イベント
+        logEvent(analytics, "login", { method: "Google" });
         return user;
       }
       return null;
@@ -439,6 +441,31 @@ async function getFavorites() {
   return [];
 }
 
+/* ==============================
+   GA4 Universal Click Tracker
+   data-track 属性を持つ要素のクリックを自動でGA4に送信する。
+   HTML側は data-track="イベント名" を付けるだけでOK。
+   オプション: data-track-* 属性で追加パラメータを送信可能。
+   例: <button data-track="click_mop_promo" data-track-section="hero">...
+   ============================== */
+document.addEventListener("click", (event) => {
+  const target = event.target.closest("[data-track]");
+  if (!target) return;
+
+  const eventName = target.getAttribute("data-track");
+
+  // data-track-* 属性を追加パラメータとして収集
+  const params = {};
+  for (const attr of target.attributes) {
+    if (attr.name.startsWith("data-track-")) {
+      const paramName = attr.name.replace("data-track-", "").replace(/-/g, "_");
+      params[paramName] = attr.value;
+    }
+  }
+
+  logEvent(analytics, eventName, params);
+});
+
 // Export everything needed
 export {
   app,
@@ -449,6 +476,7 @@ export {
   messaging,
   appCheck,
   analytics,
+  logEvent,
   login,
   logout,
   watchUser,

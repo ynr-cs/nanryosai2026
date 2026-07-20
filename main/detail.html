@@ -677,7 +677,7 @@
                   <span class="skeleton" style="width: 60%; height: 48px; max-width: 300px; display: block; margin-bottom: 12px;"></span>
                 </h1>
              </div>
-             <button id="btn-favorite-detail" class="btn-favorite-star" style="display: none; margin-top: 8px;" aria-label="Favorite">
+             <button id="btn-favorite-detail" class="btn-favorite-star" style="display: none; margin-top: 8px;" aria-label="Favorite" data-track="click_favorite_detail">
                  <i class="bi bi-star"></i>
              </button>
           </div>
@@ -891,16 +891,16 @@
         let contentsHTML = "";
 
         // Tab 1: Info (Always)
-        tabsHTML += `<button class="tab-button active" data-tab="info">基本情報</button>`;
+        tabsHTML += `<button class="tab-button active" data-tab="info" data-track="click_detail_tab" data-track-tab="info">基本情報</button>`;
         
         // SNS リンクボタン
         let snsHTML = "";
         if (project.sns) {
           const snsLinks = [];
-          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;"><i class="fab fa-instagram"></i> Instagram</a>`);
-          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;"><i class="fab fa-twitter"></i> Twitter</a>`);
-          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;"><i class="fab fa-tiktok"></i> TikTok</a>`);
-          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;"><i class="fab fa-youtube"></i> YouTube</a>`);
+          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;" data-track="click_detail_sns" data-track-sns="instagram"><i class="fab fa-instagram"></i> Instagram</a>`);
+          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;" data-track="click_detail_sns" data-track-sns="twitter"><i class="fab fa-twitter"></i> Twitter</a>`);
+          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;" data-track="click_detail_sns" data-track-sns="tiktok"><i class="fab fa-tiktok"></i> TikTok</a>`);
+          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;" data-track="click_detail_sns" data-track-sns="youtube"><i class="fab fa-youtube"></i> YouTube</a>`);
           if (snsLinks.length > 0) {
             snsHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">${snsLinks.join("")}</div>`;
           }
@@ -913,7 +913,7 @@
           votingHTML = `
             <div style="margin-top:20px;padding:16px;background:var(--glass-bg);border:1px solid var(--border-color);border-radius:16px;text-align:center;">
               <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:8px;"><i class="fas fa-poll"></i> 来場者投票</p>
-              <button class="vote-btn" data-project-id="${project.id}" style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+              <button class="vote-btn" data-project-id="${project.id}" data-track="click_detail_vote" data-track-project-id="${project.id}" style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                 <i class="fas fa-thumbs-up"></i> ${votingLabel}
               </button>
             </div>
@@ -934,7 +934,7 @@
         // Tab 2: Menu (contentType に "menu" を含む場合)
         const contentTypes = Array.isArray(project.contentType) ? project.contentType : [project.contentType];
         if (contentTypes.includes("menu") && project.menu && project.menu.length > 0) {
-          tabsHTML += `<button class="tab-button" data-tab="menu">メニュー</button>`;
+          tabsHTML += `<button class="tab-button" data-tab="menu" data-track="click_detail_tab" data-track-tab="menu">メニュー</button>`;
           // Sort: recommended items first
           const sortedMenu = [...project.menu].sort((a, b) => {
             if (a.isRecommended && !b.isRecommended) return -1;
@@ -1053,7 +1053,7 @@
 
         // Tab 3: Gallery (contentType に "gallery" を含む場合、またはデータが存在する場合)
         if ((contentTypes.includes("gallery") || true) && project.gallery && project.gallery.length > 0) {
-          tabsHTML += `<button class="tab-button" data-tab="gallery">ギャラリー</button>`;
+          tabsHTML += `<button class="tab-button" data-tab="gallery" data-track="click_detail_tab" data-track-tab="gallery">ギャラリー</button>`;
           const galleryHTML = project.gallery
             .map(
               (url) => `
@@ -1073,7 +1073,7 @@
 
         // Tab 3.5: Performers (stage 向け)
         if (project.category === "stage" && project.performers && project.performers.length > 0) {
-          tabsHTML += `<button class="tab-button" data-tab="performers">出演者</button>`;
+          tabsHTML += `<button class="tab-button" data-tab="performers" data-track="click_detail_tab" data-track-tab="performers">出演者</button>`;
           const performersHTML = project.performers.map(p => `
             <div style="display:flex;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:8px;">
               ${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--glass-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:1.5rem;color:var(--text-sub);"></i></div>`}
@@ -1121,7 +1121,7 @@
         }
 
         if (scheduleItems.length > 0) {
-          tabsHTML += `<button class="tab-button" data-tab="schedule">スケジュール</button>`;
+          tabsHTML += `<button class="tab-button" data-tab="schedule" data-track="click_detail_tab" data-track-tab="schedule">スケジュール</button>`;
           // Sort by day
           scheduleItems.sort((a, b) => (a.day || 0) - (b.day || 0));
           const scheduleHTML = scheduleItems
@@ -1157,7 +1157,7 @@
         }
 
         // Tab 5: Map (Placeholder)
-        tabsHTML += `<button class="tab-button" data-tab="map">マップ</button>`;
+        tabsHTML += `<button class="tab-button" data-tab="map" data-track="click_detail_tab" data-track-tab="map">マップ</button>`;
         contentsHTML += `
                 <div class="tab-content" id="tab-map">
                     <h2 class="section-title"><i class="fas fa-map-marked-alt"></i>マップ</h2>

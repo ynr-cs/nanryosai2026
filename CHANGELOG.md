@@ -15,6 +15,128 @@
 - **パッチ (Patch / z)**: 開発中のあらゆる変更（不具合修正、機能追加、調整等）。実用可能な「完成」に至るまでの試行錯誤のログ。
 - **承認プロセス**: AIからの提案に対し、ユーザーが「承認」することでマイナーバージョンを繰り上げる。
 
+## [0.4.40] トップページ(index.html)のMOPプロモセクションのデザイン崩れ修正 - 2026-07-21
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`index.html` のMOPプロモセクションにおけるテキストの全リンク化・レイアウト崩れの修正**
+  - **背景/原因**: 過去のアップデート（トラッキングタグ追加時など）の際、`index.html` の「視聴覚室」セクションの下部に、一部欠損した `<a>` タグを含むMOPプロモのコード断片が誤って重複挿入されていました。この未閉鎖の `<a>` タグが後続の正規の「MOPプロモセクション」全体を飲み込んでしまい、すべての文字に下線が付くなど大幅なデザイン崩れを引き起こしていました。
+  - **解決策**: 誤って挿入されていたコード断片を特定し、綺麗に削除しました。これにより、DOMツリーが正常な状態に戻り、本来の美しいデザイン（ボタンやテキストの装飾）が復元されました。
+
+## [0.4.39] Updates機能のUX刷新および記事コンテンツの全面改訂 - 2026-07-21
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **筆者**: AI
+
+### 変更 (Changed)
+
+- **`updates.html` のUI/UXの大幅な刷新**
+  - アコーディオン方式から、SpaceXのUpdatesページにインスパイアされた「2ペイン（Master-Detail）のSplit View方式」へデザインを変更しました。
+  - スマホ閲覧時における記事切り替え時のローディング表示を簡略化（opacity変更のみ）し、画面のガタつきやちらつき（FOUC）を完全に排除しました。
+- **「日付」概念の排除**
+  - 記事データ（`updates.js`）およびUI（`updates.html`, `index.html` のプレビュー）から日付による表示やソート処理を完全に削除し、より柔軟なコンテンツ運用を可能にしました。
+
+### 追加 (Added)
+
+- **新しいビジョンを示す記事コンテンツの登録**
+  - 「Make Nanryo Great Again」（バッジ: `VISION`）
+  - 「全校の飲食店舗運営を、スマホひとつで。」（バッジ: `FEATURE`）
+  - 「変化を恐れない。アジャイルで創る新しい南陵祭」（バッジ: `ENGINEERING`）
+  - ※ 記事内の表現をよりシステム的・客観的な技術検証を強調するトーンへ調整。
+
+## [0.4.38] お知らせ (Updates) 機能の追加 - 2026-07-21
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **お知らせ（Updates）ページの新規作成 (`main/updates.html`)**
+  - SpaceXのUpdatesページから着想を得た、ニュース・アップデート一覧ページを追加。
+  - マークダウンファイル（`.md`）を読み込み、`marked.js` を利用して動的にHTMLへ展開・表示するインラインアコーディオンUIを採用。
+  
+- **記事データ管理 (`main/data/update/`, `main/data/updates.js`)**
+  - 記事を `main/data/update/` 配下に配置し、`updates.js` でメタデータを管理する運用フローを構築。
+
+### 変更 (Changed)
+
+- **トップページへのセクション追加 (`main/index.html`)**
+  - リアルタイム情報セクションの上部に「お知らせ」セクションを新設し、最新の3件のサマリーを表示。`updates.html` への「もっと見る」導線を追加。
+
+- **フッターのホワイトリスト更新 (`main/app-shell.js`)**
+  - `updates.html` で共通フッターが表示されるよう `FOOTER_WHITELIST` に追加。
+
+## [0.4.37] GA4 トラッキング網羅性の向上とパラメータ拡張 - 2026-07-21
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **ガントチャートへのトラッキング追加 (`main/index.html`, `main/stage-list.html`)**
+  - イベントバー（`gantt-event-bar`）のクリックを計測（`click_gantt_event`）。
+  - ポップアップ内の詳細リンククリックを計測（`click_gantt_popup_detail`）。
+  - どちらも、クリックした時点の**時間**（`time`）、**場所**（`place`）、**企画名**（`event_name`）、**企画ID**（`event_id`）をパラメータとして送信するように属性（`data-track-*`）を追加。
+
+- **動的イベントへのトラッキング追加 (`main/projects-list.html`, `main/stage-list.html`)**
+  - **検索**: 検索ボックス入力確定時に `search_project` イベントを送信（パラメータ `search_keyword` を付与）。
+  - **ソート**: 並び替えドロップダウン変更時に `change_sort` イベントを送信（パラメータ `sort_type` を付与）。
+  - **フィルター**: お気に入りトグル (`toggle_favorites_filter`) および 過去イベントトグル (`toggle_past_events`) 変更時にイベント送信（パラメータ `status` を付与）。
+  - `auth.js` から `analytics`, `logEvent` をインポートし、各画面の JavaScript ハンドラ内で直接 `logEvent` を発火させる構成に変更。
+
+- **リスト・詳細動線への追加**
+  - トップページ(`index.html`)の「すべて見る」等のセクションリンクに `click_section_more`（パラメータ `section`）。
+  - ステージ一覧(`stage-list.html`)の動的生成される「詳細を見る」ボタンに `click_stage_detail`（パラメータ `time`, `place` 等を含める）。
+  - フローティングの投票ボタンに `click_floating_vote`。
+
+### 修正 (Fixed)
+
+- `analytics_CONTEXT.md` に追加実装したイベントと動的パラメータ一覧を追記。
+
+## [0.4.36] GA4 包括的イベントトラッキング導入 - 2026-07-21
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+
+### 追加 (Added)
+
+- **GA4 共通クリックトラッキング基盤の導入 (`main/auth.js`)**
+  - **背景/原因**: 『データ収集要件.md』で必須とされていたGA4イベント計測が、`qr_scan` の1つを除いて全く実装されていなかった。
+  - **解決策**: `document.addEventListener("click")` のイベント委譲パターンを使い、`data-track` 属性を持つ全要素のクリックを自動でGA4に送信する仕組みを `auth.js` に追加。`data-track-*` 属性でパラメータも送信可能。また `logEvent` を export に追加し、各ファイルから個別送信も可能にした。
+  - **得られた知見**: 個別にイベントリスナーを設定するより、`closest()` を使った委譲パターンの方がパフォーマンスが高く保守しやすい。新しいボタンへのトラッキング追加はHTMLの属性1行で完結する。
+
+- **ログイン完了イベントの追加 (`main/auth.js`)**
+  - `login()` 関数のFirestore書き込み完了直後に `logEvent(analytics, "login", { method: "Google" })` を追加。
+
+- **コンバージョンファネル計測の実装 (`main/login.html`, `pos/mobile-order.html`)**
+  - `login.html`: Googleログインボタン (`click_login, method:Google`) とゲストログインボタン (`click_login, method:Guest`) 押下を計測。
+  - `mobile-order.html`: 各画面遷移（通知→規約→店舗選択→メニュー→確認画面）を `showScreen` 関数に計測ロジックを組み込んで自動計測。店舗選択 (`select_store`)、カート追加 (`add_to_cart`)、注文確定 (`purchase`) を標準的なGA4eCommerceイベントとして実装。
+
+- **全主要UIへの `data-track` 属性付与 (`main/index.html`, `projects-list.html`, `stage-list.html`, `detail.html`, `account.html`, `mobile-order-guide.html`)**
+  - `index.html`: リアルタイム情報カード（体育館/音楽室/視聴覚室）、MOPプロモボタン、ガントチャートDAYボタン、企画ハイライトカード（動的生成）
+  - `projects-list.html`: フィルターボタン（学年別・ジャンル別）、企画カードタイトル・詳細ボタン・注文ボタン・お気に入りボタン（動的生成）
+  - `stage-list.html`: DAYボタン、お気に入りボタン（動的生成）
+  - `detail.html`: SNSリンク、投票ボタン、各種タブ（基本情報/メニュー/ギャラリー/出演者/スケジュール/マップ）、お気に入りボタン
+  - `account.html`: お気に入り/注文履歴アコーディオン、通知トグル、利用規約、ログアウト、アカウント削除
+  - `mobile-order-guide.html`: 戻るボタン
+
+- **ボトムナビゲーション・フッターへの計測追加 (`main/app-shell.js`)**
+  - 全ページ共通のボトムナビ（ホーム/企画/オーダー/ステージ/アカウント）に `data-track` 属性を付与。
+  - フッター内の全リンク（各ページへの遷移、SNSリンク、アンケート等）に `data-track` 属性を付与。
+
 ## [0.4.35] レジ画面の「メニューに戻る」ボタンのテキスト復元 - 2026-07-19
 
 ### メタ情報

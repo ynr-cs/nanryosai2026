@@ -1443,7 +1443,7 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
-      import { app, auth, db, storage, functions, messaging, watchUser } from "../main/auth.js";
+      import { app, auth, db, storage, functions, messaging, watchUser, analytics, logEvent } from "../main/auth.js";
 
       /* VAPID Key (FCM) */
       const VAPID_KEY =
@@ -1742,6 +1742,8 @@
       }
 
       window.selectStore = (storeId, storeName) => {
+        // GA4: 店舗選択イベント
+        logEvent(analytics, "select_store", { store_id: storeId, store_name: storeName });
         currentStoreId = storeId;
         document.getElementById("menu-store-name").textContent = storeName;
         showScreen("step-menu");
@@ -1995,6 +1997,14 @@
             allowedToppings: selectingProduct.allowedToppings || [],
           });
         }
+        // GA4: カート追加イベント
+        logEvent(analytics, "add_to_cart", {
+          item_id: selectingProduct.id,
+          item_name: selectingProduct.name,
+          price: selectingProduct.price,
+          quantity: selectingQty,
+          currency: "JPY",
+        });
         updateBottomBar();
         itemModal.hide();
       };
@@ -2138,6 +2148,19 @@
           if (!result.data.success)
             throw new Error(result.data.error || "Order Failed");
 
+          // GA4: 注文確定イベント
+          logEvent(analytics, "purchase", {
+            transaction_id: result.data.orderId,
+            value: cart.reduce((sum, c) => sum + c.price * c.quantity, 0),
+            currency: "JPY",
+            items: cart.map(c => ({
+              item_id: c.productId,
+              item_name: c.name,
+              quantity: c.quantity,
+              price: c.price,
+            })),
+          });
+
           window.location.href = `status.html?orderId=${result.data.orderId}`;
         } catch (e) {
           console.error(e);
@@ -2155,6 +2178,18 @@
         const bar = document.getElementById("bottom-bar");
         if (id !== "step-menu") bar.style.display = "none";
         document.getElementById("app-container").scrollTo(0, 0);
+
+        // GA4: 画面遷移をイベントとして記録
+        const screenEvents = {
+          "step-notification": "funnel_notification",
+          "step-terms":        "funnel_terms",
+          "step-stores":       "funnel_view_stores",
+          "step-menu":         "funnel_view_menu",
+          "step-checkout":     "funnel_checkout",
+        };
+        if (screenEvents[id]) {
+          logEvent(analytics, screenEvents[id]);
+        }
       }
       window.showScreen = showScreen;
 

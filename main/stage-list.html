@@ -553,8 +553,8 @@
 
       <div class="filter-section">
         <div class="day-selector">
-          <button class="day-btn active" data-day="1">DAY 1</button>
-          <button class="day-btn" data-day="2">DAY 2</button>
+          <button class="day-btn active" data-day="1" data-track="click_stage_day" data-track-day="1">DAY 1</button>
+          <button class="day-btn" data-day="2" data-track="click_stage_day" data-track-day="2">DAY 2</button>
         </div>
       </div>
 
@@ -588,7 +588,7 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
+      import { getFavorites, toggleFavorite, getCurrentUser, watchUser, analytics, logEvent } from "./auth.js";
       window.CURRENT_PAGE = "stage";
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -698,7 +698,13 @@
                   html += `<div class="gantt-event-bar" 
                                 style="left: ${left}%; width: ${width}%" 
                                 data-target-id="list-${event.id}" 
-                                data-id="${event.id}"> 
+                                data-id="${event.id}"
+                                data-track="click_gantt_event"
+                                data-track-event-id="${event.id}"
+                                data-track-group-name="${event.groupName || ''}"
+                                data-track-event-name="${event.name || ''}"
+                                data-track-time="${event.time || ''}"
+                                data-track-place="${event.place || ''}"> 
                                 <span class="event-group-name">${event.groupName}</span>
                                 <span class="event-perf-name">${event.name}</span>
                             </div>`;
@@ -771,7 +777,7 @@
               // detail.html 側で projectData にない場合は stageData から合成して表示する機能があるため、常にリンクを出す。
               const relatedProject = projectData.find(p => p.groupName === event.groupName);
               const linkId = relatedProject ? relatedProject.id : event.id;
-              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
+              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button" data-track="click_stage_detail" data-track-event-id="${linkId}" data-track-event-name="${event.name || ''}" data-track-time="${event.time || ''}" data-track-place="${event.place || ''}">詳細を見る</a>`;
 
               const isFavorite = userFavorites.includes(linkId);
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
@@ -786,7 +792,7 @@
                         <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
                     </div>
                     <div class="list-button-wrapper">
-                        <button class="${favBtnClass}" data-event-id="${linkId}" aria-label="Favorite">
+                        <button class="${favBtnClass}" data-event-id="${linkId}" aria-label="Favorite" data-track="click_favorite_stage" data-track-event-id="${linkId}">
                             <i class="bi bi-star"></i>
                         </button>
                         ${linkHTML}
@@ -956,6 +962,7 @@
               }
             }
             activeFilters.favoritesOnly = e.target.checked;
+            logEvent(analytics, "toggle_favorites_filter", { status: e.target.checked ? "on" : "off" });
             const activeDayBtn = daySelector.querySelector(".day-btn.active");
             if (activeDayBtn) renderPage(activeDayBtn.dataset.day, false);
           });
@@ -986,7 +993,8 @@
         }
 
         if (pastEventsToggle) {
-          pastEventsToggle.addEventListener("change", function () {
+          pastEventsToggle.addEventListener("change", function (e) {
+            logEvent(analytics, "toggle_past_events", { status: e.target.checked ? "on" : "off" });
             const activeDayBtn = daySelector.querySelector(".day-btn.active");
             if (activeDayBtn) {
               const currentDay = activeDayBtn.dataset.day;
@@ -1052,7 +1060,7 @@
       });
     </script>
       <!-- Floating Vote Button (Bug 8) -->
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header" class="floating-vote-btn" target="_blank" rel="noopener" aria-label="来場者投票">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header" class="floating-vote-btn" target="_blank" rel="noopener" aria-label="来場者投票" data-track="click_floating_vote">
         <i class="bi bi-person-raised-hand"></i>
         <span>投票</span>
       </a>

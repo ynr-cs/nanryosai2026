@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPDATES | 南陵祭'26</title>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        /* ========================================
+           UPDATES PAGE — Master-Detail View
+           ======================================== */
+        
+        .updates-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px 16px 120px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .page-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+            letter-spacing: 0.1em;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-title i {
+            -webkit-text-fill-color: var(--primary-color);
+            color: var(--primary-color);
+            font-size: 1.6rem;
+        }
+
+        /* --- Split Layout --- */
+        .updates-layout {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        /* --- Sidebar (List) --- */
+        .updates-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: sticky;
+            top: 80px; /* Header + padding */
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            /* Hide scrollbar for aesthetics */
+            scrollbar-width: none; 
+        }
+        .updates-sidebar::-webkit-scrollbar { display: none; }
+
+        .list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+        .list-item:hover {
+            border-color: rgba(106, 17, 203, 0.4);
+            transform: translateY(-1px);
+        }
+        .list-item.active {
+            background: rgba(106, 17, 203, 0.05);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.1);
+        }
+        [data-theme="dark"] .list-item.active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .list-item-date {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .update-badge {
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 800;
+        }
+        .list-item-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1.4;
+            color: var(--text-main);
+            margin: 0;
+        }
+        .list-item.active .list-item-title {
+            color: var(--primary-color);
+        }
+
+        /* --- Content Area (Detail) --- */
+        .updates-content-area {
+            flex-grow: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px 40px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            min-height: 500px;
+        }
+
+        #content-body {
+            transition: opacity 0.2s ease;
+        }
+
+        .content-date {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Mobile Back Button (Hidden on PC) */
+        .mobile-back-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 700;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px 16px 0;
+            margin-bottom: 16px;
+            cursor: pointer;
+            border-bottom: 1px dashed var(--border-color);
+            width: 100%;
+            text-align: left;
+        }
+        .mobile-back-btn:active {
+            opacity: 0.7;
+        }
+
+        /* --- Markdown Styles --- */
+        .markdown-body {
+            color: var(--text-main);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        .markdown-body h1 {
+            font-size: 1.8em;
+            font-weight: 900;
+            margin: 0 0 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--text-main);
+        }
+        .markdown-body h2 {
+            font-size: 1.3em;
+            font-weight: 800;
+            margin: 32px 0 16px;
+            padding-left: 12px;
+            border-left: 4px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .markdown-body h3 {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin: 24px 0 12px;
+            color: var(--text-main);
+        }
+        .markdown-body p { margin-bottom: 16px; }
+        .markdown-body ul, .markdown-body ol { margin-bottom: 16px; padding-left: 1.8em; }
+        .markdown-body li { margin-bottom: 8px; }
+        .markdown-body blockquote {
+            padding: 16px 20px;
+            color: var(--text-sub);
+            border-left: 4px solid var(--primary-color);
+            background: var(--item-fill);
+            margin: 0 0 20px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+        .markdown-body img { max-width: 100%; border-radius: 12px; margin: 16px 0; box-shadow: 0 4px 15px var(--shadow-color); }
+        .markdown-body a { color: var(--primary-color); text-decoration: none; font-weight: 700; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body code { background: var(--item-fill); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; color: var(--accent-color); border: 1px solid var(--border-color); }
+        .markdown-body hr { border: none; height: 1px; background: var(--border-color); margin: 32px 0; }
+
+        /* Loader & Empty State */
+        .status-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: var(--text-sub);
+            text-align: center;
+        }
+        .status-box i { font-size: 3rem; opacity: 0.2; margin-bottom: 16px; }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Responsive Design (Mobile) --- */
+        @media (max-width: 768px) {
+            .updates-layout {
+                flex-direction: column;
+                gap: 0;
+            }
+            .updates-sidebar {
+                width: 100%;
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+                display: flex; /* Shown by default on mobile */
+            }
+            .updates-content-area {
+                display: none; /* Hidden by default on mobile */
+                border-radius: 12px;
+                padding: 24px 20px;
+                margin-top: 16px; /* spacing if needed */
+            }
+            
+            /* State classes for Mobile */
+            .updates-layout.view-detail .updates-sidebar {
+                display: none;
+            }
+            .updates-layout.view-detail .updates-content-area {
+                display: block;
+                animation: fadeSlideUp 0.3s ease;
+            }
+
+            @keyframes fadeSlideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .mobile-back-btn {
+                display: flex; /* Show back button on mobile */
+            }
+
+            .markdown-body h1 {
+                font-size: 1.4em;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="updates-container">
+        <!-- 統一感のあるページヘッダー -->
+        <div class="page-header mt-4">
+            <h1 class="page-title"><i class="fas fa-rocket"></i> UPDATES</h1>
+        </div>
+
+        <div class="updates-layout" id="updates-layout">
+            
+            <!-- 左側: リスト (Sidebar) -->
+            <div class="updates-sidebar" id="sidebar-list">
+                <div class="status-box">
+                    <div class="spinner"></div>
+                    <span>リストを読み込み中...</span>
+                </div>
+            </div>
+
+            <!-- 右側: 詳細 (Content) -->
+            <div class="updates-content-area" id="content-area">
+                <button class="mobile-back-btn" id="mobile-back-btn">
+                    <i class="fas fa-arrow-left"></i> 一覧に戻る
+                </button>
+
+                <div id="content-body">
+                    <!-- 初期状態 -->
+                    <div class="status-box">
+                        <i class="fas fa-newspaper"></i>
+                        <p style="font-weight: 700;">左側のリストから記事を選択してください</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase App & Shell -->
+    <script type="module" src="app-shell.js"></script>
+    <script type="module">
+        import { updatesList } from './data/updates.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const layout = document.getElementById('updates-layout');
+            const sidebar = document.getElementById('sidebar-list');
+            const contentBody = document.getElementById('content-body');
+            const backBtn = document.getElementById('mobile-back-btn');
+
+            // --- モバイル用の「一覧に戻る」処理 ---
+            backBtn.addEventListener('click', () => {
+                layout.classList.remove('view-detail');
+                // URLから idパラメータを消す
+                if(history.pushState) {
+                    history.pushState(null, '', window.location.pathname);
+                }
+                // トップ付近へスクロール
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // --- リストの描画 ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('id');
+
+            const renderUpdates = () => {
+                if (!updatesList || updatesList.length === 0) {
+                    sidebar.innerHTML = `
+                        <div class="status-box">
+                            <p>お知らせはありません。</p>
+                        </div>`;
+                    return;
+                }
+
+                sidebar.innerHTML = '';
+                const sorted = [...updatesList]; // 日付の概念がないため配列の順をそのまま使用
+
+                let targetItemEl = null;
+
+                sorted.forEach((update) => {
+                    const badgeHtml = update.badge ? `<span class="update-badge">${update.badge}</span>` : '';
+                    
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.dataset.id = update.id;
+                    item.innerHTML = `
+                        <div class="list-item-date">
+                            ${badgeHtml}
+                        </div>
+                        <h3 class="list-item-title">${update.title}</h3>
+                    `;
+
+                    // アイテムクリック時の処理
+                    item.addEventListener('click', () => loadContent(update, item));
+
+                    sidebar.appendChild(item);
+
+                    if (update.id === targetId) {
+                        targetItemEl = item;
+                    }
+                });
+
+                // 初期選択ロジック
+                const isMobile = window.innerWidth <= 768;
+                if (targetItemEl) {
+                    // URLパラメータ指定があれば、モバイルでも詳細を開く
+                    targetItemEl.click();
+                } else if (!isMobile && sorted.length > 0) {
+                    // PCなら自動で最初の記事を開く
+                    sidebar.querySelector('.list-item').click();
+                }
+            };
+
+            // --- コンテンツの読み込み ---
+            const loadContent = async (update, listItemEl) => {
+                // リストのアクティブ状態を更新
+                document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+                listItemEl.classList.add('active');
+
+                // モバイルで詳細ビューに切り替え
+                layout.classList.add('view-detail');
+
+                // URL更新
+                if(history.pushState) {
+                    history.pushState(null, '', `?id=${update.id}`);
+                }
+
+                // ロード中は透明度を下げるだけで、高さを変えない（ガタつき防止）
+                contentBody.style.opacity = '0.5';
+
+                // Markdownの取得とパース
+                try {
+                    const res = await fetch(`data/update/${update.file}`);
+                    if (res.ok) {
+                        const mdText = await res.text();
+                        const htmlContent = marked.parse(mdText);
+                        const badgeHtml = update.badge ? `<span class="update-badge" style="margin-left:8px;">${update.badge}</span>` : '';
+
+                        // 取得完了後にDOMを更新し、透明度を戻す
+                        contentBody.innerHTML = `
+                            <div class="content-date" style="justify-content: flex-end;">
+                                ${badgeHtml}
+                            </div>
+                            <div class="markdown-body">
+                                ${htmlContent}
+                            </div>
+                        `;
+                        contentBody.style.opacity = '1';
+
+                        // ページ上部へスクロール（モバイル閲覧時に自然）
+                        if (window.innerWidth <= 768) {
+                            window.scrollTo({ top: 0, behavior: 'instant' });
+                        }
+
+                    } else {
+                        contentBody.innerHTML = `
+                            <div class="status-box">
+                                <i class="fas fa-exclamation-triangle" style="color:var(--accent-color)"></i>
+                                <h3 style="color:var(--accent-color); font-size:1.2rem; font-weight:800; margin:0 0 8px;">読み込みエラー</h3>
+                                <p>記事の取得に失敗しました。</p>
+                            </div>
+                        `;
+                        contentBody.style.opacity = '1';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    contentBody.innerHTML = `
+                        <div class="status-box">
+                            <i class="fas fa-wifi" style="color:var(--accent-color)"></i>
+                            <h3 style="color:var(--accent-color); font-size:1.2rem; font-weight:800; margin:0 0 8px;">通信エラー</h3>
+                            <p>ネットワークを確認して再度お試しください。</p>
+                        </div>
+                    `;
+                    contentBody.style.opacity = '1';
+                }
+            };
+
+            renderUpdates();
+            window.CURRENT_PAGE = 'home'; 
+        });
+    </script>
+</body>
+</html>
