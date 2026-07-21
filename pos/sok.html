@@ -1,7 +1,7 @@
 <!--
   Nanryosai 2026
   pos/sok.html — セルフオーダーキオスク（iPad端末側）
-  Version: 0.1.0
+  Version: 0.2.0 (UI/UX Refined — logic unchanged)
   Author: Nanryosai 2026 Project Team
 
   設計憲法§5.2 Phase 1 準拠
@@ -15,21 +15,35 @@
   <head>
     <!-- FOUC対策 (Dark Mode Flicker Prevent) -->
     <style>
-      html { background-color: #f0f2f5; }
+      html {
+        background-color: #f0f2f5;
+      }
     </style>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>セルフオーダーキオスク | 南陵祭2026</title>
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     <!-- QR Code Generator -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Local Dev Config -->
@@ -40,25 +54,34 @@
          1. Variables & Base — iPad/キオスク特化 (Light Theme)
          ========================================= */
       :root {
-        --bg:         #f0f2f5;  /* Light Gray */
-        --surface:    #ffffff;
-        --surface-2:  #e2e8f0;
-        --accent:     #f59e0b;  /* Amber — SOKテーマカラー */
+        --bg: #f4f6f9; /* Light Gray */
+        --surface: #ffffff;
+        --surface-2: #e8edf3;
+        --accent: #f59e0b; /* Amber — SOKテーマカラー */
+        --accent-dark: #d97706;
         --accent-dim: #92400e;
-        --text:       #0f172a;
-        --text-sub:   #64748b;
-        --success:    #10b981;
-        --danger:     #ef4444;
-        --border:     #cbd5e1;
-        --radius-lg:  24px;
-        --radius-md:  16px;
-        --shadow:     0 20px 60px rgba(0,0,0,0.1);
-        --font:       "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+        --text: #0f172a;
+        --text-sub: #64748b;
+        --success: #10b981;
+        --success-bg: #d1fae5;
+        --danger: #ef4444;
+        --danger-bg: #fee2e2;
+        --border: #d5dde7;
+        --radius-lg: 24px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+        --font: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
-      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-      html, body {
+      html,
+      body {
         background: var(--bg);
         color: var(--text);
         font-family: var(--font);
@@ -85,57 +108,88 @@
       #kiosk-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
+        justify-content: center;
+        padding: 16px 24px;
         background: var(--surface);
         border-bottom: 1px solid var(--border);
         position: sticky;
         top: 0;
         z-index: 100;
+        box-shadow: var(--shadow-sm);
       }
       #kiosk-header .brand {
-        font-size: 1rem;
+        font-size: 2.2rem;
         font-weight: 900;
-        color: var(--accent);
+        color: var(--accent-dark);
         letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
       }
       #store-name-label {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         color: var(--text-sub);
         font-weight: 600;
+        margin-top: 2px;
+      }
+      .header-badge {
+        font-size: 0.7rem;
+        color: var(--text-sub);
+        background: var(--surface-2);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
       }
 
       /* =========================================
          3. Screens & Layout
          ========================================= */
-      .screen { display: none; height: 100%; animation: fadeUp 0.3s ease; overflow-y: auto; }
-      .screen.active { display: flex; flex-direction: column; }
-      @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(16px); }
-        to   { opacity: 1; transform: translateY(0); }
+      .screen {
+        display: none;
+        height: 100%;
+        animation: fadeUp 0.3s ease;
+        overflow-y: auto;
       }
-      
-      .landscape-layout {
+      .screen.active {
         display: flex;
-        flex-direction: row !important;
-        height: calc(100dvh - 57px); /* Header height */
+        flex-direction: column;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .landscape-layout {
+        height: calc(100dvh - 55px); /* Header height */
         overflow: hidden;
         padding: 0;
       }
+      .screen.active.landscape-layout {
+        display: flex !important;
+        flex-direction: row !important;
+      }
       .menu-area {
         flex: 2;
-        padding: 24px;
+        padding: 24px 24px 24px 28px;
         overflow-y: auto;
         background: var(--bg);
       }
       .cart-area {
         flex: 1;
-        min-width: 320px;
+        min-width: 360px;
+        max-width: 440px;
         background: var(--surface);
         border-left: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        padding: 24px;
+        padding: 24px 22px 22px;
+        box-shadow: -8px 0 24px rgba(15, 23, 42, 0.04);
       }
 
       /* =========================================
@@ -153,13 +207,18 @@
         gap: 20px;
       }
       .loader-ring {
-        width: 56px; height: 56px;
+        width: 56px;
+        height: 56px;
         border: 4px solid var(--surface-2);
         border-top: 4px solid var(--accent);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
-      @keyframes spin { 100% { transform: rotate(360deg); } }
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
       /* =========================================
          5. Error Screen
@@ -176,30 +235,152 @@
         text-align: center;
         padding: 40px;
       }
-      #error-screen.active { display: flex; }
+      #error-screen.active {
+        display: flex;
+      }
+
+      /* =========================================
+         5.5 Attract Mode (待機トップ)
+         ========================================= */
+      #screen-attract {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 9000;
+        overflow: hidden;
+        cursor: pointer;
+        display: none;
+      }
+      #screen-attract.active {
+        display: block;
+      }
+      #attract-bg-layer {
+        position: absolute;
+        inset: -5%;
+        width: 110%;
+        height: 110%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        animation: kenburns 15s infinite alternate ease-in-out;
+        transition: background-image 1s ease-in-out;
+      }
+      @keyframes kenburns {
+        0% { transform: scale(1) translate(0, 0); }
+        100% { transform: scale(1.1) translate(-2%, -1%); }
+      }
+      .attract-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.85) 100%);
+        z-index: 1;
+      }
+      .attract-content {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 6vw;
+        padding-bottom: 6vh;
+      }
+      .attract-info {
+        text-shadow: 0 8px 32px rgba(0,0,0,0.8);
+        color: #fff;
+        margin-bottom: 4vh;
+        width: 100%;
+      }
+      .attract-store {
+        color: var(--accent);
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 12px;
+        letter-spacing: 0.1em;
+      }
+      .attract-title {
+        font-size: 7.5rem;
+        font-weight: 900;
+        line-height: 1.15;
+        margin-bottom: 24px;
+        letter-spacing: 0.05em;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+      }
+      .attract-subtitle {
+        font-size: 3.2rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 24px;
+        background: rgba(0, 0, 0, 0.45);
+        padding: 14px 40px;
+        border-radius: 999px;
+        display: inline-block;
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(255,255,255,0.1);
+      }
+      .attract-dots {
+        display: flex;
+        gap: 16px;
+      }
+      .attract-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        transition: all 0.3s;
+      }
+      .attract-dot.active {
+        background: var(--accent);
+        transform: scale(1.3);
+      }
+      .attract-cta {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 3;
+        background: var(--accent);
+        color: #fff;
+        text-align: center;
+        padding: 24px;
+        font-size: 2rem;
+        font-weight: 900;
+        box-shadow: 0 -8px 24px rgba(245, 158, 11, 0.4);
+      }
+      .attract-cta-text {
+        animation: attractPulse 2.5s infinite ease-in-out;
+      }
+      @keyframes attractPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(0.98); }
+      }
 
       /* =========================================
          6. Menu Screen
          ========================================= */
       #menu-header {
-        margin-bottom: 20px;
+        margin-bottom: 22px;
       }
       #menu-header h2 {
-        font-size: 1.4rem;
+        font-size: 1.55rem;
         font-weight: 900;
         margin: 0;
+        letter-spacing: 0.01em;
       }
       #menu-header p {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         color: var(--text-sub);
-        margin: 4px 0 0;
+        margin: 6px 0 0;
       }
 
       #menu-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
-        margin-bottom: 120px;
+        padding-bottom: 24px;
       }
 
       .menu-card {
@@ -208,16 +389,59 @@
         overflow: hidden;
         border: 1px solid var(--border);
         cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s,
+          border-color 0.15s;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-sm);
+        position: relative;
       }
-      .menu-card:active { transform: scale(0.95); }
-      .menu-card.sold-out { opacity: 0.5; pointer-events: none; }
-      .menu-card.recommended { border-color: var(--accent); box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+      .menu-card:active {
+        transform: scale(0.96);
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.18);
+      }
+      .menu-card.sold-out {
+        opacity: 0.55;
+        pointer-events: none;
+      }
+      .menu-card.recommended {
+        border-color: var(--accent);
+        box-shadow: 0 4px 18px rgba(245, 158, 11, 0.22);
+      }
+
+      /* タップ時のプラスヒント */
+      .menu-card::after {
+        content: "\F64D"; /* bi-plus-lg */
+        font-family: "bootstrap-icons";
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        box-shadow: 0 3px 8px rgba(245, 158, 11, 0.4);
+        z-index: 3;
+        transition: transform 0.15s;
+      }
+      .menu-card.sold-out::after {
+        display: none;
+      }
+      .menu-card:active::after {
+        transform: scale(1.15);
+      }
 
       .menu-img-box {
         position: relative;
-        padding-top: 60%;
-        background: var(--bg);
+        aspect-ratio: 4 / 3;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
         overflow: hidden;
       }
       .menu-img {
@@ -225,44 +449,66 @@
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         opacity: 0;
         transition: opacity 0.4s;
+        padding: 10px;
       }
-      .menu-img.loaded { opacity: 1; }
+      .menu-img.loaded {
+        opacity: 1;
+      }
+      .menu-img.no-image {
+        object-fit: contain;
+        padding: 26px;
+      }
 
       .badge-rec {
         position: absolute;
-        top: 8px; left: 8px;
+        top: 10px;
+        left: 10px;
         background: linear-gradient(135deg, #f59e0b, #ef4444);
         color: #fff;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 800;
-        padding: 4px 10px;
+        padding: 5px 11px;
         border-radius: 999px;
         z-index: 2;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
       }
       .badge-soldout {
         position: absolute;
         inset: 0;
-        background: rgba(0,0,0,0.6);
+        background: rgba(15, 23, 42, 0.65);
         display: flex;
         align-items: center;
         justify-content: center;
         color: #fff;
         font-weight: 900;
-        font-size: 1rem;
+        font-size: 1.05rem;
         z-index: 2;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.12em;
       }
 
-      .menu-info { padding: 12px; }
-      .menu-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
-      .menu-price { font-size: 1.2rem; font-weight: 900; color: var(--accent); }
-
-      /* =========================================
-         7. Floating Cart Bar (Removed for iPad Layout)
-         ========================================= */
+      .menu-info {
+        padding: 14px 14px 16px;
+      }
+      .menu-name {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        line-height: 1.35;
+      }
+      .menu-price {
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: var(--accent-dark);
+      }
+      .menu-price::before {
+        content: "¥";
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-right: 1px;
+      }
 
       /* =========================================
          8. Item Modal (Full Screen)
@@ -270,98 +516,256 @@
       #item-modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.8);
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(3px);
         z-index: 800;
         display: none;
-        align-items: flex-end;
+        align-items: center;
         justify-content: center;
+        padding: 20px;
       }
-      #item-modal-overlay.active { display: flex; }
+      #item-modal-overlay.active {
+        display: flex;
+      }
       #item-modal {
         background: var(--surface);
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        border-radius: var(--radius-lg);
         width: 100%;
-        max-width: 600px;
+        max-width: 520px;
         max-height: 88dvh;
         overflow-y: auto;
-        padding: 24px 20px 40px;
-        animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        padding: 20px 22px 24px;
+        animation: popIn 0.22s ease-out;
+        box-shadow: var(--shadow);
       }
-      @keyframes slideUp {
-        from { transform: translateY(100%); opacity: 0; }
-        to   { transform: translateY(0);    opacity: 1; }
+      @keyframes popIn {
+        from {
+          transform: scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .modal-close-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--surface-2);
+        border: none;
+        color: var(--text-sub);
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .modal-close-btn:active {
+        background: var(--border);
       }
 
       .modal-product-img {
         width: 100%;
-        max-height: 200px;
+        max-height: 210px;
         object-fit: contain;
         border-radius: var(--radius-md);
-        background: var(--bg);
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
         margin-bottom: 16px;
+        border: 1px solid var(--border);
       }
-      .modal-product-name { font-size: 1.3rem; font-weight: 900; margin-bottom: 4px; }
-      .modal-product-price { font-size: 1.4rem; font-weight: 900; color: var(--accent); margin-bottom: 16px; }
+      .modal-product-name {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin-bottom: 4px;
+        line-height: 1.3;
+      }
+      .modal-product-price {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--accent-dark);
+        margin-bottom: 18px;
+      }
 
       /* カスタマイズ */
       .customize-section {
         background: var(--bg);
         border-radius: var(--radius-md);
-        padding: 16px;
+        padding: 18px 16px;
         margin-bottom: 20px;
+        border: 1px solid var(--border);
       }
       .customize-title {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--text-sub);
-        margin-bottom: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
-      .mode-btns { display: flex; gap: 10px; margin-bottom: 14px; }
+      .customize-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+
+      /* ステップ表示 */
+      .step-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--accent-dark);
+        margin-bottom: 10px;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.72rem;
+      }
+
+      .mode-btns {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
       .mode-btn {
         flex: 1;
-        padding: 10px;
-        border-radius: 12px;
+        padding: 14px 8px;
+        border-radius: var(--radius-sm);
         border: 2px solid var(--border);
-        background: transparent;
+        background: var(--surface);
         color: var(--text-sub);
-        font-weight: 700;
-        font-size: 0.9rem;
+        font-weight: 800;
+        font-size: 0.95rem;
         transition: all 0.15s;
         cursor: pointer;
       }
-      .mode-btn.active-no  { border-color: var(--danger); background: var(--danger); color: #fff; }
-      .mode-btn.active-add { border-color: var(--success); background: var(--success); color: #fff; }
+      .mode-btn:active {
+        transform: scale(0.96);
+      }
+      .mode-btn.active-no {
+        border-color: var(--danger);
+        background: var(--danger);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+      .mode-btn.active-add {
+        border-color: var(--success);
+        background: var(--success);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
 
-      .topping-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+      .mode-hint {
+        font-size: 0.78rem;
+        color: var(--text-sub);
+        margin: 10px 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mode-hint.warn {
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      .topping-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
       .topping-chip {
-        padding: 8px 16px;
+        padding: 11px 18px;
         border-radius: 999px;
-        border: 1.5px solid var(--border);
-        background: transparent;
+        border: 2px solid var(--border);
+        background: var(--surface);
         color: var(--text);
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.92rem;
         cursor: pointer;
         transition: all 0.15s;
       }
-      .topping-chip:active { transform: scale(0.93); }
-      .topping-chip.sel-no  { border-color: var(--danger);  background: rgba(239,68,68,0.2); color: #f87171; }
-      .topping-chip.sel-add { border-color: var(--success); background: rgba(16,185,129,0.2); color: #34d399; }
+      .topping-chip:active {
+        transform: scale(0.93);
+      }
+      .topping-chip.sel-no {
+        border-color: var(--danger);
+        background: var(--danger-bg);
+        color: #b91c1c;
+      }
+      .topping-chip.sel-add {
+        border-color: var(--success);
+        background: var(--success-bg);
+        color: #047857;
+      }
+      .topping-chip.sel-no::before {
+        content: "\F62A ";
+        font-family: "bootstrap-icons";
+        font-size: 0.8rem;
+        margin-right: 3px;
+      } /* dash */
+      .topping-chip.sel-add::before {
+        content: "\F64D ";
+        font-family: "bootstrap-icons";
+        font-size: 0.8rem;
+        margin-right: 3px;
+      } /* plus */
 
-      .mod-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .mod-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .active-mods-box {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--border);
+      }
+      .active-mods-box.empty {
+        display: none;
+      }
+      .active-mods-title {
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
       .mod-tag {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 10px;
+        padding: 5px 11px;
         border-radius: 999px;
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         font-weight: 700;
       }
-      .mod-tag.no  { background: var(--danger);  color: #fff; }
-      .mod-tag.add { background: var(--success); color: #fff; }
+      .mod-tag.no {
+        background: var(--danger);
+        color: #fff;
+      }
+      .mod-tag.add {
+        background: var(--success);
+        color: #fff;
+      }
 
       /* 数量 */
       .qty-row {
@@ -369,44 +773,130 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 20px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 12px 18px;
       }
-      .qty-ctrl { display: flex; align-items: center; gap: 16px; }
+      .qty-row .qty-title {
+        font-weight: 800;
+        font-size: 1rem;
+      }
+      .qty-ctrl {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
       .qty-btn {
-        width: 44px; height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         border: 2px solid var(--border);
-        background: transparent;
+        background: var(--surface);
         color: var(--text);
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.15s;
+        transition: all 0.12s;
       }
-      .qty-btn:active { background: var(--surface-2); }
-      .qty-num { font-size: 1.6rem; font-weight: 900; min-width: 40px; text-align: center; }
+      .qty-btn:active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        transform: scale(0.92);
+      }
+      .qty-num {
+        font-size: 1.7rem;
+        font-weight: 900;
+        min-width: 44px;
+        text-align: center;
+      }
 
       /* =========================================
-         9. Cart Screen
+         9. Cart (Right Panel)
          ========================================= */
+      .cart-heading {
+        font-size: 1.35rem;
+        font-weight: 900;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cart-count-pill {
+        font-size: 0.75rem;
+        font-weight: 800;
+        background: var(--accent);
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 999px;
+        min-width: 26px;
+        text-align: center;
+      }
+      .cart-count-pill.zero {
+        background: var(--surface-2);
+        color: var(--text-sub);
+      }
+
+      #cart-list {
+        flex: 1;
+        overflow-y: auto;
+        margin: 14px -6px 12px 0;
+        padding-right: 6px;
+      }
+
+      .cart-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-sub);
+        text-align: center;
+        gap: 12px;
+        padding: 20px;
+      }
+      .cart-empty i {
+        font-size: 3rem;
+        opacity: 0.35;
+      }
+      .cart-empty p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
       .cart-item {
         background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        padding: 16px;
+        padding: 14px 14px 12px;
         margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+      }
+      .cart-item-top {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 12px;
+        gap: 10px;
       }
-      .cart-item-info { flex: 1; }
-      .cart-item-name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-      .cart-item-price-sub { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; }
+      .cart-item-name {
+        font-size: 1.02rem;
+        font-weight: 800;
+        margin-bottom: 3px;
+        line-height: 1.3;
+      }
+      .cart-item-unit {
+        font-size: 0.78rem;
+        color: var(--text-sub);
+      }
       .cart-del-btn {
-        width: 36px; height: 36px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
-        background: rgba(239,68,68,0.15);
+        background: var(--danger-bg);
         border: none;
         color: var(--danger);
         font-size: 1.1rem;
@@ -415,18 +905,135 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        transition: all 0.12s;
+      }
+      .cart-del-btn:active {
+        background: var(--danger);
+        color: #fff;
+        transform: scale(0.9);
+      }
+
+      .cart-item-mods {
+        margin-top: 8px;
+      }
+
+      .cart-item-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 12px;
+        gap: 10px;
+      }
+      /* インライン数量ステッパー */
+      .cart-stepper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 3px;
+      }
+      .cart-stepper button {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.12s;
+      }
+      .cart-stepper button:active {
+        background: var(--accent);
+        color: #fff;
+        transform: scale(0.9);
+      }
+      .cart-stepper .cart-qty-num {
+        min-width: 30px;
+        text-align: center;
+        font-weight: 900;
+        font-size: 1.05rem;
+      }
+
+      .cart-line-price {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: var(--text);
+      }
+      .cart-line-price::before {
+        content: "¥";
+        font-size: 0.8rem;
+        margin-right: 1px;
+      }
+
+      .cart-edit-link {
+        background: transparent;
+        border: none;
+        color: var(--accent-dark);
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 4px 0;
+        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .cart-edit-link:active {
+        opacity: 0.6;
       }
 
       .total-row {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 20px 0;
-        border-top: 1px solid var(--border);
-        margin-top: 8px;
+        align-items: baseline;
+        padding: 18px 4px 16px;
+        border-top: 2px solid var(--border);
+        margin-top: 4px;
       }
-      .total-label { font-size: 1rem; color: var(--text-sub); font-weight: 700; }
-      .total-value { font-size: 2rem; font-weight: 900; color: var(--accent); }
+      .total-label {
+        font-size: 1.05rem;
+        color: var(--text);
+        font-weight: 800;
+      }
+      .total-label small {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        font-weight: 600;
+      }
+      .total-value {
+        font-size: 2.1rem;
+        font-weight: 900;
+        color: var(--accent-dark);
+      }
+      .total-value::before {
+        content: "¥";
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-right: 2px;
+      }
+
+      .cart-note {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: var(--radius-sm);
+        padding: 11px 13px;
+        margin-bottom: 14px;
+      }
+      .cart-note p {
+        font-size: 0.76rem;
+        color: #78500a;
+        margin: 0;
+        line-height: 1.55;
+      }
 
       /* =========================================
          10. Buttons
@@ -436,66 +1043,138 @@
         padding: 18px;
         border-radius: var(--radius-lg);
         border: none;
-        background: var(--accent);
-        color: #000;
-        font-size: 1.1rem;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-size: 1.15rem;
         font-weight: 900;
         cursor: pointer;
-        transition: transform 0.15s, opacity 0.15s;
-        letter-spacing: 0.03em;
+        transition:
+          transform 0.15s,
+          opacity 0.15s,
+          box-shadow 0.15s;
+        letter-spacing: 0.02em;
         margin-bottom: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 10px;
+        box-shadow: 0 6px 18px rgba(217, 119, 6, 0.32);
       }
-      .btn-primary-kiosk:active { transform: scale(0.97); }
-      .btn-primary-kiosk:disabled { background: var(--surface-2); color: var(--text-sub); cursor: not-allowed; }
+      .btn-primary-kiosk:active {
+        transform: scale(0.97);
+      }
+      .btn-primary-kiosk:disabled {
+        background: var(--surface-2);
+        color: var(--text-sub);
+        cursor: not-allowed;
+        box-shadow: none;
+      }
 
       .btn-secondary-kiosk {
         width: 100%;
-        padding: 14px;
+        padding: 15px;
         border-radius: var(--radius-lg);
-        border: 1px solid var(--border);
-        background: transparent;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
         color: var(--text-sub);
-        font-size: 0.95rem;
+        font-size: 0.98rem;
         font-weight: 700;
         cursor: pointer;
         transition: background 0.15s;
         margin-bottom: 8px;
       }
-      .btn-secondary-kiosk:active { background: var(--surface-2); }
+      .btn-secondary-kiosk:active {
+        background: var(--surface-2);
+      }
 
       /* =========================================
          11. QR Screen
          ========================================= */
       #screen-qr {
         text-align: center;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      #screen-qr.active {
+        display: flex;
+        flex-direction: column;
       }
       #qr-canvas-wrap {
         background: #fff;
         border-radius: var(--radius-lg);
-        padding: 24px;
+        padding: 26px;
         display: inline-block;
-        margin: 24px auto;
+        margin: 22px auto 20px;
         box-shadow: var(--shadow);
+        border: 1px solid var(--border);
       }
-      #qr-canvas { display: block; }
+      #qr-canvas {
+        display: block;
+      }
+
+      .qr-steps {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        margin-bottom: 8px;
+        color: var(--text-sub);
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+      .qr-steps span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .qr-steps i {
+        color: var(--accent-dark);
+        font-size: 1rem;
+      }
 
       #countdown-bar-wrap {
-        background: var(--surface);
+        background: var(--surface-2);
         border-radius: 999px;
-        height: 8px;
+        height: 10px;
         overflow: hidden;
-        margin: 16px 0;
+        margin: 16px auto 8px;
+        width: 100%;
+        max-width: 360px;
       }
       #countdown-bar {
         height: 100%;
-        background: var(--accent);
+        background: linear-gradient(90deg, #f59e0b, #d97706);
         border-radius: 999px;
         transition: width 1s linear;
         width: 100%;
+      }
+
+      /* =========================================
+         13. Idle Warning Modal (無操作警告)
+         ========================================= */
+      #idle-warning-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(3px);
+        z-index: 9500;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      #idle-warning-overlay.active {
+        display: flex;
+      }
+      #idle-warning-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 34px 26px 26px;
+        text-align: center;
+        width: 100%;
+        max-width: 440px;
+        animation: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: var(--shadow);
       }
 
       /* =========================================
@@ -504,54 +1183,111 @@
       #confirm-modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.85);
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(3px);
         z-index: 1000;
         display: none;
         align-items: center;
         justify-content: center;
         padding: 24px;
       }
-      #confirm-modal-overlay.active { display: flex; }
+      #confirm-modal-overlay.active {
+        display: flex;
+      }
       #confirm-modal {
         background: var(--surface);
         border-radius: var(--radius-lg);
-        padding: 32px 24px;
+        padding: 34px 26px 26px;
         text-align: center;
         width: 100%;
-        max-width: 420px;
-        animation: pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 440px;
+        animation: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: var(--shadow);
       }
       @keyframes pop {
-        from { transform: scale(0.8); opacity: 0; }
-        to   { transform: scale(1);   opacity: 1; }
+        from {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
       }
-      #confirm-modal h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
-      #confirm-modal p  { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 24px; }
-      #confirm-countdown { font-size: 2rem; font-weight: 900; color: var(--accent); margin-bottom: 20px; }
-      .confirm-btns { display: flex; gap: 12px; }
-      .confirm-btns button { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; font-size: 1rem; }
-      #btn-confirm-still { background: var(--surface-2); color: var(--text); }
-      #btn-confirm-next  { background: var(--accent); color: #000; }
+      #confirm-modal h3 {
+        font-size: 1.35rem;
+        font-weight: 900;
+        margin-bottom: 8px;
+      }
+      #confirm-modal p {
+        color: var(--text-sub);
+        font-size: 0.92rem;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      #confirm-countdown {
+        font-size: 2.4rem;
+        font-weight: 900;
+        color: var(--accent-dark);
+        margin-bottom: 22px;
+        font-variant-numeric: tabular-nums;
+      }
+      .confirm-btns {
+        display: flex;
+        gap: 12px;
+      }
+      .confirm-btns button {
+        flex: 1;
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        border: none;
+        font-weight: 900;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: transform 0.12s;
+      }
+      .confirm-btns button:active {
+        transform: scale(0.96);
+      }
+      #btn-confirm-still {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      #btn-confirm-next {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+      }
     </style>
   </head>
   <body>
-
     <!-- Global Loader -->
     <div id="global-loader">
       <div class="loader-ring"></div>
-      <p style="color: var(--text-sub); font-size: 0.9rem;">読み込み中...</p>
+      <p style="color: var(--text-sub); font-size: 0.9rem">読み込み中...</p>
     </div>
 
     <!-- Error Screen -->
     <div id="error-screen">
-      <div style="font-size: 4rem; color: var(--danger); margin-bottom: 16px;">
+      <div style="font-size: 4rem; color: var(--danger); margin-bottom: 16px">
         <i class="bi bi-exclamation-octagon-fill"></i>
       </div>
-      <h2 id="error-title" style="font-size: 1.4rem; font-weight: 900; margin-bottom: 8px;">エラー</h2>
-      <p id="error-msg" style="color: var(--text-sub); font-size: 0.95rem; line-height: 1.6;">
+      <h2
+        id="error-title"
+        style="font-size: 1.4rem; font-weight: 900; margin-bottom: 8px"
+      >
+        エラー
+      </h2>
+      <p
+        id="error-msg"
+        style="color: var(--text-sub); font-size: 0.95rem; line-height: 1.6"
+      >
         詳細なエラーメッセージ
       </p>
-      <button class="btn-secondary-kiosk" style="max-width: 260px; margin-top: 24px;" onclick="location.reload()">
+      <button
+        class="btn-secondary-kiosk"
+        style="max-width: 260px; margin-top: 24px"
+        onclick="location.reload()"
+      >
         <i class="bi bi-arrow-clockwise me-2"></i>再読み込み
       </button>
     </div>
@@ -560,37 +1296,84 @@
     <div id="app">
       <!-- Header -->
       <header id="kiosk-header">
-        <div>
-          <div class="brand"><i class="bi bi-bag-fill me-2"></i>セルフオーダー</div>
-          <div id="store-name-label">店舗名を読み込み中...</div>
+        <div class="brand" id="header-brand-name">
+          <i class="bi bi-shop me-2"></i>店舗名を読み込み中...
         </div>
-        <div style="font-size: 0.75rem; color: var(--text-sub);">SOK端末</div>
       </header>
 
       <!-- === SCREEN: スタートアップ === -->
       <div id="screen-startup" class="screen">
-        <div style="text-align: center; padding-top: 15vh;">
-          <div style="font-size: 5rem; color: var(--accent); margin-bottom: 24px;">
-            <i class="bi bi-bag-fill"></i>
+        <div style="text-align: center; padding-top: 14vh">
+          <div
+            style="font-size: 5rem; color: var(--accent); margin-bottom: 24px"
+          >
+            <i class="bi bi-bag-heart-fill"></i>
           </div>
-          <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 12px;">セルフオーダー端末</h2>
-          <p style="color: var(--text-sub); margin-bottom: 40px; line-height: 1.6;">
-            この端末は来場者向けのセルフオーダーレジです。<br>
+          <h2 style="font-size: 2.1rem; font-weight: 900; margin-bottom: 12px">
+            セルフオーダー端末
+          </h2>
+          <p
+            style="
+              color: var(--text-sub);
+              margin-bottom: 40px;
+              line-height: 1.7;
+            "
+          >
+            この端末は来場者向けのセルフオーダーレジです。<br />
             起動すると全画面表示になります。
           </p>
-          <button class="btn-primary-kiosk" style="max-width: 320px; margin: 0 auto;" onclick="startKiosk()">
+          <button
+            class="btn-primary-kiosk"
+            style="max-width: 340px; margin: 0 auto"
+            onclick="startKiosk()"
+          >
             <i class="bi bi-play-circle-fill"></i> SOKを起動する
           </button>
         </div>
       </div>
 
+      <!-- === SCREEN: アトラクトモード（待機） === -->
+      <div id="screen-attract" class="screen" onclick="showScreen('main')">
+        <div id="attract-bg-layer"></div>
+        <div class="attract-overlay"></div>
+        <div class="attract-content">
+          <div class="attract-info">
+            <div id="attract-store-name" class="attract-store"></div>
+            <div id="attract-project-name" class="attract-title"></div>
+            <div class="attract-subtitle">セルフオーダーレジ</div>
+          </div>
+          <div id="attract-dots" class="attract-dots"></div>
+        </div>
+        <div class="attract-cta">
+          <div class="attract-cta-text"><i class="bi bi-hand-index-thumb"></i> 画面をタッチして注文</div>
+        </div>
+      </div>
+
+      <!-- === SCREEN: 受付停止中 === -->
+      <div id="screen-suspended" class="screen">
+        <div style="text-align: center; padding-top: 25vh;">
+          <div style="font-size: 6rem; color: var(--danger); margin-bottom: 24px;">
+            <i class="bi bi-x-circle-fill"></i>
+          </div>
+          <h2 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 20px;">
+            受付停止中
+          </h2>
+          <p style="color: var(--text-sub); font-size: 1.8rem; line-height: 1.6;">
+            申し訳ございません。ただいま注文の受付を停止しております。<br>
+            受付再開までしばらくお待ちください。
+          </p>
+        </div>
+      </div>
+
       <!-- === SCREEN: メイン (iPad Landscape) === -->
       <div id="screen-main" class="screen landscape-layout">
-        
         <div class="menu-area">
           <div id="menu-header">
             <h2>ご注文をどうぞ</h2>
-            <p>商品を選択してカートに追加してください</p>
+            <p>
+              <i class="bi bi-hand-index-thumb me-1"></i
+              >商品をタップするとカートに追加されます
+            </p>
           </div>
           <div id="menu-grid">
             <!-- JS で注入 -->
@@ -598,34 +1381,52 @@
         </div>
 
         <div class="cart-area">
-          <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 20px;">
-            <i class="bi bi-cart-check-fill me-2" style="color: var(--accent);"></i>ご注文内容
-          </h2>
-          <div id="cart-list" style="flex: 1; overflow-y: auto; margin-bottom: 12px; padding-right: 8px;">
+          <div class="cart-heading">
+            <i class="bi bi-cart-check-fill" style="color: var(--accent)"></i>
+            ご注文内容
+            <span class="cart-count-pill zero" id="cart-count-pill">0</span>
+          </div>
+
+          <div id="cart-list">
             <!-- JS で注入 -->
           </div>
-          <div class="total-row" style="margin-top: auto;">
-            <span class="total-label">合計金額</span>
-            <span class="total-value" id="cart-total">¥0</span>
+
+          <div class="total-row">
+            <span class="total-label"
+              >合計金額<small>税込・お受け取り時にお支払い</small></span
+            >
+            <span class="total-value" id="cart-total">0</span>
           </div>
-          <div style="background: var(--bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent);">
-            <p style="font-size: 0.75rem; color: var(--text-sub); margin: 0; line-height: 1.5;">
-              <i class="bi bi-info-circle-fill me-1" style="color: var(--accent);"></i>
+
+          <div class="cart-note">
+            <p>
+              <i class="bi bi-info-circle-fill me-1"></i>
               QRコードをスマホで読み取り、Googleアカウントで注文を確定してください。お支払いは商品お受け取り時に現金等でお願いいたします。
             </p>
           </div>
-          <button class="btn-primary-kiosk" id="btn-issue-qr" onclick="issueQr()">
-            <i class="bi bi-phone-vibrate"></i> スマホで注文を続ける (QR)
+
+          <button
+            class="btn-primary-kiosk"
+            id="btn-issue-qr"
+            onclick="issueQr()"
+          >
+            <i class="bi bi-phone-vibrate"></i> この内容で注文する
           </button>
         </div>
       </div>
 
       <!-- === SCREEN: QR表示 === -->
       <div id="screen-qr" class="screen">
-        <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 4px;">
-          <i class="bi bi-qr-code-scan me-2" style="color: var(--accent);"></i>QRコードをスキャン
+        <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 6px">
+          <i
+            class="bi bi-qr-code-scan me-2"
+            style="color: var(--accent-dark)"
+          ></i
+          >QRコードをスキャン
         </h2>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">
+        <p
+          style="color: var(--text-sub); font-size: 0.95rem; margin-bottom: 4px"
+        >
           お客様のスマホでQRコードを読み取ってください
         </p>
 
@@ -633,64 +1434,114 @@
           <canvas id="qr-canvas"></canvas>
         </div>
 
+        <div class="qr-steps">
+          <span><i class="bi bi-1-circle-fill"></i>カメラで読み取り</span>
+          <span><i class="bi bi-2-circle-fill"></i>Googleでログイン</span>
+          <span><i class="bi bi-3-circle-fill"></i>注文を確定</span>
+        </div>
+
         <div id="countdown-bar-wrap">
           <div id="countdown-bar"></div>
         </div>
-        <p id="countdown-text" style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 24px;">
+        <p
+          id="countdown-text"
+          style="
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 24px;
+          "
+        >
           <span id="countdown-sec">20</span> 秒後に自動リセット
         </p>
 
-        <button class="btn-secondary-kiosk" onclick="resetToMenu()">
-          <i class="bi bi-arrow-counterclockwise me-1"></i> はじめから（次の方へ）
+        <button
+          class="btn-secondary-kiosk"
+          style="max-width: 340px"
+          onclick="resetToMenu()"
+        >
+          <i class="bi bi-arrow-counterclockwise me-1"></i>
+          はじめから（次の方へ）
         </button>
       </div>
     </div>
 
-    <!-- Floating Cart Bar (Removed) -->
-
     <!-- Item Modal -->
     <div id="item-modal-overlay" onclick="closeItemModal(event)">
       <div id="item-modal">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <button onclick="closeItemModal()" style="background:transparent; border:none; color:var(--text-sub); font-size:1.5rem; cursor:pointer; padding:0;">
+        <div class="modal-topbar">
+          <span
+            style="font-size: 0.8rem; color: var(--text-sub); font-weight: 700"
+            ><i class="bi bi-card-list me-1"></i>商品詳細</span
+          >
+          <button class="modal-close-btn" onclick="closeItemModal()">
             <i class="bi bi-x-lg"></i>
           </button>
-          <span style="font-size:0.8rem; color:var(--text-sub);">商品詳細</span>
-          <div style="width:32px;"></div>
         </div>
         <img id="modal-product-img" class="modal-product-img" src="" alt="" />
         <div id="modal-product-name" class="modal-product-name">商品名</div>
         <div id="modal-product-price" class="modal-product-price">¥0</div>
 
         <!-- カスタマイズエリア -->
-        <div id="modal-customize" class="customize-section" style="display:none;">
-          <div class="customize-title"><i class="bi bi-sliders me-1"></i>カスタマイズ</div>
+        <div
+          id="modal-customize"
+          class="customize-section"
+          style="display: none"
+        >
+          <div class="customize-title">
+            <i class="bi bi-sliders"></i>カスタマイズ
+          </div>
+          <div class="customize-subtitle">
+            お好みに合わせてトッピングを調整できます（任意）
+          </div>
+
+          <div class="step-label">
+            <span class="step-num">1</span>「抜き」か「追加」を選ぶ
+          </div>
           <div class="mode-btns">
-            <button class="mode-btn" id="mode-btn-no"  onclick="setMode('NO')">
+            <button class="mode-btn" id="mode-btn-no" onclick="setMode('NO')">
               <i class="bi bi-dash-circle me-1"></i> 抜き
             </button>
             <button class="mode-btn" id="mode-btn-add" onclick="setMode('ADD')">
               <i class="bi bi-plus-circle me-1"></i> 追加
             </button>
           </div>
-          <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">
-            <i class="bi bi-info-circle me-1"></i>先に「抜き」か「追加」を選んでください
+          <p class="mode-hint" id="mode-hint">
+            <i class="bi bi-arrow-down-circle"></i
+            >まず上のボタンを選んでください
           </p>
+
+          <div class="step-label">
+            <span class="step-num">2</span>対象のトッピングをタップ
+          </div>
           <div class="topping-grid" id="topping-grid"><!-- JS 注入 --></div>
-          <div class="mod-tags" id="active-mod-tags"><!-- JS 注入 --></div>
+
+          <div class="active-mods-box empty" id="active-mods-box">
+            <div class="active-mods-title">
+              <i class="bi bi-check2-circle me-1"></i>選択中の変更
+            </div>
+            <div class="mod-tags" id="active-mod-tags"><!-- JS 注入 --></div>
+          </div>
         </div>
 
         <!-- 数量 -->
         <div class="qty-row">
-          <span style="font-weight:700;">数量</span>
+          <span class="qty-title">数量</span>
           <div class="qty-ctrl">
-            <button class="qty-btn" onclick="adjustQty(-1)">-</button>
+            <button class="qty-btn" onclick="adjustQty(-1)">
+              <i class="bi bi-dash-lg"></i>
+            </button>
             <span class="qty-num" id="modal-qty">1</span>
-            <button class="qty-btn" onclick="adjustQty(1)">+</button>
+            <button class="qty-btn" onclick="adjustQty(1)">
+              <i class="bi bi-plus-lg"></i>
+            </button>
           </div>
         </div>
 
-        <button class="btn-primary-kiosk" onclick="addToCart()">
+        <button
+          class="btn-primary-kiosk"
+          style="margin-bottom: 0"
+          onclick="addToCart()"
+        >
           <i class="bi bi-cart-plus"></i> カートに追加
         </button>
       </div>
@@ -699,7 +1550,7 @@
     <!-- Scan Confirmation Modal (20秒後) -->
     <div id="confirm-modal-overlay">
       <div id="confirm-modal">
-        <div style="font-size:3rem; color:var(--accent); margin-bottom:12px;">
+        <div style="font-size: 3rem; color: var(--accent); margin-bottom: 12px">
           <i class="bi bi-question-circle-fill"></i>
         </div>
         <h3>スキャンはお済みですか？</h3>
@@ -716,6 +1567,25 @@
       </div>
     </div>
 
+    <!-- Idle Warning Modal -->
+    <div id="idle-warning-overlay">
+      <div id="idle-warning-modal">
+        <div style="font-size: 3.5rem; color: var(--accent); margin-bottom: 12px">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 12px;">ご注文を続けますか？</h3>
+        <p style="color: var(--text-sub); line-height: 1.6; margin-bottom: 16px;">
+          一定時間操作がなかったため、まもなく最初の画面に戻ります。
+        </p>
+        <div style="font-size: 2.8rem; font-weight: 900; color: var(--text); margin-bottom: 24px;">
+          <span id="idle-warning-sec">10</span>
+        </div>
+        <button class="btn-primary-kiosk" style="width: 100%;" onclick="resumeFromIdle()">
+          <i class="bi bi-hand-index-thumb me-1"></i> 注文を続ける
+        </button>
+      </div>
+    </div>
+
     <!-- Firebase & Logic -->
     <script type="module">
       import {
@@ -723,10 +1593,10 @@
         getDocs,
         query,
         where,
+        doc,
+        onSnapshot,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-      import {
-        httpsCallable,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
       import {
         ref as sRef,
         getDownloadURL,
@@ -736,48 +1606,65 @@
       // ==========================================================
       // 1. State
       // ==========================================================
-      let storeId       = null;
-      let storeName     = "";
-      let products      = [];
-      let cart          = [];
+      let storeId = null;
+      let storeData = null;
+      let storeName = "";
+      let products = [];
+      let cart = [];
 
       // Modal State
-      let activeProduct  = null;
-      let activeQty      = 1;
-      let activeMode     = null;  // "NO" | "ADD" | null
-      let activeMods     = [];    // [{ mode, target }]
+      let activeProduct = null;
+      let activeQty = 1;
+      let activeMode = null; // "NO" | "ADD" | null
+      let activeMods = []; // [{ mode, target }]
 
       // Timers
-      let qrIntervalId         = null;
-      let confirmIntervalId    = null;
-      const QR_SECONDS         = 20;  // QR表示から確認モーダルまでの秒数
-      const CONFIRM_SECONDS    = 10;  // 確認モーダルから自動リセットまでの秒数
+      let qrIntervalId = null;
+      let confirmIntervalId = null;
+      const QR_SECONDS = 30; // QR表示から確認モーダルまでの秒数
+      const CONFIRM_SECONDS = 10; // 確認モーダルから自動リセットまでの秒数
+
+      // Attract Mode State
+      let attractIntervalId = null;
+      let attractIndex = 0;
+      let attractItems = [];
+
+      // Idle Timer State
+      let idleTimeoutId = null;
+      let idleWarningIntervalId = null;
+      const IDLE_SECONDS = 20;
+      const IDLE_WARNING_SECONDS = 10;
 
       // ==========================================================
       // 2. Init
       // ==========================================================
-      const loader   = document.getElementById("global-loader");
-      const errScr   = document.getElementById("error-screen");
+      const loader = document.getElementById("global-loader");
+      const errScr = document.getElementById("error-screen");
 
       function showError(title, msg) {
         loader.style.display = "none";
         errScr.classList.add("active");
         document.getElementById("error-title").textContent = title;
-        document.getElementById("error-msg").textContent   = msg;
+        document.getElementById("error-msg").textContent = msg;
       }
 
       // URLパラメータ取得
       const urlParams = new URLSearchParams(window.location.search);
-      storeId         = urlParams.get("storeId");
+      storeId = urlParams.get("storeId");
 
       if (!storeId) {
-        showError("店舗IDが指定されていません", "portal.html からSOK端末として起動してください。URLに ?storeId= が必要です。");
+        showError(
+          "店舗IDが指定されていません",
+          "portal.html からSOK端末として起動してください。URLに ?storeId= が必要です。",
+        );
       } else {
         // スタッフ認証チェック
         watchUser(async (user) => {
           if (!user) {
             // 未ログイン → portal.html へ
-            window.location.replace(`./portal.html?sok_redirect=${encodeURIComponent(window.location.href)}`);
+            window.location.replace(
+              `./portal.html?sok_redirect=${encodeURIComponent(window.location.href)}`,
+            );
             return;
           }
           // IDトークンのClaims確認
@@ -786,7 +1673,7 @@
           if (claims.role !== "store_admin" || claims.storeId !== storeId) {
             showError(
               "権限がありません",
-              `このSOK端末は店舗「${storeId}」専用です。portal.html から正しい店舗でログインしてください。`
+              `このSOK端末は店舗「${storeId}」専用です。portal.html から正しい店舗でログインしてください。`,
             );
             return;
           }
@@ -797,32 +1684,56 @@
 
       async function loadMenu() {
         try {
-          // 店舗情報取得
-          const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-          const storeSnap = await getDoc(doc(db, "stores", storeId));
-          if (storeSnap.exists()) {
-            const sd = storeSnap.data();
-            storeName = sd.name || storeId;
-            document.getElementById("store-name-label").textContent = `${storeName} — SOK端末`;
+          // 商品情報のリアルタイム監視（売り切れ・追加等の即時反映）
+          const q = query(
+            collection(db, "items"),
+            where("storeId", "==", storeId),
+          );
+          onSnapshot(q, (snap) => {
+            products = [];
+            snap.forEach((d) => {
+              const p = d.data();
+              p.id = d.id;
+              products.push(p);
+            });
+            products.sort(
+              (a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0),
+            );
+            renderMenu();
+          }, (err) => {
+            console.warn("Items sync error:", err);
+          });
 
-            if (sd.operationStatus !== "open") {
-              showError("受付停止中", "この店舗は現在受付を停止しています。portal.html から営業状態を確認してください。");
-              return;
+          // 店舗情報のリアルタイム監視
+          onSnapshot(doc(db, "stores", storeId), (storeSnap) => {
+            if (storeSnap.exists()) {
+              storeData = storeSnap.data();
+              storeName = storeData.teamName || storeData.name || storeId;
+              const orgName = storeData.name || "";
+              const brandLabel = document.getElementById("header-brand-name");
+              if (brandLabel) brandLabel.innerHTML = `<i class="bi bi-shop me-2"></i><span style="font-size: 0.55em; font-weight: 700; margin-right: 12px; color: var(--text-sub); vertical-align: middle;">${orgName}</span>${storeName}`;
+
+              if (storeData.operationStatus !== "open") {
+                if (idleTimeoutId) clearTimeout(idleTimeoutId);
+                if (idleWarningIntervalId) clearInterval(idleWarningIntervalId);
+                stopAttractMode();
+                showScreen("suspended");
+                loader.style.display = "none";
+              } else {
+                const suspendedScreen = document.getElementById("screen-suspended");
+                if (suspendedScreen && suspendedScreen.classList.contains("active")) {
+                  resetToAttract();
+                } else if (!document.querySelector(".screen.active")) {
+                  loader.style.display = "none";
+                  showScreen("startup");
+                }
+              }
+            } else {
+              showError("店舗が見つかりません", "指定された店舗IDが存在しません。");
             }
-          }
-
-          // 商品取得
-          const q     = query(collection(db, "items"), where("storeId", "==", storeId));
-          const snap  = await getDocs(q);
-          products    = [];
-          snap.forEach((d) => { const p = d.data(); p.id = d.id; products.push(p); });
-
-          // おすすめを上に
-          products.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
-
-          renderMenu();
-          loader.style.display = "none";
-          showScreen("startup");
+          }, (err) => {
+             showError("読み込みエラー", err.message);
+          });
         } catch (e) {
           showError("読み込みエラー", e.message);
         }
@@ -839,14 +1750,164 @@
         } catch (e) {
           console.warn("Fullscreen request failed:", e);
         }
-        showScreen("main");
+        showScreen("attract");
+        startAttractMode();
       };
 
       window.showScreen = (name) => {
-        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
         document.getElementById(`screen-${name}`).classList.add("active");
+        
+        const header = document.getElementById("kiosk-header");
+        if (header) {
+          header.style.display = (name === "attract" || name === "suspended") ? "none" : "flex";
+        }
+        if (name !== "attract") {
+          stopAttractMode();
+        }
+
+        if (name === "main") {
+          resetIdleTimer();
+        } else {
+          if (idleTimeoutId) clearTimeout(idleTimeoutId);
+        }
+
         updateCartBar();
       };
+
+      // ==========================================================
+      // 3.1 Idle Timer Logic
+      // ==========================================================
+      function resetIdleTimer() {
+        if (idleTimeoutId) clearTimeout(idleTimeoutId);
+        if (idleWarningIntervalId) clearInterval(idleWarningIntervalId);
+        
+        const overlay = document.getElementById("idle-warning-overlay");
+        if (overlay && overlay.classList.contains("active")) {
+           overlay.classList.remove("active");
+        }
+
+        const mainScreen = document.getElementById("screen-main");
+        if (mainScreen && mainScreen.classList.contains("active")) {
+          idleTimeoutId = setTimeout(() => {
+            showIdleWarning();
+          }, IDLE_SECONDS * 1000);
+        }
+      }
+
+      function showIdleWarning() {
+        if (idleTimeoutId) clearTimeout(idleTimeoutId);
+        
+        const overlay = document.getElementById("idle-warning-overlay");
+        overlay.classList.add("active");
+        
+        let remaining = IDLE_WARNING_SECONDS;
+        document.getElementById("idle-warning-sec").textContent = remaining;
+        
+        idleWarningIntervalId = setInterval(() => {
+          remaining--;
+          document.getElementById("idle-warning-sec").textContent = remaining;
+          if (remaining <= 0) {
+             clearInterval(idleWarningIntervalId);
+             resetToAttract();
+          }
+        }, 1000);
+      }
+
+      window.resumeFromIdle = () => {
+         resetIdleTimer();
+      };
+
+      function resetToAttract() {
+        if (idleTimeoutId) clearTimeout(idleTimeoutId);
+        if (idleWarningIntervalId) clearInterval(idleWarningIntervalId);
+        
+        const idleOverlay = document.getElementById("idle-warning-overlay");
+        if (idleOverlay) idleOverlay.classList.remove("active");
+        
+        const confirmOverlay = document.getElementById("confirm-modal-overlay");
+        if (confirmOverlay) confirmOverlay.classList.remove("active");
+
+        cart = [];
+        if (typeof closeItemModal === "function") closeItemModal();
+        const btn = document.getElementById("btn-issue-qr");
+        if (btn) {
+          delete btn.dataset.loading;
+          btn.disabled = true;
+          btn.innerHTML = `<i class="bi bi-phone-vibrate"></i> この内容で注文する`;
+        }
+        renderCartScreen();
+        showScreen("attract");
+        startAttractMode();
+      }
+
+      // ユーザー操作でタイマーをリセット
+      document.addEventListener("touchstart", resetIdleTimer, { passive: true });
+      document.addEventListener("click", resetIdleTimer, { passive: true });
+      document.addEventListener("scroll", resetIdleTimer, { passive: true, capture: true });
+
+      // ==========================================================
+      // 3.5 Attract Mode Logic
+      // ==========================================================
+      function startAttractMode() {
+        const withImage = products.filter(p => p.imageUrl || p.imageURL);
+        attractItems = withImage.length > 0 ? withImage : products;
+        
+        attractIndex = 0;
+        renderAttractSlide();
+        
+        if (attractItems.length > 1) {
+          attractIntervalId = setInterval(() => {
+            attractIndex = (attractIndex + 1) % attractItems.length;
+            renderAttractSlide();
+          }, 4500);
+        }
+      }
+
+      function stopAttractMode() {
+        if (attractIntervalId) {
+          clearInterval(attractIntervalId);
+          attractIntervalId = null;
+        }
+      }
+
+      async function renderAttractSlide() {
+        const bgLayer = document.getElementById("attract-bg-layer");
+        const storeNameEl = document.getElementById("attract-store-name");
+        const projectEl = document.getElementById("attract-project-name");
+        const dotsWrap = document.getElementById("attract-dots");
+
+        const orgName = storeData?.name || "";
+        const projName = storeData?.teamName || storeData?.name || storeId;
+
+        storeNameEl.textContent = orgName;
+        projectEl.textContent = projName;
+
+        if (attractItems.length === 0) {
+          bgLayer.style.backgroundImage = "linear-gradient(135deg, #1e293b, #0f172a)";
+          dotsWrap.innerHTML = "";
+          return;
+        }
+
+        const p = attractItems[attractIndex];
+
+        dotsWrap.innerHTML = "";
+        attractItems.forEach((_, i) => {
+          const dot = document.createElement("div");
+          dot.className = "attract-dot" + (i === attractIndex ? " active" : "");
+          dotsWrap.appendChild(dot);
+        });
+
+        const tempImg = document.createElement("img");
+        await setProductImage(tempImg, p);
+        if (tempImg.src && !tempImg.src.includes("noimage.png")) {
+          bgLayer.style.backgroundImage = `url('${tempImg.src}')`;
+        } else {
+          bgLayer.style.backgroundImage = "linear-gradient(135deg, var(--accent), #b45309)";
+        }
+      }
 
       // ==========================================================
       // 4. Menu Rendering
@@ -860,9 +1921,9 @@
         }
         products.forEach((p) => {
           const isSoldOut = p.isAvailable === false;
-          const isRec     = p.isRecommended === true;
-          const el        = document.createElement("div");
-          el.className    = `menu-card${isSoldOut ? " sold-out" : ""}${isRec && !isSoldOut ? " recommended" : ""}`;
+          const isRec = p.isRecommended === true;
+          const el = document.createElement("div");
+          el.className = `menu-card${isSoldOut ? " sold-out" : ""}${isRec && !isSoldOut ? " recommended" : ""}`;
 
           el.innerHTML = `
             <div class="menu-img-box">
@@ -870,9 +1931,11 @@
               ${isRec && !isSoldOut ? '<div class="badge-rec"><i class="bi bi-star-fill"></i> おすすめ</div>' : ""}
               <img class="menu-img" id="img-${p.id}" alt="${p.name}" />
             </div>
-            <div class="menu-info">
+            <div class="menu-info" style="display:flex; flex-direction:column; flex:1;">
               <div class="menu-name">${p.name}</div>
-              <div class="menu-price">¥${p.price}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto;">
+                <div class="menu-price">${p.price}</div>
+              </div>
             </div>
           `;
 
@@ -880,23 +1943,62 @@
           const imgEl = el.querySelector(".menu-img");
           setProductImage(imgEl, p);
 
-          if (!isSoldOut) el.onclick = () => openItemModal(p);
+          if (!isSoldOut) el.onclick = () => quickAddToCart(p);
           grid.appendChild(el);
         });
       }
 
+      window.openItemModalById = (id) => {
+        const p = products.find((prod) => prod.id === id);
+        if (p) openItemModal(p);
+      };
+
+      window.quickAddToCart = (product) => {
+        // デフォルト値で直接カートに追加
+        const key = JSON.stringify([]);
+        const existing = cart.find(
+          (c) =>
+            c.productId === product.id &&
+            JSON.stringify(
+              [...c.customizations].sort((a, b) =>
+                a.target.localeCompare(b.target),
+              ),
+            ) === key,
+        );
+
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({
+            uniqueId: Date.now() + Math.random(),
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            customizations: [],
+          });
+        }
+        updateCartBar();
+        renderCart();
+      };
+
       // ==========================================================
       // 5. Item Modal
       // ==========================================================
+      let editingCartIndex = null;
+
       window.openItemModal = (product) => {
         activeProduct = product;
-        activeQty     = 1;
-        activeMode    = null;
-        activeMods    = [];
+        activeQty = 1;
+        activeMode = null;
+        activeMods = [];
+        editingCartIndex = null;
 
-        document.getElementById("modal-product-name").textContent  = product.name;
-        document.getElementById("modal-product-price").textContent = `¥${product.price}`;
-        document.getElementById("modal-qty").textContent           = "1";
+        document.getElementById("modal-product-name").textContent =
+          product.name;
+        document.getElementById("modal-product-price").textContent =
+          `¥${product.price}`;
+        document.getElementById("modal-qty").textContent = "1";
 
         const imgEl = document.getElementById("modal-product-img");
         setProductImage(imgEl, product);
@@ -916,9 +2018,47 @@
         document.getElementById("item-modal-overlay").classList.add("active");
       };
 
+      window.openCustomizeModal = (idx) => {
+        const item = cart[idx];
+        activeProduct = products.find((p) => p.id === item.productId);
+        if (!activeProduct) return;
+
+        activeQty = item.quantity;
+        activeMode = null;
+        activeMods = [...item.customizations];
+        editingCartIndex = idx;
+
+        document.getElementById("modal-product-name").textContent =
+          activeProduct.name;
+        document.getElementById("modal-product-price").textContent =
+          `¥${activeProduct.price * activeQty}`;
+        document.getElementById("modal-qty").textContent = activeQty;
+
+        const imgEl = document.getElementById("modal-product-img");
+        setProductImage(imgEl, activeProduct);
+
+        const allowed = activeProduct.allowedToppings || [];
+        const custArea = document.getElementById("modal-customize");
+        if (allowed.length > 0) {
+          custArea.style.display = "block";
+          renderToppings(allowed);
+          renderModeButtons();
+          renderActiveMods();
+        } else {
+          custArea.style.display = "none";
+        }
+        document.getElementById("item-modal-overlay").classList.add("active");
+      };
+
       window.closeItemModal = (event) => {
-        if (event && event.target !== document.getElementById("item-modal-overlay")) return;
-        document.getElementById("item-modal-overlay").classList.remove("active");
+        if (
+          event &&
+          event.target !== document.getElementById("item-modal-overlay")
+        )
+          return;
+        document
+          .getElementById("item-modal-overlay")
+          .classList.remove("active");
       };
 
       function renderToppings(allowed) {
@@ -926,30 +2066,59 @@
         grid.innerHTML = "";
         allowed.forEach((t) => {
           const btn = document.createElement("button");
-          btn.className     = "topping-chip";
+          btn.className = "topping-chip";
           btn.dataset.target = t;
-          btn.textContent   = t;
-          btn.onclick       = () => toggleMod(t);
+          btn.textContent = t;
+          btn.onclick = () => toggleMod(t);
           grid.appendChild(btn);
         });
+        // 既存のカスタマイズを反映（カート編集時）
+        updateToppingStyles();
       }
 
       window.setMode = (mode) => {
-        activeMode = (activeMode === mode) ? null : mode;
+        activeMode = activeMode === mode ? null : mode;
         renderModeButtons();
       };
 
       function renderModeButtons() {
-        document.getElementById("mode-btn-no").className  = `mode-btn${activeMode === "NO"  ? " active-no"  : ""}`;
-        document.getElementById("mode-btn-add").className = `mode-btn${activeMode === "ADD" ? " active-add" : ""}`;
+        document.getElementById("mode-btn-no").className =
+          `mode-btn${activeMode === "NO" ? " active-no" : ""}`;
+        document.getElementById("mode-btn-add").className =
+          `mode-btn${activeMode === "ADD" ? " active-add" : ""}`;
+        // ヒント文言を状態に合わせて更新（表示のみ、ロジック不変）
+        const hint = document.getElementById("mode-hint");
+        if (hint) {
+          if (activeMode === "NO") {
+            hint.className = "mode-hint";
+            hint.innerHTML = `<i class="bi bi-dash-circle" style="color:var(--danger);"></i>「抜き」モード：外したいトッピングをタップ`;
+          } else if (activeMode === "ADD") {
+            hint.className = "mode-hint";
+            hint.innerHTML = `<i class="bi bi-plus-circle" style="color:var(--success);"></i>「追加」モード：足したいトッピングをタップ`;
+          } else {
+            hint.className = "mode-hint";
+            hint.innerHTML = `<i class="bi bi-arrow-down-circle"></i>まず上のボタンを選んでください`;
+          }
+        }
       }
 
       function toggleMod(target) {
         if (!activeMode) {
-          // モード未選択 → 振動フィードバック
+          // モード未選択 → 視覚フィードバック（ボタン枠 + ヒント）
           const btns = document.querySelector(".mode-btns");
           btns.style.outline = "2px solid var(--danger)";
-          setTimeout(() => { btns.style.outline = ""; }, 600);
+          btns.style.outlineOffset = "3px";
+          btns.style.borderRadius = "14px";
+          const hint = document.getElementById("mode-hint");
+          if (hint) {
+            hint.className = "mode-hint warn";
+            hint.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i>先に「抜き」か「追加」を選んでください`;
+          }
+          setTimeout(() => {
+            btns.style.outline = "";
+            btns.style.outlineOffset = "";
+            renderModeButtons();
+          }, 900);
           return;
         }
         const idx = activeMods.findIndex((m) => m.target === target);
@@ -964,43 +2133,79 @@
       }
 
       function updateToppingStyles() {
-        document.querySelectorAll("#topping-grid .topping-chip").forEach((btn) => {
-          const t   = btn.dataset.target;
-          const mod = activeMods.find((m) => m.target === t);
-          btn.className = "topping-chip" + (mod ? (mod.mode === "NO" ? " sel-no" : " sel-add") : "");
-        });
+        document
+          .querySelectorAll("#topping-grid .topping-chip")
+          .forEach((btn) => {
+            const t = btn.dataset.target;
+            const mod = activeMods.find((m) => m.target === t);
+            btn.className =
+              "topping-chip" +
+              (mod ? (mod.mode === "NO" ? " sel-no" : " sel-add") : "");
+          });
       }
 
       function renderActiveMods() {
         const wrap = document.getElementById("active-mod-tags");
+        const box = document.getElementById("active-mods-box");
         wrap.innerHTML = "";
         activeMods.forEach((m) => {
-          const span       = document.createElement("span");
-          span.className   = `mod-tag ${m.mode.toLowerCase()}`;
+          const span = document.createElement("span");
+          span.className = `mod-tag ${m.mode.toLowerCase()}`;
           span.textContent = `${m.target} ${m.mode === "NO" ? "抜き" : "追加"}`;
           wrap.appendChild(span);
         });
+        // 選択が無ければボックスごと隠す（表示制御のみ）
+        if (box) {
+          if (activeMods.length > 0) box.classList.remove("empty");
+          else box.classList.add("empty");
+        }
       }
 
       window.adjustQty = (delta) => {
         activeQty = Math.max(1, activeQty + delta);
         document.getElementById("modal-qty").textContent = activeQty;
-        document.getElementById("modal-product-price").textContent = `¥${activeProduct.price * activeQty}`;
+        document.getElementById("modal-product-price").textContent =
+          `¥${activeProduct.price * activeQty}`;
       };
 
       // ==========================================================
       // 6. Cart Logic
       // ==========================================================
       window.addToCart = () => {
-        const sorted = [...activeMods].sort((a, b) => (a.mode + a.target).localeCompare(b.mode + b.target));
-        const key    = JSON.stringify(sorted);
-        const existing = cart.find((c) => c.productId === activeProduct.id && JSON.stringify([...c.customizations].sort((a,b)=>(a.mode+a.target).localeCompare(b.mode+b.target))) === key);
+        const sorted = [...activeMods].sort((a, b) =>
+          (a.mode + a.target).localeCompare(b.mode + b.target),
+        );
+        const key = JSON.stringify(sorted);
+
+        if (editingCartIndex !== null) {
+          cart.splice(editingCartIndex, 1);
+          editingCartIndex = null;
+        }
+
+        const existing = cart.find(
+          (c) =>
+            c.productId === activeProduct.id &&
+            JSON.stringify(
+              [...c.customizations].sort((a, b) =>
+                (a.mode + a.target).localeCompare(b.mode + b.target),
+              ),
+            ) === key,
+        );
         if (existing) {
           existing.quantity += activeQty;
         } else {
-          cart.push({ uniqueId: Date.now(), productId: activeProduct.id, name: activeProduct.name, price: activeProduct.price, quantity: activeQty, customizations: sorted });
+          cart.push({
+            uniqueId: Date.now() + Math.random(),
+            productId: activeProduct.id,
+            name: activeProduct.name,
+            price: activeProduct.price,
+            quantity: activeQty,
+            customizations: sorted,
+          });
         }
-        document.getElementById("item-modal-overlay").classList.remove("active");
+        document
+          .getElementById("item-modal-overlay")
+          .classList.remove("active");
         updateCartBar();
       };
 
@@ -1008,31 +2213,96 @@
         renderCartScreen();
       }
 
+      // カート内アイテムの数量をインラインで増減（表示補助。既存の追加/削除ロジックの組合せ）
+      window.incCartQty = (idx) => {
+        if (!cart[idx]) return;
+        cart[idx].quantity += 1;
+        renderCartScreen();
+      };
+      window.decCartQty = (idx) => {
+        if (!cart[idx]) return;
+        if (cart[idx].quantity <= 1) {
+          cart.splice(idx, 1);
+        } else {
+          cart[idx].quantity -= 1;
+        }
+        renderCartScreen();
+      };
+
       // ==========================================================
       // 7. Cart Screen (Integrated into Main Layout)
       // ==========================================================
+      // 互換: renderCart() 呼び出しに対応
+      window.renderCart = () => renderCartScreen();
 
       function renderCartScreen() {
-        const list  = document.getElementById("cart-list");
+        const list = document.getElementById("cart-list");
         const total = cart.reduce((s, c) => s + c.price * c.quantity, 0);
+        const count = cart.reduce((s, c) => s + c.quantity, 0);
         list.innerHTML = "";
-        cart.forEach((item, idx) => {
-          const modsHtml = item.customizations.length
-            ? item.customizations.map(m => `<span class="mod-tag ${m.mode.toLowerCase()}" style="font-size:0.7rem;">${m.target} ${m.mode === "NO" ? "抜き" : "追加"}</span>`).join("")
-            : "";
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <div class="cart-item-info">
-              <div class="cart-item-name">${item.name}</div>
-              <div class="cart-item-price-sub">¥${item.price} × ${item.quantity} = ¥${item.price * item.quantity}</div>
-              <div class="mod-tags">${modsHtml}</div>
-            </div>
-            <button class="cart-del-btn" onclick="removeCartItem(${idx})"><i class="bi bi-trash3"></i></button>
-          `;
-          list.appendChild(div);
-        });
-        document.getElementById("cart-total").textContent = `¥${total}`;
+
+        // 空カートのプレースホルダー
+        if (cart.length === 0) {
+          list.innerHTML = `
+            <div class="cart-empty">
+              <i class="bi bi-cart"></i>
+              <p>まだ商品が選ばれていません。<br>左のメニューから商品をタップしてください。</p>
+            </div>`;
+        } else {
+          cart.forEach((item, idx) => {
+            const modsHtml = item.customizations.length
+              ? item.customizations
+                  .map(
+                    (m) =>
+                      `<span class="mod-tag ${m.mode.toLowerCase()}" style="font-size:0.72rem;">${m.target} ${m.mode === "NO" ? "抜き" : "追加"}</span>`,
+                  )
+                  .join("")
+              : "";
+            const productInfo = products.find((p) => p.id === item.productId);
+            const hasToppings =
+              productInfo &&
+              productInfo.allowedToppings &&
+              productInfo.allowedToppings.length > 0;
+
+            const div = document.createElement("div");
+            div.className = "cart-item";
+            div.innerHTML = `
+              <div class="cart-item-top">
+                <div style="flex:1;">
+                  <div class="cart-item-name">${item.name}</div>
+                  <div class="cart-item-unit">¥${item.price} / 個</div>
+                </div>
+                <button class="cart-del-btn" onclick="removeCartItem(${idx})" aria-label="削除"><i class="bi bi-trash3"></i></button>
+              </div>
+              ${modsHtml ? `<div class="cart-item-mods mod-tags">${modsHtml}</div>` : ""}
+              <div class="cart-item-bottom">
+                <div class="cart-stepper">
+                  <button onclick="decCartQty(${idx})" aria-label="減らす"><i class="bi bi-dash"></i></button>
+                  <span class="cart-qty-num">${item.quantity}</span>
+                  <button onclick="incCartQty(${idx})" aria-label="増やす"><i class="bi bi-plus"></i></button>
+                </div>
+                <div class="cart-line-price">${item.price * item.quantity}</div>
+              </div>
+              ${hasToppings ? `<button class="cart-edit-link" onclick="openCustomizeModal(${idx})"><i class="bi bi-sliders"></i>カスタマイズを変更</button>` : ""}
+            `;
+            list.appendChild(div);
+          });
+        }
+
+        document.getElementById("cart-total").textContent = `${total}`;
+
+        // 個数ピル
+        const pill = document.getElementById("cart-count-pill");
+        if (pill) {
+          pill.textContent = count;
+          pill.className = "cart-count-pill" + (count === 0 ? " zero" : "");
+        }
+
+        // 注文ボタンの活性/非活性（表示補助のみ）
+        const issueBtn = document.getElementById("btn-issue-qr");
+        if (issueBtn && !issueBtn.dataset.loading) {
+          issueBtn.disabled = cart.length === 0;
+        }
       }
 
       window.removeCartItem = (idx) => {
@@ -1045,24 +2315,30 @@
       // ==========================================================
       window.issueQr = async () => {
         const btn = document.getElementById("btn-issue-qr");
+        btn.dataset.loading = "1";
         btn.disabled = true;
         btn.innerHTML = `<div class="loader-ring" style="width:24px;height:24px;border-width:3px;"></div> 発行中...`;
 
         try {
-          const fn     = httpsCallable(functions, "createSokProvisional");
+          const fn = httpsCallable(functions, "createSokProvisional");
           const result = await fn({
             storeId,
-            items: cart.map(c => ({ itemId: c.productId, quantity: c.quantity, customizations: c.customizations })),
+            items: cart.map((c) => ({
+              itemId: c.productId,
+              quantity: c.quantity,
+              customizations: c.customizations,
+            })),
           });
           const orderId = result.data.orderId;
-          const url     = `${location.origin}/pos/sok-to.html?orderId=${orderId}`;
+          const url = `${location.origin}/pos/sok-to.html?orderId=${orderId}`;
           await renderQR(url);
           showScreen("qr");
           startQrCountdown();
         } catch (e) {
           alert(`QRコードの発行に失敗しました:\n${e.message}`);
+          delete btn.dataset.loading;
           btn.disabled = false;
-          btn.innerHTML = `<i class="bi bi-qr-code"></i> QRコードを発行する`;
+          btn.innerHTML = `<i class="bi bi-phone-vibrate"></i> この内容で注文する`;
         }
       };
 
@@ -1081,8 +2357,8 @@
       function startQrCountdown() {
         clearTimers();
         let remaining = QR_SECONDS;
-        const bar     = document.getElementById("countdown-bar");
-        const secEl   = document.getElementById("countdown-sec");
+        const bar = document.getElementById("countdown-bar");
+        const secEl = document.getElementById("countdown-sec");
 
         bar.style.width = "100%";
         secEl.textContent = remaining;
@@ -1090,7 +2366,7 @@
         qrIntervalId = setInterval(() => {
           remaining--;
           secEl.textContent = remaining;
-          bar.style.width   = `${(remaining / QR_SECONDS) * 100}%`;
+          bar.style.width = `${(remaining / QR_SECONDS) * 100}%`;
 
           if (remaining <= 0) {
             clearTimers();
@@ -1117,27 +2393,28 @@
 
       window.cancelConfirmReset = () => {
         clearTimers();
-        document.getElementById("confirm-modal-overlay").classList.remove("active");
+        document
+          .getElementById("confirm-modal-overlay")
+          .classList.remove("active");
         // QRのカウントダウンを延長して再開
         let remaining = QR_SECONDS;
-        const bar     = document.getElementById("countdown-bar");
-        const secEl   = document.getElementById("countdown-sec");
+        const bar = document.getElementById("countdown-bar");
+        const secEl = document.getElementById("countdown-sec");
         bar.style.width = "100%";
         secEl.textContent = remaining;
         qrIntervalId = setInterval(() => {
           remaining--;
           secEl.textContent = remaining;
-          bar.style.width   = `${(remaining / QR_SECONDS) * 100}%`;
-          if (remaining <= 0) { clearTimers(); showConfirmModal(); }
+          bar.style.width = `${(remaining / QR_SECONDS) * 100}%`;
+          if (remaining <= 0) {
+            clearTimers();
+            showConfirmModal();
+          }
         }, 1000);
       };
 
       window.resetToMenu = () => {
-        clearTimers();
-        document.getElementById("confirm-modal-overlay").classList.remove("active");
-        cart = [];
-        showScreen("main");
-        renderCartScreen();
+        resetToAttract();
       };
 
       // ==========================================================
@@ -1145,9 +2422,12 @@
       // ==========================================================
       async function setProductImage(imgEl, product) {
         imgEl.classList.remove("loaded");
+        imgEl.classList.remove("no-image");
         const pathOrUrl = product.imageURL || product.imageUrl;
         if (!pathOrUrl) {
           imgEl.src = "../images/noimage.png";
+          imgEl.classList.add("no-image");
+          imgEl.classList.add("loaded");
           return;
         }
 
@@ -1155,9 +2435,16 @@
         const cachedUrl = sessionStorage.getItem(CACHE_KEY);
         if (cachedUrl) {
           imgEl.src = cachedUrl;
-          setTimeout(() => imgEl.classList.add("loaded"), 50);
+          imgEl.classList.add("loaded");
           return;
         }
+
+        imgEl.onload = () => imgEl.classList.add("loaded");
+        imgEl.onerror = () => {
+          imgEl.src = "../images/noimage.png";
+          imgEl.classList.add("no-image");
+          imgEl.classList.add("loaded");
+        };
 
         if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("data:")) {
           imgEl.src = pathOrUrl;
@@ -1165,22 +2452,27 @@
           try {
             const url = await getDownloadURL(sRef(storage, pathOrUrl));
             imgEl.src = url;
-            try { sessionStorage.setItem(CACHE_KEY, url); } catch (e) {}
+            try {
+              sessionStorage.setItem(CACHE_KEY, url);
+            } catch (e) {}
           } catch (e) {
             console.warn("Storage image load failed:", pathOrUrl, e);
             imgEl.src = "../images/noimage.png";
+            imgEl.classList.add("no-image");
+            imgEl.classList.add("loaded");
           }
         }
-        imgEl.onload = () => imgEl.classList.add("loaded");
-        imgEl.onerror = () => {
-          imgEl.src = "../images/noimage.png";
-          imgEl.onload = () => imgEl.classList.add("loaded");
-        };
       }
 
       function clearTimers() {
-        if (qrIntervalId)      { clearInterval(qrIntervalId);      qrIntervalId      = null; }
-        if (confirmIntervalId) { clearInterval(confirmIntervalId); confirmIntervalId = null; }
+        if (qrIntervalId) {
+          clearInterval(qrIntervalId);
+          qrIntervalId = null;
+        }
+        if (confirmIntervalId) {
+          clearInterval(confirmIntervalId);
+          confirmIntervalId = null;
+        }
       }
     </script>
   </body>

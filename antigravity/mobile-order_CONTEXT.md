@@ -95,8 +95,11 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
 ### 5.1 アーキテクチャの分離
 - **`pos/sok.html` (iPad用)**:
   - スタッフ認証必須。`portal.html` から起動。
+  - 初期表示は「スタートアップ画面」（「SOKを起動する」ボタン押し込みで全画面表示＆ライトテーマで動作）。
+  - レイアウトはiPad向けSplit View（左：メニュー一覧 / 右：リアルタイムカート＆注文確認）で固定表示。
+  - 画像非設定時/ロードエラー時は `noimage.png` を `object-fit: contain` で枠内に綺麗に収めて表示。
   - カート機能・トッピングカスタマイズ等のUXはモバイルオーダーと同等。
-  - QRコード発行時、`createSokProvisional` 関数を呼び出し、`status: null`, `sokStatus: pending` の仮注文ドキュメントを作成。
+  - 「注文を確認する」ボタン押下時、`createSokProvisional` 関数を呼び出し、`status: null`, `sokStatus: pending` の仮注文ドキュメントを作成。QR生成ライブラリは `cdnjs` 経由で取得。
   - 20秒でQR表示後、確認モーダル（10秒）を経て自動リセット。
 - **`pos/sok-to.html` (来場者スマホ用)**:
   - 対話アニメーション型UX（1画面内でシームレスに遷移）。
