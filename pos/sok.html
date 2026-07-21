@@ -414,6 +414,15 @@
         transform: scale(0.96);
         box-shadow: 0 8px 20px rgba(245, 158, 11, 0.18);
       }
+      .menu-card.card-tapped {
+        animation: cardTapBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border-color: var(--accent) !important;
+      }
+      @keyframes cardTapBounce {
+        0% { transform: scale(0.95); }
+        45% { transform: scale(1.04); border-color: var(--accent); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35); }
+        100% { transform: scale(1); }
+      }
       .menu-card.sold-out {
         opacity: 0.55;
         pointer-events: none;
@@ -446,8 +455,9 @@
       .menu-card.sold-out::after {
         display: none;
       }
-      .menu-card:active::after {
-        transform: scale(1.15);
+      .menu-card.card-tapped::after {
+        transform: scale(1.25) rotate(90deg);
+        background: var(--accent-dark);
       }
 
       .menu-img-box {
@@ -888,6 +898,27 @@
         margin-bottom: 12px;
         box-shadow: var(--shadow-sm);
       }
+      .cart-item.just-added {
+        animation: popCartItem 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes popCartItem {
+        0% {
+          transform: scale(0.85) translateY(-8px);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+      .cart-count-bump {
+        animation: bumpPill 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes bumpPill {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.35); }
+        100% { transform: scale(1); }
+      }
       .cart-item-top {
         display: flex;
         justify-content: space-between;
@@ -1269,9 +1300,40 @@
         background: linear-gradient(135deg, #f59e0b, #d97706);
         color: #fff;
       }
+
+      /* Fullscreen Warning Badge for iPad */
+      .fullscreen-notice {
+        position: fixed;
+        top: 14px;
+        left: 80px;
+        z-index: 99999;
+        background: rgba(15, 23, 42, 0.82);
+        color: #ffffff;
+        font-size: 0.76rem;
+        font-weight: 800;
+        padding: 6px 14px;
+        border-radius: 999px;
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        pointer-events: none;
+        display: none;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        letter-spacing: 0.03em;
+        animation: pulseNotice 2.5s infinite ease-in-out;
+      }
+      @keyframes pulseNotice {
+        0%, 100% { opacity: 0.88; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.03); }
+      }
     </style>
   </head>
   <body>
+    <!-- Fullscreen Exit Warning Badge (iPad/Safari用) -->
+    <div id="fullscreen-notice" class="fullscreen-notice">
+      <i class="bi bi-arrow-left" style="color: #f59e0b; font-size: 0.95rem;"></i> 左の✕ボタンは押さないでください
+    </div>
     <!-- Global Loader -->
     <div id="global-loader">
       <div class="loader-ring"></div>
@@ -1772,6 +1834,11 @@
           .forEach((s) => s.classList.remove("active"));
         document.getElementById(`screen-${name}`).classList.add("active");
         
+        const notice = document.getElementById("fullscreen-notice");
+        if (notice) {
+          notice.style.display = (name === "startup") ? "none" : "flex";
+        }
+
         const header = document.getElementById("kiosk-header");
         if (header) {
           header.style.display = (name === "attract" || name === "suspended") ? "none" : "flex";
@@ -1851,6 +1918,19 @@
           btn.innerHTML = `<i class="bi bi-phone-vibrate"></i> この内容で注文する`;
         }
         renderCartScreen();
+
+        // 1. 店舗の営業状態（オープン/停止中）のダブルチェック
+        if (storeData && storeData.operationStatus !== "open") {
+          stopAttractMode();
+          showScreen("suspended");
+          return;
+        }
+
+        // 2. フルスクリーン状態の維持チェック
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+
         showScreen("attract");
         startAttractMode();
       }
@@ -1864,12 +1944,18 @@
       // 3.5 Attract Mode Logic
       // ==========================================================
       function startAttractMode() {
-        const withImage = products.filter(p => p.imageUrl || p.imageURL);
-        attractItems = withImage.length > 0 ? withImage : products;
-        
+        stopAttractMode();
+
+        const validProducts = products.filter((p) => {
+          const url = p.imageUrl || p.imageURL;
+          return url && typeof url === "string" && !url.toLowerCase().includes("noimage");
+        });
+
+        attractItems = validProducts;
         attractIndex = 0;
+
         renderAttractSlide();
-        
+
         if (attractItems.length > 1) {
           attractIntervalId = setInterval(() => {
             attractIndex = (attractIndex + 1) % attractItems.length;
@@ -1894,16 +1980,14 @@
         const orgName = storeData?.name || "";
         const projName = storeData?.teamName || storeData?.name || storeId;
 
-        storeNameEl.textContent = orgName;
-        projectEl.textContent = projName;
+        if (storeNameEl) storeNameEl.textContent = orgName;
+        if (projectEl) projectEl.textContent = projName;
 
-        if (attractItems.length === 0) {
-          bgLayer.style.backgroundImage = "linear-gradient(135deg, #1e293b, #0f172a)";
+        if (!attractItems || attractItems.length === 0) {
+          bgLayer.style.backgroundImage = "linear-gradient(135deg, #0f172a, #1e293b, #334155)";
           dotsWrap.innerHTML = "";
           return;
         }
-
-        const p = attractItems[attractIndex];
 
         dotsWrap.innerHTML = "";
         attractItems.forEach((_, i) => {
@@ -1912,12 +1996,11 @@
           dotsWrap.appendChild(dot);
         });
 
+        const p = attractItems[attractIndex];
         const tempImg = document.createElement("img");
         await setProductImage(tempImg, p);
         if (tempImg.src && !tempImg.src.includes("noimage.png")) {
           bgLayer.style.backgroundImage = `url('${tempImg.src}')`;
-        } else {
-          bgLayer.style.backgroundImage = "linear-gradient(135deg, var(--accent), #b45309)";
         }
       }
 
@@ -1955,7 +2038,7 @@
           const imgEl = el.querySelector(".menu-img");
           setProductImage(imgEl, p);
 
-          if (!isSoldOut) el.onclick = () => quickAddToCart(p);
+          if (!isSoldOut) el.onclick = () => quickAddToCart(p, el);
           grid.appendChild(el);
         });
       }
@@ -1965,7 +2048,13 @@
         if (p) openItemModal(p);
       };
 
-      window.quickAddToCart = (product) => {
+      window.quickAddToCart = (product, cardEl) => {
+        if (cardEl) {
+          cardEl.classList.remove("card-tapped");
+          void cardEl.offsetWidth;
+          cardEl.classList.add("card-tapped");
+          setTimeout(() => cardEl.classList.remove("card-tapped"), 350);
+        }
         // デフォルト値で直接カートに追加
         const key = JSON.stringify([]);
         const existing = cart.find(
@@ -1980,6 +2069,7 @@
 
         if (existing) {
           existing.quantity += 1;
+          existing.isJustAdded = true;
         } else {
           cart.push({
             uniqueId: Date.now() + Math.random(),
@@ -1988,6 +2078,7 @@
             price: product.price,
             quantity: 1,
             customizations: [],
+            isJustAdded: true,
           });
         }
         updateCartBar();
@@ -2205,6 +2296,7 @@
         );
         if (existing) {
           existing.quantity += activeQty;
+          existing.isJustAdded = true;
         } else {
           cart.push({
             uniqueId: Date.now() + Math.random(),
@@ -2213,6 +2305,7 @@
             price: activeProduct.price,
             quantity: activeQty,
             customizations: sorted,
+            isJustAdded: true,
           });
         }
         document
@@ -2277,7 +2370,8 @@
               productInfo.allowedToppings.length > 0;
 
             const div = document.createElement("div");
-            div.className = "cart-item";
+            div.className = "cart-item" + (item.isJustAdded ? " just-added" : "");
+            delete item.isJustAdded;
             div.innerHTML = `
               <div class="cart-item-top">
                 <div style="flex:1;">
