@@ -1304,35 +1304,30 @@
       /* Fullscreen Warning Badge for iPad */
       .fullscreen-notice {
         position: fixed;
-        top: 14px;
+        top: 22px;
         left: 80px;
         z-index: 99999;
-        background: rgba(15, 23, 42, 0.82);
+        background: linear-gradient(135deg, #ef4444, #dc2626);
         color: #ffffff;
-        font-size: 0.76rem;
+        font-size: 0.78rem;
         font-weight: 800;
         padding: 6px 14px;
         border-radius: 999px;
         backdrop-filter: blur(6px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.35);
         pointer-events: none;
         display: none;
         align-items: center;
-        gap: 5px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
         letter-spacing: 0.03em;
-        animation: pulseNotice 2.5s infinite ease-in-out;
-      }
-      @keyframes pulseNotice {
-        0%, 100% { opacity: 0.88; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.03); }
       }
     </style>
   </head>
   <body>
     <!-- Fullscreen Exit Warning Badge (iPad/Safari用) -->
     <div id="fullscreen-notice" class="fullscreen-notice">
-      <i class="bi bi-arrow-left" style="color: #f59e0b; font-size: 0.95rem;"></i> 左の✕ボタンは押さないでください
+      <i class="bi bi-arrow-left" style="color: #ffffff; font-size: 0.95rem;"></i> 左の✕ボタンは押さないでください
     </div>
     <!-- Global Loader -->
     <div id="global-loader">
@@ -1829,6 +1824,18 @@
       };
 
       window.showScreen = (name) => {
+        // 1. 全タイマーの強制リセット
+        clearTimers();
+        if (idleTimeoutId) { clearTimeout(idleTimeoutId); idleTimeoutId = null; }
+        if (idleWarningIntervalId) { clearInterval(idleWarningIntervalId); idleWarningIntervalId = null; }
+
+        // 2. 全ポップアップ・モーダルの完全閉鎖
+        const idleOverlay = document.getElementById("idle-warning-overlay");
+        if (idleOverlay) idleOverlay.classList.remove("active");
+        const confirmOverlay = document.getElementById("confirm-modal-overlay");
+        if (confirmOverlay) confirmOverlay.classList.remove("active");
+        if (typeof closeItemModal === "function") closeItemModal();
+
         document
           .querySelectorAll(".screen")
           .forEach((s) => s.classList.remove("active"));
@@ -1879,6 +1886,12 @@
       function showIdleWarning() {
         if (idleTimeoutId) clearTimeout(idleTimeoutId);
         
+        // 規制: screen-main がアクティブな時のみ表示許可
+        const mainScreen = document.getElementById("screen-main");
+        if (!mainScreen || !mainScreen.classList.contains("active")) {
+          return;
+        }
+
         const overlay = document.getElementById("idle-warning-overlay");
         overlay.classList.add("active");
         
@@ -2482,6 +2495,12 @@
       }
 
       function showConfirmModal() {
+        // 規制: screen-qr がアクティブな時のみ表示許可
+        const qrScreen = document.getElementById("screen-qr");
+        if (!qrScreen || !qrScreen.classList.contains("active")) {
+          return;
+        }
+
         const overlay = document.getElementById("confirm-modal-overlay");
         overlay.classList.add("active");
         let cnt = CONFIRM_SECONDS;
