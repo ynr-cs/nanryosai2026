@@ -1,0 +1,1154 @@
+<!--
+  Nanryosai 2026
+  pos/sok.html — セルフオーダーキオスク（iPad端末側）
+  Version: 0.1.0
+  Author: Nanryosai 2026 Project Team
+
+  設計憲法§5.2 Phase 1 準拠
+  - スタッフとして portal.html でログイン後にアクセスする
+  - URLパラメータ ?storeId= で店舗を特定
+  - mobile-order.html と同等のカスタマイズ（トッピング）機能を持つ
+  - QR表示後20秒で確認モーダル、さらに10秒で自動リセット
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <!-- FOUC対策 (Dark Mode Flicker Prevent) -->
+    <style>
+      html { background-color: #0f172a; }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>セルフオーダーキオスク | 南陵祭2026</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Local Dev Config -->
+    <script src="../config.local.js"></script>
+
+    <style>
+      /* =========================================
+         1. Variables & Base — iPad/キオスク特化
+         ========================================= */
+      :root {
+        --bg:         #0f172a;  /* Deep Navy (常時ダーク) */
+        --surface:    #1e293b;
+        --surface-2:  #334155;
+        --accent:     #f59e0b;  /* Amber — SOKテーマカラー */
+        --accent-dim: #92400e;
+        --text:       #f1f5f9;
+        --text-sub:   #94a3b8;
+        --success:    #10b981;
+        --danger:     #ef4444;
+        --border:     #334155;
+        --radius-lg:  24px;
+        --radius-md:  16px;
+        --shadow:     0 20px 60px rgba(0,0,0,0.5);
+        --font:       "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+      html, body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        margin: 0;
+        padding: 0;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        user-select: none;
+      }
+
+      /* =========================================
+         2. Layout
+         ========================================= */
+      #app {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        max-width: 600px;
+        margin: 0 auto;
+        padding-bottom: 40px;
+      }
+
+      /* ヘッダー */
+      #kiosk-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      #kiosk-header .brand {
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+      }
+      #store-name-label {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        font-weight: 600;
+      }
+
+      /* =========================================
+         3. Screens
+         ========================================= */
+      .screen { display: none; padding: 24px 20px; animation: fadeUp 0.3s ease; }
+      .screen.active { display: block; }
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* =========================================
+         4. Global Loader
+         ========================================= */
+      #global-loader {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+      }
+      .loader-ring {
+        width: 56px; height: 56px;
+        border: 4px solid var(--surface-2);
+        border-top: 4px solid var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+
+      /* =========================================
+         5. Error Screen
+         ========================================= */
+      #error-screen {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 9998;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      #error-screen.active { display: flex; }
+
+      /* =========================================
+         6. Menu Screen
+         ========================================= */
+      #menu-header {
+        margin-bottom: 20px;
+      }
+      #menu-header h2 {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin: 0;
+      }
+      #menu-header p {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        margin: 4px 0 0;
+      }
+
+      #menu-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 120px;
+      }
+
+      .menu-card {
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .menu-card:active { transform: scale(0.95); }
+      .menu-card.sold-out { opacity: 0.5; pointer-events: none; }
+      .menu-card.recommended { border-color: var(--accent); box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+
+      .menu-img-box {
+        position: relative;
+        padding-top: 60%;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      .menu-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      .menu-img.loaded { opacity: 1; }
+
+      .badge-rec {
+        position: absolute;
+        top: 8px; left: 8px;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 999px;
+        z-index: 2;
+      }
+      .badge-soldout {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        font-size: 1rem;
+        z-index: 2;
+        letter-spacing: 0.1em;
+      }
+
+      .menu-info { padding: 12px; }
+      .menu-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+      .menu-price { font-size: 1.2rem; font-weight: 900; color: var(--accent); }
+
+      /* =========================================
+         7. Floating Cart Bar
+         ========================================= */
+      #cart-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 48px);
+        max-width: 540px;
+        background: var(--accent);
+        color: #000;
+        border-radius: 999px;
+        padding: 14px 20px;
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 8px 30px rgba(245,158,11,0.5);
+        cursor: pointer;
+        z-index: 500;
+        transition: transform 0.15s;
+      }
+      #cart-bar:active { transform: translateX(-50%) scale(0.97); }
+      #cart-bar.visible { display: flex; }
+      .cart-bar-left { font-weight: 900; font-size: 1rem; }
+      .cart-bar-right {
+        background: #000;
+        color: var(--accent);
+        font-weight: 900;
+        padding: 8px 20px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+      }
+
+      /* =========================================
+         8. Item Modal (Full Screen)
+         ========================================= */
+      #item-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 800;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      #item-modal-overlay.active { display: flex; }
+      #item-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        width: 100%;
+        max-width: 600px;
+        max-height: 88dvh;
+        overflow-y: auto;
+        padding: 24px 20px 40px;
+        animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes slideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+
+      .modal-product-img {
+        width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: var(--radius-md);
+        background: var(--bg);
+        margin-bottom: 16px;
+      }
+      .modal-product-name { font-size: 1.3rem; font-weight: 900; margin-bottom: 4px; }
+      .modal-product-price { font-size: 1.4rem; font-weight: 900; color: var(--accent); margin-bottom: 16px; }
+
+      /* カスタマイズ */
+      .customize-section {
+        background: var(--bg);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+      .customize-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .mode-btns { display: flex; gap: 10px; margin-bottom: 14px; }
+      .mode-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        background: transparent;
+        color: var(--text-sub);
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.15s;
+        cursor: pointer;
+      }
+      .mode-btn.active-no  { border-color: var(--danger); background: var(--danger); color: #fff; }
+      .mode-btn.active-add { border-color: var(--success); background: var(--success); color: #fff; }
+
+      .topping-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+      .topping-chip {
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .topping-chip:active { transform: scale(0.93); }
+      .topping-chip.sel-no  { border-color: var(--danger);  background: rgba(239,68,68,0.2); color: #f87171; }
+      .topping-chip.sel-add { border-color: var(--success); background: rgba(16,185,129,0.2); color: #34d399; }
+
+      .mod-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .mod-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .mod-tag.no  { background: var(--danger);  color: #fff; }
+      .mod-tag.add { background: var(--success); color: #fff; }
+
+      /* 数量 */
+      .qty-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .qty-ctrl { display: flex; align-items: center; gap: 16px; }
+      .qty-btn {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 1.4rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .qty-btn:active { background: var(--surface-2); }
+      .qty-num { font-size: 1.6rem; font-weight: 900; min-width: 40px; text-align: center; }
+
+      /* =========================================
+         9. Cart Screen
+         ========================================= */
+      .cart-item {
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .cart-item-info { flex: 1; }
+      .cart-item-name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+      .cart-item-price-sub { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; }
+      .cart-del-btn {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: rgba(239,68,68,0.15);
+        border: none;
+        color: var(--danger);
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-top: 1px solid var(--border);
+        margin-top: 8px;
+      }
+      .total-label { font-size: 1rem; color: var(--text-sub); font-weight: 700; }
+      .total-value { font-size: 2rem; font-weight: 900; color: var(--accent); }
+
+      /* =========================================
+         10. Buttons
+         ========================================= */
+      .btn-primary-kiosk {
+        width: 100%;
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        border: none;
+        background: var(--accent);
+        color: #000;
+        font-size: 1.1rem;
+        font-weight: 900;
+        cursor: pointer;
+        transition: transform 0.15s, opacity 0.15s;
+        letter-spacing: 0.03em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-primary-kiosk:active { transform: scale(0.97); }
+      .btn-primary-kiosk:disabled { background: var(--surface-2); color: var(--text-sub); cursor: not-allowed; }
+
+      .btn-secondary-kiosk {
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-sub);
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
+        margin-bottom: 8px;
+      }
+      .btn-secondary-kiosk:active { background: var(--surface-2); }
+
+      /* =========================================
+         11. QR Screen
+         ========================================= */
+      #screen-qr {
+        text-align: center;
+      }
+      #qr-canvas-wrap {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: inline-block;
+        margin: 24px auto;
+        box-shadow: var(--shadow);
+      }
+      #qr-canvas { display: block; }
+
+      #countdown-bar-wrap {
+        background: var(--surface);
+        border-radius: 999px;
+        height: 8px;
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      #countdown-bar {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 999px;
+        transition: width 1s linear;
+        width: 100%;
+      }
+
+      /* =========================================
+         12. Confirmation Modal (スキャン確認)
+         ========================================= */
+      #confirm-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      #confirm-modal-overlay.active { display: flex; }
+      #confirm-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 32px 24px;
+        text-align: center;
+        width: 100%;
+        max-width: 420px;
+        animation: pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+      #confirm-modal h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
+      #confirm-modal p  { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 24px; }
+      #confirm-countdown { font-size: 2rem; font-weight: 900; color: var(--accent); margin-bottom: 20px; }
+      .confirm-btns { display: flex; gap: 12px; }
+      .confirm-btns button { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; font-size: 1rem; }
+      #btn-confirm-still { background: var(--surface-2); color: var(--text); }
+      #btn-confirm-next  { background: var(--accent); color: #000; }
+    </style>
+  </head>
+  <body>
+
+    <!-- Global Loader -->
+    <div id="global-loader">
+      <div class="loader-ring"></div>
+      <p style="color: var(--text-sub); font-size: 0.9rem;">読み込み中...</p>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="error-screen">
+      <div style="font-size: 4rem; color: var(--danger); margin-bottom: 16px;">
+        <i class="bi bi-exclamation-octagon-fill"></i>
+      </div>
+      <h2 id="error-title" style="font-size: 1.4rem; font-weight: 900; margin-bottom: 8px;">エラー</h2>
+      <p id="error-msg" style="color: var(--text-sub); font-size: 0.95rem; line-height: 1.6;">
+        詳細なエラーメッセージ
+      </p>
+      <button class="btn-secondary-kiosk" style="max-width: 260px; margin-top: 24px;" onclick="location.reload()">
+        <i class="bi bi-arrow-clockwise me-2"></i>再読み込み
+      </button>
+    </div>
+
+    <!-- App -->
+    <div id="app">
+      <!-- Header -->
+      <header id="kiosk-header">
+        <div>
+          <div class="brand"><i class="bi bi-bag-fill me-2"></i>セルフオーダー</div>
+          <div id="store-name-label">店舗名を読み込み中...</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-sub);">SOK端末</div>
+      </header>
+
+      <!-- === SCREEN: メニュー === -->
+      <div id="screen-menu" class="screen">
+        <div id="menu-header">
+          <h2>ご注文をどうぞ</h2>
+          <p>商品を選択してカートに追加してください</p>
+        </div>
+        <div id="menu-grid">
+          <!-- JS で注入 -->
+        </div>
+      </div>
+
+      <!-- === SCREEN: カート確認 === -->
+      <div id="screen-cart" class="screen">
+        <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 20px;">
+          <i class="bi bi-cart-check-fill me-2" style="color: var(--accent);"></i>ご注文内容の確認
+        </h2>
+        <div id="cart-list">
+          <!-- JS で注入 -->
+        </div>
+        <div class="total-row">
+          <span class="total-label">合計金額</span>
+          <span class="total-value" id="cart-total">¥0</span>
+        </div>
+        <div style="background: var(--surface); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; border-left: 4px solid var(--accent);">
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0; line-height: 1.6;">
+            <i class="bi bi-info-circle-fill me-1" style="color: var(--accent);"></i>
+            QRコードをスマホで読み取り、Googleアカウントで注文を確定してください。
+            お支払いは商品お受け取り時にAuPayまたは現金でお願いいたします。
+          </p>
+        </div>
+        <button class="btn-primary-kiosk" id="btn-issue-qr" onclick="issueQr()">
+          <i class="bi bi-qr-code"></i> QRコードを発行する
+        </button>
+        <button class="btn-secondary-kiosk" onclick="showScreen('menu')">
+          <i class="bi bi-arrow-left me-1"></i> メニューに戻る
+        </button>
+      </div>
+
+      <!-- === SCREEN: QR表示 === -->
+      <div id="screen-qr" class="screen">
+        <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 4px;">
+          <i class="bi bi-qr-code-scan me-2" style="color: var(--accent);"></i>QRコードをスキャン
+        </h2>
+        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">
+          お客様のスマホでQRコードを読み取ってください
+        </p>
+
+        <div id="qr-canvas-wrap">
+          <canvas id="qr-canvas"></canvas>
+        </div>
+
+        <div id="countdown-bar-wrap">
+          <div id="countdown-bar"></div>
+        </div>
+        <p id="countdown-text" style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 24px;">
+          <span id="countdown-sec">20</span> 秒後に自動リセット
+        </p>
+
+        <button class="btn-secondary-kiosk" onclick="resetToMenu()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> はじめから（次の方へ）
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Cart Bar -->
+    <div id="cart-bar" onclick="showScreen('cart')">
+      <div class="cart-bar-left">
+        <i class="bi bi-cart-fill me-2"></i>
+        <span id="cart-count">0</span>点 ・ <span id="cart-bar-total">¥0</span>
+      </div>
+      <div class="cart-bar-right">カートを確認 <i class="bi bi-arrow-right-short"></i></div>
+    </div>
+
+    <!-- Item Modal -->
+    <div id="item-modal-overlay" onclick="closeItemModal(event)">
+      <div id="item-modal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <button onclick="closeItemModal()" style="background:transparent; border:none; color:var(--text-sub); font-size:1.5rem; cursor:pointer; padding:0;">
+            <i class="bi bi-x-lg"></i>
+          </button>
+          <span style="font-size:0.8rem; color:var(--text-sub);">商品詳細</span>
+          <div style="width:32px;"></div>
+        </div>
+        <img id="modal-product-img" class="modal-product-img" src="" alt="" />
+        <div id="modal-product-name" class="modal-product-name">商品名</div>
+        <div id="modal-product-price" class="modal-product-price">¥0</div>
+
+        <!-- カスタマイズエリア -->
+        <div id="modal-customize" class="customize-section" style="display:none;">
+          <div class="customize-title"><i class="bi bi-sliders me-1"></i>カスタマイズ</div>
+          <div class="mode-btns">
+            <button class="mode-btn" id="mode-btn-no"  onclick="setMode('NO')">
+              <i class="bi bi-dash-circle me-1"></i> 抜き
+            </button>
+            <button class="mode-btn" id="mode-btn-add" onclick="setMode('ADD')">
+              <i class="bi bi-plus-circle me-1"></i> 追加
+            </button>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">
+            <i class="bi bi-info-circle me-1"></i>先に「抜き」か「追加」を選んでください
+          </p>
+          <div class="topping-grid" id="topping-grid"><!-- JS 注入 --></div>
+          <div class="mod-tags" id="active-mod-tags"><!-- JS 注入 --></div>
+        </div>
+
+        <!-- 数量 -->
+        <div class="qty-row">
+          <span style="font-weight:700;">数量</span>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="adjustQty(-1)">-</button>
+            <span class="qty-num" id="modal-qty">1</span>
+            <button class="qty-btn" onclick="adjustQty(1)">+</button>
+          </div>
+        </div>
+
+        <button class="btn-primary-kiosk" onclick="addToCart()">
+          <i class="bi bi-cart-plus"></i> カートに追加
+        </button>
+      </div>
+    </div>
+
+    <!-- Scan Confirmation Modal (20秒後) -->
+    <div id="confirm-modal-overlay">
+      <div id="confirm-modal">
+        <div style="font-size:3rem; color:var(--accent); margin-bottom:12px;">
+          <i class="bi bi-question-circle-fill"></i>
+        </div>
+        <h3>スキャンはお済みですか？</h3>
+        <p>まだスキャン中の場合は「まだ」を押してください。</p>
+        <div id="confirm-countdown">10</div>
+        <div class="confirm-btns">
+          <button id="btn-confirm-still" onclick="cancelConfirmReset()">
+            <i class="bi bi-pause-circle me-1"></i>まだ
+          </button>
+          <button id="btn-confirm-next" onclick="resetToMenu()">
+            <i class="bi bi-arrow-right-circle me-1"></i>新しい注文
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase & Logic -->
+    <script type="module">
+      import {
+        collection,
+        getDocs,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { auth, db, functions, watchUser } from "../main/auth.js";
+
+      // ==========================================================
+      // 1. State
+      // ==========================================================
+      let storeId       = null;
+      let storeName     = "";
+      let products      = [];
+      let cart          = [];
+
+      // Modal State
+      let activeProduct  = null;
+      let activeQty      = 1;
+      let activeMode     = null;  // "NO" | "ADD" | null
+      let activeMods     = [];    // [{ mode, target }]
+
+      // Timers
+      let qrIntervalId         = null;
+      let confirmIntervalId    = null;
+      const QR_SECONDS         = 20;  // QR表示から確認モーダルまでの秒数
+      const CONFIRM_SECONDS    = 10;  // 確認モーダルから自動リセットまでの秒数
+
+      // ==========================================================
+      // 2. Init
+      // ==========================================================
+      const loader   = document.getElementById("global-loader");
+      const errScr   = document.getElementById("error-screen");
+
+      function showError(title, msg) {
+        loader.style.display = "none";
+        errScr.classList.add("active");
+        document.getElementById("error-title").textContent = title;
+        document.getElementById("error-msg").textContent   = msg;
+      }
+
+      // URLパラメータ取得
+      const urlParams = new URLSearchParams(window.location.search);
+      storeId         = urlParams.get("storeId");
+
+      if (!storeId) {
+        showError("店舗IDが指定されていません", "portal.html からSOK端末として起動してください。URLに ?storeId= が必要です。");
+      } else {
+        // スタッフ認証チェック
+        watchUser(async (user) => {
+          if (!user) {
+            // 未ログイン → portal.html へ
+            window.location.replace(`./portal.html?sok_redirect=${encodeURIComponent(window.location.href)}`);
+            return;
+          }
+          // IDトークンのClaims確認
+          const idTokenResult = await user.getIdTokenResult(true);
+          const claims = idTokenResult.claims;
+          if (claims.role !== "store_admin" || claims.storeId !== storeId) {
+            showError(
+              "権限がありません",
+              `このSOK端末は店舗「${storeId}」専用です。portal.html から正しい店舗でログインしてください。`
+            );
+            return;
+          }
+          // 認証OK → メニュー読み込み
+          await loadMenu();
+        });
+      }
+
+      async function loadMenu() {
+        try {
+          // 店舗情報取得
+          const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+          const storeSnap = await getDoc(doc(db, "stores", storeId));
+          if (storeSnap.exists()) {
+            const sd = storeSnap.data();
+            storeName = sd.name || storeId;
+            document.getElementById("store-name-label").textContent = `${storeName} — SOK端末`;
+
+            if (sd.operationStatus !== "open") {
+              showError("受付停止中", "この店舗は現在受付を停止しています。portal.html から営業状態を確認してください。");
+              return;
+            }
+          }
+
+          // 商品取得
+          const q     = query(collection(db, "items"), where("storeId", "==", storeId));
+          const snap  = await getDocs(q);
+          products    = [];
+          snap.forEach((d) => { const p = d.data(); p.id = d.id; products.push(p); });
+
+          // おすすめを上に
+          products.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
+
+          renderMenu();
+          loader.style.display = "none";
+          showScreen("menu");
+        } catch (e) {
+          showError("読み込みエラー", e.message);
+        }
+      }
+
+      // ==========================================================
+      // 3. Screen Management
+      // ==========================================================
+      window.showScreen = (name) => {
+        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        document.getElementById(`screen-${name}`).classList.add("active");
+        updateCartBar();
+      };
+
+      // ==========================================================
+      // 4. Menu Rendering
+      // ==========================================================
+      function renderMenu() {
+        const grid = document.getElementById("menu-grid");
+        grid.innerHTML = "";
+        if (products.length === 0) {
+          grid.innerHTML = `<p style="color:var(--text-sub); grid-column:1/-1; text-align:center; padding:40px;">商品がありません</p>`;
+          return;
+        }
+        products.forEach((p) => {
+          const isSoldOut = p.isAvailable === false;
+          const isRec     = p.isRecommended === true;
+          const el        = document.createElement("div");
+          el.className    = `menu-card${isSoldOut ? " sold-out" : ""}${isRec && !isSoldOut ? " recommended" : ""}`;
+
+          el.innerHTML = `
+            <div class="menu-img-box">
+              ${isSoldOut ? '<div class="badge-soldout">SOLD OUT</div>' : ""}
+              ${isRec && !isSoldOut ? '<div class="badge-rec"><i class="bi bi-star-fill"></i> おすすめ</div>' : ""}
+              <img class="menu-img" id="img-${p.id}" alt="${p.name}" />
+            </div>
+            <div class="menu-info">
+              <div class="menu-name">${p.name}</div>
+              <div class="menu-price">¥${p.price}</div>
+            </div>
+          `;
+
+          // 遅延画像読み込み
+          const imgEl = el.querySelector(".menu-img");
+          const tryImg = `../images/${p.id}.png`;
+          imgEl.src = tryImg;
+          imgEl.onload  = () => imgEl.classList.add("loaded");
+          imgEl.onerror = () => { imgEl.src = "../images/noimage.png"; imgEl.onload = () => imgEl.classList.add("loaded"); };
+
+          if (!isSoldOut) el.onclick = () => openItemModal(p);
+          grid.appendChild(el);
+        });
+      }
+
+      // ==========================================================
+      // 5. Item Modal
+      // ==========================================================
+      window.openItemModal = (product) => {
+        activeProduct = product;
+        activeQty     = 1;
+        activeMode    = null;
+        activeMods    = [];
+
+        document.getElementById("modal-product-name").textContent  = product.name;
+        document.getElementById("modal-product-price").textContent = `¥${product.price}`;
+        document.getElementById("modal-qty").textContent           = "1";
+
+        const imgEl = document.getElementById("modal-product-img");
+        imgEl.classList.remove("loaded");
+        imgEl.src     = `../images/${product.id}.png`;
+        imgEl.onload  = () => imgEl.classList.add("loaded");
+        imgEl.onerror = () => { imgEl.src = "../images/noimage.png"; imgEl.onload = () => imgEl.classList.add("loaded"); };
+
+        // カスタマイズ
+        const allowed = product.allowedToppings || [];
+        const custArea = document.getElementById("modal-customize");
+        if (allowed.length > 0) {
+          custArea.style.display = "block";
+          renderToppings(allowed);
+          renderModeButtons();
+          renderActiveMods();
+        } else {
+          custArea.style.display = "none";
+        }
+
+        document.getElementById("item-modal-overlay").classList.add("active");
+      };
+
+      window.closeItemModal = (event) => {
+        if (event && event.target !== document.getElementById("item-modal-overlay")) return;
+        document.getElementById("item-modal-overlay").classList.remove("active");
+      };
+
+      function renderToppings(allowed) {
+        const grid = document.getElementById("topping-grid");
+        grid.innerHTML = "";
+        allowed.forEach((t) => {
+          const btn = document.createElement("button");
+          btn.className     = "topping-chip";
+          btn.dataset.target = t;
+          btn.textContent   = t;
+          btn.onclick       = () => toggleMod(t);
+          grid.appendChild(btn);
+        });
+      }
+
+      window.setMode = (mode) => {
+        activeMode = (activeMode === mode) ? null : mode;
+        renderModeButtons();
+      };
+
+      function renderModeButtons() {
+        document.getElementById("mode-btn-no").className  = `mode-btn${activeMode === "NO"  ? " active-no"  : ""}`;
+        document.getElementById("mode-btn-add").className = `mode-btn${activeMode === "ADD" ? " active-add" : ""}`;
+      }
+
+      function toggleMod(target) {
+        if (!activeMode) {
+          // モード未選択 → 振動フィードバック
+          const btns = document.querySelector(".mode-btns");
+          btns.style.outline = "2px solid var(--danger)";
+          setTimeout(() => { btns.style.outline = ""; }, 600);
+          return;
+        }
+        const idx = activeMods.findIndex((m) => m.target === target);
+        if (idx >= 0) {
+          if (activeMods[idx].mode === activeMode) activeMods.splice(idx, 1);
+          else activeMods[idx].mode = activeMode;
+        } else {
+          activeMods.push({ mode: activeMode, target });
+        }
+        renderActiveMods();
+        updateToppingStyles();
+      }
+
+      function updateToppingStyles() {
+        document.querySelectorAll("#topping-grid .topping-chip").forEach((btn) => {
+          const t   = btn.dataset.target;
+          const mod = activeMods.find((m) => m.target === t);
+          btn.className = "topping-chip" + (mod ? (mod.mode === "NO" ? " sel-no" : " sel-add") : "");
+        });
+      }
+
+      function renderActiveMods() {
+        const wrap = document.getElementById("active-mod-tags");
+        wrap.innerHTML = "";
+        activeMods.forEach((m) => {
+          const span       = document.createElement("span");
+          span.className   = `mod-tag ${m.mode.toLowerCase()}`;
+          span.textContent = `${m.target} ${m.mode === "NO" ? "抜き" : "追加"}`;
+          wrap.appendChild(span);
+        });
+      }
+
+      window.adjustQty = (delta) => {
+        activeQty = Math.max(1, activeQty + delta);
+        document.getElementById("modal-qty").textContent = activeQty;
+        document.getElementById("modal-product-price").textContent = `¥${activeProduct.price * activeQty}`;
+      };
+
+      // ==========================================================
+      // 6. Cart Logic
+      // ==========================================================
+      window.addToCart = () => {
+        const sorted = [...activeMods].sort((a, b) => (a.mode + a.target).localeCompare(b.mode + b.target));
+        const key    = JSON.stringify(sorted);
+        const existing = cart.find((c) => c.productId === activeProduct.id && JSON.stringify([...c.customizations].sort((a,b)=>(a.mode+a.target).localeCompare(b.mode+b.target))) === key);
+        if (existing) {
+          existing.quantity += activeQty;
+        } else {
+          cart.push({ uniqueId: Date.now(), productId: activeProduct.id, name: activeProduct.name, price: activeProduct.price, quantity: activeQty, customizations: sorted });
+        }
+        document.getElementById("item-modal-overlay").classList.remove("active");
+        updateCartBar();
+      };
+
+      function updateCartBar() {
+        const count = cart.reduce((s, c) => s + c.quantity, 0);
+        const total = cart.reduce((s, c) => s + c.price * c.quantity, 0);
+        const bar   = document.getElementById("cart-bar");
+        document.getElementById("cart-count").textContent    = count;
+        document.getElementById("cart-bar-total").textContent = `¥${total}`;
+        bar.classList.toggle("visible", count > 0 && document.getElementById("screen-menu").classList.contains("active"));
+      }
+
+      // ==========================================================
+      // 7. Cart Screen
+      // ==========================================================
+      document.getElementById("cart-bar").addEventListener("click", () => {
+        renderCartScreen();
+        showScreen("cart");
+      });
+      window.showScreen = (name) => {
+        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        document.getElementById(`screen-${name}`).classList.add("active");
+        if (name === "cart") renderCartScreen();
+        updateCartBar();
+      };
+
+      function renderCartScreen() {
+        const list  = document.getElementById("cart-list");
+        const total = cart.reduce((s, c) => s + c.price * c.quantity, 0);
+        list.innerHTML = "";
+        cart.forEach((item, idx) => {
+          const modsHtml = item.customizations.length
+            ? item.customizations.map(m => `<span class="mod-tag ${m.mode.toLowerCase()}" style="font-size:0.7rem;">${m.target} ${m.mode === "NO" ? "抜き" : "追加"}</span>`).join("")
+            : "";
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <div class="cart-item-info">
+              <div class="cart-item-name">${item.name}</div>
+              <div class="cart-item-price-sub">¥${item.price} × ${item.quantity} = ¥${item.price * item.quantity}</div>
+              <div class="mod-tags">${modsHtml}</div>
+            </div>
+            <button class="cart-del-btn" onclick="removeCartItem(${idx})"><i class="bi bi-trash3"></i></button>
+          `;
+          list.appendChild(div);
+        });
+        document.getElementById("cart-total").textContent = `¥${total}`;
+      }
+
+      window.removeCartItem = (idx) => {
+        cart.splice(idx, 1);
+        renderCartScreen();
+        if (cart.length === 0) showScreen("menu");
+      };
+
+      // ==========================================================
+      // 8. QR 発行
+      // ==========================================================
+      window.issueQr = async () => {
+        const btn = document.getElementById("btn-issue-qr");
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader-ring" style="width:24px;height:24px;border-width:3px;"></div> 発行中...`;
+
+        try {
+          const fn     = httpsCallable(functions, "createSokProvisional");
+          const result = await fn({
+            storeId,
+            items: cart.map(c => ({ itemId: c.productId, quantity: c.quantity, customizations: c.customizations })),
+          });
+          const orderId = result.data.orderId;
+          const url     = `${location.origin}/pos/sok-to.html?orderId=${orderId}`;
+          await renderQR(url);
+          showScreen("qr");
+          startQrCountdown();
+        } catch (e) {
+          alert(`QRコードの発行に失敗しました:\n${e.message}`);
+          btn.disabled = false;
+          btn.innerHTML = `<i class="bi bi-qr-code"></i> QRコードを発行する`;
+        }
+      };
+
+      async function renderQR(url) {
+        const canvas = document.getElementById("qr-canvas");
+        await QRCode.toCanvas(canvas, url, {
+          width: 240,
+          margin: 2,
+          color: { dark: "#000000", light: "#ffffff" },
+        });
+      }
+
+      // ==========================================================
+      // 9. QRカウントダウン
+      // ==========================================================
+      function startQrCountdown() {
+        clearTimers();
+        let remaining = QR_SECONDS;
+        const bar     = document.getElementById("countdown-bar");
+        const secEl   = document.getElementById("countdown-sec");
+
+        bar.style.width = "100%";
+        secEl.textContent = remaining;
+
+        qrIntervalId = setInterval(() => {
+          remaining--;
+          secEl.textContent = remaining;
+          bar.style.width   = `${(remaining / QR_SECONDS) * 100}%`;
+
+          if (remaining <= 0) {
+            clearTimers();
+            showConfirmModal();
+          }
+        }, 1000);
+      }
+
+      function showConfirmModal() {
+        const overlay = document.getElementById("confirm-modal-overlay");
+        overlay.classList.add("active");
+        let cnt = CONFIRM_SECONDS;
+        document.getElementById("confirm-countdown").textContent = cnt;
+
+        confirmIntervalId = setInterval(() => {
+          cnt--;
+          document.getElementById("confirm-countdown").textContent = cnt;
+          if (cnt <= 0) {
+            clearTimers();
+            resetToMenu();
+          }
+        }, 1000);
+      }
+
+      window.cancelConfirmReset = () => {
+        clearTimers();
+        document.getElementById("confirm-modal-overlay").classList.remove("active");
+        // QRのカウントダウンを延長して再開
+        let remaining = QR_SECONDS;
+        const bar     = document.getElementById("countdown-bar");
+        const secEl   = document.getElementById("countdown-sec");
+        bar.style.width = "100%";
+        secEl.textContent = remaining;
+        qrIntervalId = setInterval(() => {
+          remaining--;
+          secEl.textContent = remaining;
+          bar.style.width   = `${(remaining / QR_SECONDS) * 100}%`;
+          if (remaining <= 0) { clearTimers(); showConfirmModal(); }
+        }, 1000);
+      };
+
+      window.resetToMenu = () => {
+        clearTimers();
+        document.getElementById("confirm-modal-overlay").classList.remove("active");
+        cart = [];
+        showScreen("menu");
+      };
+
+      function clearTimers() {
+        if (qrIntervalId)      { clearInterval(qrIntervalId);      qrIntervalId      = null; }
+        if (confirmIntervalId) { clearInterval(confirmIntervalId); confirmIntervalId = null; }
+      }
+    </script>
+  </body>
+</html>

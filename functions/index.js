@@ -1597,3 +1597,292 @@ exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data
   console.log(`unbanUser: UID ${uid} のBANを解除しました (by ${context.auth.token.email})`);
   return { success: true };
 });
+
+// ============================================================
+// SOK（セルフオーダーキオスク）関連 Cloud Functions
+// 設計憲法§5.2 / §4.1 準拠
+// ============================================================
+
+/**
+ * @name createSokProvisional
+ * @description iPad側で仮注文を作成する（スタッフ認証必須・スパム防止）
+ *              設計憲法§5.2 Phase 1 対応
+ *              引数: { storeId, items: [{ itemId, quantity, customizations }] }
+ */
+exports.createSokProvisional = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    // スタッフ認証必須（未ログインは拒否 → 無限スパム防止）
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "店舗スタッフのログインが必要です。");
+    }
+    // store_admin 権限チェック
+    const token = context.auth.token;
+    if (token.role !== "store_admin") {
+      throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { storeId, items } = requestData;
+
+    if (!storeId || !Array.isArray(items) || items.length === 0) {
+      throw new functions.https.HttpsError("invalid-argument", "storeId と items が必要です。");
+    }
+    // storeId と Custom Claims の storeId が一致することを確認
+    if (token.storeId !== storeId) {
+      throw new functions.https.HttpsError("permission-denied", "自店舗のSOK端末のみ操作可能です。");
+    }
+
+    try {
+      // 店舗ステータスチェック
+      const storeDoc = await db.collection("stores").doc(storeId).get();
+      if (!storeDoc.exists) {
+        throw new functions.https.HttpsError("not-found", "店舗が見つかりません。");
+      }
+      const storeData = storeDoc.data();
+      if (storeData.operationStatus !== "open") {
+        throw new functions.https.HttpsError("failed-precondition", "この店舗は現在受付を停止しています。");
+      }
+
+      // 商品情報のサーバーサイド検証と金額計算
+      const itemRefs = items.map((i) => db.doc(`items/${i.itemId}`));
+      const productDocs = await db.getAll(...itemRefs);
+      const productMap = new Map(
+        productDocs.filter((d) => d.exists).map((d) => [d.id, d.data()])
+      );
+
+      let totalPrice = 0;
+      const orderItems = [];
+      for (const item of items) {
+        const product = productMap.get(item.itemId);
+        if (!product) continue;
+        if (product.storeId !== storeId) {
+          throw new functions.https.HttpsError("permission-denied", "他店舗の商品は注文できません。");
+        }
+        if (!product.isAvailable) {
+          throw new functions.https.HttpsError("failed-precondition", `「${product.name}」は売り切れです。`);
+        }
+        if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+          throw new functions.https.HttpsError("invalid-argument", "数量は1以上の整数である必要があります。");
+        }
+        totalPrice += product.price * item.quantity;
+        orderItems.push({
+          itemId: item.itemId,
+          name: product.name,
+          price: product.price,
+          quantity: item.quantity,
+          customizations: item.customizations || [],
+        });
+      }
+      if (orderItems.length === 0) {
+        throw new functions.https.HttpsError("failed-precondition", "注文可能な商品がありません。");
+      }
+
+      // 仮注文ドキュメント作成（status: null が SOK 仮注文の証）
+      const orderRef = db.collection("orders").doc();
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      await orderRef.set({
+        status:             null,           // SOK仮注文は null — 設計憲法§5.2
+        sokStatus:          "pending",
+        orderChannel:       "sok",
+        storeId,
+        items:              orderItems,
+        totalPrice,
+        receiptNumber:      null,           // confirmSokOrder で発番
+        userId:             null,           // claimSokOrder で設定
+        createdBy:          context.auth.uid,
+        paymentMethod:      "au_pay_manual",
+        cancellationReason: null,
+        note:               null,
+        termsAgreedAt:      null,
+        createdAt:          now,
+        updatedAt:          now,
+        sokClaimedAt:       null,
+        sokConfirmedAt:     null,
+        expiredAt:          null,
+        readyToServeAt:     null,
+        readyForPickupAt:   null,
+        completedAt:        null,
+        cancelledAt:        null,
+        abandonedAt:        null,
+      });
+
+      updateStoreActivity(storeId);
+      return { orderId: orderRef.id };
+    } catch (error) {
+      console.error("createSokProvisional Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * @name claimSokOrder
+ * @description 来場者がQRを読み取りログイン後、注文を自分のものとして紐付ける
+ *              トランザクション使用で競合防止（同時読み取りの二重claim禁止）
+ *              引数: { orderId }
+ */
+exports.claimSokOrder = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+    const uid = context.auth.uid;
+
+    // BANチェック（サーバー側二層防御）
+    const banDoc = await db.doc(`banned_users/${uid}`).get();
+    if (banDoc.exists) {
+      throw new functions.https.HttpsError("permission-denied", "利用が制限されています。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderId } = requestData;
+    if (!orderId) {
+      throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
+    }
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const orderRef = db.doc(`orders/${orderId}`);
+        const orderSnap = await tx.get(orderRef);
+
+        if (!orderSnap.exists) {
+          throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+        }
+        const order = orderSnap.data();
+        if (order.orderChannel !== "sok") {
+          throw new functions.https.HttpsError("invalid-argument", "SOK注文ではありません。");
+        }
+        if (order.sokStatus !== "pending") {
+          // 他の誰かが先にclaimした、または期限切れ
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            order.sokStatus === "expired"
+              ? "QRコードの有効期限が切れています。店舗のiPadで最初からやり直してください。"
+              : "このQRコードはすでに使用されています。"
+          );
+        }
+
+        tx.update(orderRef, {
+          sokStatus:    "claimed",
+          userId:       uid,
+          sokClaimedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt:    admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("claimSokOrder Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * @name confirmSokOrder
+ * @description 来場者が規約同意後、注文を確定し受付番号を発番する
+ *              claimed → confirmed + status: "cooking" へ昇格
+ *              引数: { orderId }
+ */
+exports.confirmSokOrder = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+    const uid = context.auth.uid;
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderId } = requestData;
+    if (!orderId) {
+      throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
+    }
+
+    try {
+      const result = await db.runTransaction(async (tx) => {
+        const orderRef = db.doc(`orders/${orderId}`);
+        const orderSnap = await tx.get(orderRef);
+
+        if (!orderSnap.exists) {
+          throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+        }
+        const order = orderSnap.data();
+
+        if (order.sokStatus !== "claimed") {
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            "先に注文の紐付け（claim）が必要です。"
+          );
+        }
+        if (order.userId !== uid) {
+          throw new functions.https.HttpsError("permission-denied", "この注文を確定する権限がありません。");
+        }
+
+        // 受付番号発番（SOK経路: 2000〜2999）
+        const receiptNumber = await getNextReceiptNumber("sok", tx);
+        const now = admin.firestore.FieldValue.serverTimestamp();
+
+        tx.update(orderRef, {
+          status:         "cooking",      // ← 通常注文フローに合流！
+          sokStatus:      "confirmed",
+          receiptNumber,
+          termsAgreedAt:  now,
+          sokConfirmedAt: now,
+          updatedAt:      now,
+        });
+
+        return { receiptNumber, storeId: order.storeId };
+      });
+
+      updateStoreActivity(result.storeId);
+      return { success: true, receiptNumber: result.receiptNumber };
+    } catch (error) {
+      console.error("confirmSokOrder Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * @name expireSokOrders
+ * @description 5分以上放置された SOK 仮注文を自動的に期限切れにする
+ *              毎分実行のスケジュール関数
+ *              ※ SOK失効はBANの対象外（来場者の都合によるため）
+ */
+exports.expireSokOrders = functions
+  .region("asia-northeast1")
+  .pubsub.schedule("every 1 minutes")
+  .onRun(async () => {
+    try {
+      const fiveMinutesAgo = admin.firestore.Timestamp.fromDate(
+        new Date(Date.now() - 5 * 60 * 1000)
+      );
+
+      const expiredSnap = await db.collection("orders")
+        .where("orderChannel", "==", "sok")
+        .where("sokStatus", "in", ["pending", "claimed"])
+        .where("createdAt", "<=", fiveMinutesAgo)
+        .get();
+
+      if (expiredSnap.empty) return null;
+
+      const batch = db.batch();
+      expiredSnap.docs.forEach((doc) => {
+        batch.update(doc.ref, {
+          sokStatus: "expired",
+          expiredAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+      console.log(`[expireSokOrders] ${expiredSnap.size} 件の仮注文を期限切れに変更しました`);
+      return null;
+    } catch (error) {
+      console.error("expireSokOrders Error:", error);
+      return null;
+    }
+  });
+

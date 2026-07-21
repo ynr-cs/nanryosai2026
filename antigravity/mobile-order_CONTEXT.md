@@ -88,3 +88,23 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
 | `c.customizations` | `customizations` | カスタマイズ配列（`{mode, target}` 形式） |
 
 `name`, `price` はサーバー側（Cloud Function）が Firestore の `items` コレクションから取得し、スナップショットとして注文に記録する。クライアントからは**送らない**。
+
+## 5. SOK (セルフオーダーキオスク) の設計
+設計憲法§5.2に基づく、混雑解消・来場者向けのキオスクシステム仕様。
+
+### 5.1 アーキテクチャの分離
+- **`pos/sok.html` (iPad用)**:
+  - スタッフ認証必須。`portal.html` から起動。
+  - カート機能・トッピングカスタマイズ等のUXはモバイルオーダーと同等。
+  - QRコード発行時、`createSokProvisional` 関数を呼び出し、`status: null`, `sokStatus: pending` の仮注文ドキュメントを作成。
+  - 20秒でQR表示後、確認モーダル（10秒）を経て自動リセット。
+- **`pos/sok-to.html` (来場者スマホ用)**:
+  - 対話アニメーション型UX（1画面内でシームレスに遷移）。
+  - **Step 1 (未ログイン可能)**: QRからアクセス直後に注文内容を表示。ユーザーに安心感を与える。その後、ログインを促す。
+  - ログイン後自動的に `claimSokOrder` を呼び出し（`sokStatus: claimed` へ昇格）、トランザクションで二重読み取りを防止。
+  - **Step 2 (ログイン後)**: 規約同意と通知設定を経て `confirmSokOrder` で確定。ここで初めて受付番号が発番され、`status: cooking` へ移行し通常注文フローに合流する。
+  - 確定後2.5秒のディレイで `status.html` へ遷移。
+
+### 5.2 安全性の確保
+- **フロントエンドのエラー耐性**: `pos/status.html` は `status: null` や `sokStatus: expired` などの一時的・失効ステータスのオーダーを受け取ってもクラッシュしないよう、エラーハンドリング（nullチェック）が実装されている。
+- **タイムアウト処理**: Firebase側の Scheduled Function (`expireSokOrders`) により、作成から5分経過した仮注文は自動的に `expired` になり無効化される。QRコードスキャンの遅延や放置による不正注文を防ぐ。

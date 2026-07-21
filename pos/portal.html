@@ -2357,8 +2357,20 @@
                   >自動記録シートを開く</span
                 >
               </a>
+              <!-- SOK（セルフオーダーキオスク）起動ボタン -->
+              <a
+                href="#"
+                id="link-sok"
+                class="app-link-card"
+                style="background: #fffbeb; border-color: #f59e0b;"
+              >
+                <span class="app-icon" style="color: #d97706">🪄</span>
+                <span class="app-title" style="color: #92400e">SOKキオスク</span>
+                <span class="app-desc" style="color: #b45309">セルフオーダー端末（iPad）</span>
+              </a>
             </div>
           </div>
+
 
           <!-- 2. Items View -->
           <div id="view-items" class="view-section">
@@ -3389,6 +3401,10 @@
           `monitor.html?storeId=${currentStoreId}`;
         document.getElementById("link-presenter").href =
           `presenter.html?storeId=${currentStoreId}`;
+        const linkSok = document.getElementById("link-sok");
+        if (linkSok) {
+          linkSok.href = `sok.html?storeId=${currentStoreId}`;
+        }
 
         setupRealtimeListeners();
 

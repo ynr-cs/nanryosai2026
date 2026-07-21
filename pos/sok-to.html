@@ -1,0 +1,823 @@
+<!--
+  Nanryosai 2026
+  pos/sok-to.html — セルフオーダーキオスク（来場者スマホ側）
+  Version: 0.1.0
+  Author: Nanryosai 2026 Project Team
+
+  設計憲法§5.2 Phase 2 準拠
+  - 未ログインでも注文内容を先に表示（安心感）
+  - ログイン → claim → 規約同意 → confirm の対話アニメーション型UX
+  - 1画面内でスライド/フェードのシームレス遷移
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <!-- FOUC 対策 -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) { html:not([data-theme="light"]) { background-color: #0f172a; } }
+      html[data-theme="dark"]  { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const t = localStorage.getItem("app-theme") || "auto";
+        if (t === "dark")  document.documentElement.setAttribute("data-theme", "dark");
+        if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>注文の確定 | 南陵祭2026</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <!-- Main Style -->
+    <link rel="stylesheet" href="../main/style.css" />
+    <!-- Local Dev Config -->
+    <script src="../config.local.js"></script>
+
+    <style>
+      /* =========================================
+         Variables & Base
+         ========================================= */
+      :root {
+        --bg-color:    #f0f2f5;
+        --card-bg:     #ffffff;
+        --text-main:   #1a1a1a;
+        --text-sub:    #636e72;
+        --accent:      #f59e0b;   /* SOKテーマカラー: Amber */
+        --accent-dark: #d97706;
+        --success:     #10b981;
+        --danger:      #ef4444;
+        --border:      #e5e7eb;
+        --radius-lg:   24px;
+        --radius-md:   16px;
+        --shadow:      0 4px 20px rgba(0,0,0,0.08);
+        --font:        "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-color: #0f172a;
+          --card-bg:  #1e293b;
+          --text-main:#f1f5f9;
+          --text-sub: #94a3b8;
+          --border:   #334155;
+          --shadow:   0 4px 20px rgba(0,0,0,0.4);
+        }
+      }
+      [data-theme="dark"] {
+        --bg-color: #0f172a; --card-bg: #1e293b;
+        --text-main:#f1f5f9; --text-sub:#94a3b8;
+        --border:   #334155; --shadow:  0 4px 20px rgba(0,0,0,0.4);
+      }
+      [data-theme="light"] { --bg-color: #f0f2f5; --card-bg: #ffffff; }
+
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { margin: 0; padding: 0; background: var(--bg-color); color: var(--text-main); font-family: var(--font); min-height: 100dvh; }
+
+      /* =========================================
+         Layout
+         ========================================= */
+      #app {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0 0 60px;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header */
+      #sok-header {
+        padding: 20px 20px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--card-bg);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .header-icon {
+        width: 40px; height: 40px;
+        background: linear-gradient(135deg, var(--accent), #ef4444);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.2rem;
+      }
+      .header-info .title { font-size: 1rem; font-weight: 900; }
+      .header-info .sub   { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
+
+      /* =========================================
+         Global Loader
+         ========================================= */
+      #loader {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-color);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+      }
+      .spinner {
+        width: 48px; height: 48px;
+        border: 4px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+      .loader-text { font-size: 0.9rem; color: var(--text-sub); }
+
+      /* =========================================
+         Steps (1画面内でアニメーション)
+         ========================================= */
+      #steps-container {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Step progress indicator */
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 24px;
+      }
+      .step-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--border);
+        transition: all 0.3s;
+      }
+      .step-dot.active { background: var(--accent); transform: scale(1.4); }
+      .step-dot.done   { background: var(--success); }
+
+      /* カード型ステップ */
+      .step-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        padding: 24px 20px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        transform-origin: top center;
+      }
+      .step-card.collapsed {
+        padding: 16px 20px;
+        background: var(--bg-color);
+        box-shadow: none;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+      }
+      .step-card.hidden { display: none; }
+
+      .step-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .step-card.collapsed .step-card-header { margin-bottom: 0; }
+      .step-num {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 900;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .step-card.collapsed .step-num { background: var(--success); }
+      .step-card.collapsed .step-num::after { content: "✓"; }
+      .step-num-inner { display: block; }
+      .step-card.collapsed .step-num-inner { display: none; }
+      .step-title { font-size: 1rem; font-weight: 900; }
+      .step-done-label { font-size: 0.8rem; color: var(--success); font-weight: 700; margin-left: auto; }
+      .step-card:not(.collapsed) .step-done-label { display: none; }
+
+      /* =========================================
+         注文内容カード (Step 1)
+         ========================================= */
+      .order-item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .order-item-row:last-child { border-bottom: none; }
+      .order-item-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+      .order-item-mods { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+      .order-mod-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid;
+      }
+      .order-mod-badge.no  { color: var(--danger);  border-color: var(--danger); }
+      .order-mod-badge.add { color: var(--success); border-color: var(--success); }
+      .order-item-price { font-weight: 800; font-size: 1rem; color: var(--text-main); flex-shrink: 0; }
+
+      .order-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0 4px;
+        font-size: 0.95rem;
+      }
+      .order-total-label { font-weight: 700; color: var(--text-sub); }
+      .order-total-value { font-size: 1.6rem; font-weight: 900; color: var(--accent); }
+
+      /* =========================================
+         ボタン
+         ========================================= */
+      .btn-main {
+        width: 100%;
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        border: none;
+        background: var(--accent);
+        color: #000;
+        font-size: 1.05rem;
+        font-weight: 900;
+        cursor: pointer;
+        transition: transform 0.15s, opacity 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        letter-spacing: 0.02em;
+      }
+      .btn-main:active { transform: scale(0.97); }
+      .btn-main:disabled { background: var(--border); color: var(--text-sub); cursor: not-allowed; }
+      .btn-main.pulsing {
+        animation: pulse-amber 2s cubic-bezier(0.4,0,0.6,1) infinite;
+      }
+      @keyframes pulse-amber {
+        0%, 100% { box-shadow: 0 4px 20px rgba(245,158,11,0.3); }
+        50%       { box-shadow: 0 4px 30px rgba(245,158,11,0.7); }
+      }
+
+      /* =========================================
+         規約チェックボックス
+         ========================================= */
+      .terms-check-wrap {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: rgba(245,158,11,0.08);
+        border: 1px solid rgba(245,158,11,0.3);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-top: 16px;
+        cursor: pointer;
+      }
+      .terms-check-wrap input[type="checkbox"] {
+        width: 22px; height: 22px;
+        flex-shrink: 0;
+        cursor: pointer;
+        margin-top: 2px;
+        accent-color: var(--accent);
+      }
+      .terms-text { font-size: 0.85rem; line-height: 1.6; color: var(--text-main); }
+      .terms-text strong { color: var(--danger); }
+
+      /* 通知許可エリア */
+      .notify-wrap {
+        background: var(--bg-color);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .notify-icon { font-size: 2rem; color: var(--accent); flex-shrink: 0; }
+      .notify-text { font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; }
+      .btn-notify {
+        margin-top: 12px;
+        width: 100%;
+        padding: 12px;
+        border-radius: var(--radius-md);
+        border: 1.5px solid var(--accent);
+        background: transparent;
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-notify:active { background: rgba(245,158,11,0.1); }
+
+      /* =========================================
+         完了アニメーション
+         ========================================= */
+      #complete-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-color);
+        z-index: 9000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+        animation: fadeIn 0.4s ease;
+      }
+      #complete-overlay.active { display: flex; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .complete-icon {
+        font-size: 6rem;
+        color: var(--success);
+        animation: bounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+      }
+      @keyframes bounceIn {
+        from { transform: scale(0); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+      }
+      .complete-receipt {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: var(--accent);
+        margin: 16px 0 8px;
+      }
+
+      /* =========================================
+         エラー / 情報表示
+         ========================================= */
+      .info-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        padding: 32px 24px;
+        text-align: center;
+        margin: 24px 20px;
+        box-shadow: var(--shadow);
+      }
+      .info-icon { font-size: 4rem; margin-bottom: 16px; }
+      .info-title { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
+      .info-desc  { font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+
+    <!-- Global Loader -->
+    <div id="loader">
+      <div class="spinner"></div>
+      <p class="loader-text">注文情報を確認しています...</p>
+    </div>
+
+    <!-- 完了オーバーレイ -->
+    <div id="complete-overlay">
+      <div class="complete-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="complete-receipt" id="complete-number">2001</div>
+      <div style="font-size: 1.1rem; font-weight: 900; margin-bottom: 8px;">注文が確定しました！</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; max-width: 280px; margin: 0 auto 32px;">
+        モニターに番号が表示されたら<br>カウンターへお越しください
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-sub);">注文状況を確認する画面へ移動します...</div>
+    </div>
+
+    <!-- App -->
+    <div id="app" style="display:none;">
+      <!-- Header -->
+      <header id="sok-header">
+        <div class="header-icon"><i class="bi bi-bag-fill"></i></div>
+        <div class="header-info">
+          <div class="title">注文の確定</div>
+          <div class="sub" id="store-name-disp">南陵祭2026</div>
+        </div>
+      </header>
+
+      <!-- Info Card (エラー・期限切れ等) -->
+      <div id="info-area" style="display:none;"></div>
+
+      <!-- Steps Container -->
+      <div id="steps-container">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot-1"></div>
+          <div style="flex:1; height:2px; background:var(--border); border-radius:1px;"></div>
+          <div class="step-dot" id="dot-2"></div>
+          <div style="flex:1; height:2px; background:var(--border); border-radius:1px;"></div>
+          <div class="step-dot" id="dot-3"></div>
+        </div>
+
+        <!-- === STEP 1: 注文内容の確認 + ログイン === -->
+        <div class="step-card" id="step1-card">
+          <div class="step-card-header">
+            <div class="step-num"><span class="step-num-inner">1</span></div>
+            <div class="step-title">注文内容の確認</div>
+            <span class="step-done-label"><i class="bi bi-check-circle-fill me-1"></i>確認済み</span>
+          </div>
+
+          <!-- 注文内容 -->
+          <div id="order-items-list">
+            <!-- JS で注入 -->
+          </div>
+          <div class="order-total-row">
+            <span class="order-total-label">合計金額</span>
+            <span class="order-total-value" id="order-total">¥0</span>
+          </div>
+
+          <!-- ログインボタン (未ログイン時のみ表示) -->
+          <div id="login-area">
+            <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-md); padding: 14px; margin-top: 16px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6;">
+              <i class="bi bi-info-circle-fill me-1" style="color: var(--accent);"></i>
+              注文を確定するにはGoogleアカウントでのログインが必要です。
+            </div>
+            <button class="btn-main" id="btn-login">
+              <i class="bi bi-google"></i> Googleログインして進む
+            </button>
+          </div>
+
+          <!-- ログイン済み時の案内 (hidden until logged in) -->
+          <div id="logged-in-notice" style="display:none;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 12px 16px; background: rgba(16,185,129,0.1); border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">
+              <i class="bi bi-person-check-fill" style="color: var(--success); font-size: 1.2rem;"></i>
+              <span id="logged-in-name" style="font-size: 0.85rem; font-weight: 700;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- === STEP 2: 通知・規約 + 確定 === -->
+        <div class="step-card hidden" id="step2-card">
+          <div class="step-card-header">
+            <div class="step-num"><span class="step-num-inner">2</span></div>
+            <div class="step-title">規約に同意して確定</div>
+            <span class="step-done-label"><i class="bi bi-check-circle-fill me-1"></i>完了</span>
+          </div>
+
+          <!-- 通知許可エリア (Android のみ) -->
+          <div id="notify-area" style="display:none;">
+            <div class="notify-wrap">
+              <div class="notify-icon"><i class="bi bi-bell-fill"></i></div>
+              <div class="notify-text">
+                商品完成時にプッシュ通知でお知らせします（任意）
+              </div>
+            </div>
+            <button class="btn-notify" id="btn-notify">
+              <i class="bi bi-bell me-1"></i> 通知を許可する
+            </button>
+            <button style="width:100%; margin-top:8px; padding: 10px; border:none; background:transparent; color:var(--text-sub); font-size:0.85rem; cursor:pointer;" onclick="skipNotify()">
+              スキップ
+            </button>
+          </div>
+
+          <!-- 規約チェックボックス -->
+          <label class="terms-check-wrap" for="check-terms">
+            <input type="checkbox" id="check-terms" onchange="onTermsChange()" />
+            <div class="terms-text">
+              利用規約および注意事項に同意します。<br>
+              <strong>確定後のキャンセル・返金はできません。</strong><br>
+              「呼出し中」の通知から5分以内にカウンターへお越しください。
+              5分以内にお受け取りがない場合、商品を廃棄し利用制限となります。
+            </div>
+          </label>
+
+          <button class="btn-main" id="btn-confirm" disabled onclick="doConfirm()">
+            <i class="bi bi-bag-check-fill"></i> 注文を確定する
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase & Logic -->
+    <script type="module">
+      import {
+        doc,
+        getDoc,
+        setDoc,
+        serverTimestamp,
+        onSnapshot,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import {
+        getToken,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+      import {
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import { auth, db, functions, messaging, login, watchUser } from "../main/auth.js";
+
+      const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+
+      // ===========================================================
+      // 1. State
+      // ===========================================================
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId   = urlParams.get("orderId");
+      let currentUser = null;
+      let orderData   = null;
+      let claimed     = false;
+      let notifyDone  = false;
+
+      const loader       = document.getElementById("loader");
+      const appEl        = document.getElementById("app");
+      const infoArea     = document.getElementById("info-area");
+
+      // ===========================================================
+      // 2. Helper: Show Info Card (エラー・お知らせ)
+      // ===========================================================
+      function showInfo(icon, iconColor, title, desc, extra = "") {
+        loader.style.display = "none";
+        appEl.style.display  = "none";
+        infoArea.style.display = "block";
+        infoArea.innerHTML = `
+          <div class="info-card">
+            <div class="info-icon" style="color:${iconColor};">${icon}</div>
+            <div class="info-title">${title}</div>
+            <div class="info-desc">${desc}</div>
+            ${extra}
+          </div>
+        `;
+      }
+
+      // ===========================================================
+      // 3. orderId チェック
+      // ===========================================================
+      if (!orderId) {
+        showInfo('<i class="bi bi-link-45deg"></i>', "#ef4444",
+          "URLが不正です",
+          "正しいQRコードから読み取ってください。");
+      } else {
+        init();
+      }
+
+      async function init() {
+        try {
+          // 注文データ取得（未ログインでも pending なら読める）
+          const orderSnap = await getDoc(doc(db, "orders", orderId));
+          if (!orderSnap.exists()) {
+            showInfo('<i class="bi bi-search"></i>', "#94a3b8",
+              "注文が見つかりません",
+              "QRコードの有効期限が切れているか、存在しない注文です。\n店舗のiPadで最初からやり直してください。");
+            return;
+          }
+
+          orderData = orderSnap.data();
+
+          // sokStatus チェック
+          if (orderData.sokStatus !== "pending") {
+            const isExpired  = orderData.sokStatus === "expired";
+            const isClaimed  = ["claimed", "confirmed"].includes(orderData.sokStatus);
+            showInfo(
+              isExpired ? '<i class="bi bi-clock-fill"></i>' : '<i class="bi bi-x-circle-fill"></i>',
+              isExpired ? "#f59e0b" : "#ef4444",
+              isExpired ? "QRコードの有効期限が切れました" : "このQRはすでに使用されています",
+              isExpired
+                ? "店舗のiPadで最初からやり直してください。"
+                : "別の方が先にこのQRコードを使用しました。\n店舗のiPadで新しい注文をお願いします。"
+            );
+            return;
+          }
+
+          // 店舗名表示
+          document.getElementById("store-name-disp").textContent = orderData.storeId;
+          try {
+            const storeSnap = await getDoc(doc(db, "stores", orderData.storeId));
+            if (storeSnap.exists()) {
+              document.getElementById("store-name-disp").textContent = storeSnap.data().name || orderData.storeId;
+            }
+          } catch (_) {}
+
+          // 注文内容の表示
+          renderOrderItems();
+
+          // 認証チェック
+          watchUser(async (user) => {
+            currentUser = user;
+            if (user) {
+              // ログイン済み → Step1 を折りたたみ、Step2 へ
+              showLoggedIn(user);
+              await doClaim();
+            } else {
+              // 未ログイン → ログインボタン表示
+              showLoggedOut();
+            }
+          });
+
+          loader.style.display = "none";
+          appEl.style.display  = "flex";
+
+        } catch (e) {
+          showInfo('<i class="bi bi-wifi-off"></i>', "#ef4444",
+            "読み込みエラー",
+            e.message || "ページを再読み込みしてください。");
+        }
+      }
+
+      // ===========================================================
+      // 4. 注文内容レンダリング
+      // ===========================================================
+      function renderOrderItems() {
+        const list  = document.getElementById("order-items-list");
+        const items = orderData.items || [];
+        list.innerHTML = "";
+        items.forEach((item) => {
+          const modsHtml = (item.customizations || []).map((m) =>
+            `<span class="order-mod-badge ${m.mode.toLowerCase()}">${m.target} ${m.mode === "NO" ? "抜き" : "追加"}</span>`
+          ).join("");
+          const row = document.createElement("div");
+          row.className = "order-item-row";
+          row.innerHTML = `
+            <div style="flex:1;">
+              <div class="order-item-name">${item.name || "商品"}</div>
+              <div style="font-size:0.82rem; color:var(--text-sub); margin-top:2px;">
+                ¥${item.price} × ${item.quantity}
+              </div>
+              <div class="order-item-mods">${modsHtml}</div>
+            </div>
+            <div class="order-item-price">¥${item.price * item.quantity}</div>
+          `;
+          list.appendChild(row);
+        });
+        document.getElementById("order-total").textContent = `¥${orderData.totalPrice || 0}`;
+      }
+
+      // ===========================================================
+      // 5. 認証状態による UI 切り替え
+      // ===========================================================
+      function showLoggedOut() {
+        document.getElementById("login-area").style.display = "block";
+        document.getElementById("logged-in-notice").style.display = "none";
+      }
+
+      function showLoggedIn(user) {
+        document.getElementById("login-area").style.display = "none";
+        document.getElementById("logged-in-notice").style.display = "block";
+        document.getElementById("logged-in-name").textContent =
+          `${user.displayName || user.email} としてログイン中`;
+      }
+
+      // ログインボタン
+      document.getElementById("btn-login").onclick = async () => {
+        const btn = document.getElementById("btn-login");
+        btn.disabled = true;
+        btn.innerHTML = `<div class="spinner" style="width:22px;height:22px;border-width:3px;"></div> ログイン中...`;
+        try {
+          const user = await login();  // auth.js の popup ログイン
+          if (!user) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="bi bi-google"></i> Googleログインして進む`;
+          }
+          // watchUser の callback でその後の処理を行う
+        } catch (e) {
+          alert(`ログインに失敗しました:\n${e.message}`);
+          btn.disabled = false;
+          btn.innerHTML = `<i class="bi bi-google"></i> Googleログインして進む`;
+        }
+      };
+
+      // ===========================================================
+      // 6. claim (注文の紐付け)
+      // ===========================================================
+      async function doClaim() {
+        if (claimed) return;
+        try {
+          const claimFn = httpsCallable(functions, "claimSokOrder");
+          await claimFn({ orderId });
+          claimed = true;
+
+          // Step1 を折りたたみ, Step2 を表示
+          collapseStep1();
+          showStep2();
+        } catch (e) {
+          if (e.code === "functions/failed-precondition") {
+            showInfo('<i class="bi bi-x-circle-fill"></i>', "#ef4444",
+              "このQRはすでに使用されています",
+              "別の方が先にこのQRコードを使用しました。\n店舗のiPadで新しい注文をお願いします。");
+          } else if (e.code === "functions/permission-denied") {
+            showInfo('<i class="bi bi-shield-fill-x"></i>', "#ef4444",
+              "利用が制限されています",
+              "このアカウントは利用制限がかかっています。");
+          } else {
+            showInfo('<i class="bi bi-wifi-off"></i>', "#ef4444",
+              "エラーが発生しました", e.message);
+          }
+        }
+      }
+
+      function collapseStep1() {
+        const card = document.getElementById("step1-card");
+        card.classList.add("collapsed");
+        // ドット更新
+        document.getElementById("dot-1").classList.remove("active");
+        document.getElementById("dot-1").classList.add("done");
+        document.getElementById("dot-2").classList.add("active");
+      }
+
+      function showStep2() {
+        const card = document.getElementById("step2-card");
+        card.classList.remove("hidden");
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // Android のみ通知許可エリアを表示
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid && messaging && Notification.permission === "default") {
+          document.getElementById("notify-area").style.display = "block";
+        }
+      }
+
+      // ===========================================================
+      // 7. 通知許可
+      // ===========================================================
+      document.getElementById("btn-notify").onclick = async () => {
+        try {
+          const perm = await Notification.requestPermission();
+          if (perm === "granted") {
+            await saveFcmToken();
+          }
+        } catch (_) {}
+        notifyDone = true;
+        document.getElementById("notify-area").style.display = "none";
+      };
+
+      window.skipNotify = () => {
+        notifyDone = true;
+        document.getElementById("notify-area").style.display = "none";
+      };
+
+      async function saveFcmToken() {
+        if (!currentUser || !messaging) return;
+        try {
+          const swReg  = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+          const token  = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+          if (token) {
+            await setDoc(doc(db, "users", currentUser.uid), {
+              fcmToken: token,
+              notificationEnabled: true,
+              lastLogin: serverTimestamp(),
+            }, { merge: true });
+          }
+        } catch (e) {
+          console.warn("FCM token save failed:", e);
+        }
+      }
+
+      // ===========================================================
+      // 8. 規約チェック
+      // ===========================================================
+      window.onTermsChange = () => {
+        const checked = document.getElementById("check-terms").checked;
+        const btn = document.getElementById("btn-confirm");
+        btn.disabled = !checked;
+        if (checked) btn.classList.add("pulsing");
+        else btn.classList.remove("pulsing");
+      };
+
+      // ===========================================================
+      // 9. 確定処理
+      // ===========================================================
+      window.doConfirm = async () => {
+        const btn = document.getElementById("btn-confirm");
+        btn.disabled  = true;
+        btn.classList.remove("pulsing");
+        btn.innerHTML = `<div class="spinner" style="width:22px;height:22px;border-width:3px;"></div> 処理中...`;
+
+        try {
+          const confirmFn = httpsCallable(functions, "confirmSokOrder");
+          const result    = await confirmFn({ orderId });
+          const receipt   = result.data.receiptNumber;
+
+          // 完了アニメーション表示
+          document.getElementById("complete-number").textContent = `No. ${receipt}`;
+          document.getElementById("complete-overlay").classList.add("active");
+
+          // 2.5秒後に status.html へ遷移
+          setTimeout(() => {
+            window.location.replace(`./status.html?orderId=${orderId}`);
+          }, 2500);
+
+        } catch (e) {
+          btn.disabled  = false;
+          btn.classList.add("pulsing");
+          btn.innerHTML = `<i class="bi bi-bag-check-fill"></i> 注文を確定する`;
+          alert(`注文確定に失敗しました:\n${e.message}`);
+        }
+      };
+    </script>
+  </body>
+</html>

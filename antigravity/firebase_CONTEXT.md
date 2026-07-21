@@ -153,9 +153,9 @@ last_updated: 2026-05-07
   - `completeOrder` (OnCall): ready_for_pickup → completed ステータス遷移（店舗管理者のみ）。
   - `cancelOrder` (OnCall): キャンセル処理（店舗管理者のみ）。理由必須。
   - `adminUpdateOrderStatus` (OnCall): super_admin / store_admin による強制ステータス変更。
-  - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `userId: null`）。受付番号2000番台を発番。
-  - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。
-  - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。
+  - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `status: null`, `userId: null`）。受付番号は未発番。
+  - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。トランザクションで二重読み取りを防止。
+  - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。ここでSOK用（2000番台）の受付番号を発番。
   - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`PENALTY_WHITELIST_EMAILS`（`ynrcs1000@gmail.com`）は対象外。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。

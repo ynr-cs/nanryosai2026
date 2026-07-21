@@ -746,9 +746,9 @@
 
       function updateUI(data) {
         // 1. Order Number
-        // Remove "No." prefix if present in the data (though data.receiptNumber is usually just the num)
+        // SOK假注文時は receiptNumber が null のためガード
         const numEl = document.getElementById("display-number");
-        if (numEl) numEl.textContent = `${data.receiptNumber}`;
+        if (numEl) numEl.textContent = data.receiptNumber != null ? `${data.receiptNumber}` : "---";
 
         // 1.5 Order Date
         const dateEl = document.getElementById("order-date-display");
@@ -815,6 +815,31 @@
         };
 
         const status = data.status;
+
+        // SOK假注文 (status = null) の特別処理 — 設計憲法§5.2準拠
+        if (status === null) {
+          const animContainer = document.getElementById("anim-container");
+          const card = document.getElementById("status-card");
+          const titleEl = document.getElementById("status-title");
+          const descEl = document.getElementById("status-desc");
+          const stepper = document.getElementById("progress-stepper");
+          card.className = "status-card";
+          stepper.style.display = "none";
+          if (data.sokStatus === "expired") {
+            // QRの有効期限切れ
+            card.classList.add("cancelled");
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-cancelled);"><i class="bi bi-clock-fill"></i></div>`;
+            titleEl.textContent = "QRコードの有効期限が切れました";
+            descEl.textContent = "店舗のiPadで最初からやり直してください";
+          } else {
+            // pending / claimed — QRスキャン待機中
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--brand-color);"><i class="bi bi-qr-code-scan"></i></div>`;
+            titleEl.textContent = "注文を確定しています…";
+            descEl.textContent = "QRコードを読み取って、スマホで注文を確定してください";
+          }
+          return; // 通常のUI処理をスキップ
+        }
+
         const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["cooking"]; // 未知は cooking 扱い
         const visualState = cfg.visualState;
 
