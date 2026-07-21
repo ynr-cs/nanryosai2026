@@ -2330,7 +2330,7 @@
             })),
           });
           const orderId = result.data.orderId;
-          const url = `${location.origin}/pos/sok-to.html?orderId=${orderId}`;
+          const url = new URL(`sok-to.html?orderId=${orderId}`, location.href).href;
           await renderQR(url);
           showScreen("qr");
           startQrCountdown();
