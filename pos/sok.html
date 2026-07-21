@@ -15,7 +15,7 @@
   <head>
     <!-- FOUC対策 (Dark Mode Flicker Prevent) -->
     <style>
-      html { background-color: #0f172a; }
+      html { background-color: #f0f2f5; }
     </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -37,22 +37,22 @@
 
     <style>
       /* =========================================
-         1. Variables & Base — iPad/キオスク特化
+         1. Variables & Base — iPad/キオスク特化 (Light Theme)
          ========================================= */
       :root {
-        --bg:         #0f172a;  /* Deep Navy (常時ダーク) */
-        --surface:    #1e293b;
-        --surface-2:  #334155;
+        --bg:         #f0f2f5;  /* Light Gray */
+        --surface:    #ffffff;
+        --surface-2:  #e2e8f0;
         --accent:     #f59e0b;  /* Amber — SOKテーマカラー */
         --accent-dim: #92400e;
-        --text:       #f1f5f9;
-        --text-sub:   #94a3b8;
+        --text:       #0f172a;
+        --text-sub:   #64748b;
         --success:    #10b981;
         --danger:     #ef4444;
-        --border:     #334155;
+        --border:     #cbd5e1;
         --radius-lg:  24px;
         --radius-md:  16px;
-        --shadow:     0 20px 60px rgba(0,0,0,0.5);
+        --shadow:     0 20px 60px rgba(0,0,0,0.1);
         --font:       "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
@@ -75,10 +75,10 @@
       #app {
         display: flex;
         flex-direction: column;
-        min-height: 100dvh;
-        max-width: 600px;
-        margin: 0 auto;
-        padding-bottom: 40px;
+        height: 100dvh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
       }
 
       /* ヘッダー */
@@ -106,13 +106,36 @@
       }
 
       /* =========================================
-         3. Screens
+         3. Screens & Layout
          ========================================= */
-      .screen { display: none; padding: 24px 20px; animation: fadeUp 0.3s ease; }
-      .screen.active { display: block; }
+      .screen { display: none; height: 100%; animation: fadeUp 0.3s ease; overflow-y: auto; }
+      .screen.active { display: flex; flex-direction: column; }
       @keyframes fadeUp {
         from { opacity: 0; transform: translateY(16px); }
         to   { opacity: 1; transform: translateY(0); }
+      }
+      
+      .landscape-layout {
+        display: flex;
+        flex-direction: row !important;
+        height: calc(100dvh - 57px); /* Header height */
+        overflow: hidden;
+        padding: 0;
+      }
+      .menu-area {
+        flex: 2;
+        padding: 24px;
+        overflow-y: auto;
+        background: var(--bg);
+      }
+      .cart-area {
+        flex: 1;
+        min-width: 320px;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
       }
 
       /* =========================================
@@ -238,38 +261,8 @@
       .menu-price { font-size: 1.2rem; font-weight: 900; color: var(--accent); }
 
       /* =========================================
-         7. Floating Cart Bar
+         7. Floating Cart Bar (Removed for iPad Layout)
          ========================================= */
-      #cart-bar {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: calc(100% - 48px);
-        max-width: 540px;
-        background: var(--accent);
-        color: #000;
-        border-radius: 999px;
-        padding: 14px 20px;
-        display: none;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 8px 30px rgba(245,158,11,0.5);
-        cursor: pointer;
-        z-index: 500;
-        transition: transform 0.15s;
-      }
-      #cart-bar:active { transform: translateX(-50%) scale(0.97); }
-      #cart-bar.visible { display: flex; }
-      .cart-bar-left { font-weight: 900; font-size: 1rem; }
-      .cart-bar-right {
-        background: #000;
-        color: var(--accent);
-        font-weight: 900;
-        padding: 8px 20px;
-        border-radius: 999px;
-        font-size: 0.9rem;
-      }
 
       /* =========================================
          8. Item Modal (Full Screen)
@@ -574,42 +567,57 @@
         <div style="font-size: 0.75rem; color: var(--text-sub);">SOK端末</div>
       </header>
 
-      <!-- === SCREEN: メニュー === -->
-      <div id="screen-menu" class="screen">
-        <div id="menu-header">
-          <h2>ご注文をどうぞ</h2>
-          <p>商品を選択してカートに追加してください</p>
-        </div>
-        <div id="menu-grid">
-          <!-- JS で注入 -->
+      <!-- === SCREEN: スタートアップ === -->
+      <div id="screen-startup" class="screen">
+        <div style="text-align: center; padding-top: 15vh;">
+          <div style="font-size: 5rem; color: var(--accent); margin-bottom: 24px;">
+            <i class="bi bi-bag-fill"></i>
+          </div>
+          <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 12px;">セルフオーダー端末</h2>
+          <p style="color: var(--text-sub); margin-bottom: 40px; line-height: 1.6;">
+            この端末は来場者向けのセルフオーダーレジです。<br>
+            起動すると全画面表示になります。
+          </p>
+          <button class="btn-primary-kiosk" style="max-width: 320px; margin: 0 auto;" onclick="startKiosk()">
+            <i class="bi bi-play-circle-fill"></i> SOKを起動する
+          </button>
         </div>
       </div>
 
-      <!-- === SCREEN: カート確認 === -->
-      <div id="screen-cart" class="screen">
-        <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 20px;">
-          <i class="bi bi-cart-check-fill me-2" style="color: var(--accent);"></i>ご注文内容の確認
-        </h2>
-        <div id="cart-list">
-          <!-- JS で注入 -->
+      <!-- === SCREEN: メイン (iPad Landscape) === -->
+      <div id="screen-main" class="screen landscape-layout">
+        
+        <div class="menu-area">
+          <div id="menu-header">
+            <h2>ご注文をどうぞ</h2>
+            <p>商品を選択してカートに追加してください</p>
+          </div>
+          <div id="menu-grid">
+            <!-- JS で注入 -->
+          </div>
         </div>
-        <div class="total-row">
-          <span class="total-label">合計金額</span>
-          <span class="total-value" id="cart-total">¥0</span>
+
+        <div class="cart-area">
+          <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 20px;">
+            <i class="bi bi-cart-check-fill me-2" style="color: var(--accent);"></i>ご注文内容
+          </h2>
+          <div id="cart-list" style="flex: 1; overflow-y: auto; margin-bottom: 12px; padding-right: 8px;">
+            <!-- JS で注入 -->
+          </div>
+          <div class="total-row" style="margin-top: auto;">
+            <span class="total-label">合計金額</span>
+            <span class="total-value" id="cart-total">¥0</span>
+          </div>
+          <div style="background: var(--bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent);">
+            <p style="font-size: 0.75rem; color: var(--text-sub); margin: 0; line-height: 1.5;">
+              <i class="bi bi-info-circle-fill me-1" style="color: var(--accent);"></i>
+              QRコードをスマホで読み取り、Googleアカウントで注文を確定してください。お支払いは商品お受け取り時に現金等でお願いいたします。
+            </p>
+          </div>
+          <button class="btn-primary-kiosk" id="btn-issue-qr" onclick="issueQr()">
+            <i class="bi bi-phone-vibrate"></i> スマホで注文を続ける (QR)
+          </button>
         </div>
-        <div style="background: var(--surface); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; border-left: 4px solid var(--accent);">
-          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0; line-height: 1.6;">
-            <i class="bi bi-info-circle-fill me-1" style="color: var(--accent);"></i>
-            QRコードをスマホで読み取り、Googleアカウントで注文を確定してください。
-            お支払いは商品お受け取り時にAuPayまたは現金でお願いいたします。
-          </p>
-        </div>
-        <button class="btn-primary-kiosk" id="btn-issue-qr" onclick="issueQr()">
-          <i class="bi bi-qr-code"></i> QRコードを発行する
-        </button>
-        <button class="btn-secondary-kiosk" onclick="showScreen('menu')">
-          <i class="bi bi-arrow-left me-1"></i> メニューに戻る
-        </button>
       </div>
 
       <!-- === SCREEN: QR表示 === -->
@@ -638,14 +646,7 @@
       </div>
     </div>
 
-    <!-- Floating Cart Bar -->
-    <div id="cart-bar" onclick="showScreen('cart')">
-      <div class="cart-bar-left">
-        <i class="bi bi-cart-fill me-2"></i>
-        <span id="cart-count">0</span>点 ・ <span id="cart-bar-total">¥0</span>
-      </div>
-      <div class="cart-bar-right">カートを確認 <i class="bi bi-arrow-right-short"></i></div>
-    </div>
+    <!-- Floating Cart Bar (Removed) -->
 
     <!-- Item Modal -->
     <div id="item-modal-overlay" onclick="closeItemModal(event)">
@@ -726,7 +727,11 @@
       import {
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import { auth, db, functions, watchUser } from "../main/auth.js";
+      import {
+        ref as sRef,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+      import { auth, db, functions, storage, watchUser } from "../main/auth.js";
 
       // ==========================================================
       // 1. State
@@ -817,15 +822,26 @@
 
           renderMenu();
           loader.style.display = "none";
-          showScreen("menu");
+          showScreen("startup");
         } catch (e) {
           showError("読み込みエラー", e.message);
         }
       }
 
       // ==========================================================
-      // 3. Screen Management
+      // 3. Screen Management & Fullscreen
       // ==========================================================
+      window.startKiosk = async () => {
+        try {
+          if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch (e) {
+          console.warn("Fullscreen request failed:", e);
+        }
+        showScreen("main");
+      };
+
       window.showScreen = (name) => {
         document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
         document.getElementById(`screen-${name}`).classList.add("active");
@@ -860,12 +876,9 @@
             </div>
           `;
 
-          // 遅延画像読み込み
+          // 画像読み込み (Cloud Storage)
           const imgEl = el.querySelector(".menu-img");
-          const tryImg = `../images/${p.id}.png`;
-          imgEl.src = tryImg;
-          imgEl.onload  = () => imgEl.classList.add("loaded");
-          imgEl.onerror = () => { imgEl.src = "../images/noimage.png"; imgEl.onload = () => imgEl.classList.add("loaded"); };
+          setProductImage(imgEl, p);
 
           if (!isSoldOut) el.onclick = () => openItemModal(p);
           grid.appendChild(el);
@@ -886,10 +899,7 @@
         document.getElementById("modal-qty").textContent           = "1";
 
         const imgEl = document.getElementById("modal-product-img");
-        imgEl.classList.remove("loaded");
-        imgEl.src     = `../images/${product.id}.png`;
-        imgEl.onload  = () => imgEl.classList.add("loaded");
-        imgEl.onerror = () => { imgEl.src = "../images/noimage.png"; imgEl.onload = () => imgEl.classList.add("loaded"); };
+        setProductImage(imgEl, product);
 
         // カスタマイズ
         const allowed = product.allowedToppings || [];
@@ -995,27 +1005,12 @@
       };
 
       function updateCartBar() {
-        const count = cart.reduce((s, c) => s + c.quantity, 0);
-        const total = cart.reduce((s, c) => s + c.price * c.quantity, 0);
-        const bar   = document.getElementById("cart-bar");
-        document.getElementById("cart-count").textContent    = count;
-        document.getElementById("cart-bar-total").textContent = `¥${total}`;
-        bar.classList.toggle("visible", count > 0 && document.getElementById("screen-menu").classList.contains("active"));
+        renderCartScreen();
       }
 
       // ==========================================================
-      // 7. Cart Screen
+      // 7. Cart Screen (Integrated into Main Layout)
       // ==========================================================
-      document.getElementById("cart-bar").addEventListener("click", () => {
-        renderCartScreen();
-        showScreen("cart");
-      });
-      window.showScreen = (name) => {
-        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-        document.getElementById(`screen-${name}`).classList.add("active");
-        if (name === "cart") renderCartScreen();
-        updateCartBar();
-      };
 
       function renderCartScreen() {
         const list  = document.getElementById("cart-list");
@@ -1043,7 +1038,6 @@
       window.removeCartItem = (idx) => {
         cart.splice(idx, 1);
         renderCartScreen();
-        if (cart.length === 0) showScreen("menu");
       };
 
       // ==========================================================
@@ -1142,8 +1136,47 @@
         clearTimers();
         document.getElementById("confirm-modal-overlay").classList.remove("active");
         cart = [];
-        showScreen("menu");
+        showScreen("main");
+        renderCartScreen();
       };
+
+      // ==========================================================
+      // 10. Utils
+      // ==========================================================
+      async function setProductImage(imgEl, product) {
+        imgEl.classList.remove("loaded");
+        const pathOrUrl = product.imageURL || product.imageUrl;
+        if (!pathOrUrl) {
+          imgEl.src = "../images/noimage.png";
+          return;
+        }
+
+        const CACHE_KEY = `img_cache_${pathOrUrl}`;
+        const cachedUrl = sessionStorage.getItem(CACHE_KEY);
+        if (cachedUrl) {
+          imgEl.src = cachedUrl;
+          setTimeout(() => imgEl.classList.add("loaded"), 50);
+          return;
+        }
+
+        if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("data:")) {
+          imgEl.src = pathOrUrl;
+        } else {
+          try {
+            const url = await getDownloadURL(sRef(storage, pathOrUrl));
+            imgEl.src = url;
+            try { sessionStorage.setItem(CACHE_KEY, url); } catch (e) {}
+          } catch (e) {
+            console.warn("Storage image load failed:", pathOrUrl, e);
+            imgEl.src = "../images/noimage.png";
+          }
+        }
+        imgEl.onload = () => imgEl.classList.add("loaded");
+        imgEl.onerror = () => {
+          imgEl.src = "../images/noimage.png";
+          imgEl.onload = () => imgEl.classList.add("loaded");
+        };
+      }
 
       function clearTimers() {
         if (qrIntervalId)      { clearInterval(qrIntervalId);      qrIntervalId      = null; }
