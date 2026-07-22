@@ -152,14 +152,9 @@
          App 本体
          ============================================ -->
     <div id="app" style="display:none;">
-      <!-- Header（login.html?mode=sok と共通デザイン） -->
-      <header id="sok-header">
-        <div class="header-icon"><i class="bi bi-bag-fill"></i></div>
-        <div class="header-info">
-          <div class="title">注文の確定</div>
-          <!-- 店舗名: 取得できるまで storeId は絶対に出さない -->
-          <div class="sub" id="store-name-disp">読み込み中...</div>
-        </div>
+      <!-- Header（app-shellから借用したデザイン） -->
+      <header class="app-header">
+        <a href="#" class="app-logo">南陵祭'26</a>
       </header>
 
       <!-- ステップ進行バー（常時表示・login.html?mode=sok 側でも同一描画） -->
