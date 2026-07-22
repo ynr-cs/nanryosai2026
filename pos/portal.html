@@ -3881,8 +3881,8 @@
           const feedOrders = ordersData
             .filter(
               (o) =>
-                o.status !== "cancelled" && o.status !== "abandoned_and_paid",
-            ) // Exclude cancelled/abandoned
+                o.status !== null && o.status !== "cancelled" && o.status !== "abandoned_and_paid",
+            ) // Exclude provisional, cancelled, abandoned
             .sort(
               (a, b) =>
                 (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
@@ -4225,6 +4225,9 @@
         const statusFilter = document.getElementById("search-status").value;
 
         const filtered = ordersData.filter((o) => {
+          // Exclude provisional orders (SOK unconfirmed)
+          if (o.status === null) return false;
+
           // Status
           if (statusFilter !== "all") {
             if (statusFilter === "completed" && !o.status.includes("completed"))
