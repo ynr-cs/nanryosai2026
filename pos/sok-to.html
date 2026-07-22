@@ -762,10 +762,9 @@
         loaderText.textContent = "キャンセル処理中...";
         
         try {
-          if (currentUser) {
-            const cancelFn = httpsCallable(functions, "cancelSokOrder");
-            await cancelFn({ orderId });
-          }
+          // ログイン状態に関わらず Functions を呼び出す（未ログインなら pending 状態のみキャンセル可能）
+          const cancelFn = httpsCallable(functions, "cancelSokOrder");
+          await cancelFn({ orderId });
         } catch (e) {
           console.warn("Cancel failed:", e);
         }

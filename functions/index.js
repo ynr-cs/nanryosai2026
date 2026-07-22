@@ -1893,10 +1893,6 @@ exports.expireSokOrders = functions
 exports.cancelSokOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
-    }
-
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderId } = requestData;
 
@@ -1914,13 +1910,19 @@ exports.cancelSokOrder = functions
         }
         const order = orderSnap.data();
 
-        if (order.userId !== context.auth.uid) {
-           throw new functions.https.HttpsError("permission-denied", "この注文をキャンセルする権限がありません。");
-        }
-
         if (order.sokStatus !== "claimed" && order.sokStatus !== "pending") {
            throw new functions.https.HttpsError("failed-precondition", "この注文はキャンセルできません。");
         }
+
+        if (order.sokStatus === "claimed") {
+          if (!context.auth) {
+            throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+          }
+          if (order.userId !== context.auth.uid) {
+             throw new functions.https.HttpsError("permission-denied", "この注文をキャンセルする権限がありません。");
+          }
+        }
+
 
         tx.update(orderRef, {
           sokStatus: "expired",
