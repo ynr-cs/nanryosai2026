@@ -447,7 +447,12 @@
          ========================================= */
       #walkthrough {
         position: fixed;
-        inset: 0;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 480px;
         background: var(--bg-color);
         z-index: 8000;
         display: none;
@@ -455,7 +460,7 @@
         transition: opacity 0.35s ease, transform 0.35s ease;
       }
       #walkthrough.active { display: flex; }
-      #walkthrough.closing { opacity: 0; transform: scale(1.04); pointer-events: none; }
+      #walkthrough.closing { opacity: 0; transform: translateX(-50%) scale(1.04); pointer-events: none; }
 
       .wt-top {
         display: flex;
@@ -599,7 +604,12 @@
          ========================================= */
       #complete-overlay {
         position: fixed;
-        inset: 0;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 480px;
         background: var(--bg-color);
         z-index: 9000;
         display: none;
