@@ -1136,20 +1136,29 @@
           // 注文内容レンダリング（フル + サマリ）
           renderOrder();
 
-          // 認証チェック:
-          // login.html 往復から戻った場合はここでログインが検知され、
-          // ウォークスルーをスキップして自動 claim → Step3 から再開する。
+          // 認証チェック
+          const isReturned = urlParams.get("returned") === "1";
+
           watchUser(async (user) => {
             currentUser = user;
             if (authResolved) return; // 初回コールバックのみで画面を確定
             authResolved = true;
 
             if (user) {
-              // ログイン済み（＝往復から復帰 or 既ログイン）
-              sessionStorage.setItem(ONBOARDED_KEY, "1"); // 再表示防止を確定
               updateUserBadge(user);
-              loaderText.textContent = "ログイン状態を確認しています...";
-              await doClaim(); // 成功時に revealApp + Step3
+              if (isReturned) {
+                // 往復リダイレクトから戻った場合
+                sessionStorage.setItem(ONBOARDED_KEY, "1"); // 再表示防止を確定
+                loaderText.textContent = "ログイン状態を確認しています...";
+                await doClaim(); // 成功時に revealApp + Step3
+              } else {
+                // 初回読み込みで既にログイン済みだった場合（ウォークスルー・内容確認から）
+                revealApp();
+                showPanel(1);
+                if (sessionStorage.getItem(ONBOARDED_KEY) !== "1") {
+                  openWalkthrough();
+                }
+              }
             } else {
               // 未ログイン: Step1 から。初回のみウォークスルー
               revealApp();
@@ -1295,11 +1304,20 @@
       //   ユーザージェスチャー起点でないためブロック率が極めて高い。
       //   ジェスチャーは login.html 側の「Googleでログイン」タップとして温存。
       // ===========================================================
-      $("#btn-confirm-items").addEventListener("click", () => {
+      $("#btn-confirm-items").addEventListener("click", async () => {
         // 遷移前にウォークスルー既読を確定（戻ってきた時に再表示しないため）
         sessionStorage.setItem(ONBOARDED_KEY, "1");
-        const redirect = encodeURIComponent(`./sok-to.html?orderId=${orderId}`);
-        location.href = `../main/login.html?mode=sok&redirect=${redirect}`;
+        
+        if (currentUser) {
+          // すでにログインしているなら、リダイレクトせずにそのまま doClaim()
+          loader.classList.remove("fade-out");
+          loaderText.textContent = "処理中...";
+          await doClaim();
+        } else {
+          // 未ログインなら login.html へ
+          const redirect = encodeURIComponent(`./sok-to.html?orderId=${orderId}&returned=1`);
+          location.href = `../main/login.html?mode=sok&redirect=${redirect}`;
+        }
       });
 
       // ===========================================================
