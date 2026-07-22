@@ -410,7 +410,8 @@ const AppShell = {
 
           for (const doc of snap.docs) {
             const data = doc.data();
-            if (!completedStatuses.includes(data.status)) {
+            // SOK仮注文 (status === null) はアクティブと見なさない
+            if (data.status !== null && !completedStatuses.includes(data.status)) {
               activeOrder = doc.id;
               break;
             }
@@ -819,7 +820,8 @@ const AppShell = {
 
       for (const doc of snap.docs) {
         const data = doc.data();
-        if (!completedStatuses.includes(data.status)) {
+        // SOK仮注文 (status === null) はアクティブと見なさない
+        if (data.status !== null && !completedStatuses.includes(data.status)) {
           hasActive = true;
           break;
         }
