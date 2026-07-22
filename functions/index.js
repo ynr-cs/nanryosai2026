@@ -1886,3 +1886,52 @@ exports.expireSokOrders = functions
     }
   });
 
+/**
+ * @name cancelSokOrder
+ * @description 来場者スマホからSOKの仮注文を手動キャンセルする
+ */
+exports.cancelSokOrder = functions
+  .region("asia-northeast1")
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    const { orderId } = requestData;
+
+    if (!orderId) {
+      throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
+    }
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const orderRef = db.doc(`orders/${orderId}`);
+        const orderSnap = await tx.get(orderRef);
+
+        if (!orderSnap.exists) {
+          throw new functions.https.HttpsError("not-found", "注文が見つかりません。");
+        }
+        const order = orderSnap.data();
+
+        if (order.userId !== context.auth.uid) {
+           throw new functions.https.HttpsError("permission-denied", "この注文をキャンセルする権限がありません。");
+        }
+
+        if (order.sokStatus !== "claimed" && order.sokStatus !== "pending") {
+           throw new functions.https.HttpsError("failed-precondition", "この注文はキャンセルできません。");
+        }
+
+        tx.update(orderRef, {
+          sokStatus: "expired",
+          expiredAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("cancelSokOrder Error:", error);
+      if (error instanceof functions.https.HttpsError) throw error;
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });

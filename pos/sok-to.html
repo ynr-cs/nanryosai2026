@@ -766,7 +766,10 @@
     <div id="walkthrough" role="dialog" aria-modal="true" aria-label="注文手順の案内">
       <div class="wt-top">
         <div class="wt-brand"><span class="mini-icon"><i class="bi bi-bag-fill"></i></span> セルフオーダー</div>
-        <button class="wt-skip" id="wt-skip">スキップ</button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="wt-skip btn-cancel-order" style="color: var(--danger);">やめる</button>
+          <button class="wt-skip" id="wt-skip">スキップ</button>
+        </div>
       </div>
 
       <div class="wt-viewport">
@@ -904,6 +907,9 @@
             <button class="btn-sub" id="btn-show-onboarding">
               <i class="bi bi-question-circle"></i> 注文の流れをもう一度見る
             </button>
+            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
+              <i class="bi bi-x-circle"></i> 注文をやめる
+            </button>
           </div>
         </section>
 
@@ -960,6 +966,9 @@
 
             <button class="btn-main" id="btn-confirm" disabled>
               <i class="bi bi-bag-check-fill"></i> 注文を確定する
+            </button>
+            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
+              <i class="bi bi-x-circle"></i> 注文をやめる
             </button>
           </div>
         </section>
@@ -1436,6 +1445,31 @@
           btn.innerHTML = `<i class="bi bi-bag-check-fill"></i> 注文を確定する`;
           alert(`注文確定に失敗しました:\n${e.message}`);
         }
+      });
+
+      // ===========================================================
+      // 11. キャンセル処理
+      // ===========================================================
+      async function handleCancelOrder() {
+        if (!confirm("注文をやめてホーム画面に戻りますか？")) return;
+        
+        loader.classList.remove("fade-out");
+        loaderText.textContent = "キャンセル処理中...";
+        
+        try {
+          if (currentUser) {
+            const cancelFn = httpsCallable(functions, "cancelSokOrder");
+            await cancelFn({ orderId });
+          }
+        } catch (e) {
+          console.warn("Cancel failed:", e);
+        }
+        
+        window.location.replace("../main/index.html");
+      }
+
+      document.querySelectorAll(".btn-cancel-order").forEach(btn => {
+        btn.addEventListener("click", handleCancelOrder);
       });
     </script>
   </body>
