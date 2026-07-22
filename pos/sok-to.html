@@ -77,12 +77,12 @@
          （タップで進めるフルスクリーン型・初回のみ）
          ============================================ -->
     <div id="walkthrough" role="dialog" aria-modal="true" aria-label="注文手順の案内">
-      <div class="wt-top">
-        <div class="wt-brand"><span class="mini-icon"><i class="bi bi-bag-fill"></i></span> セルフオーダー</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <button class="wt-skip btn-cancel-order" style="color: var(--danger);">やめる</button>
-          <button class="wt-skip" id="wt-skip">スキップ</button>
-        </div>
+      <header class="app-header">
+        <a href="#" class="app-logo">南陵祭'26</a>
+      </header>
+      
+      <div style="text-align: right; padding: 12px 20px 0;">
+        <button class="wt-skip" id="wt-skip" style="border: none; background: transparent; color: var(--text-sub); font-weight: 700; font-size: 0.85rem; cursor: pointer;">スキップ <i class="bi bi-chevron-right"></i></button>
       </div>
 
       <div class="wt-viewport">
