@@ -101,6 +101,10 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
   - カート機能・トッピングカスタマイズ等のUXはモバイルオーダーと同等。
   - 「注文を確認する」ボタン押下時、`createSokProvisional` 関数を呼び出し、`status: null`, `sokStatus: pending` の仮注文ドキュメントを作成。QR生成ライブラリは `cdnjs` 経由で取得。
   - 20秒でQR表示後、確認モーダル（10秒）を経て自動リセット。
+- **`pos/sok.css` に関する制約（将来の時限爆弾）**:
+  - `sok.css` のスコープ化は `html, body, *` のみ `[data-sok]` 対応としており、`.app-header` などのクラスはグローバルのままです。
+  - 現在は `login.html` で `mode=sok` の時のみ動的ロードしているため通常モードへの影響はありませんが、将来的に `sok.css` を常時ロードする仕様に変更した場合、デザインが即座に破綻する点に注意してください。
+
 - **`pos/sok-to.html` (来場者スマホ用) と往復リダイレクト型ログイン**:
   - 対話アニメーション型UX（1画面内でシームレスに遷移）。
   - **Step 1 (未ログイン可能)**: QRからアクセス直後に注文内容を表示。ユーザーに安心感を与える。その後、「この内容でOK」タップで `login.html?mode=sok` へリダイレクト。

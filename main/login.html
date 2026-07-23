@@ -702,7 +702,7 @@
               うまくログインできない場合は、Safari または Chrome ブラウザをご利用ください。LINE等のアプリ内ブラウザでは動作しない場合があります。
             </div>
             
-            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);" onclick="if(confirm('注文をやめますか？')) location.href='../pos/sok.html';">
+            <button id="btn-sok-cancel" class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
               <i class="bi bi-x-circle"></i> 注文をやめる
             </button>
           </div>
@@ -719,7 +719,8 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { watchUser, login, logout, analytics, logEvent } from "./auth.js";
+      import { watchUser, login, logout, analytics, logEvent, functions } from "./auth.js";
+      import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* ==============================
          1. State Management
@@ -994,9 +995,9 @@
             btnSokLogin.disabled = false;
             btnSokLogin.classList.add("pulsing");
             btnSokLogin.innerHTML = `<i class="bi bi-google"></i> Google でログイン`;
-            if (e.message === "popup-blocked") {
+            if (e.code === "auth/popup-blocked") {
               document.getElementById("sok-popup-blocked").style.display = "block";
-            } else if (e.message !== "popup-closed-by-user") {
+            } else if (e.code !== "auth/popup-closed-by-user") {
               alert("ログインエラー: " + e.message);
             }
           }
@@ -1006,6 +1007,27 @@
       if (btnSokRetry) {
         btnSokRetry.addEventListener("click", () => {
           if (btnSokLogin) btnSokLogin.click();
+        });
+      }
+
+      // SOKキャンセルボタン処理
+      const btnSokCancel = document.getElementById("btn-sok-cancel");
+      if (btnSokCancel) {
+        btnSokCancel.addEventListener("click", async () => {
+          if (!confirm("注文をやめますか？\n（ホーム画面に戻ります）")) return;
+          const match = redirectUrl.match(/[?&]orderId=([^&]+)/);
+          if (match && match[1]) {
+            const orderId = match[1];
+            btnSokCancel.disabled = true;
+            btnSokCancel.innerHTML = `<span class="spinner" style="display:inline-block; width:16px; height:16px; border-width:2px; vertical-align:-2px; margin-right:8px;"></span> キャンセル中...`;
+            try {
+              const cancelFn = httpsCallable(functions, "cancelSokOrder");
+              await cancelFn({ orderId });
+            } catch (e) {
+              console.warn("Cancel SOK Order Error:", e);
+            }
+          }
+          location.href = "./index.html";
         });
       }
     </script>

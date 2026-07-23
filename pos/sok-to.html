@@ -198,6 +198,11 @@
               <div class="step-num">1</div>
               <div class="step-title">この注文で間違いありませんか？</div>
             </div>
+            
+            <!-- 店舗名表示 -->
+            <div id="store-name-disp" style="text-align: center; font-weight: bold; margin-bottom: 12px; color: var(--text-sub); font-size: 0.95rem;">
+              店舗名を読み込み中...
+            </div>
 
             <!-- 注文内容の先行表示（ログイン前でも見える＝安心感） -->
             <div class="order-items-list" data-order-list></div>
@@ -680,13 +685,13 @@
           setupNotifyArea();
 
         } catch (e) {
-          if (e.code === "functions/failed-precondition") {
+          if (e.code === "functions/failed-precondition" || e.code === "failed-precondition") {
             // 他人が先にQRを読んだ等。ログインし直しても解決しないため
             // リトライ導線は出さず「iPadでやり直し」に寄せる。
             showInfo('<i class="bi bi-x-circle-fill"></i>', "#ef4444",
               "このQRはすでに使用されています",
               "もう一度iPadで注文してください。");
-          } else if (e.code === "functions/permission-denied") {
+          } else if (e.code === "functions/permission-denied" || e.code === "permission-denied") {
             // 利用制限（BAN）→ 専用ページへ
             location.replace("../main/banned.html");
           } else {

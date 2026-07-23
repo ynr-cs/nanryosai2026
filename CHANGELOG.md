@@ -33,8 +33,9 @@
 
 - **`pos/sok-to.html` のリダイレクトURLのパス修正**
   - ログイン画面への遷移パラメータ `redirect` において、`main/login.html` 側から見た正しい相対パスとして解決されるよう、`./sok-to.html` から `../pos/sok-to.html` に修正しました。
-- **`pos/sok.css` のスコープ化**
-  - SOK用のスタイルが `main/login.html` の他のモードのスタイルを破壊しないよう、グローバル要素（`html, body` 等）に対する適用を `[data-sok]` 属性配下に制限しました。合わせて `pos/sok-to.html` の `body` に `data-sok="true"` を追加しました。
+- **`pos/sok.css` のスコープ化（限定的）**
+  - SOK用のスタイルが `main/login.html` の他のモードを破壊しないよう、ベース要素（`html, body, *`）に対する適用を `[data-sok]` 属性配下に制限しました。
+  - その他のクラス（`.app-header` 等）は未スコープのままですが、`sok.css` 自体を `mode=sok` 時のみ動的ロードする運用によりクラス衝突を回避しています。合わせて `pos/sok-to.html` の `body` に `data-sok="true"` を追加しました。
 
 ## [0.5.39] SOKアクセス時に必ず起動画面を表示するよう修正 - 2026-07-23
 
