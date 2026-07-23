@@ -66,7 +66,7 @@
       /* =========================================
          App Header (app-shell 共通デザイン)
          ========================================= */
-      .app-header {
+      .sok-app-header {
         position: sticky;
         top: 0;
         left: 0;
@@ -83,7 +83,7 @@
         padding-left: 16px;
         padding-right: 16px;
       }
-      [data-theme="dark"] .app-header {
+      [data-theme="dark"] .sok-app-header {
         background: rgba(15, 23, 42, 0.85);
         border-bottom-color: rgba(255, 255, 255, 0.1);
       }
