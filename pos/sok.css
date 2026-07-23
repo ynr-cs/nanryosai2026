@@ -42,8 +42,8 @@
       }
       [data-theme="light"] { --bg-color: #f0f2f5; --card-bg: #ffffff; --item-fill:#f8f9fa; }
 
-      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-      html, body {
+      [data-sok] * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      body[data-sok] {
         margin: 0; padding: 0;
         background: var(--bg-color);
         color: var(--text-main);

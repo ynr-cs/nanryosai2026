@@ -64,7 +64,7 @@
 
     <link rel="stylesheet" href="./sok.css" />
   </head>
-  <body>
+  <body data-sok="true">
 
     <!-- Global Loader -->
     <div id="loader">
@@ -657,7 +657,7 @@
           await doClaim();
         } else {
           // 未ログインなら login.html へ
-          const redirect = encodeURIComponent(`./sok-to.html?orderId=${orderId}&returned=1`);
+          const redirect = encodeURIComponent(`../pos/sok-to.html?orderId=${orderId}&returned=1`);
           location.href = `../main/login.html?mode=sok&redirect=${redirect}`;
         }
       });

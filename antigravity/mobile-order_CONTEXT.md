@@ -101,11 +101,12 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
   - カート機能・トッピングカスタマイズ等のUXはモバイルオーダーと同等。
   - 「注文を確認する」ボタン押下時、`createSokProvisional` 関数を呼び出し、`status: null`, `sokStatus: pending` の仮注文ドキュメントを作成。QR生成ライブラリは `cdnjs` 経由で取得。
   - 20秒でQR表示後、確認モーダル（10秒）を経て自動リセット。
-- **`pos/sok-to.html` (来場者スマホ用)**:
+- **`pos/sok-to.html` (来場者スマホ用) と往復リダイレクト型ログイン**:
   - 対話アニメーション型UX（1画面内でシームレスに遷移）。
-  - **Step 1 (未ログイン可能)**: QRからアクセス直後に注文内容を表示。ユーザーに安心感を与える。その後、ログインを促す。
+  - **Step 1 (未ログイン可能)**: QRからアクセス直後に注文内容を表示。ユーザーに安心感を与える。その後、「この内容でOK」タップで `login.html?mode=sok` へリダイレクト。
+  - **Step 2 (login.html 側)**: `mode=sok` 専用のログイン画面（SOKデザインで描画、app-shell抑制）が表示され、ユーザージェスチャーとして「Googleでログイン」ボタンを押させる（ポップアップブロック回避のため）。ドメインチェックなしで全Googleアカウントを許可し、認証成功後は元の `sok-to.html` へクエリを維持して戻る。
   - ログイン後自動的に `claimSokOrder` を呼び出し（`sokStatus: claimed` へ昇格）、トランザクションで二重読み取りを防止。
-  - **Step 2 (ログイン後)**: 規約同意と通知設定を経て `confirmSokOrder` で確定。ここで初めて受付番号が発番され、`status: cooking` へ移行し通常注文フローに合流する。
+  - **Step 3 / 4**: 規約同意と通知設定を経て `confirmSokOrder` で確定。ここで初めて受付番号が発番され、`status: cooking` へ移行し通常注文フローに合流する。
   - 確定後2.5秒のディレイで `status.html` へ遷移。
 
 ### 5.2 安全性の確保

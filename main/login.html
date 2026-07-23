@@ -629,6 +629,88 @@
     </main>
 
     <!-- ============================
+         SOK Mode (mode=sok)
+         ============================ -->
+    <div id="sok-login-app" style="display:none; flex-direction:column; max-width:480px; margin:0 auto; padding-bottom:60px;">
+      <!-- Header -->
+      <header class="app-header">
+        <a href="#" class="app-logo">南陵祭'26</a>
+      </header>
+      
+      <!-- ステップ進行バー -->
+      <nav id="stepper" aria-label="注文手順の進行状況">
+        <div class="stepper-item done" data-step="1">
+          <div class="stepper-circle"><span class="num">1</span></div>
+          <div class="stepper-label">内容確認</div>
+        </div>
+        <div class="stepper-bar filled" data-bar="1"></div>
+        <div class="stepper-item current" data-step="2">
+          <div class="stepper-circle"><span class="num">2</span></div>
+          <div class="stepper-label">ログイン</div>
+        </div>
+        <div class="stepper-bar" data-bar="2"></div>
+        <div class="stepper-item" data-step="3">
+          <div class="stepper-circle"><span class="num">3</span></div>
+          <div class="stepper-label">規約同意</div>
+        </div>
+        <div class="stepper-bar" data-bar="3"></div>
+        <div class="stepper-item" data-step="4">
+          <div class="stepper-circle"><span class="num">4</span></div>
+          <div class="stepper-label">注文確定</div>
+        </div>
+      </nav>
+
+      <!-- パネル -->
+      <main id="panels" style="display: block;">
+        <section class="panel active" id="panel-2">
+          <div class="step-card">
+            <div class="step-card-header">
+              <div class="step-num">2</div>
+              <div class="step-title">Googleでログイン</div>
+            </div>
+            
+            <div style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px;">
+              お呼び出しに使うためログインが必要です。<br>
+              <strong>どのGoogleアカウントでもOKです。</strong>
+            </div>
+
+            <!-- Google Login Button (SOK Style) -->
+            <button id="btn-sok-login" class="btn-main pulsing">
+              <i class="bi bi-google"></i> Google でログイン
+            </button>
+
+            <!-- Popup Blocked Guidance (SOK用) -->
+            <div id="sok-popup-blocked" style="display:none; margin-top: 20px; background: #fffbeb; border: 1px solid #f59e0b; padding: 16px; border-radius: 12px; text-align: left;">
+              <h3 style="font-size: 1rem; color: #92400e; font-weight: bold; margin-bottom: 10px;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>ポップアップがブロックされました
+              </h3>
+              <p style="font-size: 0.85rem; color: #78350f; margin-bottom: 12px; line-height: 1.5;">
+                ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
+              </p>
+              <ol style="font-size: 0.8rem; color: #78350f; padding-left: 20px; background: rgba(245, 158, 11, 0.05); padding: 12px 12px 12px 30px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+                <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
+                <li><strong>「常に許可」</strong>を選択。</li>
+                <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
+              </ol>
+              <button id="btn-sok-retry" class="btn-sub" style="background: #374151; color: white; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%;">
+                設定したので再試行する
+              </button>
+            </div>
+
+            <div class="hint-box" style="margin-top: 20px;">
+              <i class="bi bi-info-circle-fill"></i>
+              うまくログインできない場合は、Safari または Chrome ブラウザをご利用ください。LINE等のアプリ内ブラウザでは動作しない場合があります。
+            </div>
+            
+            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);" onclick="if(confirm('注文をやめますか？')) location.href='../pos/sok.html';">
+              <i class="bi bi-x-circle"></i> 注文をやめる
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ============================
          JavaScript (Module)
          ============================ -->
     <script>
@@ -646,6 +728,11 @@
       let currentScreen = null;
 
       function showScreen(screenId) {
+        if (mode === "sok") {
+          document.querySelector(".login-page").style.display = "none";
+          document.getElementById("sok-login-app").style.display = "flex";
+          return;
+        }
         document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
         const target = document.getElementById(screenId);
         if (target) {
@@ -729,7 +816,16 @@
       /* ==============================
          5. UI Initial Setup
          ============================== */
-      if (mode === "student") {
+      if (mode === "sok") {
+        document.body.setAttribute("data-sok", "true");
+        const hideStyle = document.createElement("style");
+        hideStyle.innerHTML = ".app-header, .app-bottom-nav, .app-footer { display: none !important; }";
+        document.head.appendChild(hideStyle);
+        const sokCss = document.createElement("link");
+        sokCss.rel = "stylesheet";
+        sokCss.href = "../pos/sok.css";
+        document.head.appendChild(sokCss);
+      } else if (mode === "student") {
         document.getElementById("email-emphasis-box").style.display = "block";
       } else {
         document.getElementById("email-emphasis-box").style.display = "none";
@@ -741,7 +837,9 @@
       watchUser((user) => {
         if (user) {
           // 既ログイン
-          if (mode === "student") {
+          if (mode === "sok") {
+            window.location.replace(redirectUrl);
+          } else if (mode === "student") {
             // mode=student の場合、ドメインチェックを実行
             if (isStudentEmail(user.email)) {
               // 在校生として OK → redirect
@@ -757,7 +855,9 @@
           }
         } else {
           // 未ログイン: 初期画面を表示
-          if (mode === "student") {
+          if (mode === "sok") {
+            showScreen("sok-login-app");
+          } else if (mode === "student") {
             showScreen("step-student-check");
           } else {
             showScreen("step-login");
@@ -872,14 +972,42 @@
          9. Retry Button Handler
          ============================== */
       document.getElementById("btn-retry").addEventListener("click", () => {
-        document.getElementById("popup-blocked-guidance").style.display =
-          "none";
+        document.getElementById("popup-blocked-guidance").style.display = "none";
         resetButton();
-        // Delay slightly to let DOM update, then re-trigger login
         setTimeout(() => {
           handleLogin();
         }, 100);
       });
+
+      // SOKログインボタン処理
+      const btnSokLogin = document.getElementById("btn-sok-login");
+      if (btnSokLogin) {
+        btnSokLogin.addEventListener("click", async () => {
+          btnSokLogin.disabled = true;
+          btnSokLogin.classList.remove("pulsing");
+          btnSokLogin.innerHTML = `<span class="spinner" style="display:inline-block; width:16px; height:16px; border-width:2px; vertical-align:-2px; margin-right:8px;"></span> 処理中...`;
+          document.getElementById("sok-popup-blocked").style.display = "none";
+          try {
+            await login();
+            // 成功すれば watchUser が反応して location.replace(redirectUrl) される
+          } catch (e) {
+            btnSokLogin.disabled = false;
+            btnSokLogin.classList.add("pulsing");
+            btnSokLogin.innerHTML = `<i class="bi bi-google"></i> Google でログイン`;
+            if (e.message === "popup-blocked") {
+              document.getElementById("sok-popup-blocked").style.display = "block";
+            } else if (e.message !== "popup-closed-by-user") {
+              alert("ログインエラー: " + e.message);
+            }
+          }
+        });
+      }
+      const btnSokRetry = document.getElementById("btn-sok-retry");
+      if (btnSokRetry) {
+        btnSokRetry.addEventListener("click", () => {
+          if (btnSokLogin) btnSokLogin.click();
+        });
+      }
     </script>
   </body>
 </html>
