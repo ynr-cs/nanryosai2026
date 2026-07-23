@@ -320,6 +320,11 @@
         getDoc,
         setDoc,
         serverTimestamp,
+        collection,
+        query,
+        where,
+        limit,
+        getDocs,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         httpsCallable,
@@ -493,6 +498,26 @@
 
             if (user) {
               updateUserBadge(user);
+
+              // ─── 二重オーダー防止ガード ───
+              try {
+                const activeOrderQuery = query(
+                  collection(db, "orders"),
+                  where("userId", "==", user.uid),
+                  where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"]),
+                  limit(1)
+                );
+                const activeSnap = await getDocs(activeOrderQuery);
+                if (!activeSnap.empty) {
+                  const existingOrderId = activeSnap.docs[0].id;
+                  window.location.replace(`../pos/status.html?orderId=${existingOrderId}&error=duplicate_order`);
+                  return;
+                }
+              } catch (err) {
+                console.error("Failed to check active orders", err);
+              }
+              // ───────────────────────────
+
               if (isReturned) {
                 // 往復リダイレクトから戻った場合
                 sessionStorage.setItem(ONBOARDED_KEY, "1"); // 再表示防止を確定
