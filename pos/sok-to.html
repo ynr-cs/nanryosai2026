@@ -107,12 +107,19 @@
             <h2 class="wt-title">Googleでログイン</h2>
             <p class="wt-desc">お呼び出しのために使います。<br><strong>どのGoogleアカウントでもOK</strong>です。<br>ログイン後は自動でこの画面に戻ります。</p>
           </div>
-          <!-- Slide 4: 同意して確定 -->
+          <!-- Slide 4: 規約同意 -->
+          <div class="wt-slide">
+            <div class="wt-illust"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="wt-step-chip">STEP 3</div>
+            <h2 class="wt-title">規約に同意</h2>
+            <p class="wt-desc">注意事項（キャンセル不可など）に同意して進みます。</p>
+          </div>
+          <!-- Slide 5: 注文確定 -->
           <div class="wt-slide">
             <div class="wt-illust"><i class="bi bi-megaphone-fill"></i></div>
-            <div class="wt-step-chip">STEP 3</div>
-            <h2 class="wt-title">同意して確定 → 受付番号</h2>
-            <p class="wt-desc">注意事項に同意して確定すると<strong>受付番号</strong>が発行されます。<br>モニターに表示されたらカウンターへ！</p>
+            <div class="wt-step-chip">STEP 4</div>
+            <h2 class="wt-title">注文確定 → 受付番号</h2>
+            <p class="wt-desc">最後に注文を確定すると<strong>受付番号</strong>が発行されます。<br>モニターに表示されたらカウンターへ！</p>
           </div>
         </div>
       </div>
@@ -120,6 +127,7 @@
       <div class="wt-bottom">
         <div class="wt-dots" id="wt-dots">
           <div class="wt-dot on"></div>
+          <div class="wt-dot"></div>
           <div class="wt-dot"></div>
           <div class="wt-dot"></div>
           <div class="wt-dot"></div>
@@ -176,7 +184,7 @@
         <div class="stepper-bar" data-bar="3"></div>
         <div class="stepper-item" data-step="4">
           <div class="stepper-circle"><span class="num">4</span></div>
-          <div class="stepper-label">完了</div>
+          <div class="stepper-label">注文確定</div>
         </div>
       </nav>
 
@@ -224,12 +232,12 @@
              来場者には「同じ画面の次のステップ」にしか見えない。
              よって sok-to.html にはステップ2のパネルは存在しない。 -->
 
-        <!-- ===== STEP 3: 規約同意 → 確定（ログイン往復後に再開） ===== -->
+        <!-- ===== STEP 3: 規約同意 (ログイン往復後に再開) ===== -->
         <section class="panel" id="panel-3">
           <div class="step-card">
             <div class="step-card-header">
               <div class="step-num">3</div>
-              <div class="step-title">規約に同意して確定</div>
+              <div class="step-title">規約に同意</div>
             </div>
 
             <!-- ログイン済みバッジ（login.html から戻ってきた状態） -->
@@ -237,9 +245,6 @@
               <i class="bi bi-person-check-fill"></i>
               <span data-user-name></span>
             </div>
-
-            <!-- コンパクト注文サマリ（確認済みなので再掲は控えめに） -->
-            <div class="order-summary-box" data-order-summary></div>
 
             <!-- 通知許可エリア（Android のみ・任意） -->
             <div id="notify-area" style="display:none;">
@@ -263,17 +268,40 @@
               <input type="checkbox" id="check-terms" />
               <div class="terms-text">
                 利用規約および注意事項に同意します。<br>
-                <strong>確定後のキャンセル・返金はできません。</strong><br>
-                「呼出し中」の通知から5分以内にカウンターへお越しください。
+                <strong>確定後のキャンセル・変更はできません。</strong><br>
+                「呼出し中」の通知から<strong>5分以内</strong>にカウンターへお越しください。<br>
                 <strong>5分以内にお受け取りがない場合、商品を廃棄し利用制限（BAN）となります。</strong>
               </div>
             </label>
 
-            <button class="btn-main" id="btn-confirm" disabled>
-              <i class="bi bi-bag-check-fill"></i> 注文を確定する
+            <button class="btn-main" id="btn-next-step" disabled>
+              続ける <i class="bi bi-arrow-right"></i>
             </button>
             <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
               <i class="bi bi-x-circle"></i> 注文をやめる
+            </button>
+          </div>
+        </section>
+
+        <!-- ===== STEP 4: 注文確定 ===== -->
+        <section class="panel" id="panel-4">
+          <div class="step-card">
+            <div class="step-card-header">
+              <div class="step-num">4</div>
+              <div class="step-title">注文を確定しますか？</div>
+            </div>
+
+            <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 24px; text-align: center; line-height: 1.6;">
+              以上の内容で注文を確定します。<br>
+              確定後すぐに調理が開始されます。
+            </div>
+
+            <button class="btn-main pulsing" id="btn-confirm">
+              <i class="bi bi-bag-check-fill"></i> 注文を確定する
+            </button>
+            
+            <button class="btn-sub mt-2" id="btn-back-to-step3">
+              戻る
             </button>
           </div>
         </section>
@@ -561,7 +589,7 @@
       // ===========================================================
       // 6. オンボーディング・ウォークスルー（タップで進める型）
       // ===========================================================
-      const WT_COUNT = 4;
+      const WT_COUNT = 5;
       let wtIndex = 0;
 
       function wtRender() {
@@ -715,12 +743,20 @@
       }
 
       // ===========================================================
-      // 10. 規約チェック → 確定
+      // 10. 規約チェック → Step4へ → 確定
       // ===========================================================
       $("#check-terms").addEventListener("change", (e) => {
-        const btn = $("#btn-confirm");
+        const btn = $("#btn-next-step");
         btn.disabled = !e.target.checked;
         btn.classList.toggle("pulsing", e.target.checked);
+      });
+
+      $("#btn-next-step").addEventListener("click", () => {
+        showPanel(4);
+      });
+
+      $("#btn-back-to-step3").addEventListener("click", () => {
+        showPanel(3);
       });
 
       $("#btn-confirm").addEventListener("click", async () => {
