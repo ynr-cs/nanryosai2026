@@ -1786,8 +1786,16 @@
                 if (idleTimeoutId) clearTimeout(idleTimeoutId);
                 if (idleWarningIntervalId) clearInterval(idleWarningIntervalId);
                 stopAttractMode();
-                showScreen("suspended");
-                loader.style.display = "none";
+                
+                // 起動前（startup）の場合は suspended にせず startup を維持/表示
+                const startupScreen = document.getElementById("screen-startup");
+                if ((startupScreen && startupScreen.classList.contains("active")) || !document.querySelector(".screen.active")) {
+                  loader.style.display = "none";
+                  showScreen("startup");
+                } else {
+                  showScreen("suspended");
+                  loader.style.display = "none";
+                }
               } else {
                 const suspendedScreen = document.getElementById("screen-suspended");
                 if (suspendedScreen && suspendedScreen.classList.contains("active")) {
@@ -1819,8 +1827,13 @@
         } catch (e) {
           console.warn("Fullscreen request failed:", e);
         }
-        showScreen("attract");
-        startAttractMode();
+        
+        if (storeData && storeData.operationStatus !== "open") {
+          showScreen("suspended");
+        } else {
+          showScreen("attract");
+          startAttractMode();
+        }
       };
 
       window.showScreen = (name) => {
