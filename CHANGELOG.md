@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.65] iPad Safari 全画面表示時のレターボックス対策 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **タスク分類**: UI/UX改善
+- **関連ファイル**: `pos/pos.html`, `pos/presenter.html`, `pos/kitchen.html`, `pos/monitor.html`
+- **所要時間目安**: 5m
+
+### 変更内容 (Changes)
+
+#### 変更 (Changed)
+- 全POSアプリ (`pos`, `presenter`, `kitchen`, `monitor`) にて、iPad Safari の `requestFullscreen()` 実行時に発生するレターボックス化（画面中央への縮小配置）を防ぐため、フルスクリーン化の対象要素を `document.documentElement` から `document.body` に変更
+- `:fullscreen` 時のCSS指定において `vw/vh` 単位を使用せず、`width: 100%; height: 100%;` に修正しOSによるリサイズ解釈の齟齬を軽減
+
+
 ## [0.5.64] POS関連アプリのiPad全画面UI改善 - 2026-07-28
 
 ### メタ情報

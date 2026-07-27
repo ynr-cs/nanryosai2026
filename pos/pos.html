@@ -47,8 +47,8 @@
 
       /* 全画面表示時の余白・黒帯対策 */
       :fullscreen, :-webkit-full-screen {
-        width: 100vw !important;
-        height: 100vh !important;
+        width: 100% !important;
+        height: 100% !important;
         background-color: var(--bg-color) !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -929,7 +929,7 @@
       
       function toggleFullScreen() {
         const doc = window.document;
-        const docEl = doc.documentElement;
+        const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
         const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
         const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
         if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
