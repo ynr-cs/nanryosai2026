@@ -2462,6 +2462,34 @@
           <!-- 1. Top View -->
           <div id="view-top" class="view-section active">
 
+            <!-- PWA Installation Notice (Hidden in Standalone Mode) -->
+            <div id="pwa-install-notice" style="background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border: 2px solid #3b82f6; border-radius: 16px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 20px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.3rem;">📱</span> ホーム画面に追加してアプリとしてご利用ください
+              </h3>
+              <p style="font-size: 0.9rem; color: #374151; margin-bottom: 12px; line-height: 1.6;">
+                iOS/iPadOSのSafariでは、Webブラウザのままフルスクリーン表示にするとセキュリティ仕様によりキーボード入力が制限されます。<br>
+                POSレジやセルフオーダー端末として運用する場合は、必ず<strong>ホーム画面に追加</strong>してから起動してください。
+              </p>
+              <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                <p style="font-weight: bold; margin: 0 0 5px 0; font-size: 0.85rem; color: #2563eb;">追加手順（Safariの場合）</p>
+                <ol style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #4b5563; line-height: 1.5;">
+                  <li>画面の「共有アイコン（四角から上矢印が飛び出たマーク）」をタップ。</li>
+                  <li>メニューから<strong>「ホーム画面に追加」</strong>を選択し、追加を完了する。</li>
+                  <li>ホーム画面に追加された新しいアイコンからアプリを起動し直す。</li>
+                </ol>
+              </div>
+            </div>
+            <script>
+              (function() {
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+                if (isStandalone) {
+                  const notice = document.getElementById('pwa-install-notice');
+                  if (notice) notice.style.display = 'none';
+                }
+              })();
+            </script>
+
             <!-- 営業ステータスパネル -->
             <div class="operation-status-panel status-suspended js-op-panel">
               <div class="status-panel-header">
