@@ -1362,21 +1362,18 @@ exports.updateStoreStatus = functions
       await db.collection("stores").doc(storeId).update(storeUpdateData);
 
       // 「営業中」に変更する場合、商品の isAvailable を更新
-      if (newStatus === "open") {
+      if (newStatus === "open" && Array.isArray(availableItemIds)) {
         const itemsSnap = await db.collection("items")
           .where("storeId", "==", storeId)
           .get();
 
         if (!itemsSnap.empty) {
-          const availableSet = new Set(availableItemIds || []);
+          const availableSet = new Set(availableItemIds);
           const batch = db.batch();
 
           itemsSnap.docs.forEach((doc) => {
-            const shouldBeAvailable = availableSet.size === 0
-              ? true // availableItemIds が空の場合は全商品を販売中に
-              : availableSet.has(doc.id);
             batch.update(doc.ref, {
-              isAvailable: shouldBeAvailable,
+              isAvailable: availableSet.has(doc.id),
               updatedAt: now,
             });
           });

@@ -1630,9 +1630,69 @@
         box-shadow: var(--shadow);
       }
 
+      /* --- モーダル (Item Edit) --- */
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+        border-top: 2px solid #f3f4f6;
+        padding-top: 20px;
+      }
+      .modal-actions .btn-delete-item {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-right: auto;
+      }
+      .modal-actions .btn-cancel {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      /* --- 売上ヘッダー --- */
+      .sales-header-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .sales-date-picker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        padding: 5px 12px;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+      .sales-date-picker label {
+        font-size: 0.8rem; 
+        font-weight: bold; 
+        color: #6b7280;
+        white-space: nowrap;
+      }
+      .sales-date-picker input {
+        margin-bottom: 0;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        padding: 5px;
+        flex: 1;
+      }
+
       .search-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
         align-items: end;
       }
@@ -1744,6 +1804,32 @@
       .badge.status-canceled {
         background-color: #1f2937;
         color: #f9fafb;
+      }
+
+      /* --- Mobile Responsive Additions --- */
+      @media (max-width: 480px) {
+        .modal-actions {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .modal-actions button {
+          width: 100% !important;
+          margin: 0 !important;
+        }
+        .modal-actions .btn-delete-item {
+          order: 3;
+          margin-top: 10px !important;
+        }
+        .modal-actions .btn-cancel {
+          order: 2;
+        }
+        .modal-actions .btn-primary {
+          order: 1;
+        }
+
+        .sales-date-picker {
+          width: 100%;
+        }
       }
 
       /* --- Mobile Table (Card View) --- */
@@ -2332,18 +2418,18 @@
           <div id="view-top" class="view-section active">
 
             <!-- 営業ステータスパネル -->
-            <div id="operation-status-panel" class="operation-status-panel status-suspended">
+            <div class="operation-status-panel status-suspended js-op-panel">
               <div class="status-panel-header">
                 <span class="status-panel-title">🏪 現在の営業ステータス</span>
-                <span id="status-badge-display" class="status-badge-large suspended">
+                <span class="status-badge-large suspended js-status-badge">
                   <span class="status-badge-dot"></span>
-                  <span id="status-badge-text">準備中 / 一時停止中</span>
+                  <span class="js-status-text">準備中 / 一時停止中</span>
                 </span>
               </div>
               <div class="status-action-btns">
-                <button class="btn-status-open" id="btn-open-store">🟢 営業開始</button>
-                <button class="btn-status-suspend" id="btn-suspend-store">🟡 一時停止</button>
-                <button class="btn-status-close" id="btn-close-store">⚫ 営業終了</button>
+                <button class="btn-status-open js-btn-open-store">🟢 営業開始</button>
+                <button class="btn-status-suspend js-btn-suspend-store">🟡 一時停止</button>
+                <button class="btn-status-close js-btn-close-store">⚫ 営業終了</button>
               </div>
             </div>
 
@@ -2351,20 +2437,15 @@
 
             <div class="app-grid">
               <a href="#" id="link-pos" class="app-link-card">
-                <span class="app-icon">📱</span>
+                <span class="app-icon">💻</span>
                 <span class="app-title">有人レジ</span>
                 <span class="app-desc">注文・会計画面へ</span>
               </a>
               <!-- SOK（セルフオーダーキオスク）起動ボタン -->
-              <a
-                href="#"
-                id="link-sok"
-                class="app-link-card"
-                style="background: #fffbeb; border-color: #f59e0b;"
-              >
-                <span class="app-icon" style="color: #d97706">🪄</span>
-                <span class="app-title" style="color: #92400e">セルフオーダーキオスク</span>
-                <span class="app-desc" style="color: #b45309">セルフオーダー端末（iPad）</span>
+              <a href="#" id="link-sok" class="app-link-card">
+                <span class="app-icon">🪄</span>
+                <span class="app-title">セルフオーダーキオスク</span>
+                <span class="app-desc">セルフオーダー端末（iPad）</span>
               </a>
               <a href="#" id="link-kitchen" class="app-link-card">
                 <span class="app-icon">👨‍🍳</span>
@@ -2386,19 +2467,11 @@
                 id="link-spreadsheet"
                 class="app-link-card"
                 target="_blank"
-                style="
-                  display: none;
-                  background: #ecfdf5;
-                  border-color: #10b981;
-                "
+                style="display: none;"
               >
-                <span class="app-icon" style="color: #10b981">📈</span>
-                <span class="app-title" style="color: #065f46"
-                  >売上スプレッドシート</span
-                >
-                <span class="app-desc" style="color: #047857"
-                  >自動記録シートを開く</span
-                >
+                <span class="app-icon">📈</span>
+                <span class="app-title">売上スプレッドシート</span>
+                <span class="app-desc">自動記録シートを開く</span>
               </a>
             </div>
           </div>
@@ -2406,6 +2479,26 @@
 
           <!-- 2. Items View -->
           <div id="view-items" class="view-section">
+            <!-- 営業ステータスパネル (複製) -->
+            <div class="operation-status-panel status-suspended js-op-panel" style="margin-bottom: 20px;">
+              <div class="status-panel-header">
+                <span class="status-panel-title">🏪 現在の営業ステータス</span>
+                <span class="status-badge-large suspended js-status-badge">
+                  <span class="status-badge-dot"></span>
+                  <span class="js-status-text">準備中 / 一時停止中</span>
+                </span>
+              </div>
+              <div class="status-action-btns">
+                <button class="btn-status-open js-btn-open-store">🟢 営業開始</button>
+                <button class="btn-status-suspend js-btn-suspend-store">🟡 一時停止</button>
+                <button class="btn-status-close js-btn-close-store">⚫ 営業終了</button>
+              </div>
+            </div>
+
+            <div id="items-status-warning" style="display: none; background-color: #fef2f2; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; border: 1px solid #f87171;">
+              ⚠️ 現在店舗が営業していないため、すべての注文受付が停止されています。
+            </div>
+
             <div
               style="
                 display: flex;
@@ -2436,43 +2529,13 @@
 
           <!-- 3. Sales View -->
           <div id="view-sales" class="view-section">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-                gap: 10px;
-              "
-            >
+            <div class="sales-header-controls">
               <h2 style="margin: 0">売上状況</h2>
-              <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 10px;
-                  background: white;
-                  padding: 5px 12px;
-                  border-radius: 8px;
-                  box-shadow: var(--shadow);
-                "
-              >
-                <label
-                  style="font-size: 0.8rem; font-weight: bold; color: #6b7280"
-                  >表示日:</label
-                >
+              <div class="sales-date-picker">
+                <label>表示日:</label>
                 <input
                   type="date"
                   id="sales-date-input"
-                  class="input-field"
-                  style="
-                    margin-bottom: 0;
-                    border: none;
-                    padding: 5px;
-                    background: transparent;
-                    font-weight: 600;
-                  "
                 />
               </div>
             </div>
@@ -2939,51 +3002,10 @@
           </button>
         </div>
 
-        <div
-          style="
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 30px;
-            border-top: 2px solid #f3f4f6;
-            padding-top: 20px;
-          "
-        >
-          <button
-            onclick="deleteItem()"
-            style="
-              background: var(--danger-color);
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-              margin-right: auto;
-            "
-          >
-            削除
-          </button>
-          <button
-            onclick="closeItemModal()"
-            style="
-              background: #f3f4f6;
-              border: 1px solid #d1d5db;
-              color: #374151;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-            "
-          >
-            キャンセル
-          </button>
-          <button
-            id="btn-save-item"
-            onclick="saveItem()"
-            class="btn-primary"
-            style="padding: 10px 30px"
-          >
-            保存
-          </button>
+        <div class="modal-actions">
+          <button onclick="deleteItem()" class="btn-delete-item">削除</button>
+          <button onclick="closeItemModal()" class="btn-cancel">キャンセル</button>
+          <button id="btn-save-item" onclick="saveItem()" class="btn-primary">保存</button>
         </div>
       </div>
     </div>
@@ -3124,6 +3146,7 @@
       // State
       let currentStoreId = null;
       let storeData = null;
+      let storeOperationStatus = "suspended";
       let ordersUnsubscribe = null;
       let itemsUnsubscribe = null;
       let ordersData = [];
@@ -3595,9 +3618,9 @@
                         <div class="item-price">¥${item.price}</div>
                         <div class="item-actions-row">
                              <button class="btn-sm btn-edit" onclick="openItemModal('${item.id}')">編集</button>
-                             <button class="btn-sm btn-toggle ${item.isAvailable ? "is-active" : "is-inactive"}" 
-                                 onclick="toggleItemStatus('${item.id}', ${!item.isAvailable})">
-                                 ${item.isAvailable ? "販売中" : "売切"}
+                             <button class="btn-sm btn-toggle ${storeOperationStatus === 'open' ? (item.isAvailable ? "is-active" : "is-inactive") : "is-inactive"}" 
+                                 onclick="toggleItemStatus('${item.id}', ${!item.isAvailable})" ${storeOperationStatus !== 'open' ? 'disabled' : ''}>
+                                 ${storeOperationStatus === 'open' ? (item.isAvailable ? "販売中" : "売切") : "店舗停止中"}
                              </button>
                         </div>
                     </div>
@@ -4806,15 +4829,25 @@
           (snap) => {
             if (!snap.exists()) return;
             const status = snap.data().operationStatus || "suspended";
+            storeOperationStatus = status; // Update global state
             updateStatusUI(status);
+            
+            // 警告バナーの制御
+            const warning = document.getElementById("items-status-warning");
+            if (warning) warning.style.display = status === "open" ? "none" : "block";
+            
+            // 商品一覧の再描画 (トグル状態反映のため)
+            if (typeof itemsData !== 'undefined' && itemsData && itemsData.length > 0) {
+              renderItems();
+            }
           },
           (err) => console.error("store status listener error:", err)
         );
 
-        // ボタンのイベント設定
-        document.getElementById("btn-open-store").addEventListener("click", openOpenModal);
-        document.getElementById("btn-suspend-store").addEventListener("click", () => changeStoreStatus("suspended"));
-        document.getElementById("btn-close-store").addEventListener("click", () => {
+        // ボタンのイベント設定 (複数パネル対応・重複登録防止のため onclick を使用)
+        document.querySelectorAll(".js-btn-open-store").forEach(btn => btn.onclick = openOpenModal);
+        document.querySelectorAll(".js-btn-suspend-store").forEach(btn => btn.onclick = () => changeStoreStatus("suspended"));
+        document.querySelectorAll(".js-btn-close-store").forEach(btn => btn.onclick = () => {
           if (confirm("今日の営業を終了します。よろしいですか？\n（この操作後、来場者は注文できなくなります）")) {
             changeStoreStatus("closed");
           }
@@ -4827,22 +4860,29 @@
        */
       function updateStatusUI(status) {
         const config = OPERATION_STATUS_CONFIG[status] || OPERATION_STATUS_CONFIG.suspended;
-        const panel = document.getElementById("operation-status-panel");
-        const badge = document.getElementById("status-badge-display");
-        const badgeText = document.getElementById("status-badge-text");
-        const btnOpen = document.getElementById("btn-open-store");
-        const btnSuspend = document.getElementById("btn-suspend-store");
-        const btnClose = document.getElementById("btn-close-store");
-
-        // パネルのクラス更新
-        panel.className = `operation-status-panel status-${status}`;
-        badge.className = `status-badge-large ${config.cls}`;
-        badgeText.textContent = `${config.emoji} ${config.text}`;
+        
+        document.querySelectorAll(".js-op-panel").forEach(panel => {
+          panel.className = `operation-status-panel status-${status} js-op-panel`;
+        });
+        
+        document.querySelectorAll(".js-status-badge").forEach(badge => {
+          badge.className = `status-badge-large ${config.cls} js-status-badge`;
+        });
+        
+        document.querySelectorAll(".js-status-text").forEach(badgeText => {
+          badgeText.textContent = `${config.emoji} ${config.text}`;
+        });
 
         // ボタンの表示・非表示制御
-        btnOpen.style.display    = status !== "open"      ? "block" : "none";
-        btnSuspend.style.display = status === "open"      ? "block" : "none";
-        btnClose.style.display   = status !== "closed"    ? "block" : "none";
+        document.querySelectorAll(".js-btn-open-store").forEach(btn => {
+          btn.style.display = status !== "open" ? "block" : "none";
+        });
+        document.querySelectorAll(".js-btn-suspend-store").forEach(btn => {
+          btn.style.display = status === "open" ? "block" : "none";
+        });
+        document.querySelectorAll(".js-btn-close-store").forEach(btn => {
+          btn.style.display = status !== "closed" ? "block" : "none";
+        });
       }
 
       /**
@@ -4850,9 +4890,9 @@
        * @param {string} newStatus - "suspended" | "closed"
        */
       async function changeStoreStatus(newStatus, availableItemIds) {
-        const btn = newStatus === "suspended" ? document.getElementById("btn-suspend-store") : document.getElementById("btn-close-store");
-        const originalText = btn ? btn.textContent : "";
-        if (btn) { btn.textContent = "処理中..."; btn.disabled = true; }
+        const btns = newStatus === "suspended" ? document.querySelectorAll(".js-btn-suspend-store") : document.querySelectorAll(".js-btn-close-store");
+        let originalText = "";
+        btns.forEach(btn => { originalText = btn.textContent; btn.textContent = "処理中..."; btn.disabled = true; });
         try {
           const updateStoreStatusFn = httpsCallable(functions, "updateStoreStatus");
           await updateStoreStatusFn({ storeId: currentStoreId, newStatus, availableItemIds: availableItemIds || [] });
@@ -4860,7 +4900,7 @@
           console.error("changeStoreStatus error:", err);
           alert(`エラーが発生しました: ${err.message}`);
         } finally {
-          if (btn) { btn.textContent = originalText; btn.disabled = false; }
+          btns.forEach(btn => { btn.textContent = originalText; btn.disabled = false; });
         }
       }
 
