@@ -13,6 +13,19 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.59] pos.html での全画面ボタン動作不良（ReferenceError）修正 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.6 Flash
+- **筆者**: AI
+
+### 修正 (Fixed)
+
+- **`pos/pos.html` における `toggleFullScreen` 関数のスコープ修正**
+  - **原因**: `pos.html` は `<script type="module">` を使用していたため、トップレベルで定義した関数が `window` オブジェクトに自動でバインドされず、HTMLの `onclick="toggleFullScreen()"` から参照できず `ReferenceError` が発生していた。
+  - **修正**: `window.toggleFullScreen = toggleFullScreen;` を追加し、明示的に `window` へ関数を公開。
+
 ## [0.5.58] POS・管理画面向け「全画面（フルスクリーン）」機能追加 - 2026-07-28
 
 ### メタ情報

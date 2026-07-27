@@ -968,6 +968,7 @@
           if (cancelFullScreen) cancelFullScreen.call(doc);
         }
       }
+      window.toggleFullScreen = toggleFullScreen;
       function startOrderTimer() {
         if (orderStartTime) return;
         orderStartTime = Date.now();
