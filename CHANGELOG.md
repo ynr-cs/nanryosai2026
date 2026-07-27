@@ -13,19 +13,20 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
-## [0.5.68] iPadOS ステータスバー（日付・時刻・バッテリー）とヘッダー要素の被り防止修正 - 2026-07-28
+## [0.5.68] pos.html 全画面時のOSステータスバー被り軽減調整 - 2026-07-28
 
 ### メタ情報
 
 - **AIモデル**: Gemini 3.6 Flash (High)
 - **タスク分類**: UI/UX改善
-- **関連ファイル**: `pos/pos.html`, `pos/presenter.html`, `pos/kitchen.html`
+- **関連ファイル**: `pos/pos.html`
 - **所要時間目安**: 3m
 
 ### 変更内容 (Changes)
 
 #### 変更 (Changed)
-- `viewport-fit=cover` 適用時の iPadOS ステータスバー（日付、時刻、バッテリーアイコン等）とアプリ上部バー（経過時間、全画面ボタン等）の重複を防ぐため、`.top-bar` および `header` 要素に Safe Area 対応パディング（`padding-top: max(16px, env(safe-area-inset-top))` / `padding-right: max(30px, env(safe-area-inset-right))`）を追加
+- `pos.html` のトップバー (`.top-bar`) に対し、iPad 全画面表示時の OS ステータスバー（時刻、バッテリー％表示）や左上「×」ボタンとの被りを防止するためパディングを調整
+- `padding-top` を拡大し下方向へオフセット、さらに `padding-left: 100px;`, `padding-right: 40px;` を設定して要素を内側にレイアウト
 
 
 ## [0.5.67] POSアプリへのPWA・全画面最適化メタタグの追加 - 2026-07-28
