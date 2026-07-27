@@ -2582,6 +2582,7 @@
           <span id="header-store-name" class="store-badge">---</span>
         </div>
         <div class="user-info">
+          <span id="portal-version-display" style="font-size: 0.75rem; color: #9ca3af; font-family: monospace; display: none; margin-right: 8px; font-weight: 600;"></span>
           <button class="logout-btn" onclick="logout()">ログアウト</button>
         </div>
       </div>
@@ -5462,5 +5463,26 @@
         </button>
       </div>
     </div>
+
+    <!-- Version Fetcher -->
+    <script>
+      (async function fetchVersion() {
+        try {
+          const response = await fetch("../CHANGELOG.md");
+          if (!response.ok) return;
+          const text = await response.text();
+          const match = text.match(/## \[([\d\.]+)\]/);
+          if (match && match[1]) {
+            const versionEl = document.getElementById("portal-version-display");
+            if (versionEl) {
+              versionEl.textContent = "v" + match[1];
+              versionEl.style.display = "inline-block";
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to fetch version:", e);
+        }
+      })();
+    </script>
   </body>
 </html>
