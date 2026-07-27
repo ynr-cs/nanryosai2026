@@ -622,7 +622,6 @@
           <button class="btn-header btn-history" onclick="openHistory()">
             履歴
           </button>
-          <span class="user-info" id="user-name"></span>
           <button class="btn-header" onclick="logout()">ログアウト</button>
         </div>
       </header>
@@ -772,7 +771,6 @@
         } else {
           document.getElementById("login-screen").style.display = "none";
           document.getElementById("main-content").style.display = "block";
-          document.getElementById("user-name").textContent = user.displayName || user.email;
           document.getElementById("display-store-id").textContent = storeId;
           
           // POSアラート監視 (動的インポート)

@@ -582,9 +582,6 @@
         <div class="menu-item">
           Store ID: <span id="menu-store-id" style="font-weight: bold">--</span>
         </div>
-        <div class="menu-item">
-          User: <span id="menu-user" style="font-weight: bold">--</span>
-        </div>
 
         <div class="zoom-controls">
           <button class="btn-zoom" onclick="app.adjustZoom(-0.1)">-</button>
@@ -730,10 +727,6 @@
               const storeParam = STORE_ID ? `&s=${STORE_ID}` : '';
               window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
             } else {
-              const uName = user.email.split("@")[0];
-              const menuUser = document.getElementById("menu-user");
-              if (menuUser) menuUser.innerText = uName;
-
               this.startApp();
               this.transitionTo("idle");
             }

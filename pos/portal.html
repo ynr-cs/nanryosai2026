@@ -2246,7 +2246,7 @@
         <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
         に限定されています。
       </p>
-      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;">誤ったアカウントでログインしています</p>
       <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
       <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
     </div>
@@ -2387,8 +2387,6 @@
           <span id="header-store-name" class="store-badge">---</span>
         </div>
         <div class="user-info">
-          <span id="user-email"></span>
-
           <button class="logout-btn" onclick="logout()">ログアウト</button>
         </div>
       </div>
@@ -3249,7 +3247,7 @@
       function showDomainError(user) {
         const overlay = document.getElementById("domain-error-overlay");
         const emailEl = document.getElementById("domain-error-email");
-        if (emailEl && user) emailEl.textContent = `ログイン中: ${user.email}`;
+        // Email display removed for privacy
         overlay.style.display = "flex";
         document.getElementById("auth-overlay").style.display = "none";
       }
@@ -3275,7 +3273,6 @@
           }
           const stepGoogle = document.getElementById("step-google");
           const stepStore = document.getElementById("step-store");
-          document.getElementById("user-email").innerText = user.email; // FIX: Always show email
 
           // Check Cached Login
           const cachedId = localStorage.getItem("nanryosai_store_id");

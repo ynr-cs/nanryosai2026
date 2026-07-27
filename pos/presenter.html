@@ -578,7 +578,6 @@
               全画面
             </button>
           </div>
-          <span class="user-info" id="user-name"></span>
           <button class="btn-header" onclick="logout()">ログアウト</button>
         </div>
       </header>
@@ -689,7 +688,7 @@
         } else {
           document.getElementById("login-screen").style.display = "none";
           document.getElementById("main-content").style.display = "block";
-          document.getElementById("user-name").textContent = user.displayName || user.email;
+          // User Name display removed for privacy
           document.getElementById("display-store-id").textContent = storeId;
           startOrderListener();
           startTimerLoop();
