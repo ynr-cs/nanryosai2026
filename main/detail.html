@@ -713,7 +713,7 @@
 
     <script type="module">
       import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
-      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       // Define current page for the shell
       window.CURRENT_PAGE = "detail";
@@ -786,6 +786,31 @@
               project.totalItemCount = snap.data().totalItemCount;
             } else {
               project.operationStatus = "suspended";
+            }
+            
+            // メニューアイテムの最新状態（売切等）を取得して静的データにマージ
+            const itemsQuery = query(collection(db, "items"), where("storeId", "==", project.id));
+            const itemsSnap = await getDocs(itemsQuery);
+            const dbItemsMap = new Map();
+            itemsSnap.forEach(d => {
+                const data = d.data();
+                dbItemsMap.set(data.name, data);
+            });
+            
+            if (project.menu && Array.isArray(project.menu)) {
+                project.menu = project.menu.map(staticItem => {
+                    const dbItem = dbItemsMap.get(staticItem.name);
+                    if (dbItem) {
+                        return { 
+                            ...staticItem, 
+                            isAvailable: dbItem.isAvailable !== false,
+                            price: dbItem.price || staticItem.price,
+                            imageUrl: dbItem.imageUrl || staticItem.imageUrl,
+                            description: dbItem.description || staticItem.description
+                        };
+                    }
+                    return staticItem;
+                });
             }
           } catch (e) {
             console.error("Status fetch error:", e);
@@ -1014,14 +1039,24 @@
               if (item.note) {
                 noteHTML = `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-sub);font-style:italic;"><i class="fas fa-comment" style="margin-right:3px;"></i>${item.note}</div>`;
               }
+              const isSoldOut = item.isAvailable === false;
+              const soldOutBadge = isSoldOut 
+                ? '<div style="position: absolute; top: 8px; left: 8px; background: rgba(220, 38, 38, 0.95); color: white; font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 8px; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">SOLD OUT</div>'
+                : '';
+              const imgOpacity = isSoldOut ? "0.4" : "1";
+              const soldOutText = isSoldOut ? '<span style="color:#dc2626; font-size:0.8rem; font-weight:bold; margin-left:8px; background:#fee2e2; padding:2px 6px; border-radius:4px;">売切</span>' : '';
+
               return `
                         <div class="menu-item">
-                            <img src="${imgUrl}" class="menu-item-image" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                            <div style="position: relative; flex-shrink: 0;">
+                                ${soldOutBadge}
+                                <img src="${imgUrl}" class="menu-item-image" style="opacity: ${imgOpacity};" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                            </div>
                             <div class="menu-item-content">
                                 <div class="menu-item-name">${item.name}</div>
                                 ${recommendBadge}
                                 <div class="menu-item-desc">${item.description || ""}</div>
-                                <div class="menu-item-price">${item.price}</div>
+                                <div class="menu-item-price">${item.price} ${soldOutText}</div>
                                 ${allergenHTML}
                                 ${noteHTML}
                             </div>
