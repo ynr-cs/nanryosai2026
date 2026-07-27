@@ -782,6 +782,8 @@
             const snap = await getDoc(doc(db, "stores", project.id));
             if (snap.exists()) {
               project.operationStatus = snap.data().operationStatus || "suspended";
+              project.availableItemCount = snap.data().availableItemCount;
+              project.totalItemCount = snap.data().totalItemCount;
             } else {
               project.operationStatus = "suspended";
             }
@@ -873,13 +875,52 @@
         
         const useMobileOrder = project.useMobileOrder === true;
         if (useMobileOrder && project.operationStatus) {
-           const statusConfig = {
-             open:      { text: "営業中", color: "#065f46", bg: "#d1fae5", icon: "fa-door-open" },
-             suspended: { text: "準備中", color: "#92400e", bg: "#fef3c7", icon: "fa-clock" },
-             closed:    { text: "本日の営業終了", color: "#374151", bg: "#f3f4f6", icon: "fa-door-closed" },
-           };
-           const st = statusConfig[project.operationStatus] || statusConfig.suspended;
-           chipsHTML += `<div class="meta-chip" style="background:${st.bg};color:${st.color};border-color:${st.color}"><i class="fas ${st.icon}" style="color:${st.color}"></i>${st.text}</div>`;
+           let text = "準備中";
+           let color = "#92400e";
+           let bg = "#fef3c7";
+           let icon = "fa-clock";
+           
+           if (project.operationStatus === "open") {
+             const available = project.availableItemCount;
+             const total = project.totalItemCount;
+             if (available !== undefined && total !== undefined) {
+               if (available === 0 && total > 0) {
+                 text = "現在売切";
+                 color = "#991b1b";
+                 bg = "#fee2e2";
+                 icon = "fa-ban";
+                 project.isOrderable = false;
+               } else if (available > 0 && available < total) {
+                 text = "一部売切";
+                 color = "#92400e";
+                 bg = "#fef3c7";
+                 icon = "fa-exclamation-circle";
+                 project.isOrderable = true;
+               } else {
+                 text = "営業中";
+                 color = "#065f46";
+                 bg = "#d1fae5";
+                 icon = "fa-door-open";
+                 project.isOrderable = true;
+               }
+             } else {
+               text = "営業中";
+               color = "#065f46";
+               bg = "#d1fae5";
+               icon = "fa-door-open";
+               project.isOrderable = true;
+             }
+           } else if (project.operationStatus === "closed") {
+             text = "本日の営業終了";
+             color = "#374151";
+             bg = "#f3f4f6";
+             icon = "fa-door-closed";
+             project.isOrderable = false;
+           } else {
+             project.isOrderable = false;
+           }
+           
+           chipsHTML += `<div class="meta-chip" style="background:${bg};color:${color};border-color:${color}"><i class="fas ${icon}" style="color:${color}"></i>${text}</div>`;
         }
         
         metaChipsEl.innerHTML = chipsHTML;
@@ -992,7 +1033,7 @@
           // Order Button (Mobile Order Integration) - useMobileOrder の場合のみ表示
           let orderButtonHTML = "";
           if (useMobileOrder) {
-            const isOrderable = project.operationStatus === "open";
+            const isOrderable = project.isOrderable !== false && project.operationStatus === "open";
             if (isOrderable) {
               orderButtonHTML = `
                 <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">

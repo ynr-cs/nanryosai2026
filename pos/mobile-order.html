@@ -1707,24 +1707,50 @@
 
             const imgSrc = `../images/${d.id}.png`;
             const el = document.createElement("div");
-            const isOpen = data.operationStatus === "open";
+            let isOpen = data.operationStatus === "open";
+            let text = "準備中";
+            let color = "#d97706";
+            let bg = "#fef3c7";
+            
+            if (isOpen) {
+              const available = data.availableItemCount;
+              const total = data.totalItemCount;
+              if (available !== undefined && total !== undefined) {
+                if (available === 0 && total > 0) {
+                  isOpen = false;
+                  text = "現在売切";
+                  color = "#dc2626";
+                  bg = "#fee2e2";
+                } else if (available > 0 && available < total) {
+                  text = "一部売切";
+                  color = "#d97706";
+                  bg = "#fef3c7";
+                } else {
+                  text = "営業中";
+                  color = "#10b981";
+                  bg = "#d1fae5";
+                }
+              } else {
+                text = "営業中";
+                color = "#10b981";
+                bg = "#d1fae5";
+              }
+            } else if (data.operationStatus === "closed") {
+              text = "本日の営業終了";
+              color = "#6b7280";
+              bg = "#f3f4f6";
+            }
+
             el.className = "store-card animate__animated animate__fadeInUp";
 
-            // 営業中でない場合はグレーアウト
+            // 注文不可能な場合はグレーアウト
             if (!isOpen) {
               el.style.opacity = "0.5";
               el.style.pointerEvents = "none";
               el.style.cursor = "not-allowed";
             }
 
-            // 営業ステータスのバッジを生成
-            const statusConfig = {
-              open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
-              suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
-              closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
-            };
-            const st = statusConfig[data.operationStatus] || statusConfig.suspended;
-            const statusBadge = `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};margin-top:4px;">${st.text}</span>`;
+            const statusBadge = `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${bg};color:${color};margin-top:4px;">${text}</span>`;
 
             el.innerHTML = `
               <img src="${imgSrc}" class="store-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
@@ -2135,11 +2161,17 @@
           // （メニュー画面に留まっている間に緊急停止が発動した場合に対処）
           // getDoc / doc は L1350-L1351 で static import 済みのものを使用
           const storeSnap = await getDoc(doc(db, "stores", currentStoreId));
-          if (storeSnap.exists() && storeSnap.data().operationStatus !== "open") {
-            loader.style.display = "none";
-            alert("この店舗は現在注文を受け付けていません。店舗一覧に戻ります。");
-            backToStores();
-            return;
+          if (storeSnap.exists()) {
+            const stData = storeSnap.data();
+            const isReallyClosed = stData.operationStatus !== "open" || 
+              (stData.availableItemCount !== undefined && stData.totalItemCount > 0 && stData.availableItemCount === 0);
+            
+            if (isReallyClosed) {
+              loader.style.display = "none";
+              alert("この店舗は現在注文を受け付けていません。店舗一覧に戻ります。");
+              backToStores();
+              return;
+            }
           }
 
           // Phase3: createOrder (統合関数) を呼び出す

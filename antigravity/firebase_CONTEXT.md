@@ -166,6 +166,7 @@ last_updated: 2026-05-07
   - `warmupPing` (OnRequest): Cloud Functions のコールドスタートを防ぐための軽量なダミー関数。スケジュール関数から定期的に叩かれる。
   - `updateStoreStatus` (OnCall, v0.3.12〜): 店舗の営業ステータスを変更する。`newStatus === "open"` の場合、`availableItemIds` に含まれる商品のみ `isAvailable: true` にし、それ以外を `false` にバッチ更新。同時に `operationStatus` と `lastActivityAt` を更新する。`store_admin` 権限が必要。
   - `manageStoreStatusAndWarmup` (Scheduled, 毎分実行): `operationStatus === "open"` かつ `lastActivityAt` が15分以上前の店舗を自動的に `"suspended"` に変更する（放置検知）。また、活発な店舗がある場合は `warmupPing` へリクエストを送信して Functions を保温する。
+  - `syncStoreItemAvailability` (Firestore Trigger, v0.5.56〜): `items/{itemId}` の作成・更新・削除時に自動発火し、該当店舗の全商品を取得して `availableItemCount` (販売中数) と `totalItemCount` (総数) を計算し `stores/{storeId}` に同期する。
 
 
 ## 6. クラウドストレージ (Cloud Storage)

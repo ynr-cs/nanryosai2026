@@ -8,6 +8,7 @@ const functions = require("firebase-functions/v1");
 const {
   onDocumentUpdated,
   onDocumentCreated,
+  onDocumentWritten,
 } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 const { getMessaging } = require("firebase-admin/messaging");
@@ -1934,3 +1935,44 @@ exports.cancelSokOrder = functions
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
+
+// ============================================================
+// 商品在庫状況の店舗データへの自動同期
+// ============================================================
+exports.syncStoreItemAvailability = onDocumentWritten("items/{itemId}", async (event) => {
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
+
+  // 変更がない、または isAvailable が変化していない場合はスキップ
+  if (before && after && before.isAvailable === after.isAvailable) {
+    return;
+  }
+
+  // 対象のstoreIdを特定
+  const storeId = after ? after.storeId : before.storeId;
+  if (!storeId) return;
+
+  try {
+    // 該当店舗の全アイテムを取得
+    const itemsSnap = await db.collection("items").where("storeId", "==", storeId).get();
+    
+    let availableItemCount = 0;
+    const totalItemCount = itemsSnap.size;
+
+    itemsSnap.forEach(doc => {
+      if (doc.data().isAvailable === true) {
+        availableItemCount++;
+      }
+    });
+
+    // 店舗ドキュメントを更新
+    await db.collection("stores").doc(storeId).update({
+      availableItemCount: availableItemCount,
+      totalItemCount: totalItemCount,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+  } catch (error) {
+    console.error(`syncStoreItemAvailability Error for store ${storeId}:`, error);
+  }
+});

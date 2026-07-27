@@ -789,19 +789,52 @@
                 
               let statusBadge = "";
               let isOrderable = useMobileOrder;
-              const opStatus = storeStatuses[project.id];
+              const storeData = storeStatuses[project.id];
               
               if (useMobileOrder) {
-                if (opStatus) {
-                  const statusConfig = {
-                    open:      { text: "営業中", color: "#10b981", bg: "#d1fae5" },
-                    suspended: { text: "準備中", color: "#d97706", bg: "#fef3c7" },
-                    closed:    { text: "本日の営業終了", color: "#6b7280", bg: "#f3f4f6" },
-                  };
-                  const st = statusConfig[opStatus] || statusConfig.suspended;
-                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${st.bg};color:${st.color};">${st.text}</span></div>`;
+                if (storeData) {
+                  const op = storeData.op;
+                  const available = storeData.available;
+                  const total = storeData.total;
                   
-                  if (opStatus !== "open") isOrderable = false;
+                  let text = "準備中";
+                  let color = "#d97706";
+                  let bg = "#fef3c7";
+                  
+                  if (op === "open") {
+                    if (available !== undefined && total !== undefined) {
+                      if (available === 0 && total > 0) {
+                        text = "現在売切";
+                        color = "#dc2626";
+                        bg = "#fee2e2";
+                        isOrderable = false;
+                      } else if (available > 0 && available < total) {
+                        text = "一部売切";
+                        color = "#d97706";
+                        bg = "#fef3c7";
+                        isOrderable = true;
+                      } else {
+                        text = "営業中";
+                        color = "#10b981";
+                        bg = "#d1fae5";
+                        isOrderable = true;
+                      }
+                    } else {
+                      text = "営業中";
+                      color = "#10b981";
+                      bg = "#d1fae5";
+                      isOrderable = true;
+                    }
+                  } else if (op === "closed") {
+                    text = "本日の営業終了";
+                    color = "#6b7280";
+                    bg = "#f3f4f6";
+                    isOrderable = false;
+                  } else {
+                    isOrderable = false;
+                  }
+                  
+                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${bg};color:${color};">${text}</span></div>`;
                 } else {
                   isOrderable = false;
                   statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
@@ -1027,7 +1060,11 @@
         try {
           const snap = await getDocs(collection(db, "stores"));
           snap.forEach(doc => {
-            storeStatuses[doc.id] = doc.data().operationStatus || "suspended";
+            storeStatuses[doc.id] = {
+              op: doc.data().operationStatus || "suspended",
+              available: doc.data().availableItemCount,
+              total: doc.data().totalItemCount
+            };
           });
         } catch (e) {
           console.error("Firestore status fetch error:", e);
