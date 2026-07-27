@@ -1,6 +1,6 @@
 # Google Analytics (GA4) イベントトラッキング仕様
 
-**最終更新**: 2026-07-21 (v0.4.36)
+**最終更新**: 2026-07-27 (v0.5.48)
 
 ## 概要
 
@@ -61,11 +61,17 @@ logEvent(analytics, "purchase", { transaction_id: "...", value: 800, currency: "
 | ⑧ 確認画面到達 | `funnel_checkout` | `mobile-order.html` showScreen | - |
 | ⑨ 注文確定 | `purchase` | `mobile-order.html` finalizeOrder | `transaction_id`, `value`, `currency`, `items[]` |
 
-### QRコード流入（既存）
+### QRコード・アクセストラッキング (`?s=`)
 
-| イベント名 | 送信場所 | パラメータ |
-| :--- | :--- | :--- |
-| `qr_scan` | `auth.js` URLパラメータ解析 | `source_type: "poster" / "pamphlet" / "store_front" / "classroom" / "instagram"` |
+| イベント名 | 送信場所 | パラメータ (`source_type`) | 短縮URLパラメータ | 説明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `qr_scan` | `auth.js` URLパラメータ解析 | `poster` | `?s=po` | 校内ポスターQR |
+| | | `pamphlet` | `?s=pf` | 公式パンフレット・冊子QR |
+| | | `store_front` | `?s=st` | 店頭・模擬店前掲示QR |
+| | | `exhibition` | `?s=ex` | クラス・部活展示看板QR |
+| | | `gate` | `?s=gt` | 校門・受付案内QR |
+| | | `classroom` | `?s=cr` | Google Classroomリンク |
+| | | `instagram` | `?s=ig` | 公式Instagramリンク |
 
 ### サイト内UI操作（data-track属性ベース）
 

@@ -128,11 +128,13 @@ try {
   if (source) {
     // 短縮パラメータと正式な送信元のマッピング
     const sourceMap = {
-      po: "poster",
-      pf: "pamphlet",
-      st: "store_front",
-      cr: "classroom",
-      ig: "instagram"
+      po: "poster",      // 校内ポスターQR
+      pf: "pamphlet",    // 公式パンフレットQR
+      st: "store_front", // 店頭・模擬店前掲示QR
+      ex: "exhibition",  // クラス・部活展示看板QR
+      gt: "gate",        // 校門・受付案内QR
+      cr: "classroom",   // Google Classroomリンク
+      ig: "instagram"    // 公式Instagramリンク
     };
     const sourceType = sourceMap[source] || source;
 
