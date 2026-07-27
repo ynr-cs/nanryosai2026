@@ -13,6 +13,24 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.67] POSアプリへのPWA・全画面最適化メタタグの追加 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **タスク分類**: UI/UX改善
+- **関連ファイル**: `pos/pos.html`, `pos/presenter.html`, `pos/kitchen.html`, `pos/monitor.html`
+- **所要時間目安**: 3m
+
+### 変更内容 (Changes)
+
+#### 追加 (Added)
+- 全POSアプリ (`pos`, `presenter`, `kitchen`, `monitor`) にて、SOK同様にiPad等での全画面表示およびPWA起動に最適化するため、以下のメタタグを追加・修正
+  - `viewport` に `maximum-scale=1.0, user-scalable=no, viewport-fit=cover` を追加
+  - `apple-mobile-web-app-capable` (`yes`) を追加
+  - `apple-mobile-web-app-status-bar-style` (`black-translucent`) を追加
+
+
 ## [0.5.66] kitchen.html 等でのタイマー初期化時 -1:-1 表示バグの修正 - 2026-07-28
 
 ### メタ情報
