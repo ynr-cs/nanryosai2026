@@ -1000,7 +1000,7 @@
       function updateSingleTimer(cardEl, now) {
         const createdAt = parseInt(cardEl.dataset.createdAt);
         if (!createdAt) return;
-        const diffSeconds = Math.floor((now - createdAt) / 1000);
+        const diffSeconds = Math.max(0, Math.floor((now - createdAt) / 1000));
         const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
         const ss = String(diffSeconds % 60).padStart(2, "0");
         const timerSpan = cardEl.querySelector(".order-timer");

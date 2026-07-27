@@ -945,7 +945,7 @@
         timerDisplay.textContent = "00:00";
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-          const diff = Math.floor((Date.now() - orderStartTime) / 1000);
+          const diff = Math.max(0, Math.floor((Date.now() - orderStartTime) / 1000));
           const mm = String(Math.floor(diff / 60)).padStart(2, "0");
           const ss = String(diff % 60).padStart(2, "0");
           timerDisplay.textContent = `${mm}:${ss}`;

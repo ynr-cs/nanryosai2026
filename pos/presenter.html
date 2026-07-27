@@ -971,7 +971,7 @@
         // メインのタイマー（注文からの経過時間）はBAN後も表示を維持する
         const createdAt = parseInt(cardEl.dataset.createdAt);
         if (createdAt) {
-            const diffSeconds = Math.floor((now - createdAt) / 1000);
+            const diffSeconds = Math.max(0, Math.floor((now - createdAt) / 1000));
             const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
             const ss = String(diffSeconds % 60).padStart(2, "0");
             const timerSpan = cardEl.querySelector(".order-timer");
