@@ -43,7 +43,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        padding: 12px 20px 12px 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
+        padding: max(20px, env(safe-area-inset-top)) max(30px, env(safe-area-inset-right)) 14px max(90px, env(safe-area-inset-left));
         background-color: #1a1a1a;
         border-bottom: 1px solid #333;
         border-radius: 8px;

@@ -131,13 +131,13 @@
 
       /* --- トップバー --- */
       .top-bar {
-        height: 30px;
+        min-height: 44px;
         background: #1a1a1a;
         color: #fff;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 15px 0 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
+        padding: max(16px, env(safe-area-inset-top)) max(30px, env(safe-area-inset-right)) 8px max(90px, env(safe-area-inset-left));
         font-size: 0.9em;
         font-family: monospace;
         flex-shrink: 0;
