@@ -2098,6 +2098,29 @@
           transform: translateY(0);
         }
       }
+      /* --- Fade & Slide Animations --- */
+      .anim-fade-in {
+        animation: portalFadeIn 0.4s ease forwards;
+      }
+      .anim-fade-out {
+        animation: portalFadeOut 0.3s ease forwards;
+      }
+      .anim-slide-up {
+        animation: portalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes portalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes portalFadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes portalSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
     </style>
   </head>
   <body>
@@ -3074,6 +3097,30 @@
       window.firebaseFunctions = functions;
       window.httpsCallable = httpsCallable;
 
+      // --- Helper for smooth view transitions ---
+      function transitionView(hideEl, showEl, displayStyle = "block", animClass = "anim-fade-in", duration = 300) {
+        if (hideEl) {
+          hideEl.classList.remove("anim-fade-in", "anim-slide-up");
+          hideEl.classList.add("anim-fade-out");
+          setTimeout(() => {
+            hideEl.style.display = "none";
+            hideEl.classList.remove("anim-fade-out");
+            
+            if (showEl) {
+              showEl.style.display = displayStyle;
+              showEl.classList.remove("anim-fade-in", "anim-slide-up", "anim-fade-out");
+              void showEl.offsetWidth; // trigger reflow
+              showEl.classList.add(animClass);
+            }
+          }, duration);
+        } else if (showEl) {
+          showEl.style.display = displayStyle;
+          showEl.classList.remove("anim-fade-in", "anim-slide-up", "anim-fade-out");
+          void showEl.offsetWidth; // trigger reflow
+          showEl.classList.add(animClass);
+        }
+      }
+
       // State
       let currentStoreId = null;
       let storeData = null;
@@ -3187,8 +3234,12 @@
         await signOut(auth);
         document.getElementById("domain-error-overlay").style.display = "none";
         document.getElementById("auth-overlay").style.display = "flex";
-        document.getElementById("step-google").style.display = "block";
-        document.getElementById("step-store").style.display = "none";
+        transitionView(
+          document.getElementById("step-store"),
+          document.getElementById("step-google"),
+          "block",
+          "anim-fade-in"
+        );
       });
 
       // --- Auth Logic ---
@@ -3199,7 +3250,8 @@
             showDomainError(user);
             return;
           }
-          document.getElementById("step-google").style.display = "none";
+          const stepGoogle = document.getElementById("step-google");
+          const stepStore = document.getElementById("step-store");
           document.getElementById("user-email").innerText = user.email; // FIX: Always show email
 
           // Check Cached Login
@@ -3224,12 +3276,16 @@
           }
 
           // Show Store Login only if no cache
-          document.getElementById("step-store").style.display = "block";
           loadStoreOptions();
+          transitionView(stepGoogle, stepStore, "block", "anim-slide-up");
         } else {
           document.getElementById("auth-overlay").style.display = "flex";
-          document.getElementById("step-google").style.display = "block";
-          document.getElementById("step-store").style.display = "none";
+          transitionView(
+            document.getElementById("step-store"),
+            document.getElementById("step-google"),
+            "block",
+            "anim-fade-in"
+          );
           document.getElementById("app").style.display = "none";
         }
       });
@@ -3369,8 +3425,12 @@
           return;
         }
 
-        document.getElementById("auth-overlay").style.display = "none";
-        document.getElementById("app").style.display = "flex";
+        transitionView(
+          document.getElementById("auth-overlay"),
+          document.getElementById("app"),
+          "flex",
+          "anim-fade-in"
+        );
 
         // 店舗情報の取得と表示の更新
         try {
