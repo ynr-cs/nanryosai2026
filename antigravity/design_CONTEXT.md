@@ -249,3 +249,23 @@ const voteUrl = this.resolvePath("404.html");
 - 現在時刻インジケーター（`#current-time-indicator`）の追加先を外枠からグリッド本体（`.gantt-chart`）に変更し、`.gantt-chart` に `position: relative;` を追加。これにより外枠の `padding` による表示位置のズレ（左に20pxズレる現象）を解消し、正確な時間に赤いバーが描画されるように修正した（v0.3.44）。
 - `.gantt-time-header` と `.gantt-place-header` にも `position: sticky; top: 0;` を付与し、縦スクロール（またはスマホ幅で両方向にスクロール）した際も、時間が上部に固定されるようにした（v0.3.44）。
 - タイムテーブルの時間軸を従来の 16:00 から後夜祭に対応するため 18:00 まで延長。JavaScript内の `timeHeaders` の定義を拡張するだけで、表示幅、時間セル数、および現在時刻インジケーターの検知範囲が自動的に 18:00 まで追従スケーリングされる（v0.3.45）。
+
+---
+
+## 15. POS / モニター画面におけるiPad全画面・表示最適化仕様 (v0.5.67 ~ v0.5.70)
+
+### 全画面化とメタ設定
+- **メタタグの統一**: 全てのPOS関連画面 (`pos.html`, `presenter.html`, `kitchen.html`, `monitor.html`) にて、SOKと同様に以下のメタタグを必須とする。
+  - `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />`
+  - `<meta name="apple-mobile-web-app-capable" content="yes" />`
+  - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />`
+
+### ステータスバー・ネイティブUIとの被り防止
+- **OSステータスバー被り対策**: iPadで全画面表示にした際、上部ステータスバー（時刻・バッテリー％）や左上のSafari全画面「×」ボタンとアプリUIが重ならないよう、`.top-bar` または各画面ヘッダーに適切な内側余白（パディング）を設定する。
+  - `pos.html`: `padding: max(16px, env(safe-area-inset-top)) 40px 8px 100px;`（左100px、右40px、上16px以上）
+  - `kitchen.html` / `presenter.html`: `padding: 12px 20px 12px 80px;`
+
+### ローディング停滞時のフォールバックUI
+- **起動時タイムアウト**: 初回アクセス時や再読み込み時に、Firebase初期化・認証の停滞によってローディング画面（`#global-loader`）が解除されない場合に備え、起動から8秒後に「ポータルへ戻る」リンク（`#loader-fallback`）を表示する。
+- **誤表示防止制御**: 認証完了時（`hideLoader()`）に `clearTimeout` で8秒タイマーを解約し、`loader-fallback` を非表示化する。さらに、注文送信や決済中などで呼び出される通常の `showLoader("注文送信中...")` 内でも `loader-fallback` を強制的に非表示に設定し、通常操作中にポータルへの戻りボタンが表示される誤動作を防止する。
+
