@@ -43,7 +43,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        padding: max(20px, env(safe-area-inset-top)) max(30px, env(safe-area-inset-right)) 14px max(90px, env(safe-area-inset-left));
+        padding: 12px 20px 12px 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
         background-color: #1a1a1a;
         border-bottom: 1px solid #333;
         border-radius: 8px;
@@ -625,9 +625,21 @@
 
     <!-- Initial Loader -->
     <div id="global-loader" class="active">
-      <div class="spinner"></div>
-      <div class="loading-text">読み込み中...</div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="spinner"></div>
+        <div class="loading-text">読み込み中...</div>
+        <div id="loader-fallback" style="display:none; margin-top:24px; text-align:center; color:#ccc; font-size:0.95rem; line-height:1.5;">
+          <p>読み込みに時間がかかっています。<br>電波状況を確認するか、ポータルへ戻ってください。</p>
+          <a href="portal.html" style="display:inline-block; margin-top:16px; padding:12px 24px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:8px; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.3);">ポータルへ戻る</a>
+        </div>
+      </div>
     </div>
+    <script>
+      setTimeout(() => {
+        const fallback = document.getElementById("loader-fallback");
+        if (fallback) fallback.style.display = "block";
+      }, 8000);
+    </script>
 
     <div id="main-content" style="display: none">
       <header>
