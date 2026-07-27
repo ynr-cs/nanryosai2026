@@ -645,7 +645,7 @@
     </style>
   </head>
   <body>
-    <div id="global-loader">
+    <div id="global-loader" class="active">
       <div class="spinner"></div>
       <div class="loading-text" id="loader-text">読み込み中...</div>
     </div>
@@ -677,16 +677,7 @@
       <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
     </div>
 
-    <div id="login-screen">
-      <div class="login-card">
-        <h2>POS</h2>
-        <p style="color:#aaa; font-size:0.9rem; line-height:1.6; margin-bottom:4px;">南陵高校から配布された<br><strong style="color:#60a5fa;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください</p>
-        <button id="google-login-btn" class="google-btn">
-          Googleでログイン
-        </button>
-        <p id="login-error" style="color: red"></p>
-      </div>
-    </div>
+    <!-- login-screen was removed to prevent flickering -->
 
     <div class="top-bar">
       <div id="clock-display">00:00:00</div>
@@ -934,8 +925,7 @@
           window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
         } else {
           // 認証済み
-          const loginScreen = document.getElementById("login-screen");
-          if (loginScreen) loginScreen.style.display = "none";
+          hideLoader();
           document.getElementById("app-container").style.display = "flex";
 
           // POSアラートのインポートと監視

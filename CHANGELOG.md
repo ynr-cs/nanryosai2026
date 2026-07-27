@@ -13,6 +13,32 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.62] POS関連ファイルのログイン画面チラつき防止ロジックの実装 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **タスク分類**: UI/UX修正
+- **関連ファイル**: `pos.html`, `portal.html`, `kitchen.html`, `presenter.html`, `monitor.html`
+- **所要時間目安**: 30m
+
+### 変更内容 (Changes)
+
+#### 追加 (Added)
+- なし
+
+#### 変更 (Changed)
+- `pos.html`, `presenter.html`, `kitchen.html`, `monitor.html`, `portal.html` において、アクセス時の初期表示をローディング画面（スピナー）に変更
+- 上記ファイルにおいて、Firebase Authの `onAuthStateChanged` イベントで認証結果が返るまでローディングを維持し、ログイン状態が確定した時点で適切な画面（メイン画面、リダイレクト、またはログイン画面）を表示するようロジックを修正
+- `portal.html` 以外のアプリ画面から、初期状態で表示されていた不要なログインUI要素のHTML/CSSを削除
+
+#### 修正 (Fixed)
+- 認証済みのユーザーがアクセスした際に、一瞬だけGoogleログイン等の画面が表示されてしまうチラつきの問題を解消
+
+#### 削除 (Removed)
+- `pos.html`, `presenter.html`, `kitchen.html`, `monitor.html` 内のハードコードされていたログイン画面 (`#login-screen`, `#view-auth`) および関連CSS
+
+
 ## [0.5.61] インターネットスピードテスト記録（第2回）の追加 - 2026-07-28
 
 ### メタ情報

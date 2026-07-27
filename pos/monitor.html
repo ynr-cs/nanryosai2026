@@ -127,26 +127,31 @@
       }
 
       /* =============================================
-         View 0: Login
+         View 0: Loader
          ============================================= */
-      #view-auth {
+      #view-loader {
         justify-content: center;
         align-items: center;
-        background: #f0f0f0;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
       }
-      .login-card {
-        background: var(--surface);
-        padding: 50px;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 460px;
-        text-align: center;
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow);
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
       }
-      .login-card h1 {
-        color: var(--text);
-        margin-bottom: 10px;
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .loading-text {
+        font-size: 1.5em;
+        font-weight: bold;
+        letter-spacing: 2px;
       }
 
       /* =============================================
@@ -540,32 +545,10 @@
       <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
     </div>
 
-    <!-- View 0: Authentication -->
-    <div id="view-auth" class="view active">
-      <div class="login-card">
-        <h1>Staff Login</h1>
-        <p style="margin: 12px 0 4px; color: var(--text-muted); line-height:1.6;">
-          南陵高校から配布された<br><strong style="color:#1a1a1a;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください
-        </p>
-        <p style="margin: 0 0 20px; color: var(--text-muted)">
-          Store ID:
-          <span id="auth-store-id" style="font-weight: bold; color: var(--text)"
-            >-</span
-          >
-        </p>
-        <button
-          id="btn-google-login"
-          class="btn btn-google"
-          style="width: 100%"
-        >
-          <img
-            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-            width="24"
-            alt="G"
-          />
-          Googleでログイン
-        </button>
-      </div>
+    <!-- View 0: Initial Loader -->
+    <div id="view-loader" class="view active">
+      <div class="spinner"></div>
+      <div class="loading-text">読み込み中...</div>
     </div>
 
     <!-- View 1: IDLE (Monitor Mode) -->
@@ -689,11 +672,10 @@
           this.unsubOrderListener = null;
           this.currentZoom = 1.0;
           this.views = {
-            auth: document.getElementById("view-auth"),
+            loader: document.getElementById("view-loader"),
             idle: document.getElementById("view-idle"),
           };
 
-          document.getElementById("auth-store-id").innerText = STORE_ID;
           document.getElementById("menu-store-id").innerText = STORE_ID;
 
           this.processingPayment = false;
