@@ -7,11 +7,13 @@
 <html lang="ja">
   <head>
     <script>
-      (function() {
+      (function () {
         try {
-          var theme = localStorage.getItem('app-theme');
-          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+          var theme = localStorage.getItem("app-theme");
+          if (theme === "dark")
+            document.documentElement.setAttribute("data-theme", "dark");
+          else if (theme === "light")
+            document.documentElement.setAttribute("data-theme", "light");
         } catch (e) {}
       })();
     </script>
@@ -44,8 +46,12 @@
         margin-bottom: 20px;
       }
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
       .loading-text {
         font-size: 1.5em;
@@ -59,7 +65,10 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <link rel="manifest" href="manifest.json" />
     <title>店舗管理ポータル | 南陵祭2026</title>
     <!-- Chart.js -->
@@ -407,8 +416,15 @@
         background: #9ca3af;
       }
       @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.6; transform: scale(1.3); }
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(1.3);
+        }
       }
       .status-action-btns {
         display: flex;
@@ -424,9 +440,14 @@
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
+        transition:
+          background 0.2s,
+          transform 0.1s;
       }
-      .btn-status-open:hover { background: #059669; transform: translateY(-1px); }
+      .btn-status-open:hover {
+        background: #059669;
+        transform: translateY(-1px);
+      }
       .btn-status-suspend {
         background: #f59e0b;
         color: white;
@@ -436,9 +457,14 @@
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
+        transition:
+          background 0.2s,
+          transform 0.1s;
       }
-      .btn-status-suspend:hover { background: #d97706; transform: translateY(-1px); }
+      .btn-status-suspend:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+      }
       .btn-status-close {
         background: #6b7280;
         color: white;
@@ -448,16 +474,21 @@
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
+        transition:
+          background 0.2s,
+          transform 0.1s;
       }
-      .btn-status-close:hover { background: #4b5563; transform: translateY(-1px); }
+      .btn-status-close:hover {
+        background: #4b5563;
+        transform: translateY(-1px);
+      }
 
       /* 商品選択モーダル (Open Modal) */
       .open-modal-overlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         z-index: 1000;
         justify-content: center;
         align-items: flex-end;
@@ -476,8 +507,12 @@
         animation: slideUp 0.3s ease-out;
       }
       @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to   { transform: translateY(0); }
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
       }
       .open-modal-title {
         font-size: 1.1rem;
@@ -512,7 +547,9 @@
         cursor: pointer;
         transition: background 0.15s;
       }
-      .item-checkbox-row:hover { background: #f9fafb; }
+      .item-checkbox-row:hover {
+        background: #f9fafb;
+      }
       .item-checkbox-row input[type="checkbox"] {
         width: 20px;
         height: 20px;
@@ -544,7 +581,9 @@
         cursor: pointer;
         transition: background 0.2s;
       }
-      .open-modal-confirm-btn:hover { background: #059669; }
+      .open-modal-confirm-btn:hover {
+        background: #059669;
+      }
       .open-modal-confirm-btn:disabled {
         background: #d1d5db;
         cursor: not-allowed;
@@ -562,9 +601,9 @@
         margin-top: 8px;
         transition: background 0.2s;
       }
-      .open-modal-cancel-btn:hover { background: #f9fafb; }
-
-
+      .open-modal-cancel-btn:hover {
+        background: #f9fafb;
+      }
 
       /* Items Manager Specifics */
 
@@ -1137,7 +1176,9 @@
 
         .main-content {
           padding: 12px;
-          padding-bottom: calc(130px + env(safe-area-inset-bottom)); /* フッター干渉対策で拡張 */
+          padding-bottom: calc(
+            130px + env(safe-area-inset-bottom)
+          ); /* フッター干渉対策で拡張 */
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         }
@@ -1717,8 +1758,8 @@
         box-shadow: var(--shadow);
       }
       .sales-date-picker label {
-        font-size: 0.8rem; 
-        font-weight: bold; 
+        font-size: 0.8rem;
+        font-weight: bold;
         color: #6b7280;
         white-space: nowrap;
       }
@@ -2237,16 +2278,30 @@
       }
 
       @keyframes portalFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
       @keyframes portalFadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
       }
       @keyframes portalSlideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
@@ -2256,7 +2311,7 @@
       <div class="spinner"></div>
       <div class="loading-text">読み込み中...</div>
     </div>
-    
+
     <!-- Error Overlay -->
 
     <!-- Error Overlay -->
@@ -2284,18 +2339,85 @@
       </div>
     </div>
     <!-- ドメインエラーオーバーレイ -->
-    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:inherit;">
-      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
-      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
-      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
-        このシステムへのアクセスは、<br>
-        南陵高校が配布するGoogleアカウント<br>
-        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+    <div
+      id="domain-error-overlay"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #0f1117;
+        z-index: 99999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+        color: white;
+        font-family: inherit;
+      "
+    >
+      <div style="font-size: 3.5rem; margin-bottom: 20px">🔒</div>
+      <h2
+        style="
+          font-size: 1.4rem;
+          font-weight: 900;
+          margin-bottom: 12px;
+          color: #fff;
+        "
+      >
+        在校生専用システム
+      </h2>
+      <p
+        style="
+          color: #9ca3af;
+          line-height: 1.8;
+          margin-bottom: 8px;
+          font-size: 0.95rem;
+        "
+      >
+        このシステムへのアクセスは、<br />
+        南陵高校が配布するGoogleアカウント<br />
+        <code
+          style="
+            background: #1f2937;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #60a5fa;
+            font-size: 0.9rem;
+          "
+          >@gl.pen-kanagawa.ed.jp</code
+        ><br />
         に限定されています。
       </p>
-      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;">誤ったアカウントでログインしています</p>
-      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
-      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+      <p
+        id="domain-error-email"
+        style="color: #6b7280; font-size: 0.85rem; margin-bottom: 32px"
+      >
+        誤ったアカウントでログインしています
+      </p>
+      <button
+        id="btn-domain-logout"
+        style="
+          background: #3b82f6;
+          color: white;
+          border: none;
+          padding: 14px 28px;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 700;
+          cursor: pointer;
+          margin-bottom: 12px;
+          width: 100%;
+          max-width: 300px;
+        "
+      >
+        別のアカウントでログインする
+      </button>
+      <a
+        href="../main/index.html"
+        style="color: #6b7280; font-size: 0.85rem; text-decoration: underline"
+        >ホームへ戻る</a
+      >
     </div>
     <!-- Auth Overlay -->
     <div id="auth-overlay" class="auth-overlay">
@@ -2303,7 +2425,11 @@
         <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px">
           ポータル
         </h1>
-        <p style="color: #6b7280; margin-bottom: 4px">南陵高校から配布された<br><strong style="color: #10b981;">@gl.pen-kanagawa.ed.jp</strong><br>のGoogleアカウントでログインしてください</p>
+        <p style="color: #6b7280; margin-bottom: 4px">
+          南陵高校から配布された<br /><strong style="color: #10b981"
+            >@gl.pen-kanagawa.ed.jp</strong
+          ><br />のGoogleアカウントでログインしてください
+        </p>
         <button
           id="btn-google-login"
           class="btn-primary"
@@ -2331,18 +2457,40 @@
           <p>
             ブラウザの設定により、ログイン画面（ポップアップ）の表示がブロックされました。
           </p>
-          <div style="background: rgba(245,158,11,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
-            <p style="font-weight: bold; margin-bottom: 5px; font-size: 0.85rem;">解除方法：</p>
-            <ol style="margin-bottom: 0;">
-              <li>アドレスバー（URLバー）の右端にある「ブロックアイコン」をクリック。</li>
-              <li><strong>「ポップアップとリダイレクトを常に許可」</strong>を選択して完了をクリック。</li>
+          <div
+            style="
+              background: rgba(245, 158, 11, 0.1);
+              padding: 12px;
+              border-radius: 8px;
+              margin-bottom: 15px;
+              border-left: 4px solid #f59e0b;
+            "
+          >
+            <p
+              style="font-weight: bold; margin-bottom: 5px; font-size: 0.85rem"
+            >
+              解除方法：
+            </p>
+            <ol style="margin-bottom: 0">
+              <li>
+                アドレスバー（URLバー）の右端にある「ブロックアイコン」をクリック。
+              </li>
+              <li>
+                <strong>「ポップアップとリダイレクトを常に許可」</strong
+                >を選択して完了をクリック。
+              </li>
               <li>下の「再試行」ボタンを押してください。</li>
             </ol>
           </div>
-          <p style="font-size: 0.8rem; color: #78350f; font-style: italic;">
-            ※ LINEやInstagram内ブラウザでは正常に動作しません。右上のメニューから「ブラウザで開く」を選択してください。
+          <p style="font-size: 0.8rem; color: #78350f; font-style: italic">
+            ※
+            LINEやInstagram内ブラウザでは正常に動作しません。右上のメニューから「ブラウザで開く」を選択してください。
           </p>
-          <button id="btn-retry-login" class="btn-redirect" style="background: #374151;">
+          <button
+            id="btn-retry-login"
+            class="btn-redirect"
+            style="background: #374151"
+          >
             設定を完了したので再試行する
           </button>
         </div>
@@ -2461,31 +2609,89 @@
         <div class="main-content">
           <!-- 1. Top View -->
           <div id="view-top" class="view-section active">
-
             <!-- PWA Installation Notice (Hidden in Standalone Mode) -->
-            <div id="pwa-install-notice" style="background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border: 2px solid #3b82f6; border-radius: 16px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 20px;">
-              <h3 style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.3rem;">📱</span> ホーム画面に追加してアプリとしてご利用ください
+            <div
+              id="pwa-install-notice"
+              style="
+                background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+                border: 2px solid #3b82f6;
+                border-radius: 16px;
+                padding: 20px 24px;
+                box-shadow: var(--shadow);
+                margin-bottom: 20px;
+              "
+            >
+              <h3
+                style="
+                  margin: 0 0 10px 0;
+                  color: #1e3a8a;
+                  font-size: 1.1rem;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <span style="font-size: 1.3rem">📱</span>
+                ホーム画面に追加してアプリとしてご利用ください
               </h3>
-              <p style="font-size: 0.9rem; color: #374151; margin-bottom: 12px; line-height: 1.6;">
-                iOS/iPadOSのSafariでは、Webブラウザのままフルスクリーン表示にするとセキュリティ仕様によりキーボード入力が制限されます。<br>
+              <p
+                style="
+                  font-size: 0.9rem;
+                  color: #374151;
+                  margin-bottom: 12px;
+                  line-height: 1.6;
+                "
+              >
+                iOS/iPadOSのSafariでは、Webブラウザのままフルスクリーン表示にするとセキュリティ仕様によりキーボード入力が制限されます。<br />
                 POSレジやセルフオーダー端末として運用する場合は、必ず<strong>ホーム画面に追加</strong>してから起動してください。
               </p>
-              <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
-                <p style="font-weight: bold; margin: 0 0 5px 0; font-size: 0.85rem; color: #2563eb;">追加手順（Safariの場合）</p>
-                <ol style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #4b5563; line-height: 1.5;">
-                  <li>画面の「共有アイコン（四角から上矢印が飛び出たマーク）」をタップ。</li>
-                  <li>メニューから<strong>「ホーム画面に追加」</strong>を選択し、追加を完了する。</li>
-                  <li>ホーム画面に追加された新しいアイコンからアプリを起動し直す。</li>
+              <div
+                style="
+                  background: #ffffff;
+                  padding: 12px;
+                  border-radius: 8px;
+                  border: 1px solid #bfdbfe;
+                "
+              >
+                <p
+                  style="
+                    font-weight: bold;
+                    margin: 0 0 5px 0;
+                    font-size: 0.85rem;
+                    color: #2563eb;
+                  "
+                >
+                  追加手順
+                </p>
+                <ol
+                  style="
+                    margin: 0;
+                    padding-left: 20px;
+                    font-size: 0.85rem;
+                    color: #4b5563;
+                    line-height: 1.5;
+                  "
+                >
+                  <li>
+                    画面の「共有アイコン（四角から上矢印が飛び出たマーク）」をタップ。
+                  </li>
+                  <li>
+                    メニューから<strong>「ホーム画面に追加」</strong>を選択し、追加を完了する。
+                  </li>
+                  <li>
+                    ホーム画面に追加された新しいアイコンからアプリを起動し直す。
+                  </li>
                 </ol>
               </div>
             </div>
             <script>
-              (function() {
-                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+              (function () {
+                const isStandalone =
+                  window.matchMedia("(display-mode: standalone)").matches ||
+                  window.navigator.standalone;
                 if (isStandalone) {
-                  const notice = document.getElementById('pwa-install-notice');
-                  if (notice) notice.style.display = 'none';
+                  const notice = document.getElementById("pwa-install-notice");
+                  if (notice) notice.style.display = "none";
                 }
               })();
             </script>
@@ -2500,9 +2706,15 @@
                 </span>
               </div>
               <div class="status-action-btns">
-                <button class="btn-status-open js-btn-open-store">🟢 営業開始</button>
-                <button class="btn-status-suspend js-btn-suspend-store">🟡 一時停止</button>
-                <button class="btn-status-close js-btn-close-store">⚫ 営業終了</button>
+                <button class="btn-status-open js-btn-open-store">
+                  🟢 営業開始
+                </button>
+                <button class="btn-status-suspend js-btn-suspend-store">
+                  🟡 一時停止
+                </button>
+                <button class="btn-status-close js-btn-close-store">
+                  ⚫ 営業終了
+                </button>
               </div>
             </div>
 
@@ -2540,7 +2752,7 @@
                 id="link-spreadsheet"
                 class="app-link-card"
                 target="_blank"
-                style="display: none;"
+                style="display: none"
               >
                 <span class="app-icon">📈</span>
                 <span class="app-title">売上スプレッドシート</span>
@@ -2549,11 +2761,13 @@
             </div>
           </div>
 
-
           <!-- 2. Items View -->
           <div id="view-items" class="view-section">
             <!-- 営業ステータスパネル (複製) -->
-            <div class="operation-status-panel status-suspended js-op-panel" style="margin-bottom: 20px;">
+            <div
+              class="operation-status-panel status-suspended js-op-panel"
+              style="margin-bottom: 20px"
+            >
               <div class="status-panel-header">
                 <span class="status-panel-title">🏪 現在の営業ステータス</span>
                 <span class="status-badge-large suspended js-status-badge">
@@ -2562,14 +2776,33 @@
                 </span>
               </div>
               <div class="status-action-btns">
-                <button class="btn-status-open js-btn-open-store">🟢 営業開始</button>
-                <button class="btn-status-suspend js-btn-suspend-store">🟡 一時停止</button>
-                <button class="btn-status-close js-btn-close-store">⚫ 営業終了</button>
+                <button class="btn-status-open js-btn-open-store">
+                  🟢 営業開始
+                </button>
+                <button class="btn-status-suspend js-btn-suspend-store">
+                  🟡 一時停止
+                </button>
+                <button class="btn-status-close js-btn-close-store">
+                  ⚫ 営業終了
+                </button>
               </div>
             </div>
 
-            <div id="items-status-warning" style="display: none; background-color: #fef2f2; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; border: 1px solid #f87171;">
-              ⚠️ 現在店舗が営業していないため、すべての注文受付が停止されています。
+            <div
+              id="items-status-warning"
+              style="
+                display: none;
+                background-color: #fef2f2;
+                color: #991b1b;
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-weight: bold;
+                border: 1px solid #f87171;
+              "
+            >
+              ⚠️
+              現在店舗が営業していないため、すべての注文受付が停止されています。
             </div>
 
             <div
@@ -2606,10 +2839,7 @@
               <h2 style="margin: 0">売上状況</h2>
               <div class="sales-date-picker">
                 <label>表示日:</label>
-                <input
-                  type="date"
-                  id="sales-date-input"
-                />
+                <input type="date" id="sales-date-input" />
               </div>
             </div>
 
@@ -3077,8 +3307,12 @@
 
         <div class="modal-actions">
           <button onclick="deleteItem()" class="btn-delete-item">削除</button>
-          <button onclick="closeItemModal()" class="btn-cancel">キャンセル</button>
-          <button id="btn-save-item" onclick="saveItem()" class="btn-primary">保存</button>
+          <button onclick="closeItemModal()" class="btn-cancel">
+            キャンセル
+          </button>
+          <button id="btn-save-item" onclick="saveItem()" class="btn-primary">
+            保存
+          </button>
         </div>
       </div>
     </div>
@@ -3110,7 +3344,11 @@
         </div>
 
         <div class="modal-actions">
-          <button class="save-btn" id="btn-save-status" onclick="updateOrderStatus()">
+          <button
+            class="save-btn"
+            id="btn-save-status"
+            onclick="updateOrderStatus()"
+          >
             変更を保存
           </button>
         </div>
@@ -3119,9 +3357,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-      import {
-        getAnalytics,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
       import {
         initializeAppCheck,
         ReCaptchaV3Provider,
@@ -3193,24 +3429,38 @@
       window.httpsCallable = httpsCallable;
 
       // --- Helper for smooth view transitions ---
-      function transitionView(hideEl, showEl, displayStyle = "block", animClass = "anim-fade-in", duration = 300) {
+      function transitionView(
+        hideEl,
+        showEl,
+        displayStyle = "block",
+        animClass = "anim-fade-in",
+        duration = 300,
+      ) {
         if (hideEl) {
           hideEl.classList.remove("anim-fade-in", "anim-slide-up");
           hideEl.classList.add("anim-fade-out");
           setTimeout(() => {
             hideEl.style.display = "none";
             hideEl.classList.remove("anim-fade-out");
-            
+
             if (showEl) {
               showEl.style.display = displayStyle;
-              showEl.classList.remove("anim-fade-in", "anim-slide-up", "anim-fade-out");
+              showEl.classList.remove(
+                "anim-fade-in",
+                "anim-slide-up",
+                "anim-fade-out",
+              );
               void showEl.offsetWidth; // trigger reflow
               showEl.classList.add(animClass);
             }
           }, duration);
         } else if (showEl) {
           showEl.style.display = displayStyle;
-          showEl.classList.remove("anim-fade-in", "anim-slide-up", "anim-fade-out");
+          showEl.classList.remove(
+            "anim-fade-in",
+            "anim-slide-up",
+            "anim-fade-out",
+          );
           void showEl.offsetWidth; // trigger reflow
           showEl.classList.add(animClass);
         }
@@ -3240,7 +3490,10 @@
       getRedirectResult(auth)
         .then((result) => {
           if (result && result.user) {
-            console.log("[Portal Auth] Redirect login success:", result.user.email);
+            console.log(
+              "[Portal Auth] Redirect login success:",
+              result.user.email,
+            );
           }
         })
         .catch((error) => {
@@ -3317,7 +3570,10 @@
 
       function isAuthorizedUser(user) {
         if (!user || !user.email) return false;
-        return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+        return (
+          user.email.endsWith(ALLOWED_DOMAIN) ||
+          MASTER_ACCOUNTS.includes(user.email)
+        );
       }
       function showDomainError(user) {
         const overlay = document.getElementById("domain-error-overlay");
@@ -3326,17 +3582,20 @@
         overlay.style.display = "flex";
         document.getElementById("auth-overlay").style.display = "none";
       }
-      document.getElementById("btn-domain-logout").addEventListener("click", async () => {
-        await signOut(auth);
-        document.getElementById("domain-error-overlay").style.display = "none";
-        document.getElementById("auth-overlay").style.display = "flex";
-        transitionView(
-          document.getElementById("step-store"),
-          document.getElementById("step-google"),
-          "block",
-          "anim-fade-in"
-        );
-      });
+      document
+        .getElementById("btn-domain-logout")
+        .addEventListener("click", async () => {
+          await signOut(auth);
+          document.getElementById("domain-error-overlay").style.display =
+            "none";
+          document.getElementById("auth-overlay").style.display = "flex";
+          transitionView(
+            document.getElementById("step-store"),
+            document.getElementById("step-google"),
+            "block",
+            "anim-fade-in",
+          );
+        });
 
       // --- Auth Logic ---
       onAuthStateChanged(auth, async (user) => {
@@ -3354,13 +3613,15 @@
           const cachedId = localStorage.getItem("nanryosai_store_id");
           // AUTO LOGIN IMPROVEMENT: If we have a cached ID, verify it exists (mentally) and just GO.
           // We trust the local storage for friction reduction.
-          
+
           // POSアラート監視 (認証後)
-          import("./pos-alert.js").then(({ renderPosAlert }) => {
-            onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
-              if (snap.exists()) renderPosAlert(snap.data());
-            });
-          }).catch(console.error);
+          import("./pos-alert.js")
+            .then(({ renderPosAlert }) => {
+              onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+                if (snap.exists()) renderPosAlert(snap.data());
+              });
+            })
+            .catch(console.error);
 
           if (cachedId) {
             currentStoreId = cachedId;
@@ -3380,7 +3641,7 @@
             document.getElementById("step-store"),
             document.getElementById("step-google"),
             "block",
-            "anim-fade-in"
+            "anim-fade-in",
           );
           document.getElementById("app").style.display = "none";
         }
@@ -3404,9 +3665,9 @@
         if (detectInAppBrowser()) {
           const proceed = confirm(
             "⚠️ アプリ内ブラウザが検出されました\n\n" +
-            "ログインに失敗する場合があります。\n" +
-            "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
-            "このまま続行しますか？"
+              "ログインに失敗する場合があります。\n" +
+              "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
+              "このまま続行しますか？",
           );
           if (!proceed) return;
         }
@@ -3418,22 +3679,31 @@
         signInWithPopup(auth, provider)
           .then((result) => {
             if (result && result.user) {
-              console.log("[Portal Auth] Popup login success:", result.user.email);
+              console.log(
+                "[Portal Auth] Popup login success:",
+                result.user.email,
+              );
             }
           })
           .catch(async (error) => {
             if (error.code === "auth/popup-blocked") {
               console.warn("[Portal Auth] Popup blocked, showing guidance...");
-              document.getElementById("popup-blocked-guidance").style.display = "block";
-              
+              document.getElementById("popup-blocked-guidance").style.display =
+                "block";
+
               // Re-trigger the same logic on retry
               document.getElementById("btn-retry-login").onclick = () => {
-                document.getElementById("popup-blocked-guidance").style.display = "none";
+                document.getElementById(
+                  "popup-blocked-guidance",
+                ).style.display = "none";
                 document.getElementById("btn-google-login").click();
               };
               return;
             }
-            if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+            if (
+              error.code === "auth/popup-closed-by-user" ||
+              error.code === "auth/cancelled-popup-request"
+            ) {
               return; // ユーザーがキャンセル
             }
             console.error("[Portal Auth] Login error:", error);
@@ -3525,7 +3795,7 @@
           document.getElementById("auth-overlay"),
           document.getElementById("app"),
           "flex",
-          "anim-fade-in"
+          "anim-fade-in",
         );
 
         // 店舗情報の取得と表示の更新
@@ -3575,7 +3845,6 @@
 
         // 営業ステータス管理の初期化
         initOperationStatus();
-
 
         const now = new Date();
         const localDate = new Date(
@@ -3691,9 +3960,9 @@
                         <div class="item-price">¥${item.price}</div>
                         <div class="item-actions-row">
                              <button class="btn-sm btn-edit" onclick="openItemModal('${item.id}')">編集</button>
-                             <button class="btn-sm btn-toggle ${storeOperationStatus === 'open' ? (item.isAvailable ? "is-active" : "is-inactive") : "is-inactive"}" 
-                                 onclick="toggleItemStatus('${item.id}', ${!item.isAvailable})" ${storeOperationStatus !== 'open' ? 'disabled' : ''}>
-                                 ${storeOperationStatus === 'open' ? (item.isAvailable ? "販売中" : "売切") : "店舗停止中"}
+                             <button class="btn-sm btn-toggle ${storeOperationStatus === "open" ? (item.isAvailable ? "is-active" : "is-inactive") : "is-inactive"}" 
+                                 onclick="toggleItemStatus('${item.id}', ${!item.isAvailable})" ${storeOperationStatus !== "open" ? "disabled" : ""}>
+                                 ${storeOperationStatus === "open" ? (item.isAvailable ? "販売中" : "売切") : "店舗停止中"}
                              </button>
                         </div>
                     </div>
@@ -4046,7 +4315,9 @@
           const feedOrders = ordersData
             .filter(
               (o) =>
-                o.status !== null && o.status !== "cancelled" && o.status !== "abandoned_and_paid",
+                o.status !== null &&
+                o.status !== "cancelled" &&
+                o.status !== "abandoned_and_paid",
             ) // Exclude provisional, cancelled, abandoned
             .sort(
               (a, b) =>
@@ -4476,7 +4747,8 @@
         };
         // Normalize status to handle potential inconsistencies
         if (s === "canceled") s = "cancelled";
-        if (s === "completed_at_store" || s === "completed_online") s = "completed";
+        if (s === "completed_at_store" || s === "completed_online")
+          s = "completed";
         if (s === "abandoned_and_paid") s = "abandoned";
         if (s === "unpaid_at_pos" || s === "authorized") s = "cooking"; // Fallback mapping for legacy stats
 
@@ -4518,8 +4790,14 @@
             btn.style.opacity = "0.7";
           }
           try {
-            const adminUpdate = httpsCallable(functions, "adminUpdateOrderStatus");
-            await adminUpdate({ orderId: selectedOrder.id, newStatus: newStatus });
+            const adminUpdate = httpsCallable(
+              functions,
+              "adminUpdateOrderStatus",
+            );
+            await adminUpdate({
+              orderId: selectedOrder.id,
+              newStatus: newStatus,
+            });
             closeOrderModal();
           } catch (e) {
             alert("更新失敗: " + e.message);
@@ -4578,10 +4856,13 @@
           pulseChart.options.scales.x.max = maxVal;
           // Dynamically adjust point radius if zoomed in
           const range = pulseChartRange.end - pulseChartRange.start;
-          pulseChart.data.datasets[0].pointRadius = (ctx) => range < 60 ? 4 : 0;
+          pulseChart.data.datasets[0].pointRadius = (ctx) =>
+            range < 60 ? 4 : 0;
           pulseChart.update("none");
         } else {
-          const ctxP = document.getElementById("chart-detailed-pulse").getContext("2d");
+          const ctxP = document
+            .getElementById("chart-detailed-pulse")
+            .getContext("2d");
           if (pulseChart) pulseChart.destroy();
           pulseChart = new Chart(ctxP, {
             type: "line",
@@ -4596,7 +4877,8 @@
                   borderWidth: 3,
                   fill: true,
                   tension: 0.4,
-                  pointRadius: (context) => (pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0),
+                  pointRadius: (context) =>
+                    pulseChartRange.end - pulseChartRange.start < 60 ? 4 : 0,
                   pointBackgroundColor: "#10b981",
                 },
               ],
@@ -4883,9 +5165,13 @@
 
       /** 現在のステータスのラベル・絵文字マップ */
       const OPERATION_STATUS_CONFIG = {
-        open:      { text: "営業中",          emoji: "🟢", cls: "open" },
-        suspended: { text: "準備中 / 一時停止中", emoji: "🟡", cls: "suspended" },
-        closed:    { text: "本日の営業終了",   emoji: "⚫", cls: "closed" },
+        open: { text: "営業中", emoji: "🟢", cls: "open" },
+        suspended: {
+          text: "準備中 / 一時停止中",
+          emoji: "🟡",
+          cls: "suspended",
+        },
+        closed: { text: "本日の営業終了", emoji: "⚫", cls: "closed" },
       };
 
       let storeStatusUnsubscribe = null;
@@ -4904,27 +5190,45 @@
             const status = snap.data().operationStatus || "suspended";
             storeOperationStatus = status; // Update global state
             updateStatusUI(status);
-            
+
             // 警告バナーの制御
             const warning = document.getElementById("items-status-warning");
-            if (warning) warning.style.display = status === "open" ? "none" : "block";
-            
+            if (warning)
+              warning.style.display = status === "open" ? "none" : "block";
+
             // 商品一覧の再描画 (トグル状態反映のため)
-            if (typeof itemsData !== 'undefined' && itemsData && itemsData.length > 0) {
+            if (
+              typeof itemsData !== "undefined" &&
+              itemsData &&
+              itemsData.length > 0
+            ) {
               renderItems();
             }
           },
-          (err) => console.error("store status listener error:", err)
+          (err) => console.error("store status listener error:", err),
         );
 
         // ボタンのイベント設定 (複数パネル対応・重複登録防止のため onclick を使用)
-        document.querySelectorAll(".js-btn-open-store").forEach(btn => btn.onclick = openOpenModal);
-        document.querySelectorAll(".js-btn-suspend-store").forEach(btn => btn.onclick = () => changeStoreStatus("suspended"));
-        document.querySelectorAll(".js-btn-close-store").forEach(btn => btn.onclick = () => {
-          if (confirm("今日の営業を終了します。よろしいですか？\n（この操作後、来場者は注文できなくなります）")) {
-            changeStoreStatus("closed");
-          }
-        });
+        document
+          .querySelectorAll(".js-btn-open-store")
+          .forEach((btn) => (btn.onclick = openOpenModal));
+        document
+          .querySelectorAll(".js-btn-suspend-store")
+          .forEach(
+            (btn) => (btn.onclick = () => changeStoreStatus("suspended")),
+          );
+        document.querySelectorAll(".js-btn-close-store").forEach(
+          (btn) =>
+            (btn.onclick = () => {
+              if (
+                confirm(
+                  "今日の営業を終了します。よろしいですか？\n（この操作後、来場者は注文できなくなります）",
+                )
+              ) {
+                changeStoreStatus("closed");
+              }
+            }),
+        );
       }
 
       /**
@@ -4932,28 +5236,29 @@
        * @param {string} status - "open" | "suspended" | "closed"
        */
       function updateStatusUI(status) {
-        const config = OPERATION_STATUS_CONFIG[status] || OPERATION_STATUS_CONFIG.suspended;
-        
-        document.querySelectorAll(".js-op-panel").forEach(panel => {
+        const config =
+          OPERATION_STATUS_CONFIG[status] || OPERATION_STATUS_CONFIG.suspended;
+
+        document.querySelectorAll(".js-op-panel").forEach((panel) => {
           panel.className = `operation-status-panel status-${status} js-op-panel`;
         });
-        
-        document.querySelectorAll(".js-status-badge").forEach(badge => {
+
+        document.querySelectorAll(".js-status-badge").forEach((badge) => {
           badge.className = `status-badge-large ${config.cls} js-status-badge`;
         });
-        
-        document.querySelectorAll(".js-status-text").forEach(badgeText => {
+
+        document.querySelectorAll(".js-status-text").forEach((badgeText) => {
           badgeText.textContent = `${config.emoji} ${config.text}`;
         });
 
         // ボタンの表示・非表示制御
-        document.querySelectorAll(".js-btn-open-store").forEach(btn => {
+        document.querySelectorAll(".js-btn-open-store").forEach((btn) => {
           btn.style.display = status !== "open" ? "block" : "none";
         });
-        document.querySelectorAll(".js-btn-suspend-store").forEach(btn => {
+        document.querySelectorAll(".js-btn-suspend-store").forEach((btn) => {
           btn.style.display = status === "open" ? "block" : "none";
         });
-        document.querySelectorAll(".js-btn-close-store").forEach(btn => {
+        document.querySelectorAll(".js-btn-close-store").forEach((btn) => {
           btn.style.display = status !== "closed" ? "block" : "none";
         });
       }
@@ -4963,17 +5268,34 @@
        * @param {string} newStatus - "suspended" | "closed"
        */
       async function changeStoreStatus(newStatus, availableItemIds) {
-        const btns = newStatus === "suspended" ? document.querySelectorAll(".js-btn-suspend-store") : document.querySelectorAll(".js-btn-close-store");
+        const btns =
+          newStatus === "suspended"
+            ? document.querySelectorAll(".js-btn-suspend-store")
+            : document.querySelectorAll(".js-btn-close-store");
         let originalText = "";
-        btns.forEach(btn => { originalText = btn.textContent; btn.textContent = "処理中..."; btn.disabled = true; });
+        btns.forEach((btn) => {
+          originalText = btn.textContent;
+          btn.textContent = "処理中...";
+          btn.disabled = true;
+        });
         try {
-          const updateStoreStatusFn = httpsCallable(functions, "updateStoreStatus");
-          await updateStoreStatusFn({ storeId: currentStoreId, newStatus, availableItemIds: availableItemIds || [] });
+          const updateStoreStatusFn = httpsCallable(
+            functions,
+            "updateStoreStatus",
+          );
+          await updateStoreStatusFn({
+            storeId: currentStoreId,
+            newStatus,
+            availableItemIds: availableItemIds || [],
+          });
         } catch (err) {
           console.error("changeStoreStatus error:", err);
           alert(`エラーが発生しました: ${err.message}`);
         } finally {
-          btns.forEach(btn => { btn.textContent = originalText; btn.disabled = false; });
+          btns.forEach((btn) => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          });
         }
       }
 
@@ -4988,33 +5310,41 @@
         const modal = document.getElementById("open-store-modal");
         const listEl = document.getElementById("open-modal-item-list");
         modal.classList.add("visible");
-        listEl.innerHTML = '<p style="color:#9ca3af;text-align:center;">商品を読み込み中...</p>';
+        listEl.innerHTML =
+          '<p style="color:#9ca3af;text-align:center;">商品を読み込み中...</p>';
 
         try {
           const q = query(
             collection(db, "items"),
-            where("storeId", "==", currentStoreId)
+            where("storeId", "==", currentStoreId),
           );
           const snap = await getDocs(q);
-          openModalItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          openModalItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
           // JS側で並び替え (displayOrderがない場合は最後尾扱いにするなど、必要に応じて)
-          openModalItems.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          openModalItems.sort(
+            (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
+          );
 
           if (openModalItems.length === 0) {
-            listEl.innerHTML = '<p style="color:#9ca3af;text-align:center;">商品が登録されていません</p>';
+            listEl.innerHTML =
+              '<p style="color:#9ca3af;text-align:center;">商品が登録されていません</p>';
             return;
           }
 
-          listEl.innerHTML = openModalItems.map(item => `
+          listEl.innerHTML = openModalItems
+            .map(
+              (item) => `
             <label class="item-checkbox-row" for="item-chk-${item.id}">
-              <input type="checkbox" id="item-chk-${item.id}" value="${item.id}" checked>
+              <input type="checkbox" id="item-chk-${item.id}" value="${item.id}" ${item.isAvailable !== false ? 'checked' : ''}>
               <div class="item-checkbox-label">
                 <div class="item-checkbox-name">${item.name}</div>
                 <div class="item-checkbox-price">¥${(item.price || 0).toLocaleString()}</div>
               </div>
             </label>
-          `).join("");
+          `,
+            )
+            .join("");
         } catch (err) {
           console.error("openOpenModal items load error:", err);
           listEl.innerHTML = `<p style="color:red;">商品の読み込みに失敗しました: ${err.message}</p>`;
@@ -5033,21 +5363,30 @@
 
       /** すべて選択 / 解除 */
       window.selectAllItems = function (checked) {
-        document.querySelectorAll("#open-modal-item-list input[type='checkbox']")
-          .forEach(cb => { cb.checked = checked; });
+        document
+          .querySelectorAll("#open-modal-item-list input[type='checkbox']")
+          .forEach((cb) => {
+            cb.checked = checked;
+          });
       };
 
       /** 確定ボタン押下 → Function 呼び出し */
       window.confirmOpenStore = async function () {
-        const checkedIds = [...document.querySelectorAll("#open-modal-item-list input[type='checkbox']:checked")]
-          .map(cb => cb.value);
+        const checkedIds = [
+          ...document.querySelectorAll(
+            "#open-modal-item-list input[type='checkbox']:checked",
+          ),
+        ].map((cb) => cb.value);
 
         const btn = document.getElementById("btn-confirm-open");
         btn.textContent = "処理中...";
         btn.disabled = true;
 
         try {
-          const updateStoreStatusFn = httpsCallable(functions, "updateStoreStatus");
+          const updateStoreStatusFn = httpsCallable(
+            functions,
+            "updateStoreStatus",
+          );
           await updateStoreStatusFn({
             storeId: currentStoreId,
             newStatus: "open",
@@ -5062,27 +5401,65 @@
           btn.disabled = false;
         }
       };
-
     </script>
 
-
     <!-- 営業開始 商品選択モーダル -->
-    <div id="open-store-modal" class="open-modal-overlay" onclick="handleOpenModalOutsideClick(event)">
+    <div
+      id="open-store-modal"
+      class="open-modal-overlay"
+      onclick="handleOpenModalOutsideClick(event)"
+    >
       <div class="open-modal-sheet">
         <h3 class="open-modal-title">🟢 営業を開始する</h3>
-        <p class="open-modal-desc">販売する商品を選択してください。チェックした商品のみ「販売中」になります。</p>
+        <p class="open-modal-desc">
+          販売する商品を選択してください。チェックした商品のみ「販売中」になります。
+        </p>
         <div class="open-modal-actions-top">
-          <button onclick="selectAllItems(true)" style="background:#ecfdf5;color:#065f46;border:1px solid #10b981;padding:8px 14px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer;">✅ すべて選択</button>
-          <button onclick="selectAllItems(false)" style="background:#f9fafb;color:#374151;border:1px solid #d1d5db;padding:8px 14px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer;">☐ すべて解除</button>
+          <button
+            onclick="selectAllItems(true)"
+            style="
+              background: #ecfdf5;
+              color: #065f46;
+              border: 1px solid #10b981;
+              padding: 8px 14px;
+              border-radius: 8px;
+              font-weight: 600;
+              font-size: 0.85rem;
+              cursor: pointer;
+            "
+          >
+            ✅ すべて選択
+          </button>
+          <button
+            onclick="selectAllItems(false)"
+            style="
+              background: #f9fafb;
+              color: #374151;
+              border: 1px solid #d1d5db;
+              padding: 8px 14px;
+              border-radius: 8px;
+              font-weight: 600;
+              font-size: 0.85rem;
+              cursor: pointer;
+            "
+          >
+            ☐ すべて解除
+          </button>
         </div>
         <div id="open-modal-item-list" class="item-checkbox-list">
           <!-- JS で動的生成 -->
-          <p style="color:#9ca3af;text-align:center;">商品を読み込み中...</p>
+          <p style="color: #9ca3af; text-align: center">商品を読み込み中...</p>
         </div>
-        <button id="btn-confirm-open" class="open-modal-confirm-btn" onclick="confirmOpenStore()">
+        <button
+          id="btn-confirm-open"
+          class="open-modal-confirm-btn"
+          onclick="confirmOpenStore()"
+        >
           🚀 営業開始する
         </button>
-        <button class="open-modal-cancel-btn" onclick="closeOpenModal()">キャンセル</button>
+        <button class="open-modal-cancel-btn" onclick="closeOpenModal()">
+          キャンセル
+        </button>
       </div>
     </div>
   </body>
