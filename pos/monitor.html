@@ -61,14 +61,27 @@
       }
 
       body {
+        height: 100vh;
+        height: 100dvh;
         font-family: var(--font);
         background: var(--bg);
         color: var(--text);
-        height: 100vh;
         overflow: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+
+      /* 全画面表示時の余白・黒帯対策 */
+      :fullscreen, :-webkit-full-screen {
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: var(--bg) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      ::backdrop {
+        background-color: var(--bg) !important;
       }
 
       /* --- View Management --- */

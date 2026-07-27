@@ -45,6 +45,18 @@
         overflow: hidden;
       }
 
+      /* 全画面表示時の余白・黒帯対策 */
+      :fullscreen, :-webkit-full-screen {
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: var(--bg-color) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      ::backdrop {
+        background-color: var(--bg-color) !important;
+      }
+
       /* --- Error Overlay --- */
       #error-overlay {
         position: fixed;
@@ -123,7 +135,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 15px;
+        padding: 0 15px 0 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
         font-size: 0.9em;
         font-family: monospace;
         flex-shrink: 0;

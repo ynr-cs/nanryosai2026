@@ -41,7 +41,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        padding: 12px 20px;
+        padding: 12px 20px 12px 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
         background-color: #1a1a1a;
         border-bottom: 1px solid #333;
         border-radius: 8px;
@@ -143,6 +143,8 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 15px;
+        flex-grow: 1;
+        overflow-y: auto;
       }
 
       /* --- 注文カードデザイン --- */

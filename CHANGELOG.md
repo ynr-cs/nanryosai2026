@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.64] POS関連アプリのiPad全画面UI改善 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **タスク分類**: UI/UX改善
+- **関連ファイル**: `pos/pos.html`, `pos/presenter.html`, `pos/kitchen.html`, `pos/monitor.html`
+- **所要時間目安**: 10m
+
+### 変更内容 (Changes)
+
+#### 変更 (Changed)
+- 全POSアプリ (`pos`, `presenter`, `kitchen`, `monitor`) にて、全画面表示（PWAおよびSafariフルスクリーンAPI）時に発生するブラウザの黒帯や余白を防ぐため `:fullscreen` 時のCSS（`width: 100vw; height: 100vh;` 等）を追加
+- `pos`, `presenter`, `kitchen` のヘッダー部左側に `padding-left: 80px;` を追加し、iPad等で表示されるOS標準の「閉じる/完了」ボタンとタイトルや時刻が重ならないように改善
+
+
 ## [0.5.63] POSアプリの不要なCSSおよびHTMLのクリーンアップ - 2026-07-28
 
 ### メタ情報
