@@ -635,7 +635,7 @@
       </div>
     </div>
     <script>
-      setTimeout(() => {
+      let initialLoaderTimer = setTimeout(() => {
         const fallback = document.getElementById("loader-fallback");
         if (fallback) fallback.style.display = "block";
       }, 8000);
@@ -813,6 +813,12 @@
           const storeParam = storeId ? `&s=${storeId}` : '';
           window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
         } else {
+          if (initialLoaderTimer) {
+            clearTimeout(initialLoaderTimer);
+            initialLoaderTimer = null;
+          }
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
           document.getElementById("global-loader").classList.remove("active");
           document.getElementById("main-content").style.display = "block";
           document.getElementById("display-store-id").textContent = storeId;

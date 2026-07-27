@@ -638,7 +638,7 @@
       </div>
     </div>
     <script>
-      setTimeout(() => {
+      let initialLoaderTimer = setTimeout(() => {
         const fallback = document.getElementById("loader-fallback");
         if (fallback) fallback.style.display = "block";
       }, 8000);
@@ -887,16 +887,24 @@
       const urlParams = new URLSearchParams(window.location.search);
       storeId = urlParams.get("storeId");
 
-      // Loader
-      function showLoader(text = "処理中...") {
-        loaderText.innerText = text;
-        loader.classList.add("active");
-        isProcessing = true;
-      }
-      function hideLoader() {
-        loader.classList.remove("active");
-        isProcessing = false;
-      }
+        // Loader
+        function showLoader(text = "処理中...") {
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
+          loaderText.innerText = text;
+          loader.classList.add("active");
+          isProcessing = true;
+        }
+        function hideLoader() {
+          if (initialLoaderTimer) {
+            clearTimeout(initialLoaderTimer);
+            initialLoaderTimer = null;
+          }
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
+          loader.classList.remove("active");
+          isProcessing = false;
+        }
 
       // ドメインチェックヘルパー
       const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
