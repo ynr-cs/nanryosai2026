@@ -36,6 +36,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#f4f6f9" />
+    <link rel="manifest" href="manifest.json" />
     <title>セルフオーダーキオスク | 南陵祭2026</title>
     <!-- Bootstrap 5 CSS -->
     <link
@@ -1310,34 +1311,9 @@
         color: #fff;
       }
 
-      /* Fullscreen Warning Badge for iPad */
-      .fullscreen-notice {
-        position: fixed;
-        top: 22px;
-        left: 80px;
-        z-index: 99999;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: #ffffff;
-        font-size: 0.78rem;
-        font-weight: 800;
-        padding: 6px 14px;
-        border-radius: 999px;
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        pointer-events: none;
-        display: none;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
-        letter-spacing: 0.03em;
-      }
     </style>
   </head>
   <body>
-    <!-- Fullscreen Exit Warning Badge (iPad/Safari用) -->
-    <div id="fullscreen-notice" class="fullscreen-notice">
-      <i class="bi bi-arrow-left" style="color: #ffffff; font-size: 0.95rem;"></i> 左の✕ボタンは押さないでください
-    </div>
     <!-- Global Loader -->
     <div id="global-loader">
       <div class="loader-ring"></div>
@@ -1830,7 +1806,8 @@
       // ==========================================================
       window.startKiosk = async () => {
         try {
-          if (document.documentElement.requestFullscreen) {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          if (!isStandalone && document.documentElement.requestFullscreen) {
             await document.documentElement.requestFullscreen();
           }
         } catch (e) {
@@ -1862,11 +1839,6 @@
           .querySelectorAll(".screen")
           .forEach((s) => s.classList.remove("active"));
         document.getElementById(`screen-${name}`).classList.add("active");
-        
-        const notice = document.getElementById("fullscreen-notice");
-        if (notice) {
-          notice.style.display = (name === "startup") ? "none" : "flex";
-        }
 
         const header = document.getElementById("kiosk-header");
         if (header) {
@@ -1962,7 +1934,8 @@
         }
 
         // 2. フルスクリーン状態の維持チェック
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (!isStandalone && !document.fullscreenElement && document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen().catch(() => {});
         }
 

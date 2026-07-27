@@ -1,0 +1,8 @@
+{
+  "name": "南陵祭2026 POS",
+  "short_name": "POS",
+  "start_url": "./portal.html",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a"
+}

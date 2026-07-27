@@ -23,6 +23,7 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
     <title>お客様モニター | 南陵祭2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -755,6 +756,9 @@
         }
 
         toggleFullScreen() {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          if (isStandalone) return;
+
           const doc = window.document;
           const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
           const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;

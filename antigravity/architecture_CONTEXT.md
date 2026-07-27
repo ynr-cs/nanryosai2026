@@ -280,3 +280,15 @@ stateDiagram-v2
   - 設計に存在した SendGrid を用いたメール送信機能（受付完了メール、BAN最終通告など）は **仕様から削除** されました。
 - **5分放置ペナルティの自動実行処理 (Scheduler) / BAN機能**:
   - 開発中のテスト運用においてペナルティに抵触しやすく開発サイクルを阻害するため、**意図的に実装を保留** しています。定期自動キャンセルバッチや `banned_users` を用いたログイン制限は現在組み込まれていません。
+
+## 7. POS・SOK端末の全画面運用とPWAアーキテクチャ
+
+iOS/iPadOS の Safari では、セキュリティ（フィッシング防止）の観点から HTML5 の `requestFullscreen()` API によって全画面表示を行っている間はキーボード入力が制限されます（「フルスクリーンでタイプ入力しているようです」という警告が表示される）。
+POS画面（`pos.html`）やセルフオーダーキオスク（`sok.html`）など、店頭のiPadで常時全画面かつ文字入力を伴うアプリでは、この制限を回避する必要があります。
+
+- **解決策 (PWA Standalone Mode)**:
+  - POSディレクトリに `manifest.json` を配置し、各HTMLから `<link rel="manifest" href="manifest.json">` で読み込む構成としています。
+  - 店舗スタッフは初回セットアップ時に、ブラウザの共有メニューから「ホーム画面に追加 (Add to Home Screen)」を行います。
+  - ホーム画面から起動すると Standalone モード（SafariのURLバー等がない完全なネイティブアプリ風の全画面）となり、このキーボード制限を受けません。
+- **実装上の注意点**:
+  - `window.matchMedia('(display-mode: standalone)').matches` または `window.navigator.standalone` を判定し、すでに Standalone 起動している場合は `requestFullscreen()` を呼び出さない（無効化する）処理を組み込んでいます。

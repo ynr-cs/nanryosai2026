@@ -20,6 +20,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
     <title>POS | 南陵祭2026</title>
     <style>
       :root {
@@ -950,6 +951,9 @@
       }
       
       function toggleFullScreen() {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) return; // PWA(ホーム画面追加)時は全画面APIを呼ばない
+
         const doc = window.document;
         const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
         const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;

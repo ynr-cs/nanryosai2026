@@ -13,6 +13,25 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.71] POS/SOK系画面のPWA化およびiOS Safariフルスクリーンキーボード制限の回避 - 2026-07-28
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro (High)
+- **タスク分類**: 新機能追加, UI/UX改善
+- **関連ファイル**: `pos/manifest.json`, `pos/sok.html`, `pos/pos.html`, `pos/kitchen.html`, `pos/presenter.html`, `pos/monitor.html`, `pos/portal.html`, `antigravity/architecture_CONTEXT.md`
+- **所要時間目安**: 10m
+
+### 変更内容 (Changes)
+
+#### 追加 (Added)
+- POS/SOKアプリアイコンやテーマ色などを定義したPWA用 `manifest.json` を新規作成
+- 全POS系HTMLファイルの `<head>` に `manifest.json` とiOS用タグを読み込むリンクを追加
+
+#### 変更 (Changed)
+- `requestFullscreen()` の呼び出し前にPWAの Standalone モードかを判定し、Standalone 時は全画面化APIを使用しないよう変更（iOS Safari フルスクリーンキーボード制限の回避）
+- SOKの不要なFullscreen Exit Warning Badge（「左の✕ボタンは押さないでください」のUI）を削除
+
 ## [0.5.70] 注文送信中等における「ポータルへ戻る」誤表示の防止策を追加 - 2026-07-28
 
 ### メタ情報
