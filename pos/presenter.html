@@ -574,6 +574,9 @@
             <button class="btn-header btn-zoom" onclick="adjustZoom(0.1)">
               +
             </button>
+            <button class="btn-header btn-zoom" onclick="toggleFullScreen()" style="width: auto; padding: 5px 10px; font-size: 0.9rem;">
+              全画面
+            </button>
           </div>
           <span class="user-info" id="user-name"></span>
           <button class="btn-header" onclick="logout()">ログアウト</button>
@@ -647,6 +650,18 @@
         if (currentZoom < 0.5) currentZoom = 0.5;
         if (currentZoom > 2.0) currentZoom = 2.0;
         document.body.style.zoom = currentZoom;
+      }
+
+      function toggleFullScreen() {
+        const doc = window.document;
+        const docEl = doc.documentElement;
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+          if (requestFullScreen) requestFullScreen.call(docEl);
+        } else {
+          if (cancelFullScreen) cancelFullScreen.call(doc);
+        }
       }
 
       function showError(html) {
