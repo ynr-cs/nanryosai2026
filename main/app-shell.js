@@ -30,6 +30,7 @@ const AppShell = {
     "404.html",
     "about.html",
     "about-us.html",
+    "access.html",
     "account.html",
     "detail.html",
     "index.html",

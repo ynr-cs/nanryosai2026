@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>アクセス | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .access-wrapper {
+        padding: 0 20px 80px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      .page-header {
+        padding: 40px 20px 20px;
+        text-align: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .map-container {
+        width: 100%;
+        height: 450px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-top: 16px;
+      }
+      
+      .map-container iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      
+      .app-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--bg-surface);
+        color: var(--text-main);
+        padding: 14px 24px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+        flex: 1;
+        min-width: 160px;
+        text-align: center;
+      }
+      
+      .app-link-btn:hover {
+        background: var(--bg-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      }
+      
+      .app-links-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      .warning-box {
+        background: rgba(255, 193, 7, 0.1);
+        border-left: 4px solid #ffc107;
+        padding: 16px 20px;
+        border-radius: 4px;
+        margin-top: 24px;
+      }
+
+      html[data-theme="dark"] .warning-box {
+        background: rgba(255, 193, 7, 0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="page-header">
+        <h1 class="page-title">アクセス</h1>
+      </div>
+
+      <div class="access-wrapper">
+        
+        <!-- 所在地 -->
+        <div class="overview-card overview-padding" style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+            <i class="fas fa-building" style="color: var(--primary-color);"></i> 所在地
+          </h2>
+          <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">横浜南陵高等学校</p>
+          <p style="color: var(--text-sub); line-height: 1.6; font-size: 0.95rem;">
+            〒234-0053<br>
+            神奈川県横浜市港南区日野中央2丁目26番1号<br>
+            TEL: 045-842-3764
+          </p>
+        </div>
+
+        <!-- 交通機関 -->
+        <div class="overview-card overview-padding" style="margin-bottom: 24px;">
+           <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+            <i class="fas fa-train" style="color: var(--primary-color);"></i> 交通アクセス
+          </h2>
+          
+          <div class="overview-grid">
+            <!-- 徒歩 -->
+            <div class="overview-item">
+              <div class="overview-icon-box">
+                <i class="fas fa-walking"></i>
+              </div>
+              <div class="overview-details">
+                <h3 class="overview-label">徒歩</h3>
+                <p class="overview-value-lg" style="font-size: 1.1rem;">JR根岸線 洋光台駅</p>
+                <p class="overview-sub-text">より徒歩 約15分</p>
+              </div>
+            </div>
+            
+            <!-- バス -->
+            <div class="overview-item">
+              <div class="overview-icon-box">
+                <i class="fas fa-bus"></i>
+              </div>
+              <div class="overview-details">
+                <h3 class="overview-label">バス</h3>
+                <p class="overview-value-lg" style="font-size: 1.1rem;">洋光台北口 / 日野中央公園入口</p>
+                <p class="overview-sub-text">
+                  洋光台北口より 徒歩 約5分<br>
+                  日野中央公園入口より 徒歩 約10分
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 注意事項 -->
+          <div class="warning-box">
+            <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--text-main);">
+              <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> 注意事項
+            </h3>
+            <ul style="font-size: 0.95rem; line-height: 1.6; color: var(--text-sub); margin: 0; padding-left: 20px;">
+              <li style="margin-bottom: 8px;">来場者用の駐車場はございません。<strong>お車でのご来場は固くお断りいたします</strong>（近隣の店舗等への駐車もご遠慮ください）。公共交通機関をご利用ください。</li>
+              <li>当日の入場は<strong>正門のみ</strong>となります。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Google マップ -->
+        <div class="overview-card overview-padding">
+           <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+            <i class="fas fa-map" style="color: var(--primary-color);"></i> 周辺マップ
+          </h2>
+          <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13009.541439383403!2d139.60040833940255!3d35.39569750649437!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601844c91f1ac9df%3A0x59ebbb2dc0bd08df!2z56We5aWI5bed55yM56uL5qiq5rWc5Y2X6Zm16auY562J5a2m5qCh!5e0!3m2!1sja!2sjp!4v1756410512050!5m2!1sja!2sjp" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          
+          <div class="app-links-row">
+            <a href="https://maps.apple.com/?daddr=35.395697,139.600408" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="apple">
+              <i class="fab fa-apple" style="font-size: 1.2rem;"></i> Apple Maps
+            </a>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=35.395697,139.600408" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="google">
+              <i class="fab fa-google" style="font-size: 1.1rem; color: #4285F4;"></i> Google Maps
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <script>
+      window.CURRENT_PAGE = 'access';
+    </script>
+    <script type="module" src="app-shell.js"></script>
+  </body>
+</html>
