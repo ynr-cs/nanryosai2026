@@ -129,6 +129,77 @@
       html[data-theme="dark"] .warning-box {
         background: rgba(255, 193, 7, 0.05);
       }
+
+      /* 拡張コンテンツ用CSS */
+      .badge-info {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(106, 17, 203, 0.3);
+      }
+      
+      .badge-warning {
+        background: #f59e0b;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+      }
+
+      .route-list {
+        list-style: none;
+        padding: 0;
+        margin: 16px 0 0 0;
+      }
+      
+      .route-list li {
+        padding: 16px 0;
+        border-bottom: 1px dashed var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      
+      .route-list li:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      
+      .route-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .route-desc {
+        font-size: 0.95rem;
+        color: var(--text-sub);
+        line-height: 1.6;
+      }
+
+      .static-map-img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 20px 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+      }
+      
+      .wide-grid-item {
+        grid-column: 1 / -1;
+      }
     </style>
   </head>
   <body>
@@ -159,34 +230,75 @@
           </h2>
           
           <div class="overview-grid">
-            <!-- 徒歩 -->
-            <div class="overview-item">
+            <!-- 徒歩 (全幅) -->
+            <div class="overview-item wide-grid-item">
               <div class="overview-icon-box">
                 <i class="fas fa-walking"></i>
               </div>
-              <div class="overview-details">
-                <h3 class="overview-label">徒歩</h3>
-                <p class="overview-value-lg" style="font-size: 1.1rem;">JR根岸線 洋光台駅</p>
-                <p class="overview-sub-text">より徒歩 約15分</p>
+              <div class="overview-details" style="width: 100%;">
+                <h3 class="overview-label">JR根岸線をご利用の場合</h3>
+                <p class="overview-value-lg" style="font-size: 1.15rem; margin-bottom: 8px;"><strong>洋光台駅</strong> より 徒歩 約15分</p>
+                
+                <div style="background: var(--bg-surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+                  <p style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px; display: flex; justify-content: space-between;">
+                    <span><i class="fas fa-location-dot" style="color:var(--text-sub); margin-right:4px;"></i> <strong>横浜駅</strong> から</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">約20分</span>
+                  </p>
+                  <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; display: flex; justify-content: space-between;">
+                    <span><i class="fas fa-location-dot" style="color:var(--text-sub); margin-right:4px;"></i> <strong>大船駅</strong> から</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">約15分</span>
+                  </p>
+                </div>
               </div>
             </div>
             
-            <!-- バス -->
-            <div class="overview-item">
+            <!-- バス (全幅) -->
+            <div class="overview-item wide-grid-item" style="margin-top: 12px;">
               <div class="overview-icon-box">
                 <i class="fas fa-bus"></i>
               </div>
-              <div class="overview-details">
-                <h3 class="overview-label">バス</h3>
-                <p class="overview-value-lg" style="font-size: 1.1rem;">洋光台北口 / 日野中央公園入口</p>
-                <p class="overview-sub-text">
-                  洋光台北口より 徒歩 約5分<br>
-                  日野中央公園入口より 徒歩 約10分
-                </p>
+              <div class="overview-details" style="width: 100%;">
+                <h3 class="overview-label">路線バスをご利用の場合</h3>
+                
+                <ul class="route-list">
+                  <li>
+                    <div class="route-title">
+                      洋光台北口 停留所 <span class="badge-info">最も近い</span>
+                    </div>
+                    <div class="route-desc">
+                      本校まで <strong>徒歩 約5分</strong><br>
+                      洋光台駅から市営バス111・112・133系統などに乗車
+                    </div>
+                  </li>
+                  <li>
+                    <div class="route-title">
+                      日野中央公園入口 停留所 <span class="badge-info">本数が多い</span>
+                    </div>
+                    <div class="route-desc">
+                      本校まで <strong>徒歩 約10分</strong><br>
+                      上大岡駅方面からのアクセスに便利です。
+                    </div>
+                  </li>
+                  <li>
+                    <div class="route-title">
+                      日野小学校前 停留所 <span class="badge-warning">混雑回避</span>
+                    </div>
+                    <div class="route-desc">
+                      本校まで <strong>徒歩 約8分</strong><br>
+                      日野中央公園入口より手前で乗車することで、混雑を避けられる場合があります。
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
           
+          <!-- 周辺マップ（画像） -->
+          <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: inline-block;">周辺ルートマップ</h3>
+            <img src="https://www.pen-kanagawa.ed.jp/y-nanryo-h/documents/map.jpg?text=駅・バス停からの地図" alt="駅・バス停からの地図" class="static-map-img" onerror="this.onerror=null; this.style.display='none';">
+          </div>
+
           <!-- 注意事項 -->
           <div class="warning-box">
             <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--text-main);">
@@ -202,7 +314,7 @@
         <!-- Google マップ -->
         <div class="overview-card overview-padding">
            <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
-            <i class="fas fa-map" style="color: var(--primary-color);"></i> 周辺マップ
+            <i class="fas fa-map-location-dot" style="color: var(--primary-color);"></i> Googleマップ
           </h2>
           <div class="map-container">
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13009.541439383403!2d139.60040833940255!3d35.39569750649437!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601844c91f1ac9df%3A0x59ebbb2dc0bd08df!2z56We5aWI5bed55yM56uL5qiq5rWc5Y2X6Zm16auY562J5a2m5qCh!5e0!3m2!1sja!2sjp!4v1756410512050!5m2!1sja!2sjp" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
