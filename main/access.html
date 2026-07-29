@@ -92,7 +92,7 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        background: var(--bg-surface);
+        background: var(--card-bg);
         color: var(--text-main);
         padding: 14px 24px;
         border-radius: 50px;
@@ -106,7 +106,7 @@
       }
       
       .app-link-btn:hover {
-        background: var(--bg-hover);
+        background: var(--border-color);
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0,0,0,0.08);
       }
@@ -122,7 +122,7 @@
         background: rgba(255, 193, 7, 0.1);
         border-left: 4px solid #ffc107;
         padding: 16px 20px;
-        border-radius: 4px;
+        border-radius: 8px;
         margin-top: 24px;
       }
 
@@ -130,7 +130,6 @@
         background: rgba(255, 193, 7, 0.05);
       }
 
-      /* 拡張コンテンツ用CSS */
       .badge-info {
         background: var(--primary-gradient);
         color: white;
@@ -153,52 +152,160 @@
         box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
       }
 
-      .route-list {
-        list-style: none;
-        padding: 0;
-        margin: 16px 0 0 0;
+      .badge-sub {
+        background: var(--card-bg);
+        color: var(--text-sub);
+        border: 1px solid var(--border-color);
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
       }
-      
-      .route-list li {
-        padding: 16px 0;
-        border-bottom: 1px dashed var(--border-color);
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+
+      .bus-stop-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+        transition: all 0.2s ease;
       }
-      
-      .route-list li:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
+
+      .bus-stop-card:hover {
+        border-color: var(--primary-color);
       }
-      
-      .route-title {
-        font-weight: 800;
-        font-size: 1.1rem;
-        color: var(--text-main);
+
+      .bus-stop-header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
         flex-wrap: wrap;
         gap: 8px;
       }
-      
-      .route-desc {
-        font-size: 0.95rem;
+
+      .bus-stop-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .bus-stop-desc {
+        font-size: 0.93rem;
         color: var(--text-sub);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .station-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+      }
+
+      .station-card:hover {
+        border-color: var(--primary-color);
+      }
+
+      .station-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+      }
+
+      .station-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .route-item {
+        margin-top: 10px;
+        font-size: 0.95rem;
+        color: var(--text-main);
         line-height: 1.6;
       }
 
-      .static-map-img {
-        width: 100%;
-        height: auto;
-        border-radius: 12px;
-        margin: 20px 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid var(--border-color);
+      .bus-detail-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 8px 0 0 0;
       }
-      
-      .wide-grid-item {
-        grid-column: 1 / -1;
+
+      .bus-detail-list li {
+        padding: 8px 0;
+        border-top: 1px dashed var(--border-color);
+        font-size: 0.9rem;
+        color: var(--text-sub);
+      }
+
+      /* アコーディオン UI */
+      .modern-accordion {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-color);
+        overflow: hidden;
+      }
+      .modern-accordion summary {
+        padding: 20px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        list-style: none;
+        background: transparent;
+        transition: background-color 0.2s ease;
+      }
+      .modern-accordion summary:hover {
+        background: rgba(0, 0, 0, 0.03);
+      }
+      html[data-theme="dark"] .modern-accordion summary:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .modern-accordion summary::-webkit-details-marker {
+        display: none;
+      }
+      .modern-accordion summary .summary-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .modern-accordion summary::after {
+        content: '\f078';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        transition: transform 0.3s;
+        color: var(--text-sub);
+        font-size: 1.1rem;
+      }
+      .modern-accordion[open] summary {
+        border-bottom: 1px solid var(--glass-border);
+      }
+      .modern-accordion[open] summary::after {
+        transform: rotate(180deg);
+      }
+      .modern-accordion .accordion-content {
+        padding: 20px;
       }
     </style>
   </head>
@@ -210,109 +317,22 @@
 
       <div class="access-wrapper">
         
-        <!-- 所在地 -->
+        <!-- 1. 所在地 -->
         <div class="overview-card overview-padding" style="margin-bottom: 24px;">
           <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
             <i class="fas fa-building" style="color: var(--primary-color);"></i> 所在地
           </h2>
-          <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">横浜南陵高等学校</p>
-          <p style="color: var(--text-sub); line-height: 1.6; font-size: 0.95rem;">
+          <p style="font-size: 1.2rem; line-height: 1.6; margin-bottom: 8px; font-weight: 800; color: var(--text-main);">
+            神奈川県立横浜南陵高等学校
+          </p>
+          <p style="color: var(--text-sub); line-height: 1.6; font-size: 0.95rem; margin: 0;">
             〒234-0053<br>
-            神奈川県横浜市港南区日野中央2丁目26番1号<br>
-            TEL: 045-842-3764
+            神奈川県横浜市港南区日野中央2丁目26番1号
           </p>
         </div>
 
-        <!-- 交通機関 -->
+        <!-- 2. Google マップ -->
         <div class="overview-card overview-padding" style="margin-bottom: 24px;">
-           <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
-            <i class="fas fa-train" style="color: var(--primary-color);"></i> 交通アクセス
-          </h2>
-          
-          <div class="overview-grid">
-            <!-- 徒歩 (全幅) -->
-            <div class="overview-item wide-grid-item">
-              <div class="overview-icon-box">
-                <i class="fas fa-walking"></i>
-              </div>
-              <div class="overview-details" style="width: 100%;">
-                <h3 class="overview-label">JR根岸線をご利用の場合</h3>
-                <p class="overview-value-lg" style="font-size: 1.15rem; margin-bottom: 8px;"><strong>洋光台駅</strong> より 徒歩 約15分</p>
-                
-                <div style="background: var(--bg-surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
-                  <p style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px; display: flex; justify-content: space-between;">
-                    <span><i class="fas fa-location-dot" style="color:var(--text-sub); margin-right:4px;"></i> <strong>横浜駅</strong> から</span>
-                    <span style="font-weight: 600; color: var(--primary-color);">約20分</span>
-                  </p>
-                  <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; display: flex; justify-content: space-between;">
-                    <span><i class="fas fa-location-dot" style="color:var(--text-sub); margin-right:4px;"></i> <strong>大船駅</strong> から</span>
-                    <span style="font-weight: 600; color: var(--primary-color);">約15分</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- バス (全幅) -->
-            <div class="overview-item wide-grid-item" style="margin-top: 12px;">
-              <div class="overview-icon-box">
-                <i class="fas fa-bus"></i>
-              </div>
-              <div class="overview-details" style="width: 100%;">
-                <h3 class="overview-label">路線バスをご利用の場合</h3>
-                
-                <ul class="route-list">
-                  <li>
-                    <div class="route-title">
-                      洋光台北口 停留所 <span class="badge-info">最も近い</span>
-                    </div>
-                    <div class="route-desc">
-                      本校まで <strong>徒歩 約5分</strong><br>
-                      洋光台駅から市営バス111・112・133系統などに乗車
-                    </div>
-                  </li>
-                  <li>
-                    <div class="route-title">
-                      日野中央公園入口 停留所 <span class="badge-info">本数が多い</span>
-                    </div>
-                    <div class="route-desc">
-                      本校まで <strong>徒歩 約10分</strong><br>
-                      上大岡駅方面からのアクセスに便利です。
-                    </div>
-                  </li>
-                  <li>
-                    <div class="route-title">
-                      日野小学校前 停留所 <span class="badge-warning">混雑回避</span>
-                    </div>
-                    <div class="route-desc">
-                      本校まで <strong>徒歩 約8分</strong><br>
-                      日野中央公園入口より手前で乗車することで、混雑を避けられる場合があります。
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 周辺マップ（画像） -->
-          <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: inline-block;">周辺ルートマップ</h3>
-            <img src="https://www.pen-kanagawa.ed.jp/y-nanryo-h/documents/map.jpg?text=駅・バス停からの地図" alt="駅・バス停からの地図" class="static-map-img" onerror="this.onerror=null; this.style.display='none';">
-          </div>
-
-          <!-- 注意事項 -->
-          <div class="warning-box">
-            <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--text-main);">
-              <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> 注意事項
-            </h3>
-            <ul style="font-size: 0.95rem; line-height: 1.6; color: var(--text-sub); margin: 0; padding-left: 20px;">
-              <li style="margin-bottom: 8px;">来場者用の駐車場はございません。<strong>お車でのご来場は固くお断りいたします</strong>（近隣の店舗等への駐車もご遠慮ください）。公共交通機関をご利用ください。</li>
-              <li>当日の入場は<strong>正門のみ</strong>となります。</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Google マップ -->
-        <div class="overview-card overview-padding">
            <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
             <i class="fas fa-map-location-dot" style="color: var(--primary-color);"></i> Googleマップ
           </h2>
@@ -321,14 +341,151 @@
           </div>
           
           <div class="app-links-row">
-            <a href="https://maps.apple.com/?daddr=35.395697,139.600408" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="apple">
+            <a href="https://maps.apple.com/place?place-id=IDCEE73B74D8D9EB3" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="apple">
               <i class="fab fa-apple" style="font-size: 1.2rem;"></i> Apple Maps
             </a>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=35.395697,139.600408" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="google">
+            <a href="https://www.google.com/maps/search/?api=1&query=神奈川県立横浜南陵高等学校" class="app-link-btn" target="_blank" data-track="click_access_map" data-track-app="google">
               <i class="fab fa-google" style="font-size: 1.1rem; color: #4285F4;"></i> Google Maps
             </a>
           </div>
         </div>
+
+        <!-- 3. 注意事項 -->
+        <div class="warning-box" style="margin-bottom: 24px;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--text-main);">
+            <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> 来場上の注意事項
+          </h3>
+          <ul style="font-size: 0.95rem; line-height: 1.6; color: var(--text-sub); margin: 0; padding-left: 20px;">
+            <li style="margin-bottom: 6px;">来場者用の駐車場はございません。<strong>お車・バイクでのご来場は固くお断りいたします</strong>（近隣店舗への無断駐車もおやめください）。公共交通機関をご利用ください。</li>
+            <li>当日の入場口は<strong>正門のみ</strong>となります。</li>
+          </ul>
+        </div>
+
+        <!-- 4. 最寄りのバス停からのご案内 -->
+        <details class="modern-accordion" open>
+          <summary>
+            <div class="summary-title">
+              <i class="fas fa-bus" style="color: var(--primary-color);"></i> 最寄りのバス停からのご案内
+            </div>
+          </summary>
+          <div class="accordion-content">
+
+          <!-- 洋光台北口 -->
+          <div class="bus-stop-card">
+            <div class="bus-stop-header">
+              <div class="bus-stop-name">
+                洋光台北口 <span class="badge-info">徒歩 約5分</span>
+              </div>
+              <span class="badge-info" style="background: var(--primary-gradient);">本校から最も近い</span>
+            </div>
+            <p class="bus-stop-desc">
+              本校から最も近いバス停です。洋光台駅発（市営バス111・112系統）や、上大岡駅発（市営バス111系統）、上永谷駅発（市営バス112系統）のバスが停車します。
+            </p>
+          </div>
+
+          <!-- 日野中央公園入口 -->
+          <div class="bus-stop-card">
+            <div class="bus-stop-header">
+              <div class="bus-stop-name">
+                日野中央公園入口 <span class="badge-info">徒歩 約10分</span>
+              </div>
+              <span class="badge-info">本数が多い</span>
+            </div>
+            <p class="bus-stop-desc">
+              停車するバスの本数が非常に多く、上大岡駅方面・港南中央駅方面からのアクセスに便利です。（市営バス64系統、神奈中バス上32/139/船20/船05系統、江ノ電バス船05系統など）
+            </p>
+          </div>
+
+          <!-- 日野小学校前 -->
+          <div class="bus-stop-card" style="margin-bottom: 0;">
+            <div class="bus-stop-header">
+              <div class="bus-stop-name">
+                日野小学校前 <span class="badge-info">徒歩 約8分</span>
+              </div>
+              <span class="badge-warning">混雑回避・大船方面から</span>
+            </div>
+            <p class="bus-stop-desc">
+              大船・本郷台方面からバスでお越しの際に便利です。また、日野中央公園入口より手前で乗降することで混雑を避けられる場合があります。
+            </p>
+          </div>
+          </div>
+        </details>
+
+        <!-- 5. 主要駅からのアクセス -->
+        <details class="modern-accordion">
+          <summary>
+            <div class="summary-title">
+              <i class="fas fa-train" style="color: var(--primary-color);"></i> 主要駅からのアクセス
+            </div>
+          </summary>
+          <div class="accordion-content">
+
+          <!-- JR 洋光台駅 -->
+          <div class="station-card">
+            <div class="station-header">
+              <div class="station-name">
+                <i class="fas fa-train" style="color: #0072bc;"></i> JR 洋光台駅（最寄駅）
+              </div>
+              <span class="badge-info">徒歩 約20分</span>
+            </div>
+            <div class="route-item">
+              <p style="margin: 0 0 6px 0;">● 改札を出て一本道を徒歩 約20分</p>
+              <p style="margin: 0 0 6px 0;">● バス利用（乗車約5分 → <strong>徒歩 約5分</strong>）：</p>
+              <ul class="bus-detail-list">
+                <li><strong>バス3番のりば:</strong> 横浜市営バス 111系統（上大岡駅前行） → 「<strong>洋光台北口</strong>」下車</li>
+                <li><strong>バス4番のりば:</strong> 横浜市営バス 112系統（上永谷駅前行 / 野庭中央公園行） → 「<strong>洋光台北口</strong>」下車</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 京急 上大岡駅 -->
+          <div class="station-card">
+            <div class="station-header">
+              <div class="station-name">
+                <i class="fas fa-train" style="color: #e60012;"></i> 京急 上大岡駅
+              </div>
+              <span class="badge-sub">バス利用</span>
+            </div>
+            <div class="route-item">
+              <p style="margin: 0 0 6px 0;">● バスターミナルより路線バス乗車：</p>
+              <ul class="bus-detail-list">
+                <li><strong>バス6番のりば:</strong> 市営バス 111系統（港南台駅行 / 洋光台駅行） → 「<strong>洋光台北口</strong>」下車（徒歩5分）<br><span style="font-size:0.82rem; color:var(--text-sub);">※「洋光台北口」下車が本校に一番近くおすすめです。</span></li>
+                <li><strong>バス6番のりば:</strong> 市営バス 64系統 / 神奈中バス 上32系統 → 「<strong>日野中央公園入口</strong>」下車（徒歩10分）</li>
+                <li><strong>バス5番のりば:</strong> 神奈中バス 139系統 → 「<strong>日野中央公園入口</strong>」下車（徒歩10分）</li>
+                <li><strong>バス4番のりば:</strong> 江ノ電バス 船05系統 / 神奈中バス 船20・船05系統 → 「<strong>日野中央公園入口</strong>」下車（徒歩10分）</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 地下鉄 港南中央駅 -->
+          <div class="station-card">
+            <div class="station-header">
+              <div class="station-name">
+                <i class="fas fa-subway" style="color: #009944;"></i> 地下鉄 港南中央駅
+              </div>
+              <span class="badge-sub">バス利用</span>
+            </div>
+            <div class="route-item">
+              <p style="margin: 0;">● 1番出口を出てすぐ「<strong>港南区総合庁舎前</strong>」2番のりばより上大岡駅発の各路線バスに乗車</p>
+            </div>
+          </div>
+
+          <!-- 地下鉄 上永谷駅 -->
+          <div class="station-card">
+            <div class="station-header">
+              <div class="station-name">
+                <i class="fas fa-subway" style="color: #009944;"></i> 地下鉄 上永谷駅
+              </div>
+              <span class="badge-sub">バス利用</span>
+            </div>
+            <div class="route-item">
+              <p style="margin: 0 0 6px 0;">● 1番出口バスターミナルより：</p>
+              <ul class="bus-detail-list">
+                <li><strong>バス4番のりば:</strong> 横浜市営バス 112系統 → 「<strong>洋光台北口</strong>」下車（徒歩5分）</li>
+              </ul>
+            </div>
+          </div>
+        </details>
 
       </div>
     </main>
