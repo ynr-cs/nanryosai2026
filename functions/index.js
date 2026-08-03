@@ -1976,3 +1976,4 @@ exports.syncStoreItemAvailability = onDocumentWritten("items/{itemId}", async (e
     console.error(`syncStoreItemAvailability Error for store ${storeId}:`, error);
   }
 });
+
