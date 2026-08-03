@@ -160,7 +160,9 @@ last_updated: 2026-05-07
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。
-  - `syncOrderToSpreadsheet` (Firestore Trigger): 注文の新規作成・更新時にスプレッドシートへ追記。
+  - `syncOrdersToSheets` (Scheduled, 毎分実行): 毎分ごとに、直近1時間以内に更新された対象ステータス（cooking, ready_to_serve, ready_for_pickup, completed, cancelled, abandoned）の注文を取得し、各店舗のスプレッドシートへ一括書き込み（バッチ同期）を行う。SOK仮注文は除外される。スプレッドシートの数式インジェクション防止エスケープ処理を含む。
+  - `reinitSheetHeaders` (OnCall): スプレッドシートのヘッダを新しい10列構成に再初期化する。
+  - `rebuildStoreSheet` (OnCall): 特定の店舗のスプレッドシートをクリアし、Firestoreの全対象履歴から再構築する（復旧用）。
   - `loginVenueAdmin` (OnCall): ステージ発表・催し物会場（venues）管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
   - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
   - `warmupPing` (OnRequest): Cloud Functions のコールドスタートを防ぐための軽量なダミー関数。スケジュール関数から定期的に叩かれる。
