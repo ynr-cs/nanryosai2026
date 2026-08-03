@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>南陵祭'26 マップ (プロトタイプ)</title>
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; }
+      #map { width: 100%; height: 100%; background: #e5e3df; } /* 地図読み込み前の背景色 */
+
+      /* ===== UIコントロールパネル ===== */
+      .panel {
+        position: absolute; z-index: 1000; top: 12px; left: 12px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        padding: 12px; width: 240px; backdrop-filter: blur(8px);
+      }
+      .panel h1 { font-size: 15px; margin-bottom: 4px; color: #333; }
+      .panel .sub { font-size: 11px; color: #666; margin-bottom: 12px; }
+      .panel .label { font-size: 12px; font-weight: bold; color: #555; margin: 12px 0 6px; }
+
+      /* フロア切り替えボタン */
+      .floor-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+      .floor-btns button {
+        flex: 1; min-width: 38px; padding: 6px 0; border: 1px solid #ddd;
+        background: #f9f9f9; border-radius: 6px; font-weight: bold; font-size: 13px;
+        cursor: pointer; transition: 0.2s; color: #555;
+      }
+      .floor-btns button.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+      /* ルート切り替えボタン */
+      .route-btns { display: flex; flex-direction: column; gap: 6px; }
+      .route-btns button {
+        display: flex; align-items: center; gap: 8px; padding: 8px;
+        border: 1px solid #ddd; background: #fff; border-radius: 6px;
+        font-size: 12px; cursor: pointer; text-align: left; transition: 0.2s;
+      }
+      .route-btns button .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+      .route-btns button.active { background: #f3f4f6; border-color: #999; font-weight: bold; }
+
+      .toggle-row {
+        display: flex; align-items: center; gap: 6px; font-size: 12px;
+        color: #555; margin-top: 8px; cursor: pointer;
+      }
+
+      .hint {
+        font-size: 11px; color: #888; margin-top: 12px; padding-top: 8px;
+        border-top: 1px dashed #ccc; line-height: 1.4;
+      }
+
+      /* ===== 建物ラベル ===== */
+      .bldg-label {
+        font-size: 12px; font-weight: bold; color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8),
+                     1px -1px 2px rgba(0,0,0,0.8), -1px 1px 2px rgba(0,0,0,0.8);
+        text-align: center; white-space: nowrap; pointer-events: none;
+      }
+
+      /* ===== ピン ===== */
+      .pin {
+        background: #fff; border: 2px solid #3b82f6; color: #3b82f6;
+        border-radius: 20px; padding: 3px 8px; font-size: 11px; font-weight: bold;
+        white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        transform: translate(-50%, -50%); cursor: pointer;
+      }
+      .pin.out { border-color: #e6600a; color: #e6600a; }
+      .pin.gate { border-color: #111; color: #111; background: #fffde7; }
+      
+      /* ===== 作図ツール UI用 ===== */
+      .editor-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+      .editor-row label { font-size: 11px; width: 40px; }
+      .editor-row input[type="text"], .editor-row select { flex: 1; padding: 3px; font-size: 11px; }
+      .btn-save { background: #3b82f6; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+      .btn-export { background: #10b981; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+      
+      /* Overpass表現用クラス */
+      .overpass-elem { filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.4)); }
+      .custom-label { font-size: 10px; background: rgba(255,255,255,0.85); border: 1px solid #777; padding: 2px 4px; border-radius: 3px; white-space: nowrap; pointer-events: none; color: #333; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <!-- UIコントロール -->
+    <div class="panel">
+      <h1>南陵祭'26 マップ</h1>
+      <div class="sub">航空写真・プロトタイプ</div>
+
+      <div class="label">屋内フロア (生徒棟)</div>
+      <div class="floor-btns" id="floorBtns">
+        <button data-f="1" class="active">1F</button>
+        <button data-f="2">2F</button>
+        <button data-f="3">3F</button>
+        <button data-f="4">4F</button>
+        <button data-f="5">5F</button>
+      </div>
+
+      <div class="label">アクセスルート</div>
+      <div class="route-btns" id="routeBtns">
+        <button data-r="yellow">
+          <span class="dot" style="background: #eab308"></span>洋光台北口 (徒歩5分)
+        </button>
+        <button data-r="orange">
+          <span class="dot" style="background: #f97316"></span>日野中央公園 (本数多)
+        </button>
+        <button data-r="pink">
+          <span class="dot" style="background: #ec4899"></span>日野小学校 (混雑回避)
+        </button>
+      </div>
+      <label class="toggle-row">
+        <input type="checkbox" id="routeClear" checked /> ルートを隠す
+      </label>
+
+      <div class="label">建物表示</div>
+      <div id="bldgToggles" style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px;">
+        <!-- JSで動的に追加 -->
+      </div>
+
+      <div class="hint">
+        ※生徒棟をタップするとズームし、屋内フロアの教室ピンを切り替えられます。
+      </div>
+
+      <!-- 開発用ツール追加 -->
+      <div style="margin-top: 15px; padding: 10px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 8px; font-size: 11px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <b>🛠 作図エディタ</b>
+          <button id="btnResetDraft" style="padding:2px 6px; font-size:10px; cursor:pointer;">クリア</button>
+        </div>
+        <div class="editor-row">
+          <label>Mode</label>
+          <select id="editMode">
+            <option value="area">面 (Area)</option>
+            <option value="path">線 (Path)</option>
+            <option value="building">建物 (Building)</option>
+          </select>
+          <label style="width:auto; margin-left:8px;"><input type="checkbox" id="editCurve"> 曲線</label>
+        </div>
+        <div class="editor-row">
+          <label>Layer</label>
+          <select id="editLayer">
+            <option value="ground">Ground (地面)</option>
+            <option value="overpass">Overpass (上層/渡り廊下)</option>
+          </select>
+        </div>
+        <div class="editor-row">
+          <label>Name</label><input type="text" id="editName" placeholder="例: 焼き鳥広場">
+        </div>
+        <div class="editor-row">
+          <label>Kind</label><input type="text" id="editKind" placeholder="例: 出店広場 / 通路">
+        </div>
+        <div class="editor-row">
+          <label>Note</label><input type="text" id="editNote" placeholder="例: 通り抜け可">
+        </div>
+        <div class="editor-row">
+          <label>Width</label><input type="number" id="editWidth" value="5" style="width:40px; flex:none;"> (線のみ)
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button id="btnSaveElem" class="btn-save">要素として保存</button>
+          <button id="btnExportJson" class="btn-export">JSON出力</button>
+        </div>
+        <textarea id="coordOut" style="width:100%; height:40px; margin-top:8px; padding:4px; font-size:10px; font-family:monospace;" readonly placeholder="描画中の座標"></textarea>
+      </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      /* =========================================================
+         データ定義 (実座標を用いたダミーデータ)
+         南陵高校の実際の緯度経度 (35.386167, 139.585500 付近)
+      ========================================================= */
+      const MAP_CENTER = [35.386167, 139.585500]; // 修正: 実際の南陵高校付近
+      const ZOOM_INIT = 18;
+
+      // オフセット計算（以前のダミー座標 35.3923, 139.6015 からのズレを補正しつつ、サイズを1/4に縮小）
+      const dy = 35.386167 - 35.3923;
+      const dx = 139.585500 - 139.6015;
+      const scale = 0.25; 
+      
+      function shiftScale(coords) {
+        return coords.map(([lat, lng]) => {
+          const sLat = 35.3923 + (lat - 35.3923) * scale;
+          const sLng = 139.6015 + (lng - 139.6015) * scale;
+          return [sLat + dy, sLng + dx];
+        });
+      }
+      function shiftScalePt([lat, lng]) {
+        const sLat = 35.3923 + (lat - 35.3923) * scale;
+        const sLng = 139.6015 + (lng - 139.6015) * scale;
+        return [sLat + dy, sLng + dx];
+      }
+
+      // 建物ポリゴン: [名前, [[lat, lng], ...], 塗り色]
+      // 一時的に他の建物のopacityを下げてトレースしやすくする？
+      const BUILDINGS = [
+        ["生徒棟", [
+          [35.386139, 139.585006],
+          [35.386518, 139.585024],
+          [35.386517, 139.585151],
+          [35.386242, 139.585135],
+          [35.386221, 139.585912],
+          [35.386219, 139.585935],
+          [35.386225, 139.586082],
+          [35.3863, 139.586079],
+          [35.386307, 139.586217],
+          [35.386128, 139.586219],
+          [35.38612, 139.585935],
+          [35.386115, 139.58592]
+        ], "#7c5cff"],
+        ["体育館", shiftScale([
+          [35.3935, 139.6015], [35.3935, 139.6025], [35.3932, 139.6025], [35.3932, 139.6015]
+        ]), "#2eb872"],
+        ["新体育館", shiftScale([
+          [35.3935, 139.6005], [35.3935, 139.6012], [35.3932, 139.6012], [35.3932, 139.6005]
+        ]), "#3aa0d1"],
+        ["管理棟", shiftScale([
+          [35.3914, 139.6020], [35.3914, 139.6025], [35.3910, 139.6025], [35.3910, 139.6020]
+        ]), "#c05a9a"],
+        ["健康福祉棟", shiftScale([
+          [35.3909, 139.6020], [35.3909, 139.6025], [35.3905, 139.6025], [35.3905, 139.6020]
+        ]), "#6aa84f"],
+        ["プール", shiftScale([
+          [35.3930, 139.6026], [35.3930, 139.6030], [35.3925, 139.6030], [35.3925, 139.6026]
+        ]), "#4fc3f7"],
+        ["校庭", shiftScale([
+          [35.3940, 139.6035], [35.3940, 139.6050], [35.3915, 139.6050], [35.3915, 139.6035]
+        ]), "#8fd19e"],
+        ["テニスコート", shiftScale([
+          [35.3910, 139.5995], [35.3910, 139.6015], [35.3905, 139.6015], [35.3905, 139.5995]
+        ]), "#5bbf8a"],
+        ["野球場", shiftScale([
+          [35.3910, 139.5975], [35.3910, 139.5990], [35.3895, 139.5990], [35.3895, 139.5975]
+        ]), "#a5d6a7"]
+      ];
+
+      // 渡り廊下 (ポリライン)
+      const CORRIDOR = shiftScale([[35.3930, 139.6020], [35.3932, 139.6020]]);
+
+      const GATE = shiftScalePt([35.3920, 139.6002]);
+
+      const OUTDOOR_PINS = [
+        ["🍢 焼き鳥", shiftScalePt([35.3930, 139.6035]), "校庭の定番！"],
+        ["🐙 たこ焼き", shiftScalePt([35.3925, 139.6040]), "アツアツをお届け"],
+        ["🍜 焼きそば", shiftScalePt([35.3920, 139.6045]), "大盛り無料"],
+        ["🥤 ドリンク", shiftScalePt([35.3935, 139.6030]), "冷えてます"],
+        ["🍮 スイーツ", shiftScalePt([35.3915, 139.6005]), "テニスコート横"]
+      ];
+
+      const INDOOR_ROOMS = {
+        1: [ ["1-A", shiftScalePt([35.3928, 139.6010])], ["1-B", shiftScalePt([35.3928, 139.6015])], ["調理室", shiftScalePt([35.3920, 139.6022])] ],
+        2: [ ["2-A", shiftScalePt([35.3928, 139.6010])], ["2-B", shiftScalePt([35.3928, 139.6015])], ["物理室", shiftScalePt([35.3920, 139.6022])] ],
+        3: [ ["3-A", shiftScalePt([35.3928, 139.6010])], ["3-B", shiftScalePt([35.3928, 139.6015])], ["化学室", shiftScalePt([35.3920, 139.6022])] ],
+        4: [ ["4-A", shiftScalePt([35.3928, 139.6010])], ["4-B", shiftScalePt([35.3928, 139.6015])] ],
+        5: [ ["天空の図書館", shiftScalePt([35.3920, 139.6022])] ]
+      };
+
+      const ROUTES = {
+        yellow: {
+          color: "#eab308",
+          path: shiftScale([[35.3920, 139.6002], [35.3915, 139.6002], [35.3915, 139.6030], [35.3920, 139.6030], [35.3920, 139.6060]]),
+          endName: "洋光台北口"
+        },
+        orange: {
+          color: "#f97316",
+          path: shiftScale([[35.3920, 139.6002], [35.3920, 139.5990], [35.3910, 139.5990], [35.3900, 139.5990], [35.3900, 139.5970]]),
+          endName: "日野中央公園入口"
+        },
+        pink: {
+          color: "#ec4899",
+          path: shiftScale([[35.3920, 139.6002], [35.3920, 139.5990], [35.3915, 139.5990], [35.3915, 139.5970], [35.3925, 139.5970]]),
+          endName: "日野小学校前"
+        }
+      };
+
+      /* =========================================================
+         Map 初期化 と ペイン設定
+      ========================================================= */
+      const map = L.map('map', {
+        center: MAP_CENTER,
+        zoom: ZOOM_INIT,
+        maxZoom: 22,    // 地図自体の最大ズーム (オーバーズーム対応)
+        zoomControl: true
+      });
+
+      // カスタムペイン（立体交差レイヤー用）
+      map.createPane('ground');
+      map.getPane('ground').style.zIndex = 400; // standard overlayPane is 400
+      map.createPane('overpass');
+      map.getPane('overpass').style.zIndex = 450; // markerPane is 600, so this is between overlays and markers
+
+      // 国土地理院 航空写真タイル (シームレス空中写真)
+      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+        attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>',
+        maxNativeZoom: 18,
+        maxZoom: 22
+      }).addTo(map);
+
+      // --- 作図用保存配列 ---
+      let customElements = [];
+
+      // --- Catmull-Rom Spline 補間 ---
+      function getCatmullRomPoints(points, tension = 0.5, segments = 15) {
+        if (points.length < 3) return points;
+        const res = [];
+        const p = [
+          [points[0][0] * 2 - points[1][0], points[0][1] * 2 - points[1][1]],
+          ...points,
+          [points[points.length - 1][0] * 2 - points[points.length - 2][0], points[points.length - 1][1] * 2 - points[points.length - 2][1]]
+        ];
+        
+        for (let i = 1; i < p.length - 2; i++) {
+          const p0 = p[i - 1], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2];
+          for (let t = 0; t <= segments; t++) {
+            const t1 = t / segments, t2 = t1 * t1, t3 = t2 * t1;
+            const lat = 0.5 * (
+              (2 * p1[0]) + (-p0[0] + p2[0]) * t1 + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
+            );
+            const lng = 0.5 * (
+              (2 * p1[1]) + (-p0[1] + p2[1]) * t1 + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
+            );
+            if (t === segments && i < p.length - 3) continue;
+            res.push([parseFloat(lat.toFixed(6)), parseFloat(lng.toFixed(6))]);
+          }
+        }
+        return res;
+      }
+
+      // --- 開発用：作図エディタ ---
+      const draftLayer = L.layerGroup().addTo(map);
+      let draftPoints = [];
+      let draftPolygon = null;
+
+      function updateTextOutput() {
+        const out = document.getElementById('coordOut');
+        out.value = "[\n" + draftPoints.map(p => `  [${p[0]}, ${p[1]}]`).join(",\n") + "\n]";
+        // コピーしやすいように
+        navigator.clipboard.writeText(out.value).catch(err => console.log('Copy failed', err));
+      }
+
+      function updateDraftDisplay() {
+        draftLayer.clearLayers();
+        draftPolygon = null;
+        if (draftPoints.length > 0) {
+          const mode = document.getElementById('editMode').value;
+          const isCurve = document.getElementById('editCurve').checked;
+          let displayPoints = draftPoints;
+          
+          if (mode === 'path' && isCurve && draftPoints.length >= 3) {
+            displayPoints = getCatmullRomPoints(draftPoints);
+          }
+          
+          const polyOpts = { color: '#ff0000', weight: 3, opacity: 0.8 };
+          if (mode === 'path') {
+            draftPolygon = L.polyline(displayPoints, polyOpts).addTo(draftLayer);
+          } else {
+            polyOpts.fillColor = '#ff0000';
+            polyOpts.fillOpacity = 0.3;
+            draftPolygon = L.polygon(displayPoints, polyOpts).addTo(draftLayer);
+          }
+        }
+        
+        // 各頂点にドラッグ可能なピンを打つ (補間前の draftPoints に打つ)
+        draftPoints.forEach((pt, i) => {
+          const marker = L.marker(pt, {
+            draggable: true,
+            icon: L.divIcon({
+              className: 'leaflet-marker-draggable',
+              html: `<div style="background:#fff; border:2px solid #000; border-radius:50%; width:12px; height:12px; margin:-6px 0 0 -6px;"></div>`,
+              iconSize: [0, 0]
+            })
+          }).addTo(draftLayer);
+
+          marker.bindTooltip(`${i+1}`, { direction: 'right', permanent: true, opacity: 0.8 });
+          
+          marker.on('drag', function(e) {
+            const newLat = parseFloat(e.latlng.lat.toFixed(6));
+            const newLng = parseFloat(e.latlng.lng.toFixed(6));
+            draftPoints[i] = [newLat, newLng];
+            
+            // ドラッグ中の再描画（曲線時は重いかもしれないがプロトタイプなので一旦ヨシ）
+            const mode = document.getElementById('editMode').value;
+            const isCurve = document.getElementById('editCurve').checked;
+            let displayPoints = draftPoints;
+            if (mode === 'path' && isCurve && draftPoints.length >= 3) {
+              displayPoints = getCatmullRomPoints(draftPoints);
+            }
+            if (draftPolygon) {
+               draftPolygon.setLatLngs(displayPoints);
+            }
+            updateTextOutput();
+          });
+        });
+        
+        updateTextOutput();
+      }
+
+      map.on('click', function(e) {
+        if (e.originalEvent.target.closest('.leaflet-marker-draggable') || e.originalEvent.target.classList.contains('leaflet-interactive')) {
+          return;
+        }
+        
+        const lat = parseFloat(e.latlng.lat.toFixed(6));
+        const lng = parseFloat(e.latlng.lng.toFixed(6));
+        draftPoints.push([lat, lng]);
+
+        updateDraftDisplay();
+      });
+
+      document.getElementById('btnResetDraft').addEventListener('click', () => {
+        draftPoints = [];
+        updateDraftDisplay();
+      });
+
+      document.getElementById('editMode').addEventListener('change', updateDraftDisplay);
+      document.getElementById('editCurve').addEventListener('change', updateDraftDisplay);
+
+      /* =========================================================
+         カスタム要素 (作図エディタの保存先)
+      ========================================================= */
+      const customElementsLayer = L.layerGroup().addTo(map);
+
+      function renderCustomElements() {
+        customElementsLayer.clearLayers();
+        customElements.forEach((elem) => {
+          let leafletElem;
+          const pane = elem.layer === 'overpass' ? 'overpass' : 'ground';
+          const isOverpass = elem.layer === 'overpass';
+          
+          if (elem.type === 'path') {
+             const weight = elem.width || 5;
+             leafletElem = L.polyline(elem.coordinates, {
+               color: isOverpass ? '#ff8800' : '#4444ff',
+               weight: weight,
+               opacity: isOverpass ? 0.8 : 0.6,
+               pane: pane,
+               className: isOverpass ? 'overpass-elem' : ''
+             }).addTo(customElementsLayer);
+          } else {
+             leafletElem = L.polygon(elem.coordinates, {
+               color: isOverpass ? '#ff8800' : (elem.type === 'building' ? '#7c5cff' : '#22cc88'),
+               weight: 2,
+               fillColor: isOverpass ? '#ff8800' : (elem.type === 'building' ? '#7c5cff' : '#22cc88'),
+               fillOpacity: isOverpass ? 0.6 : 0.4,
+               pane: pane,
+               className: isOverpass ? 'overpass-elem' : ''
+             }).addTo(customElementsLayer);
+          }
+          
+          if (elem.note || elem.name) {
+             const center = leafletElem.getBounds().getCenter();
+             L.marker(center, {
+               icon: L.divIcon({
+                 className: 'custom-label',
+                 html: (elem.name ? `<b>${elem.name}</b><br>` : '') + (elem.note || ''),
+                 iconSize: [0, 0]
+               }),
+               interactive: false,
+               pane: pane
+             }).addTo(customElementsLayer);
+          }
+        });
+      }
+
+      document.getElementById('btnSaveElem').addEventListener('click', () => {
+        if (draftPoints.length < 2) return alert('点を2つ以上打ってください');
+        const mode = document.getElementById('editMode').value;
+        const layerOpt = document.getElementById('editLayer').value;
+        const isCurve = document.getElementById('editCurve').checked;
+        const name = document.getElementById('editName').value;
+        const kind = document.getElementById('editKind').value;
+        const note = document.getElementById('editNote').value;
+        const width = parseInt(document.getElementById('editWidth').value, 10);
+        
+        let coords = draftPoints;
+        if (mode === 'path' && isCurve && draftPoints.length >= 3) {
+          coords = getCatmullRomPoints(draftPoints);
+        }
+        
+        customElements.push({
+          type: mode,
+          layer: layerOpt,
+          name: name,
+          kind: kind,
+          note: note,
+          width: width,
+          isCurve: isCurve,
+          coordinates: coords
+        });
+        
+        document.getElementById('btnResetDraft').click(); // クリア
+        
+        // 入力欄リセット
+        document.getElementById('editName').value = '';
+        document.getElementById('editKind').value = '';
+        document.getElementById('editNote').value = '';
+        
+        renderCustomElements();
+      });
+
+      document.getElementById('btnExportJson').addEventListener('click', () => {
+        const json = JSON.stringify(customElements, null, 2);
+        navigator.clipboard.writeText(json).then(() => {
+          alert('JSONをクリップボードにコピーしました！\n\n' + json.substring(0, 200) + '...');
+        });
+      });
+
+      /* =========================================================
+         既存のダミー描画レイヤー
+      ========================================================= */
+      const buildingLayer = L.layerGroup().addTo(map);
+      const indoorLayer = L.layerGroup().addTo(map);
+      const outdoorLayer = L.layerGroup().addTo(map);
+      const routeLayer = L.layerGroup().addTo(map);
+
+      // --- 建物ポリゴン・ラベル描画 ---
+      const drawnLabels = new Set();
+      const bldgLayerGroups = {}; // 建物名ごとのレイヤーグループ
+
+      BUILDINGS.forEach(([name, coords, color]) => {
+        if (!bldgLayerGroups[name]) {
+          bldgLayerGroups[name] = L.layerGroup().addTo(buildingLayer);
+        }
+        const group = bldgLayerGroups[name];
+
+        const poly = L.polygon(coords, {
+          color: color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.4
+        }).addTo(group);
+
+        // 重複するラベルを回避
+        if (!drawnLabels.has(name)) {
+          drawnLabels.add(name);
+          // ラベルを中央に配置
+          const bounds = poly.getBounds();
+          const center = bounds.getCenter();
+          L.marker(center, {
+            icon: L.divIcon({
+              className: 'bldg-label',
+              html: name,
+              iconSize: [0, 0] // 自動サイズ
+            }),
+            interactive: false
+          }).addTo(group);
+        }
+
+        // 生徒棟タップでズームイン
+        if (name === "生徒棟") {
+          poly.on('click', () => {
+            map.flyTo(poly.getBounds().getCenter(), 20, { duration: 0.5 });
+          });
+        }
+      });
+
+      // 建物トグルUIの生成
+      const bldgToggleContainer = document.getElementById("bldgToggles");
+      Object.keys(bldgLayerGroups).forEach(name => {
+        const lbl = document.createElement("label");
+        lbl.className = "toggle-row";
+        lbl.style.margin = "0 4px 4px 0";
+        lbl.style.marginTop = "0";
+        lbl.innerHTML = `<input type="checkbox" checked value="${name}"> ${name}`;
+        bldgToggleContainer.appendChild(lbl);
+        
+        lbl.querySelector("input").addEventListener("change", (e) => {
+          if (e.target.checked) {
+            buildingLayer.addLayer(bldgLayerGroups[name]);
+          } else {
+            buildingLayer.removeLayer(bldgLayerGroups[name]);
+          }
+        });
+      });
+
+      // 渡り廊下
+      L.polyline(CORRIDOR, {
+        color: '#ff4444', weight: 4, dashArray: '5, 5'
+      }).addTo(buildingLayer);
+      
+      const corridorCenter = L.polyline(CORRIDOR).getBounds().getCenter();
+      L.marker(corridorCenter, {
+        icon: L.divIcon({ className: 'bldg-label', html: '渡り廊下', iconSize: [0,0] }),
+        interactive: false
+      }).addTo(buildingLayer);
+
+      // --- 屋外ピン・校門 ---
+      L.marker(GATE, {
+        icon: L.divIcon({ className: '', html: '<div class="pin gate">🚪 校門</div>', iconSize: [0, 0] })
+      }).bindPopup('<b>校門</b><br>受付はこちら').addTo(outdoorLayer);
+
+      OUTDOOR_PINS.forEach(([name, coord, desc]) => {
+        L.marker(coord, {
+          icon: L.divIcon({ className: '', html: `<div class="pin out">${name}</div>`, iconSize: [0, 0] })
+        }).bindPopup(`<b>${name}</b><br>${desc}`).addTo(outdoorLayer);
+      });
+
+      // --- 屋内フロア切替 ---
+      function drawFloor(floorIndex) {
+        indoorLayer.clearLayers();
+        const rooms = INDOOR_ROOMS[floorIndex] || [];
+        rooms.forEach(([name, coord]) => {
+          L.marker(coord, {
+            icon: L.divIcon({ className: '', html: `<div class="pin">${name}</div>`, iconSize: [0, 0] })
+          }).bindPopup(`<b>${name} (${floorIndex}F)</b>`).addTo(indoorLayer);
+        });
+      }
+      // 初期描画
+      drawFloor(1);
+
+      document.getElementById("floorBtns").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        document.querySelectorAll("#floorBtns button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        drawFloor(parseInt(btn.dataset.f, 10));
+      });
+
+      // --- アクセスルート切替 ---
+      function drawRoute(routeKey) {
+        routeLayer.clearLayers();
+        if (!routeKey || !ROUTES[routeKey]) return;
+
+        const r = ROUTES[routeKey];
+        // 縁取りと実線の重ねがけで目立たせる
+        L.polyline(r.path, { color: '#fff', weight: 8, opacity: 0.8 }).addTo(routeLayer);
+        L.polyline(r.path, { color: r.color, weight: 5, opacity: 1.0 }).addTo(routeLayer);
+        
+        const endPt = r.path[r.path.length - 1];
+        L.marker(endPt, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div class="pin" style="border-color:${r.color};color:${r.color}">🚏 ${r.endName}</div>`,
+            iconSize: [0, 0]
+          })
+        }).addTo(routeLayer);
+      }
+
+      document.getElementById("routeBtns").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        const key = btn.dataset.r;
+        const isActive = btn.classList.contains("active");
+
+        document.querySelectorAll("#routeBtns button").forEach(b => b.classList.remove("active"));
+        if (isActive) {
+          drawRoute(null);
+          document.getElementById("routeClear").checked = true;
+        } else {
+          btn.classList.add("active");
+          drawRoute(key);
+          document.getElementById("routeClear").checked = false;
+        }
+      });
+
+      document.getElementById("routeClear").addEventListener("change", (e) => {
+        if (e.target.checked) {
+          drawRoute(null);
+          document.querySelectorAll("#routeBtns button").forEach(b => b.classList.remove("active"));
+        }
+      });
+    </script>
+  </body>
+</html>

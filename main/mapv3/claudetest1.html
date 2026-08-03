@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>南陵祭'26 マップ プロトタイプ</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+        background: #cfe3d8;
+      }
+
+      /* ===== コントロールパネル ===== */
+      .panel {
+        position: absolute;
+        z-index: 1000;
+        top: 12px;
+        left: 12px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 14px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+        padding: 12px;
+        width: 230px;
+        backdrop-filter: blur(8px);
+      }
+      .panel h1 {
+        font-size: 15px;
+        margin-bottom: 4px;
+        color: #6a11cb;
+      }
+      .panel .sub {
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 10px;
+      }
+      .panel .label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #555;
+        margin: 10px 0 5px;
+        letter-spacing: 0.04em;
+      }
+
+      .floor-btns {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .floor-btns button {
+        flex: 1;
+        min-width: 38px;
+        border: 1px solid #ddd;
+        background: #fff;
+        padding: 7px 0;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.15s;
+        color: #444;
+      }
+      .floor-btns button.active {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        color: #fff;
+        border-color: transparent;
+      }
+      .floor-btns button.dim {
+        opacity: 0.35;
+      }
+
+      .route-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .route-btns button {
+        border: 1px solid #eee;
+        background: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.15s;
+      }
+      .route-btns button .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .route-btns button.active {
+        background: #f3eefe;
+        border-color: #c9b3f5;
+        font-weight: 700;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: #555;
+        margin-top: 4px;
+        cursor: pointer;
+      }
+      .toggle-row input {
+        width: 15px;
+        height: 15px;
+      }
+
+      .hint {
+        font-size: 10px;
+        color: #aaa;
+        margin-top: 12px;
+        line-height: 1.5;
+        border-top: 1px dashed #ddd;
+        padding-top: 8px;
+      }
+
+      /* ===== 建物ブロック（divIcon） ===== */
+      .blk {
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        line-height: 1.2;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+      }
+      .blk small {
+        font-weight: 400;
+        font-size: 10px;
+        opacity: 0.85;
+      }
+
+      /* ===== ピン ===== */
+      .pin {
+        background: #fff;
+        border: 2px solid #6a11cb;
+        color: #6a11cb;
+        border-radius: 20px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transform: translate(-50%, -50%);
+      }
+      .pin.out {
+        border-color: #e6600a;
+        color: #e6600a;
+      }
+      .pin.gate {
+        border-color: #111;
+        color: #111;
+        background: #ffe;
+      }
+
+      .leaflet-container {
+        background: #cfe3d8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div class="panel">
+      <h1>南陵祭'26 マップ</h1>
+      <div class="sub">プロトタイプ（絵は全部ダミー）</div>
+
+      <div class="label">生徒棟フロア</div>
+      <div class="floor-btns" id="floorBtns">
+        <button data-f="1" class="active">1F</button>
+        <button data-f="2">2F</button>
+        <button data-f="3">3F</button>
+        <button data-f="4">4F</button>
+        <button data-f="5">5F</button>
+      </div>
+
+      <div class="label">アクセスルート</div>
+      <div class="route-btns" id="routeBtns">
+        <button data-r="pink">
+          <span class="dot" style="background: #ff1493"></span
+          >日野小学校前（混雑回避）
+        </button>
+        <button data-r="orange">
+          <span class="dot" style="background: #ff8c00"></span
+          >日野中央公園入口（本数多）
+        </button>
+        <button data-r="yellow">
+          <span class="dot" style="background: #e8d400"></span
+          >洋光台北口（最寄）
+        </button>
+      </div>
+      <label class="toggle-row"
+        ><input type="checkbox" id="routeClear" checked /> ルートを隠す</label
+      >
+
+      <div class="hint">
+        ・ズームで教室〜通学路まで連続<br />
+        ・フロア切替＝生徒棟の中身が差替<br />
+        ・屋外ピンは常時表示<br />
+        ・全部ダミー。触感の確認用です
+      </div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      /* ============================================================
+   座標系: CRS.Simple。 [y, x] で扱う。y は下向きが増える想定で
+   L.latLng(y,x) の y を負にして「上が奥」に見えるようにする。
+   ここでは単純に [y, x] = [縦, 横]、原点左上、y下向き正 とする。
+   画像がまだ無いので、広い仮想キャンバス上にブロックを置く。
+   ============================================================ */
+      const W = 1600,
+        H = 1000; // 仮想キャンバス
+      const map = L.map("map", {
+        crs: L.CRS.Simple,
+        minZoom: -3,
+        maxZoom: 2,
+        zoomSnap: 0.25,
+        zoomControl: true,
+      });
+      const bounds = [
+        [0, 0],
+        [H, W],
+      ];
+      map.fitBounds(bounds);
+      map.setMaxBounds([
+        [-200, -200],
+        [H + 200, W + 200],
+      ]);
+
+      // yを反転して直感的に置けるヘルパ（上が小さいyのまま使う）
+      function rect(y1, x1, y2, x2) {
+        return [
+          [y1, x1],
+          [y2, x2],
+        ];
+      }
+
+      /* ---------- 建物ブロック（斜めもOKにしたいが、まずは矩形で位置検証） ---------- */
+      const buildings = [
+        // name, y1,x1,y2,x2, color
+        ["生徒棟", 380, 520, 560, 1020, "#7c5cff"], // 横長のメイン
+        ["生徒棟(L字)", 300, 900, 560, 1020, "#7c5cff"], // L字の張り出し（重ねてL字表現）
+        ["体育館", 250, 640, 380, 860, "#2eb872"],
+        ["新体育館", 250, 860, 350, 980, "#3aa0d1"],
+        ["格技場", 560, 600, 660, 720, "#e08a3c"],
+        ["管理棟", 560, 760, 680, 940, "#c05a9a"],
+        ["健康福祉棟", 680, 760, 760, 880, "#6aa84f"],
+        ["プール", 200, 520, 260, 660, "#4fc3f7"],
+        ["弓道場", 400, 1080, 480, 1200, "#b968c7"],
+        ["テニスコート", 180, 300, 340, 500, "#5bbf8a"],
+        ["校庭", 120, 1060, 460, 1420, "#8fd19e"],
+        ["野球場", 620, 120, 900, 460, "#a5d6a7"],
+      ];
+
+      const buildingLayer = L.layerGroup().addTo(map);
+      buildings.forEach(([name, y1, x1, y2, x2, color]) => {
+        const b = rect(y1, x1, y2, x2);
+        const w = x2 - x1,
+          h = y2 - y1;
+        const icon = L.divIcon({
+          className: "",
+          html: `<div class="blk" style="width:${w}px;height:${h}px;background:${color}">${name}</div>`,
+          iconSize: [w, h],
+          iconAnchor: [w / 2, h / 2],
+        });
+        L.marker([(y1 + y2) / 2, (x1 + x2) / 2], { icon, interactive: true })
+          .addTo(buildingLayer)
+          .on("click", () => {
+            if (name.startsWith("生徒棟")) {
+              map.flyTo([470, 770], 0.5);
+            }
+          });
+      });
+
+      /* ---------- 校門 ---------- */
+      L.marker([600, 720], {
+        icon: L.divIcon({
+          className: "",
+          html: '<div class="pin gate">🚪 校門</div>',
+          iconSize: [0, 0],
+        }),
+      }).addTo(map);
+
+      /* ---------- 生徒棟フロアオーバーレイ（ダミー：色を変えるだけ） ---------- */
+      const floorColors = {
+        1: "#ffd54f",
+        2: "#ffb74d",
+        3: "#ff8a65",
+        4: "#ba68c8",
+        5: "#64b5f6",
+      };
+      let floorLayer = L.layerGroup().addTo(map);
+
+      // 各フロアのダミー教室ピン（生徒棟の帯の中に並べる）
+      const floorRooms = {
+        1: [
+          ["1-A", 470, 560],
+          ["1-B", 470, 640],
+          ["1-C", 470, 720],
+          ["調理室", 470, 820],
+          ["書道室", 470, 920],
+        ],
+        2: [
+          ["2-A", 470, 560],
+          ["2-B", 470, 640],
+          ["2-C", 470, 720],
+          ["物理室", 470, 820],
+          ["美術室", 470, 920],
+        ],
+        3: [
+          ["3-A", 470, 560],
+          ["3-B", 470, 640],
+          ["3-C", 470, 720],
+          ["化学室", 470, 820],
+          ["音楽室", 470, 920],
+        ],
+        4: [
+          ["4-A", 470, 560],
+          ["4-B", 470, 640],
+          ["4-C", 470, 720],
+          ["生物室", 470, 820],
+        ],
+        5: [["天空の図書館", 340, 960]],
+      };
+
+      function drawFloor(f) {
+        floorLayer.clearLayers();
+        // フロアの薄いオーバーレイ（生徒棟の位置に色帯）
+        L.rectangle(rect(380, 520, 560, 1020), {
+          color: floorColors[f],
+          weight: 1,
+          fillOpacity: 0.25,
+        }).addTo(floorLayer);
+        if (f === 5)
+          L.rectangle(rect(300, 900, 560, 1020), {
+            color: floorColors[f],
+            weight: 1,
+            fillOpacity: 0.25,
+          }).addTo(floorLayer);
+        // 教室ピン
+        (floorRooms[f] || []).forEach(([nm, y, x]) => {
+          L.marker([y, x], {
+            icon: L.divIcon({
+              className: "",
+              html: `<div class="pin">${nm}</div>`,
+              iconSize: [0, 0],
+            }),
+          }).addTo(floorLayer);
+        });
+      }
+      drawFloor(1);
+
+      document.getElementById("floorBtns").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        document
+          .querySelectorAll("#floorBtns button")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        drawFloor(+btn.dataset.f);
+      });
+
+      /* ---------- 屋外の団体ピン（常時表示） ---------- */
+      const outdoor = [
+        ["🍢 焼き鳥", 500, 1100],
+        ["🐙 たこ焼き", 560, 1180],
+        ["🍜 焼きそば", 470, 1300],
+        ["🥤 ドリンク", 300, 1120],
+        ["🍮 スイーツ", 700, 600],
+      ];
+      const outLayer = L.layerGroup().addTo(map);
+      outdoor.forEach(([nm, y, x]) => {
+        L.marker([y, x], {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="pin out">${nm}</div>`,
+            iconSize: [0, 0],
+          }),
+        }).addTo(outLayer);
+      });
+
+      /* ---------- アクセスルート（ダミーの折れ線。実際は1枚目をなぞる） ---------- */
+      const routes = {
+        // 校門(600,720)を起点に、外へ伸びる仮の線
+        yellow: [
+          [600, 720],
+          [560, 900],
+          [520, 1150],
+          [480, 1400],
+          [470, 1550],
+        ], // 洋光台北口（東へ）
+        orange: [
+          [600, 720],
+          [720, 500],
+          [820, 300],
+          [600, 120],
+          [300, 80],
+          [120, 120],
+        ], // 日野中央公園（南西大回り）
+        pink: [
+          [600, 720],
+          [720, 500],
+          [700, 300],
+          [500, 180],
+          [360, 120],
+        ], // 日野小学校前
+      };
+      const routeColors = {
+        yellow: "#e8d400",
+        orange: "#ff8c00",
+        pink: "#ff1493",
+      };
+      let routeLayer = L.layerGroup().addTo(map);
+      let activeRoute = null;
+
+      function drawRoute(key) {
+        routeLayer.clearLayers();
+        if (!key) {
+          activeRoute = null;
+          return;
+        }
+        activeRoute = key;
+        L.polyline(routes[key], {
+          color: routeColors[key],
+          weight: 6,
+          opacity: 0.9,
+          dashArray: "1,10",
+          lineCap: "round",
+        }).addTo(routeLayer);
+        L.polyline(routes[key], {
+          color: routeColors[key],
+          weight: 6,
+          opacity: 0.9,
+        }).addTo(routeLayer);
+        // 終点にラベル
+        const end = routes[key][routes[key].length - 1];
+        const labels = {
+          yellow: "洋光台北口",
+          orange: "日野中央公園入口",
+          pink: "日野小学校前",
+        };
+        L.marker(end, {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="pin" style="border-color:${routeColors[key]};color:${routeColors[key]}">🚏 ${labels[key]}</div>`,
+            iconSize: [0, 0],
+          }),
+        }).addTo(routeLayer);
+      }
+
+      document.getElementById("routeBtns").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        const key = btn.dataset.r;
+        const isActive = btn.classList.contains("active");
+        document
+          .querySelectorAll("#routeBtns button")
+          .forEach((b) => b.classList.remove("active"));
+        if (isActive) {
+          drawRoute(null);
+          document.getElementById("routeClear").checked = true;
+        } else {
+          btn.classList.add("active");
+          drawRoute(key);
+          document.getElementById("routeClear").checked = false;
+        }
+      });
+
+      document.getElementById("routeClear").addEventListener("change", (e) => {
+        if (e.target.checked) {
+          drawRoute(null);
+          document
+            .querySelectorAll("#routeBtns button")
+            .forEach((b) => b.classList.remove("active"));
+        }
+      });
+    </script>
+  </body>
+</html>
