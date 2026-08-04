@@ -234,9 +234,9 @@
             <button class="btn-sub" id="btn-show-onboarding">
               <i class="bi bi-question-circle"></i> 注文の流れをもう一度見る
             </button>
-            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
-              <i class="bi bi-x-circle"></i> 注文をやめる
-            </button>
+            <div style="font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-top: 16px;">
+              注文をやめる場合は、そのままこのページを閉じてください。<br>時間が経つと自動的に無効になります。
+            </div>
           </div>
         </section>
 
@@ -479,15 +479,28 @@
 
           // sokStatus チェック
           if (orderData.sokStatus !== "pending") {
-            const isExpired = orderData.sokStatus === "expired";
-            showInfo(
-              isExpired ? '<i class="bi bi-clock-fill"></i>' : '<i class="bi bi-x-circle-fill"></i>',
-              isExpired ? "#f59e0b" : "#ef4444",
-              isExpired ? "QRコードの有効期限が切れました" : "このQRはすでに使用されています",
-              isExpired
-                ? "時間内に確定されなかったため、この注文は無効になりました。"
-                : "別の方が先にこのQRコードを使用しました。"
-            );
+            if (orderData.sokStatus === "expired") {
+              showInfo(
+                '<i class="bi bi-clock-fill"></i>',
+                "#f59e0b",
+                "QRコードの有効期限が切れました",
+                "時間内に確定されなかったため、この注文は無効になりました。"
+              );
+            } else if (orderData.sokStatus === "cancelled") {
+              showInfo(
+                '<i class="bi bi-x-circle-fill"></i>',
+                "#ef4444",
+                "この注文はキャンセルされました",
+                "すでにキャンセル処理が完了しています。"
+              );
+            } else {
+              showInfo(
+                '<i class="bi bi-x-circle-fill"></i>',
+                "#ef4444",
+                "このQRはすでに使用されています",
+                "別の方が先にこのQRコードを使用しました。"
+              );
+            }
             return;
           }
 
@@ -831,6 +844,7 @@
       // 11. キャンセル処理
       // ===========================================================
       async function handleCancelOrder() {
+        if (!currentUser) { window.location.replace("../main/index.html"); return; }
         if (!confirm("注文をやめてホーム画面に戻りますか？")) return;
         
         loader.classList.remove("fade-out");

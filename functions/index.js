@@ -67,12 +67,13 @@ const STATUS_JA = {
 };
 const CHANNEL_JA = { pos: "POS", sok: "SOK", mobile: "モバイル" };
 
+const SYNC_STATUSES = new Set(["cooking","ready_to_serve","ready_for_pickup","completed","cancelled","abandoned"]);
+
 /** 
  * 同期対象ステータスか判定（null/undefined または指定6値以外を除外） 
  */
 function isSyncTargetOrder(o) {
-  if (!o || o.status == null) return false;
-  return STATUS_JA.hasOwnProperty(o.status);
+  return o != null && o.status != null && SYNC_STATUSES.has(o.status);
 }
 
 function formatDate(ts) {
@@ -1081,22 +1082,45 @@ exports.syncOrdersToSheets = functions
   .pubsub.schedule("every 1 minutes")
   .onRun(async () => {
     const metaRef = db.collection("sheet_sync_meta").doc("cursor");
-    const metaDoc = await metaRef.get();
-    
-    // 起点時刻の計算: 前回実行時刻の90秒前、ただし最大24時間前まで
     const now = Date.now();
-    const maxBackoff = now - 24 * 60 * 60 * 1000;
-    let lastRunAt = metaDoc.exists && metaDoc.data().lastRunAt ? metaDoc.data().lastRunAt.toDate().getTime() : maxBackoff;
-    let startTime = Math.max(lastRunAt - 90 * 1000, maxBackoff);
 
-    console.log(`syncOrdersToSheets: startTime = ${new Date(startTime).toISOString()}`);
+    // 排他ロック (5分)
+    const lockAcquired = await db.runTransaction(async (t) => {
+      const metaDoc = await t.get(metaRef);
+      if (metaDoc.exists) {
+        const lockedAt = metaDoc.data().lockedAt;
+        if (lockedAt) {
+          const lockedMillis = lockedAt.toDate().getTime();
+          if (now - lockedMillis < 5 * 60 * 1000) {
+            return false;
+          }
+        }
+      }
+      t.set(metaRef, { lockedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      return true;
+    });
 
-    // Firestoreから更新された注文を取得
-    const ordersSnap = await db.collection("orders")
-      .where("updatedAt", ">=", admin.firestore.Timestamp.fromMillis(startTime))
-      .get();
+    if (!lockAcquired) {
+      console.warn("syncOrdersToSheets: 別のプロセスが実行中のためスキップします");
+      return;
+    }
 
-    // 店舗ごとにグループ化、かつ対象ステータスのみフィルタ
+    try {
+      const metaDoc = await metaRef.get();
+      
+      // 起点時刻の計算: 前回実行時刻の90秒前、ただし最大24時間前まで
+      const maxBackoff = now - 24 * 60 * 60 * 1000;
+      let lastRunAt = metaDoc.exists && metaDoc.data().lastRunAt ? metaDoc.data().lastRunAt.toDate().getTime() : maxBackoff;
+      let startTime = Math.max(lastRunAt - 90 * 1000, maxBackoff);
+
+      console.log(`syncOrdersToSheets: startTime = ${new Date(startTime).toISOString()}`);
+
+      // Firestoreから更新された注文を取得
+      const ordersSnap = await db.collection("orders")
+        .where("updatedAt", ">=", admin.firestore.Timestamp.fromMillis(startTime))
+        .get();
+
+      // 店舗ごとにグループ化、かつ対象ステータスのみフィルタ
     const storeOrders = {};
     for (const doc of ordersSnap.docs) {
       const orderData = doc.data();
@@ -1183,20 +1207,25 @@ exports.syncOrdersToSheets = functions
           
           success = true;
         } catch (error) {
-          const code = error.code || error.status;
+          const code = error?.response?.status ?? error?.code ?? error?.status;
           console.error(`Error syncing store ${storeId} (Attempt ${retryCount+1}):`, error);
           
-          if (code === 403 || code === 404 || code === 401) {
+          if ([400, 401, 403, 404].includes(code)) {
             // 恒久的なエラー: 失敗を記録してループを抜け、カーソルは止まらないようにする
-            await db.collection("sheet_sync_failures").add({
+            const failRef = db.collection("sheet_sync_failures").doc(`${storeId}_${code}`);
+            const failDoc = await failRef.get();
+            const firstSeenAt = failDoc.exists ? failDoc.data().firstSeenAt : admin.firestore.FieldValue.serverTimestamp();
+            await failRef.set({
               storeId,
               spreadsheetId,
-              orderIds: orders.map(o => o.id),
-              operation: "sync",
               errorCode: code,
               errorMessage: error.message,
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
+              operation: "sync",
+              firstSeenAt,
+              lastSeenAt: admin.firestore.FieldValue.serverTimestamp(),
+              count: admin.firestore.FieldValue.increment(1)
+            }, { merge: true });
+
             success = true; // allSuccessを落とさないためにtrue扱いで進行
             break;
           }
@@ -1204,15 +1233,19 @@ exports.syncOrdersToSheets = functions
           // 一時的エラー (429, 5xx) の場合はリトライ
           retryCount++;
           if (retryCount >= 3) {
-            await db.collection("sheet_sync_failures").add({
+            const failRef = db.collection("sheet_sync_failures").doc(`${storeId}_${code || "unknown"}`);
+            const failDoc = await failRef.get();
+            const firstSeenAt = failDoc.exists ? failDoc.data().firstSeenAt : admin.firestore.FieldValue.serverTimestamp();
+            await failRef.set({
               storeId,
               spreadsheetId,
-              orderIds: orders.map(o => o.id),
-              operation: "sync_retry_exhausted",
-              errorCode: code,
+              errorCode: code || "unknown",
               errorMessage: error.message,
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
+              operation: "sync_retry_exhausted",
+              firstSeenAt,
+              lastSeenAt: admin.firestore.FieldValue.serverTimestamp(),
+              count: admin.firestore.FieldValue.increment(1)
+            }, { merge: true });
             allSuccess = false; // カーソルを据え置く
           } else {
             // ジッタ付き指数バックオフ (1s -> 2s -> 4s)
@@ -1221,12 +1254,20 @@ exports.syncOrdersToSheets = functions
           }
         }
       }
-    }
+      }
 
-    if (allSuccess) {
-      await metaRef.set({ lastRunAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    } else {
-      console.warn("Some stores failed to sync with temporary errors. Cursor not advanced.");
+      if (allSuccess) {
+        await metaRef.set({ 
+          lastRunAt: admin.firestore.Timestamp.fromMillis(now),
+          lockedAt: admin.firestore.FieldValue.delete()
+        }, { merge: true });
+      } else {
+        console.warn("Some stores failed to sync with temporary errors. Cursor not advanced.");
+        await metaRef.set({ lockedAt: admin.firestore.FieldValue.delete() }, { merge: true });
+      }
+    } catch (e) {
+      await metaRef.set({ lockedAt: admin.firestore.FieldValue.delete() }, { merge: true });
+      throw e;
     }
   });
 
@@ -1297,6 +1338,7 @@ exports.rebuildStoreSheet = functions
       throw new functions.https.HttpsError("internal", "復旧処理に失敗しました。");
     }
   });
+
 
 
 /**
@@ -1988,6 +2030,10 @@ exports.expireSokOrders = functions
 exports.cancelSokOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
+    }
+
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderId } = requestData;
 
@@ -2005,23 +2051,26 @@ exports.cancelSokOrder = functions
         }
         const order = orderSnap.data();
 
-        if (order.sokStatus !== "claimed" && order.sokStatus !== "pending") {
+        if (order.orderChannel !== "sok") {
+          throw new functions.https.HttpsError("failed-precondition", "他経路の誤爆防止のためキャンセルできません。");
+        }
+
+        if (order.status != null) {
+          throw new functions.https.HttpsError("failed-precondition", "確定後のキャンセルはできません。");
+        }
+
+        if (order.sokStatus !== "claimed") {
            throw new functions.https.HttpsError("failed-precondition", "この注文はキャンセルできません。");
         }
 
-        if (order.sokStatus === "claimed") {
-          if (!context.auth) {
-            throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
-          }
-          if (order.userId !== context.auth.uid) {
-             throw new functions.https.HttpsError("permission-denied", "この注文をキャンセルする権限がありません。");
-          }
+        if (order.userId !== context.auth.uid) {
+           throw new functions.https.HttpsError("permission-denied", "この注文をキャンセルする権限がありません。");
         }
 
-
         tx.update(orderRef, {
-          sokStatus: "expired",
-          expiredAt: admin.firestore.FieldValue.serverTimestamp(),
+          sokStatus: "cancelled",
+          cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+          cancellationReason: "user_cancelled_before_confirm",
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       });
@@ -2036,7 +2085,7 @@ exports.cancelSokOrder = functions
 // ============================================================
 // 商品在庫状況の店舗データへの自動同期
 // ============================================================
-exports.syncStoreItemAvailability = onDocumentWritten("items/{itemId}", async (event) => {
+exports.syncStoreItemAvailability = onDocumentWritten({ document: "items/{itemId}", region: "asia-northeast1" }, async (event) => {
   const before = event.data?.before?.data();
   const after = event.data?.after?.data();
 

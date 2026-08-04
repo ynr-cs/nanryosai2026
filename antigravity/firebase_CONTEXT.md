@@ -108,7 +108,7 @@ last_updated: 2026-05-07
   - `items/{itemId}`: 商品マスタデータ。
   - `orders/{orderId}`: 注文トランザクションデータ。
     - `orderChannel`: `"mobile"`, `"sok"`, `"pos"` で注文経路を区別。
-    - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`) と `sokClaimedAt`。
+    - SOK専用: `sokStatus` (`"pending"`, `"claimed"`, `"confirmed"`, `"expired"`, `"cancelled"`) と `sokClaimedAt`。
     - `paymentMethod`: 経路によらず `"au_pay_manual"` に統一。
     - `readyForPickupAt`: 提供準備完了時刻。5分放置ペナルティの自動判定（`abandonStaleOrders` Scheduled Function）の基準として重要。
   - `counters/receipt_{channel}`: 経路別（`receipt_pos`, `receipt_sok`, `receipt_mobile`）のレシート番号生成用アトミックカウンタ。
@@ -156,6 +156,7 @@ last_updated: 2026-05-07
   - `createSokProvisional` (OnCall): SOKの仮注文を作成（`sokStatus: "pending"`, `status: null`, `userId: null`）。受付番号は未発番。
   - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。トランザクションで二重読み取りを防止。
   - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。ここでSOK用（2000番台）の受付番号を発番。
+  - `cancelSokOrder` (OnCall): SOKの未確定注文(`sokStatus: "claimed"`)を手動キャンセルする。所有者認証を強制し、`sokStatus: "cancelled"` へ遷移させる(`status`は`null`のまま)。
   - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`PENALTY_WHITELIST_EMAILS`（`ynrcs1000@gmail.com`）は対象外。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
