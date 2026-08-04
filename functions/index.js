@@ -2052,7 +2052,7 @@ exports.cancelSokOrder = functions
         const order = orderSnap.data();
 
         if (order.orderChannel !== "sok") {
-          throw new functions.https.HttpsError("failed-precondition", "他経路の誤爆防止のためキャンセルできません。");
+          throw new functions.https.HttpsError("failed-precondition", "この注文はキャンセルできません。");
         }
 
         if (order.status != null) {
