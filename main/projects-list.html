@@ -935,7 +935,7 @@
           function processDataAndRender() {
             // 1. 基本的な除外
             let result = projectData.filter(
-              (p) => p.category !== "stage",
+              (p) => p.category !== "stage" && !(storeStatuses[p.id] && storeStatuses[p.id].isTestStore),
             );
 
             // 2. Filter
@@ -1060,10 +1060,12 @@
         try {
           const snap = await getDocs(collection(db, "stores"));
           snap.forEach(doc => {
+            const data = doc.data();
             storeStatuses[doc.id] = {
-              op: doc.data().operationStatus || "suspended",
-              available: doc.data().availableItemCount,
-              total: doc.data().totalItemCount
+              op: data.operationStatus || "suspended",
+              available: data.availableItemCount,
+              total: data.totalItemCount,
+              isTestStore: data.isTestStore
             };
           });
         } catch (e) {

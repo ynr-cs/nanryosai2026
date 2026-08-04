@@ -1697,8 +1697,8 @@
             
             // data.js の projectData を参照し、モバイルオーダー対象かチェック
             const localProject = window.projectData.find(p => p.id === d.id);
-            if (!localProject || localProject.useMobileOrder !== true) {
-              return; // 対象外の団体はスキップ
+            if (!localProject || localProject.useMobileOrder !== true || data.isTestStore) {
+              return; // 対象外の団体またはテスト店舗はスキップ
             }
             // Check for auto-select
             if (d.id === targetStoreId) {

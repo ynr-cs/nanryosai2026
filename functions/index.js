@@ -1725,7 +1725,8 @@ exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data
     throw new functions.https.HttpsError("permission-denied", "スーパー管理者のみ実行可能です");
   }
 
-  const { uid } = data;
+  const requestData = data.data && typeof data.data === "object" ? data.data : data;
+  const { uid } = requestData;
   if (!uid || typeof uid !== "string") {
     throw new functions.https.HttpsError("invalid-argument", "uid が必要です");
   }
