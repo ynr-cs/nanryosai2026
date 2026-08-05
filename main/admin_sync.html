@@ -783,14 +783,16 @@
           <thead>
             <tr>
               <th width="70">ID</th>
-              <th width="100">Login ID</th>
-              <th width="110">クラス</th>
-              <th width="150">企画名</th>
-              <th width="100">場所</th>
+              <th width="80">Login ID</th>
+              <th width="100">クラス</th>
+              <th width="140">企画名</th>
+              <th width="90">場所</th>
               <th width="50">階</th>
+              <th width="80">カテゴリ</th>
+              <th width="80">Mobile Order</th>
               <th width="90">種類</th>
               <th width="80">メニュー</th>
-              <th width="200">キャッチコピー</th>
+              <th width="160">キャッチコピー</th>
               <th width="100">操作</th>
             </tr>
           </thead>
@@ -1176,6 +1178,12 @@
                     <td><input type="number" value="${
                       project.floor || 1
                     }" style="width:50px" onchange="updateRow(${index}, 'floor', parseInt(this.value))"></td>
+                    <td><input type="text" value="${
+                      project.category || ""
+                    }" style="width:70px" onchange="updateRow(${index}, 'category', this.value)"></td>
+                    <td style="text-align:center;"><input type="checkbox" ${
+                      project.useMobileOrder ? "checked" : ""
+                    } onchange="updateRow(${index}, 'useMobileOrder', this.checked)"></td>
                     <td>
                         <select onchange="updateRow(${index}, 'contentType', this.value)">
                             <option value="menu" ${
@@ -1230,6 +1238,8 @@
           name: "",
           place: "",
           floor: 1,
+          category: "food",
+          useMobileOrder: false,
           contentType: "menu",
           menu: [],
           catchphrase: "",

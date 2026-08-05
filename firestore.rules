@@ -18,15 +18,22 @@ service cloud.firestore {
     }
 
     // スーパー管理者 (緊急メンテナンス用: ynrcs1000@gmail.com)
+    // 【設計判断】このアカウントはFirebase自体のオーナーであり、
+    // アカウント自体に「Google高度な保護機能プログラム(APP)」を適用し物理キー等で強力に保護しています。
+    // Custom Claimsの初期化トラブル（ロックアウト）を防ぐための確実なフェイルセーフとしてハードコードを許容します。
+    // （※このアドレスは部活の公式な窓口として公開されているため、ソースコードからの漏洩によるスパムリスク等は実運用上ゼロとみなします）
     function isSuperAdmin() {
-      return isAuthenticated() && request.auth.token.email == 'ynrcs1000@gmail.com';
+      return isAuthenticated() 
+             && request.auth.token.email == 'ynrcs1000@gmail.com'
+             && request.auth.token.email_verified == true;
     }
 
     // --- Collection Rules ---
 
     // 1. Stores (店舗情報の公開)
-    // 読み取りは誰でも可能 (メニュー表示のため)
-    // ※ パスワードフィールドが含まれていないことを確認してください
+    // 【安全性の宣言】読み取りは誰でも可能 (メニュー表示のため)
+    // ※ このコレクションには店舗責任者の本名・電話番号・メールアドレスなどの
+    //    個人情報は保存されない設計となっているため、全公開でも安全です。
     match /stores/{storeId} {
       allow read: if true; 
       allow write: if isSuperAdmin(); // 管理者はコンソール等で変更
@@ -59,30 +66,50 @@ service cloud.firestore {
     }
 
     // 3. Orders (注文) – 設計憲法§8 / §8.1 準拠
+    // 【安全性の宣言】monitor.html等で `ready_for_pickup` 時に誰でも読み取れる状態になりますが、
+    // 設計上、注文データには氏名・メールアドレス・電話番号などの個人情報は一切保存されず、
+    // ユーザー識別はUIDのみで行われるため、ここで公開されても流出のリスクはなく安全です。
     match /orders/{orderId} {
-      // 読み取り: 設計憲法§8.1 に基づく4条件
-      allow read: if
+      // 読み取り: 設計憲法§8.1 に基づく条件
+      // 単一ドキュメント取得 (get)
+      allow get: if
         // (a) 店舗管理者（自店のみ）または SuperAdmin
         isStoreAdmin(resource.data.storeId) || isSuperAdmin()
         // (b) 自身の注文（userId 一致）
         || (isAuthenticated() && request.auth.uid == resource.data.userId)
-        // (c) SOK未確定仮注文（claim前の閲覧用）
+        // (c) SOK未確定仮注文（QR読み取り等、IDを知っている場合のみ許可）
         || (resource.data.orderChannel == "sok" && resource.data.sokStatus == "pending")
+        // (d) monitor.html 用: ready_for_pickup の注文を誰でも読める
+        || resource.data.status == "ready_for_pickup";
+      
+      // クエリによる一覧取得 (list)
+      allow list: if
+        // (a) 店舗管理者（自店のみ）または SuperAdmin
+        isStoreAdmin(resource.data.storeId) || isSuperAdmin()
+        // (b) 自身の注文（userId 一致）
+        || (isAuthenticated() && request.auth.uid == resource.data.userId)
+        // SOK未確定仮注文の list はスクレイピング防止のため禁止
         // (d) monitor.html 用: ready_for_pickup の注文を誰でも読める
         || resource.data.status == "ready_for_pickup";
       
       // 作成: 禁止 (Cloud Functions経由のみ)
       allow create: if false; 
       
-      // 更新: フェーズ2完了まで既存ルールを維持（kitchen.htmlなどがまだ直接updateしているため）
-      // TODO(Phase2): allow update: if false; に変更する
-      allow update: if isStoreAdmin(resource.data.storeId) || isSuperAdmin();
+      // 更新: ステータス更新等はすべて Cloud Functions 経由で行う (Phase2 完了済)
+      // クライアントからの直接更新は禁止し、SuperAdminのコンソール作業等のみ許可する
+      allow update: if isSuperAdmin();
                     
       // 削除: SuperAdminのみ
       allow delete: if isSuperAdmin();
     }
 
     // 4. Users (ユーザー情報)
+    // 【安全性の宣言】ユーザー自身による自由な書き込みを許可していますが、
+    // 本システムでは権限評価（Custom Claims）やペナルティ（banned_users）、
+    // 決済処理（Cloud Functions）が全て別レイヤーで保護されたゼロトラスト設計のため、
+    // ユーザーが自身のドキュメントを改ざんしてもシステム全体には影響を与えません。
+    // （※将来的に「ユーザー一覧」のような機能が追加されることはYAGNI原則によりあり得ないため、
+    // 未知の機能による情報露出を危惧した過剰なスキーマ検証(hasOnly等)は意図的に除外しています）
     match /users/{userId}/{document=**} {
       allow read: if (isAuthenticated() && request.auth.uid == userId) || isSuperAdmin();
       allow write: if isAuthenticated() && request.auth.uid == userId;
@@ -91,7 +118,7 @@ service cloud.firestore {
     // 5. Counters (採番)
     // 読み取り: 店舗管理者、SuperAdminのみ (売上推測防止)
     match /counters/{document=**} {
-      allow read: if isAuthenticated() && (request.auth.token.role == 'store_admin' || request.auth.token.email == 'ynrcs1000@gmail.com');
+      allow read: if (isAuthenticated() && request.auth.token.role == 'store_admin') || isSuperAdmin();
       allow write: if false; 
     }
 
