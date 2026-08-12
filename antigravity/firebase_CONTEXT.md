@@ -169,9 +169,11 @@ last_updated: 2026-05-07
   - `rebuildStoreSheet` (OnCall): 特定の店舗のスプレッドシートをクリアし、Firestoreの全対象履歴から再構築する（復旧用）。
   - `loginVenueAdmin` (OnCall): ステージ発表・催し物会場（venues）管理用。URLトークンとパスワードを検証し、セッショントークンを発行。
   - `updateVenueStatus` (OnCall): セッショントークンを検証し、許可されたフィールド (`status`, `currentEventId`, `nextEventId`, `updatedAt`) のみ `venues/{venueId}` に安全にマージする。
-  - `warmupPing` (OnRequest): Cloud Functions のコールドスタートを防ぐための軽量なダミー関数。スケジュール関数から定期的に叩かれる。
   - `updateStoreStatus` (OnCall, v0.3.12〜): 店舗の営業ステータスを変更する。`newStatus === "open"` の場合、`availableItemIds` に含まれる商品のみ `isAvailable: true` にし、それ以外を `false` にバッチ更新。同時に `operationStatus` と `lastActivityAt` を更新する。`store_admin` 権限が必要。
-  - `manageStoreStatusAndWarmup` (Scheduled, 毎分実行): `operationStatus === "open"` かつ `lastActivityAt` が15分以上前の店舗を自動的に `"suspended"` に変更する（放置検知）。また、活発な店舗がある場合は `warmupPing` へリクエストを送信して Functions を保温する。
+  - **コールドスタート対策（ウォームアップ機構）**:
+    - `warmupOrderFunctions`: 内部ヘルパー関数。営業中の店舗が存在する場合に、注文関連のクリティカルパスとなる7つの関数（`createOrder`, `createSokProvisional`, `claimSokOrder`, `confirmSokOrder`, `kitchenComplete`, `callForPickup`, `completeOrder`）に対して、`{"data": {"warmup": true}}` のペイロードを持たせたHTTP POSTリクエストを一斉送信する。
+    - **バイパス実装**: 上記7つの対象関数の先頭には、`if (requestData && requestData.warmup === true) return { warmup: true };` というバイパスロジックが組み込まれており、認証チェックやDBアクセスの前に即座にリターンする（処理を消費せずインスタンスだけを起動/保温する）。
+  - `manageStoreStatusAndWarmup` (Scheduled, 毎分実行): `operationStatus === "open"` かつ `lastActivityAt` が15分以上前の店舗を自動的に `"suspended"` に変更する（放置検知）。また、活発な店舗がある場合は上記の `warmupOrderFunctions()` を呼び出して注文系 Functions を保温する。
   - `syncStoreItemAvailability` (Firestore Trigger, v0.5.56〜): `items/{itemId}` の作成・更新・削除時に自動発火し、該当店舗の全商品を取得して `availableItemCount` (販売中数) と `totalItemCount` (総数) を計算し `stores/{storeId}` に同期する。
 
 
