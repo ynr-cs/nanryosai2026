@@ -13,6 +13,19 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.92] Cloud Functions のコールドスタート対策（ウォームアップ機構）の実装 - 2026-08-13
+
+### メタ情報
+
+- **AIモデル**: Gemini 3.1 Pro
+- **筆者**: AI
+
+### 修正 (Fixed) / 変更 (Changed)
+
+- **Functions コールドスタート対策の改修 (functions/index.js)**
+  - **背景/原因**: これまでは `warmupPing` というダミー関数に定期アクセスしていたが、Cloud Functionsは関数単位でインスタンスが起動するため、実際の注文系関数のコールドスタート防止には無意味であった。
+  - **解決策**: 注文のクリティカルパスにある7つの関数 (`createOrder`, `createSokProvisional`, `claimSokOrder`, `confirmSokOrder`, `kitchenComplete`, `callForPickup`, `completeOrder`) の先頭に、`warmup: true` を受け取った場合は即座にリターンするバイパスを追加。営業中の店舗がある間、毎分これら7つの関数に対して `warmupOrderFunctions` からHTTP POSTリクエストを送信しウォームアップするように変更。同時に不要になった `warmupPing` を削除した。
+
 ## [0.5.91] admin_sync.htmlへの同期制御UI追加 - 2026-08-05
 
 ### メタ情報

@@ -485,11 +485,13 @@ async function updateStoreActivity(storeId) {
 exports.createOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
 
-    const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderChannel, storeId, items } = requestData;
 
     // --- バリデーション ---
@@ -681,6 +683,8 @@ exports.kitchenComplete = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
     if (orderData.status !== "cooking") {
@@ -706,6 +710,8 @@ exports.callForPickup = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
     if (orderData.status !== "ready_to_serve") {
@@ -730,6 +736,8 @@ exports.completeOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
     if (orderData.status !== "ready_for_pickup") {
@@ -1440,16 +1448,34 @@ exports.updateVenueStatus = functions
 // 店舗ステータス管理 & Functionsコールドスタート防止
 // ============================================================
 
-/**
- * @name warmupPing
- * @description Cloud Functions のコールドスタートを防ぐための軽量関数。
- *              スケジュール関数から定期的に叩かれる。
- */
-exports.warmupPing = functions
-  .region("asia-northeast1")
-  .https.onRequest((req, res) => {
-    res.status(200).send("pong");
-  });
+const WARMUP_TARGETS = [
+  "createOrder",
+  "createSokProvisional",
+  "claimSokOrder",
+  "confirmSokOrder",
+  "kitchenComplete",
+  "callForPickup",
+  "completeOrder",
+];
+
+function warmupOrderFunctions() {
+  const https = require("https");
+  const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "nanryosai-2026-a4091";
+  const payload = JSON.stringify({ data: { warmup: true } });
+  for (const fnName of WARMUP_TARGETS) {
+    const url = `https://asia-northeast1-${projectId}.cloudfunctions.net/${fnName}`;
+    const req = https.request(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload),
+      },
+    }, (res) => { res.on("data", () => {}); });
+    req.on("error", (e) => console.error(`Warmup error (${fnName}):`, e.message));
+    req.write(payload);
+    req.end();
+  }
+}
 
 /**
  * @name updateStoreStatus
@@ -1522,6 +1548,10 @@ exports.updateStoreStatus = functions
         }
       }
 
+      if (newStatus === "open") {
+        warmupOrderFunctions();
+      }
+
       return { success: true, newStatus };
     } catch (error) {
       console.error("updateStoreStatus Error:", error);
@@ -1576,16 +1606,7 @@ exports.manageStoreStatusAndWarmup = functions
       await batch.commit();
 
       if (hasActiveStore) {
-        // ウォームアップリクエストを送信 (Node.js標準の https モジュールを使用)
-        const https = require("https");
-        const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "nanryosai-2026-a4091";
-        const url = `https://asia-northeast1-${projectId}.cloudfunctions.net/warmupPing`;
-        
-        https.get(url, (res) => {
-          res.on("data", () => {}); // データを消費してコネクションをクリーンアップ
-        }).on("error", (e) => {
-          console.error("Warmup ping error:", e);
-        });
+        warmupOrderFunctions();
       }
 
       return null;
@@ -1750,6 +1771,9 @@ exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data
 exports.createSokProvisional = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     // スタッフ認証必須（未ログインは拒否 → 無限スパム防止）
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "店舗スタッフのログインが必要です。");
@@ -1760,7 +1784,6 @@ exports.createSokProvisional = functions
       throw new functions.https.HttpsError("permission-denied", "店舗管理者権限が必要です。");
     }
 
-    const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { storeId, items } = requestData;
 
     if (!storeId || !Array.isArray(items) || items.length === 0) {
@@ -1863,6 +1886,9 @@ exports.createSokProvisional = functions
 exports.claimSokOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
@@ -1874,7 +1900,6 @@ exports.claimSokOrder = functions
       throw new functions.https.HttpsError("permission-denied", "利用が制限されています。");
     }
 
-    const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderId } = requestData;
     if (!orderId) {
       throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
@@ -1927,12 +1952,14 @@ exports.claimSokOrder = functions
 exports.confirmSokOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    const requestData = data.data && typeof data.data === "object" ? data.data : data;
+    if (requestData && requestData.warmup === true) return { warmup: true };
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
     const uid = context.auth.uid;
 
-    const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderId } = requestData;
     if (!orderId) {
       throw new functions.https.HttpsError("invalid-argument", "orderId が必要です。");
