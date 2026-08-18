@@ -24,10 +24,9 @@ const projectData = [
     name: "やきそばスター",
     place: "中庭テントA",
     floor: 1,
+    roomId: "tent_a",
     category: "food",
     useMobileOrder: true,
-    // [2026年度メモ] mapX, mapY (地図座標)は要件定義待ちのため、現在はデータ定義から除外しています。
-    // 必要になった場合は、2D/3Dどちらの方式になるか確定後に再定義してください。
     description:
       "秘伝のソースが決め手！行列必至の焼きそば専門店です。目玉焼きトッピングがおすすめ！",
     catchphrase: "星3つの味をあなたに",
@@ -71,6 +70,7 @@ const projectData = [
     name: "タピオカヘブン",
     place: "昇降口前",
     floor: 1,
+    roomId: "spot_entrance",
     category: "food",
     useMobileOrder: true,
     description:
@@ -115,6 +115,7 @@ const projectData = [
     name: "情熱のチュロス",
     place: "中庭テントB",
     floor: 1,
+    roomId: "tent_b",
     category: "food",
     useMobileOrder: true,
     description:
@@ -151,6 +152,7 @@ const projectData = [
     name: "ホラーハウス「廃校舎」",
     place: "南棟 2F 201",
     floor: 2,
+    roomId: "room_201",
     category: "exhibit",
     description:
       "かつて実験室だった場所で起きた悲劇...。あなたは無事に脱出できるか？最恐のお化け屋敷。",
@@ -167,6 +169,7 @@ const projectData = [
     name: "カジノ・ロワイヤル",
     place: "南棟 2F 202",
     floor: 2,
+    roomId: "room_202",
     category: "exhibit",
     description:
       "ポーカー、ブラックジャック、ルーレット。大人の社交場を教室に再現。※金銭は賭けません",
@@ -183,6 +186,7 @@ const projectData = [
     name: "VS 南陵",
     place: "体育館サブアリーナ",
     floor: 1,
+    roomId: "room_gym_sub",
     category: "exhibit",
     description:
       "あの人気番組のような巨大アスレチック＆キッキングスナイパー！体力自慢集まれ！",
@@ -199,6 +203,7 @@ const projectData = [
     name: "縁日「夏祭り」",
     place: "北棟 2F 204",
     floor: 2,
+    roomId: "room_204",
     category: "exhibit",
     description:
       "射的、ヨーヨー釣り、スーパーボールすくい。懐かしいお祭りの雰囲気を楽しんで。",
@@ -215,6 +220,7 @@ const projectData = [
     name: "めちゃうまポテイト",
     place: "北棟 3F 301",
     floor: 3,
+    roomId: "room_301",
     category: "food",
     useMobileOrder: true,
     description: "マッククルーによるめちゃくちゃうまいポテトです",
@@ -260,6 +266,7 @@ const projectData = [
     name: "フォトスポット「映えの森」",
     place: "北棟 3F 302",
     floor: 3,
+    roomId: "room_302",
     category: "exhibit",
     description:
       "教室全体がフォトスタジオに！黒板アートや風船で飾られた空間で思い出の一枚を。",
@@ -276,6 +283,7 @@ const projectData = [
     name: "迷路「不思議の国」",
     place: "北棟 3F 303",
     floor: 3,
+    roomId: "room_303",
     category: "exhibit",
     description:
       "ダンボールで作った巨大迷路。アリスの世界に迷い込んだような装飾に注目！",
@@ -292,6 +300,7 @@ const projectData = [
     name: "「花・鳥・風・月」展示",
     place: "特別棟 1F 作法室",
     floor: 1,
+    roomId: "room_sahou",
     category: "exhibit",
     description:
       "部員一同一生懸命生けたお花を展示しています。心安らぐ空間へようこそ。",
@@ -308,6 +317,7 @@ const projectData = [
     name: "Art Gallery 2026",
     place: "特別棟 2F 美術室",
     floor: 2,
+    roomId: "room_art",
     category: "shop",
     useMobileOrder: false,
     description:
@@ -344,6 +354,7 @@ const projectData = [
     name: "お茶会",
     place: "特別棟 1F 作法室",
     floor: 1,
+    roomId: "room_sahou",
     category: "food",
     useMobileOrder: false,
     description:
@@ -371,6 +382,7 @@ const projectData = [
     name: "Moment -瞬-",
     place: "北棟 2F 渡り廊下",
     floor: 2,
+    roomId: "spot_corridor_2f",
     category: "exhibit",
     description: "南陵高校の日常を切り取った写真展。コンテスト入賞作品も展示。",
     catchphrase: "その一瞬を永遠に",
@@ -386,6 +398,7 @@ const projectData = [
     name: "サイエンス・ラボ",
     place: "特別棟 3F 化学室",
     floor: 3,
+    roomId: "room_chemistry",
     category: "exhibit",
     description:
       "スライム作り体験や炎色反応実験など、子供から大人まで楽しめる科学実験ショー。",
@@ -402,6 +415,7 @@ const projectData = [
     name: "南陵ライブ2026",
     place: "視聴覚室・体育館",
     floor: 3,
+    roomId: "room_audiovisual",
     category: "stage",
     description:
       "総勢10バンドが出演！熱いライブをお届けします。日程によって場所が異なるのでご注意ください！",
@@ -419,6 +433,7 @@ const projectData = [
     name: "Autumn Concert",
     place: "音楽室・体育館",
     floor: 4,
+    roomId: "room_music",
     category: "stage",
     description: "ポップスからクラシックまで、幅広いジャンルの曲を演奏します。",
     catchphrase: "響け、私たちの音",
@@ -435,6 +450,7 @@ const projectData = [
     name: "Show Time!!",
     place: "体育館",
     floor: 1,
+    roomId: "room_gym_main",
     category: "stage",
     description: "HipHop, Jazz, Lockなど様々なジャンルのダンスを披露します！",
     catchphrase: "We are Dancers",
@@ -452,6 +468,7 @@ const projectData = [
     linkUrl: "about-us.html",
     place: "コンピュータ科学部",
     floor: 2,
+    roomId: "room_cs",
     category: "exhibit",
     contentType: "gallery",
     menu: [],

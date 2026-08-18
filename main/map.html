@@ -1,927 +1,2732 @@
 <!--
-  Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Nanryosai 2026 - Interactive Campus Map Viewer V3
+  Version: 3.0.0
   Author: Nanryosai 2026 Project Team
+  Framework: Leaflet.js 1.9.4 & Glassmorphism Mobile-First UI
 -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <script>
-      (function() {
-        try {
-          var theme = localStorage.getItem('app-theme');
-          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
-        } catch (e) {}
-      })();
-    </script>
-    <!-- Prevent Dark Mode Flicker (FOUC) -->
-    <style>
-      html { background-color: #f0f2f5; }
-      @media (prefers-color-scheme: dark) {
-        html:not([data-theme="light"]) { background-color: #0f172a; }
-      }
-      html[data-theme="dark"] { background-color: #0f172a; }
-      html[data-theme="light"] { background-color: #f0f2f5; }
-    </style>
-    <script>
-      (function() {
-        const savedTheme = localStorage.getItem("app-theme") || "auto";
-        if (savedTheme === "dark") {
-          document.documentElement.setAttribute("data-theme", "dark");
-        } else if (savedTheme === "light") {
-          document.documentElement.setAttribute("data-theme", "light");
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <title>校内マップ | 南陵祭'26</title>
+
+  <!-- Prevent Dark Mode Flicker (FOUC) -->
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('app-theme');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (theme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
         }
-      })();
-    </script>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>フロアマップ | 南陵祭'26</title>
-    <!-- Core Style (Shell) -->
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+      } catch (e) {}
+    })();
+  </script>
 
-    <!-- Map Specific Styles -->
-    <style>
-      /* ========================================
-       Map Page Layout
-       ======================================== */
-      .map-page-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      }
+  <style>
+    html { background-color: #f0f2f5; }
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme="light"]) { background-color: #0f172a; }
+    }
+    html[data-theme="dark"] { background-color: #0f172a; }
+    html[data-theme="light"] { background-color: #f0f2f5; }
+  </style>
 
-      /* Floor Selector UI */
-      .floor-selector {
-        position: fixed;
-        top: 50%;
-        right: 16px;
-        transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 1000;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        padding: 8px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      }
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 
-      .floor-btn {
-        width: 44px;
-        height: 44px;
-        border: none;
-        border-radius: 12px;
-        background: transparent;
-        color: var(--text-secondary, #666);
-        font-weight: 700;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+  <!-- FontAwesome 6 CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
-      .floor-btn:hover {
-        background: rgba(0, 0, 0, 0.05);
-      }
+  <!-- Leaflet 1.9.4 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
 
-      .floor-btn.active {
-        background: var(--primary-color, #4a90d9);
-        color: #fff;
-        box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
-      }
+  <!-- Map Viewer Specialized Styles -->
+  <style>
+    /* ==========================================================================
+       Map Layout & Global Canvas Reset
+       ========================================================================== */
+    :root {
+      --map-bg-light: #cfe3d8;
+      --map-bg-dark: #1a2e22;
+      --cat-food: #f59e0b;
+      --cat-exhibit: #8b5cf6;
+      --cat-shop: #ec4899;
+      --cat-stage: #ef4444;
+      --cat-facility: #06b6d4;
+    }
 
-      /* Map Container with 3D Perspective */
-      .map-viewport {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        perspective: 1500px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Inter", "Noto Sans JP", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-      .map-layer-container {
-        transform-style: preserve-3d;
-        transform: rotateX(55deg) rotateZ(-45deg);
-        transition: transform 0.3s ease;
-        cursor: grab;
-        position: relative;
-      }
+    .map-app-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--map-bg-light);
+      transition: background-color 0.3s ease;
+    }
 
-      .map-layer-container:active {
-        cursor: grabbing;
-      }
+    [data-theme="dark"] .map-app-container {
+      background-color: var(--map-bg-dark);
+    }
 
-      .map-image {
-        width: 800px;
-        max-width: none;
-        height: auto;
-        display: block;
-        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
-        background: #fff;
-        border-radius: 8px;
-        padding: 20px;
-        box-sizing: content-box;
-        transition: opacity 0.3s ease;
-      }
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background-color: transparent;
+    }
 
-      /* Pin Markers - Billboard Effect (stand upright) */
-      .map-pin {
-        position: absolute;
-        transform: rotateZ(45deg) rotateX(-55deg);
-        cursor: pointer;
-        z-index: 10;
-      }
+    /* GSI Aerial Photo Dark Mode Filter */
+    .leaflet-tile-pane {
+      filter: brightness(1.0) contrast(1.0) saturate(1.0);
+      transition: filter 0.35s ease;
+    }
 
-      .pin-marker {
-        width: 32px;
-        height: 40px;
-        background: var(--primary-color, #4a90d9);
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
-      }
+    [data-theme="dark"] .leaflet-tile-pane {
+      filter: brightness(0.65) contrast(1.15) saturate(0.85);
+    }
 
-      .pin-marker::after {
-        content: "";
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 16px;
-        height: 8px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 50%;
-        filter: blur(4px);
-      }
+    /* Interactive vector elements & Neon Glow */
+    .leaflet-container path.room-polygon {
+      transition: fill-opacity 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+      cursor: pointer;
+    }
 
-      .pin-marker i {
-        transform: rotate(45deg);
-        color: #fff;
-        font-size: 14px;
-      }
+    [data-theme="dark"] .leaflet-interactive.room-polygon.is-active {
+      filter: drop-shadow(0 0 10px rgba(192, 132, 252, 0.95)) !important;
+    }
 
-      .map-pin:hover .pin-marker {
-        transform: rotate(-45deg) scale(1.2);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      }
+    [data-theme="dark"] .access-route-neon {
+      filter: drop-shadow(0 0 8px currentColor);
+    }
 
-      /* Pin Label (Tooltip) */
-      .pin-label {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-8px);
-        background: #fff;
-        padding: 8px 12px;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition:
-          opacity 0.2s ease,
-          transform 0.2s ease;
-        z-index: 100;
-      }
+    /* ==========================================================================
+       Glassmorphism Top Navigation Bar
+       ========================================================================== */
+    .map-top-bar {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 12px) + 8px);
+      left: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      padding: 0 12px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      gap: 8px;
+    }
 
-      .pin-label::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 8px solid transparent;
-        border-top-color: #fff;
-      }
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-      .pin-label-name {
-        font-weight: 700;
-        font-size: 14px;
-        color: var(--text-primary, #333);
-      }
+    .top-bar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s ease, transform 0.15s ease;
+    }
 
-      .pin-label-group {
-        font-size: 12px;
-        color: var(--text-secondary, #666);
-      }
+    .top-bar-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
 
-      .map-pin:hover .pin-label {
-        opacity: 1;
-        transform: translateX(-50%) translateY(-12px);
-      }
+    [data-theme="dark"] .top-bar-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
 
-      /* Facility Icons (Toilet, Stairs) */
-      .facility-icon {
-        position: absolute;
-        transform: rotateZ(45deg) rotateX(-55deg);
-        z-index: 5;
-      }
+    .top-bar-btn:active {
+      transform: scale(0.92);
+    }
 
-      .facility-marker {
-        width: 28px;
-        height: 28px;
-        background: rgba(100, 100, 100, 0.9);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
+    .top-bar-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
 
-      .facility-marker.toilet {
-        background: #5c6bc0;
-      }
+    .top-bar-title .badge-year {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--primary-gradient);
+      color: #fff;
+    }
 
-      .facility-marker.stairs {
-        background: #7cb342;
-      }
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-      .facility-marker.entrance {
-        background: #ef5350;
-      }
+    /* ==========================================================================
+       Horizontal Category Filter Chips
+       ========================================================================== */
+    .category-filter-bar {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 12px) + 64px);
+      left: 0;
+      right: 0;
+      z-index: 950;
+      display: flex;
+      gap: 8px;
+      padding: 4px 16px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      pointer-events: none;
+    }
 
-      /* Back Button */
-      .back-btn {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1000;
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-primary, #333);
-        font-size: 18px;
-        transition: all 0.2s ease;
-      }
+    .category-filter-bar::-webkit-scrollbar {
+      display: none;
+    }
 
-      .back-btn:hover {
-        background: #fff;
-        transform: scale(1.05);
-      }
+    .filter-chip {
+      pointer-events: auto;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      height: 34px;
+      border-radius: 17px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
 
-      /* Floor Title */
-      .floor-title {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        padding: 12px 24px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        font-weight: 700;
-        font-size: 16px;
-        color: var(--text-primary, #333);
-      }
+    .filter-chip i {
+      font-size: 12px;
+      color: var(--text-sub);
+      transition: color 0.2s ease;
+    }
 
-      /* Zoom Controls */
-      .zoom-controls {
-        position: fixed;
-        bottom: 100px;
-        right: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 1000;
-      }
+    .filter-chip:hover {
+      border-color: rgba(106, 17, 203, 0.4);
+    }
 
-      .zoom-btn {
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-primary, #333);
-        font-size: 18px;
-        transition: all 0.2s ease;
-      }
+    .filter-chip:active {
+      transform: scale(0.94);
+    }
 
-      .zoom-btn:hover {
-        background: #fff;
-      }
+    .filter-chip.active {
+      background: var(--primary-color);
+      color: #ffffff !important;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(106, 17, 203, 0.4);
+    }
 
-      /* View Toggle (2D / 3D) */
-      .view-toggle {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        display: flex;
-        gap: 4px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        padding: 4px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      }
+    .filter-chip.active i {
+      color: #ffffff !important;
+    }
 
-      .view-toggle-btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 10px;
-        background: transparent;
-        color: var(--text-secondary, #666);
-        font-weight: 600;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
+    /* ==========================================================================
+       Right Slim Vertical Floor Switcher Pill
+       ========================================================================== */
+    .floor-pill-container {
+      position: fixed;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      touch-action: manipulation;
+    }
 
-      .view-toggle-btn.active {
-        background: var(--primary-color, #4a90d9);
-        color: #fff;
-      }
+    .floor-pill-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
 
-      /* 2D View Mode */
-      .map-layer-container.view-2d {
-        transform: rotateX(0deg) rotateZ(0deg);
-      }
+    .floor-pill-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-main);
+    }
 
-      .map-layer-container.view-2d .map-pin,
-      .map-layer-container.view-2d .facility-icon {
-        transform: rotateZ(0deg) rotateX(0deg);
-      }
+    [data-theme="dark"] .floor-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
 
-      .map-layer-container.view-2d .pin-marker {
-        transform: rotate(-45deg);
-      }
+    .floor-pill-btn:active {
+      transform: scale(0.9);
+    }
 
-      /* Loading State */
-      .map-loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 2000;
-        transition: opacity 0.3s ease;
-      }
+    .floor-pill-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff !important;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(106, 17, 203, 0.45);
+      transform: scale(1.08);
+    }
 
-      .map-loading.hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
+    .floor-pill-btn.floor-pill-outdoor i {
+      font-size: 14px;
+    }
 
-      .map-loading-spinner {
-        width: 48px;
-        height: 48px;
-        border: 4px solid rgba(74, 144, 217, 0.2);
-        border-top-color: var(--primary-color, #4a90d9);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
+    /* ==========================================================================
+       Floating Action Controls (Map Zoom & Navigation Tools)
+       ========================================================================== */
+    .map-controls-group {
+      position: fixed;
+      left: 12px;
+      bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
+      z-index: 950;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+    .map-control-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
 
-      .map-loading-text {
-        margin-top: 16px;
-        font-weight: 600;
-        color: var(--text-secondary, #666);
-      }
+    .map-control-btn:hover {
+      transform: scale(1.05);
+      border-color: var(--primary-color);
+    }
 
-      /* Mobile Adjustments */
-      @media (max-width: 768px) {
-        .floor-selector {
-          right: 8px;
-          padding: 6px;
-        }
+    .map-control-btn:active {
+      transform: scale(0.92);
+    }
 
-        .floor-btn {
-          width: 38px;
-          height: 38px;
-          font-size: 12px;
-        }
+    .map-control-btn.active {
+      background: var(--primary-color);
+      color: #fff;
+    }
 
-        .back-btn,
-        .zoom-btn {
-          width: 38px;
-          height: 38px;
-          font-size: 16px;
-        }
+    /* Zoom control vertical pill */
+    .zoom-pill-group {
+      display: flex;
+      flex-direction: column;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
 
-        .floor-title {
-          font-size: 14px;
-          padding: 10px 18px;
-        }
+    .zoom-btn {
+      width: 44px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
 
-        .map-image {
-          width: 600px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Loading Overlay -->
-    <div class="map-loading" id="mapLoading">
-      <div class="map-loading-spinner"></div>
-      <div class="map-loading-text">マップを読み込み中...</div>
+    .zoom-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    [data-theme="dark"] .zoom-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .zoom-btn:active {
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .zoom-divider {
+      height: 1px;
+      background: var(--glass-border);
+      margin: 0 6px;
+    }
+
+    /* ==========================================================================
+       Custom Leaflet Map Pins (L.divIcon)
+       ========================================================================== */
+    .custom-map-pin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translate(-50%, -100%);
+      cursor: pointer;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .custom-map-pin:hover,
+    .custom-map-pin.is-active {
+      transform: translate(-50%, -105%) scale(1.18);
+      z-index: 1000 !important;
+    }
+
+    .pin-body {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 15px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      background: #7c5cff;
+    }
+
+    .cat-food .pin-body { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .cat-exhibit .pin-body { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .cat-shop .pin-body { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .cat-stage .pin-body { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+    .cat-facility .pin-body { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+
+    /* Mobile Order Mini Badge */
+    .pin-badge-order {
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #fff;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Multi-Project Count Mini Badge */
+    .pin-badge-count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: 9px;
+      background: #ff0080;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .pin-arrow {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(255, 255, 255, 0.95);
+      margin-top: -1px;
+    }
+
+    .pin-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--text-main);
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 2px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      border: 0.5px solid var(--glass-border);
+      pointer-events: none;
+    }
+
+    /* User Location Pulse Marker */
+    .user-location-marker {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #007aff;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 12px rgba(0, 122, 255, 0.8);
+      position: relative;
+    }
+
+    .user-location-marker::after {
+      content: '';
+      position: absolute;
+      top: -9px;
+      left: -9px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 122, 255, 0.35);
+      animation: userPulse 2s infinite ease-out;
+    }
+
+    @keyframes userPulse {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Route Badge Marker */
+    .route-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .route-badge .route-min {
+      padding: 2px 6px;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 10px;
+    }
+
+    /* ==========================================================================
+       3-Stage Snap Bottom Sheet UI
+       ========================================================================== */
+    .bottom-sheet-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .bottom-sheet-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      height: 88vh;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid var(--glass-border);
+      border-left: 1px solid var(--glass-border);
+      border-right: 1px solid var(--glass-border);
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+      z-index: 1100;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.05);
+      will-change: transform;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    .bottom-sheet.dragging {
+      transition: none;
+    }
+
+    .bottom-sheet-handle-bar {
+      width: 100%;
+      padding: 12px 0 8px 0;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .bottom-sheet-handle {
+      width: 44px;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--text-sub);
+      opacity: 0.35;
+      transition: opacity 0.2s ease, width 0.2s ease;
+    }
+
+    .bottom-sheet-handle-bar:hover .bottom-sheet-handle,
+    .bottom-sheet.dragging .bottom-sheet-handle {
+      opacity: 0.75;
+      width: 54px;
+    }
+
+    .bottom-sheet-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 0 16px calc(24px + env(safe-area-inset-bottom, 20px)) 16px;
+      touch-action: pan-y;
+    }
+
+    /* ==========================================================================
+       Project Card & Multi-Project Tab/Carousel Inside Sheet
+       ========================================================================== */
+    .project-sheet-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .project-sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .project-tags-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .category-badge,
+    .location-badge,
+    .mobile-order-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .badge-food { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+    .badge-exhibit { background: rgba(139, 92, 246, 0.18); color: #8b5cf6; }
+    .badge-shop { background: rgba(236, 72, 153, 0.18); color: #ec4899; }
+    .badge-stage { background: rgba(239, 68, 68, 0.18); color: #ef4444; }
+    .badge-facility { background: rgba(6, 182, 212, 0.18); color: #06b6d4; }
+
+    .location-badge {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-sub);
+    }
+    [data-theme="dark"] .location-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+    }
+
+    .mobile-order-badge {
+      background: rgba(16, 185, 129, 0.18);
+      color: #10b981;
+    }
+
+    .sheet-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .sheet-close-btn {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sheet-close-btn:hover {
+      background: rgba(0, 0, 0, 0.12);
+      color: var(--text-main);
+    }
+
+    .project-group-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .project-sheet-title {
+      margin: 2px 0 0 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .project-catchphrase {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    /* Action Buttons (Peek area) */
+    .project-action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-action-mobile-order {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(106, 17, 203, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-action-mobile-order:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(106, 17, 203, 0.45);
+    }
+
+    .btn-action-mobile-order:active {
+      transform: scale(0.98);
+    }
+
+    .btn-action-mobile-order .btn-icon {
+      font-size: 20px;
+    }
+
+    .btn-action-mobile-order .btn-text {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .btn-action-mobile-order .btn-text .sub {
+      font-size: 10.5px;
+      opacity: 0.9;
+    }
+
+    .btn-action-mobile-order .btn-text .main {
+      font-size: 14.5px;
+      font-weight: 800;
+    }
+
+    .btn-action-mobile-order .arrow-icon {
+      margin-left: auto;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    .btn-action-detail {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] .btn-action-detail {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-action-detail:hover {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: var(--primary-color);
+    }
+
+    /* Expanded Details Area */
+    .project-expanded-details {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .section-subheading {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .project-description-text {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-sub);
+    }
+
+    /* Menu / Item List */
+    .project-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .project-menu-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .project-menu-item {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .menu-item-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-recommend {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #ff0080;
+      color: #fff;
+    }
+
+    .menu-item-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .menu-item-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary-color);
+      white-space: nowrap;
+      margin-left: 10px;
+    }
+
+    /* Stage Timetable items */
+    .stage-schedule-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Multi-Project Pills for Room Sharing (e.g. Sahou-shitsu) */
+    .multi-project-pills-bar {
+      display: flex;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .multi-project-pills-bar::-webkit-scrollbar { display: none; }
+
+    .multi-pill-btn {
+      padding: 6px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .multi-pill-btn.active {
+      background: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 8px rgba(106, 17, 203, 0.3);
+    }
+
+    /* ==========================================================================
+       Route Selection Modal
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateY(20px) scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .route-option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .route-option-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    [data-theme="dark"] .route-option-card {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .route-option-card:hover {
+      border-color: var(--primary-color);
+      background: rgba(106, 17, 203, 0.06);
+    }
+
+    .route-option-card.active {
+      border-color: var(--primary-color);
+      background: rgba(106, 17, 203, 0.12);
+    }
+
+    .route-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .route-info {
+      flex: 1;
+    }
+
+    .route-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .route-sub {
+      font-size: 11.5px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .btn-clear-route {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px dashed var(--border-color);
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-clear-route:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* ==========================================================================
+       Toast Notification
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      z-index: 2500;
+      padding: 10px 18px;
+      border-radius: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      color: var(--text-main);
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .toast-container.active {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-app-container">
+    <!-- Map Div -->
+    <div id="map"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="map-top-bar" role="banner">
+      <div class="top-bar-left">
+        <a href="index.html" class="top-bar-btn" aria-label="トップへ戻る">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="top-bar-title">
+          <span>校内マップ</span>
+          <span class="badge-year">'26</span>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <button type="button" class="top-bar-btn" id="routeModalBtn" aria-label="アクセスルート案内">
+          <i class="fas fa-route"></i>
+        </button>
+        <button type="button" class="top-bar-btn" id="themeToggleBtn" aria-label="テーマ切り替え">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Horizontal Category Filter Chips -->
+    <nav class="category-filter-bar" id="categoryFilter" role="tablist" aria-label="企画カテゴリ絞り込み">
+      <button type="button" class="filter-chip active" data-category="all" role="tab" aria-selected="true">
+        <i class="fas fa-layer-group"></i>
+        <span>すべて</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="food" role="tab" aria-selected="false">
+        <i class="fas fa-utensils"></i>
+        <span>模擬店</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="exhibit" role="tab" aria-selected="false">
+        <i class="fas fa-palette"></i>
+        <span>展示</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="shop" role="tab" aria-selected="false">
+        <i class="fas fa-bag-shopping"></i>
+        <span>物販</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="stage" role="tab" aria-selected="false">
+        <i class="fas fa-music"></i>
+        <span>ステージ</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="facility" role="tab" aria-selected="false">
+        <i class="fas fa-restroom"></i>
+        <span>施設</span>
+      </button>
+    </nav>
+
+    <!-- Right Slim Vertical Floor Switcher Pill -->
+    <div class="floor-pill-container" id="floorSwitcher" role="radiogroup" aria-label="フロア選択">
+      <button type="button" class="floor-pill-btn" data-floor="5" aria-label="5階" role="radio" aria-checked="false">5F</button>
+      <button type="button" class="floor-pill-btn" data-floor="4" aria-label="4階" role="radio" aria-checked="false">4F</button>
+      <button type="button" class="floor-pill-btn" data-floor="3" aria-label="3階" role="radio" aria-checked="false">3F</button>
+      <button type="button" class="floor-pill-btn" data-floor="2" aria-label="2階" role="radio" aria-checked="false">2F</button>
+      <button type="button" class="floor-pill-btn active" data-floor="1" aria-label="1階" role="radio" aria-checked="true">1F</button>
+      <button type="button" class="floor-pill-btn floor-pill-outdoor" data-floor="outdoor" aria-label="屋外・全体" role="radio" aria-checked="false">
+        <i class="fas fa-tree"></i>
+      </button>
     </div>
 
-    <!-- Map Page Container -->
-    <div class="map-page-container">
-      <!-- Back Button -->
-      <button class="back-btn" onclick="history.back()" aria-label="戻る">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-
-      <!-- Floor Title -->
-      <div class="floor-title" id="floorTitle">1F フロアマップ</div>
-
-      <!-- Floor Selector -->
-      <div class="floor-selector">
-        <button class="floor-btn active" data-floor="1">1F</button>
-        <button class="floor-btn" data-floor="2">2F</button>
-        <button class="floor-btn" data-floor="3">3F</button>
-        <button class="floor-btn" data-floor="4">4F</button>
-        <button class="floor-btn" data-floor="5">5F</button>
-      </div>
-
-      <!-- Zoom Controls -->
-      <div class="zoom-controls">
-        <button class="zoom-btn" id="zoomIn" aria-label="拡大">
+    <!-- Floating Action Controls (Left/Bottom) -->
+    <div class="map-controls-group">
+      <div class="zoom-pill-group">
+        <button type="button" class="zoom-btn" id="zoomInBtn" aria-label="拡大">
           <i class="fas fa-plus"></i>
         </button>
-        <button class="zoom-btn" id="zoomOut" aria-label="縮小">
+        <div class="zoom-divider"></div>
+        <button type="button" class="zoom-btn" id="zoomOutBtn" aria-label="縮小">
           <i class="fas fa-minus"></i>
         </button>
       </div>
 
-      <!-- View Toggle -->
-      <div class="view-toggle">
-        <button class="view-toggle-btn active" data-view="3d">3D View</button>
-        <button class="view-toggle-btn" data-view="2d">2D View</button>
+      <button type="button" class="map-control-btn" id="myLocationBtn" aria-label="現在地を表示">
+        <i class="fas fa-location-crosshairs"></i>
+      </button>
+
+      <button type="button" class="map-control-btn" id="resetViewBtn" aria-label="キャンパス全体を表示">
+        <i class="fas fa-compass"></i>
+      </button>
+    </div>
+
+    <!-- 3-Stage Snap Bottom Sheet -->
+    <div class="bottom-sheet-backdrop" id="sheetBackdrop"></div>
+    <div class="bottom-sheet" id="bottomSheet" data-state="collapsed" role="dialog" aria-modal="true" aria-label="企画・施設詳細">
+      <div class="bottom-sheet-handle-bar" id="sheetHandle">
+        <div class="bottom-sheet-handle"></div>
       </div>
-
-      <!-- Map Viewport -->
-      <div class="map-viewport" id="mapViewport">
-        <div class="map-layer-container" id="mapContainer">
-          <img
-            src="lastyear/images/map-1f.png"
-            alt="1F Floor Map"
-            class="map-image"
-            id="mapImage"
-          />
-
-          <!-- Pins will be dynamically inserted here -->
-          <div id="pinsContainer"></div>
-        </div>
+      <div class="bottom-sheet-content" id="sheetContent">
+        <!-- Dynamically rendered content -->
       </div>
     </div>
 
-    <!-- Load External Data -->
-    <script src="data/data.js"></script>
+    <!-- Access Route Selection Modal -->
+    <div class="modal-overlay" id="routeModal" role="dialog" aria-modal="true" aria-label="アクセスルート選択">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <i class="fas fa-route" style="color: var(--primary-color);"></i>
+            <span>来場アクセスルート案内</span>
+          </div>
+          <button type="button" class="sheet-close-btn" id="closeRouteModalBtn" aria-label="閉じる">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
 
-    <script>
-      (function () {
-        "use strict";
+        <div class="route-option-list" id="routeOptions">
+          <button type="button" class="route-option-card" data-route-id="route_yokodai">
+            <div class="route-icon-box" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
+              <i class="fas fa-train"></i>
+            </div>
+            <div class="route-info">
+              <div class="route-name">洋光台北口ルート (徒歩5分)</div>
+              <div class="route-sub">洋光台北口バス停 〜 正門 (320m)</div>
+            </div>
+          </button>
 
-        // ==========================================
-        // Configuration
-        // ==========================================
-        const CONFIG = {
-          floorImages: {
-            1: "lastyear/images/map-1f.png",
-            2: "lastyear/images/map-2f.png",
-            3: "lastyear/images/map-3f.png",
-            4: "lastyear/images/map-4f.png",
-            5: "lastyear/images/map-5f.png",
-          },
-          floorNames: {
-            1: "1F フロアマップ",
-            2: "2F フロアマップ",
-            3: "3F フロアマップ",
-            4: "4F フロアマップ",
-            5: "5F フロアマップ",
-          },
-          minScale: 0.5,
-          maxScale: 3,
-          scaleStep: 0.2,
-        };
+          <button type="button" class="route-option-card" data-route-id="route_hino_park">
+            <div class="route-icon-box" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+              <i class="fas fa-tree"></i>
+            </div>
+            <div class="route-info">
+              <div class="route-name">日野中央公園ルート (徒歩8分)</div>
+              <div class="route-sub">公園入口 〜 正門 (580m)</div>
+            </div>
+          </button>
 
-        // Pin Coordinates (x, y are percentages of the map image)
-        // TODO: These need to be manually adjusted based on actual map layout
-        const PIN_COORDINATES = {
-          // Floor 1
-          301: { floor: 1, x: 20, y: 45, icon: "fa-utensils" }, // 中庭テントA
-          303: { floor: 1, x: 35, y: 45, icon: "fa-utensils" }, // 中庭テントB
-          302: { floor: 1, x: 50, y: 55, icon: "fa-coffee" }, // 昇降口前
-          203: { floor: 1, x: 75, y: 30, icon: "fa-dumbbell" }, // サブアリーナ
-          kado: { floor: 1, x: 60, y: 70, icon: "fa-leaf" }, // 作法室
-          sado: { floor: 1, x: 62, y: 72, icon: "fa-mug-hot" }, // 作法室
-          dance: { floor: 1, x: 80, y: 25, icon: "fa-music" }, // 体育館
+          <button type="button" class="route-option-card" data-route-id="route_hino_elem">
+            <div class="route-icon-box" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+              <i class="fas fa-bus"></i>
+            </div>
+            <div class="route-info">
+              <div class="route-name">日野小学校前ルート (徒歩10分)</div>
+              <div class="route-sub">日野小学校前バス停 〜 正門 (700m)</div>
+            </div>
+          </button>
+        </div>
 
-          // Floor 2
-          201: { floor: 2, x: 25, y: 40, icon: "fa-ghost" }, // 南棟 2F 201
-          202: { floor: 2, x: 35, y: 40, icon: "fa-dice" }, // 南棟 2F 202
-          204: { floor: 2, x: 65, y: 40, icon: "fa-fish" }, // 北棟 2F 204
-          shashin: { floor: 2, x: 50, y: 60, icon: "fa-camera" }, // 渡り廊下
-          bijutsu: { floor: 2, x: 70, y: 70, icon: "fa-palette" }, // 美術室
-          cs: { floor: 2, x: 45, y: 50, icon: "fa-laptop-code" }, // コンピュータ科学部
+        <button type="button" class="btn-clear-route" id="clearRouteBtn">
+          <i class="fas fa-ban"></i> ルート表示を解除
+        </button>
+      </div>
+    </div>
 
-          // Floor 3
-          101: { floor: 3, x: 25, y: 40, icon: "fa-utensils" }, // 北棟 3F 301
-          102: { floor: 3, x: 35, y: 40, icon: "fa-camera-retro" }, // 北棟 3F 302
-          103: { floor: 3, x: 45, y: 40, icon: "fa-puzzle-piece" }, // 北棟 3F 303
-          keion: { floor: 3, x: 70, y: 70, icon: "fa-guitar" }, // 視聴覚室
-          science: { floor: 3, x: 60, y: 60, icon: "fa-flask" }, // 化学室
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastBox">
+      <i class="fas fa-info-circle"></i>
+      <span id="toastMessage"></span>
+    </div>
+  </div>
 
-          // Floor 4
-          brass: { floor: 4, x: 50, y: 50, icon: "fa-drum" }, // 音楽室
-        };
+  <!-- Leaflet 1.9.4 JavaScript CDN -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
 
-        // Facility markers (toilets, stairs, etc.)
-        const FACILITY_MARKERS = {
-          toilet_1f_1: {
-            floor: 1,
-            x: 30,
-            y: 50,
-            type: "toilet",
-            icon: "fa-restroom",
-          },
-          stairs_1f_1: {
-            floor: 1,
-            x: 40,
-            y: 35,
-            type: "stairs",
-            icon: "fa-stairs",
-          },
-          entrance: {
-            floor: 1,
-            x: 50,
-            y: 80,
-            type: "entrance",
-            icon: "fa-door-open",
-          },
-          // Add more as needed
-        };
+  <!-- Load Static Project Data (Zero-DB Principle) -->
+  <script src="data/data.js"></script>
 
-        // ==========================================
-        // State
-        // ==========================================
-        let currentFloor = 1;
-        let currentScale = 1;
-        let currentView = "3d"; // '3d' or '2d'
-        let translateX = 0;
-        let translateY = 0;
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
+  <!-- Main Map Engine Script -->
+  <script>
+    (function () {
+      'use strict';
 
-        // ==========================================
-        // DOM Elements
-        // ==========================================
-        const mapContainer = document.getElementById("mapContainer");
-        const mapImage = document.getElementById("mapImage");
-        const mapViewport = document.getElementById("mapViewport");
-        const pinsContainer = document.getElementById("pinsContainer");
-        const floorTitle = document.getElementById("floorTitle");
-        const floorButtons = document.querySelectorAll(".floor-btn");
-        const viewButtons = document.querySelectorAll(".view-toggle-btn");
-        const zoomInBtn = document.getElementById("zoomIn");
-        const zoomOutBtn = document.getElementById("zoomOut");
-        const loadingOverlay = document.getElementById("mapLoading");
+      // ==========================================================================
+      // Constants & Configuration
+      // ==========================================================================
+      const CAMPUS_CENTER = [35.386167, 139.585500];
+      const DEFAULT_ZOOM = 18;
+      const MIN_ZOOM = 15;
+      const MAX_ZOOM = 22;
+      const MAX_BOUNDS = [
+        [35.378000, 139.575000],
+        [35.394000, 139.596000]
+      ];
 
-        // ==========================================
-        // Floor Switching
-        // ==========================================
-        function switchFloor(floor) {
-          currentFloor = floor;
-          floorTitle.textContent = CONFIG.floorNames[floor];
-          mapImage.src = CONFIG.floorImages[floor];
+      // Campus boundary polygon for Ray-Casting PIP Geolocation test
+      const CAMPUS_BOUNDARY_POLYGON = [
+        [35.385000, 139.584300], // 南西端
+        [35.387500, 139.584300], // 北西端
+        [35.388000, 139.587800], // 北東端
+        [35.386000, 139.588000], // 南東端
+        [35.385000, 139.586200]  // 南端
+      ];
 
-          // Update button states
-          floorButtons.forEach((btn) => {
-            btn.classList.toggle(
-              "active",
-              parseInt(btn.dataset.floor) === floor,
+      // Category styling metadata
+      const CATEGORY_META = {
+        food: { name: '模擬店', icon: 'fa-utensils', color: '#f59e0b', badgeClass: 'badge-food' },
+        exhibit: { name: '展示', icon: 'fa-palette', color: '#8b5cf6', badgeClass: 'badge-exhibit' },
+        shop: { name: '物販', icon: 'fa-bag-shopping', color: '#ec4899', badgeClass: 'badge-shop' },
+        stage: { name: 'ステージ', icon: 'fa-music', color: '#ef4444', badgeClass: 'badge-stage' },
+        facility: { name: '施設', icon: 'fa-restroom', color: '#06b6d4', badgeClass: 'badge-facility' }
+      };
+
+      // State
+      let map = null;
+      let campusData = null;
+      let joinedPins = [];
+      let currentFloor = '1';
+      let currentCategory = 'all';
+      let activeSelectedRoomId = null;
+
+      // Layer Groups
+      let groundLayerGroup = null;
+      let buildingLayerGroup = null;
+      let floorVectorLayerGroup = null;
+      let pinLayerGroup = null;
+      let activeRouteLayerGroup = null;
+      let userLocationLayerGroup = null;
+
+      // Vector polygon index for fast highlighting
+      const polygonLayerMap = new Map(); // roomId -> L.Polygon
+
+      // ==========================================================================
+      // Catmull-Rom Spline Interpolation for Smooth Access Routes
+      // ==========================================================================
+      function getCatmullRomSpline(points, tension = 0.5, segments = 12) {
+        if (!points || points.length < 2) return points;
+        const result = [];
+        const pts = [points[0], ...points, points[points.length - 1]];
+
+        for (let i = 0; i < pts.length - 3; i++) {
+          const p0 = pts[i];
+          const p1 = pts[i + 1];
+          const p2 = pts[i + 2];
+          const p3 = pts[i + 3];
+
+          for (let t = 0; t <= 1; t += 1 / segments) {
+            const t2 = t * t;
+            const t3 = t2 * t;
+
+            const lat = 0.5 * (
+              (2 * p1[0]) +
+              (-p0[0] + p2[0]) * t +
+              (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
             );
-          });
-
-          // Render pins for this floor
-          renderPins();
-          renderFacilities();
-
-          // Reset position
-          resetPosition();
-        }
-
-        // ==========================================
-        // Pin Rendering
-        // ==========================================
-        function renderPins() {
-          pinsContainer.innerHTML = "";
-
-          // Filter projectData by current floor
-          if (typeof projectData === "undefined") {
-            console.warn("projectData not loaded");
-            return;
-          }
-
-          projectData.forEach((project) => {
-            const coords = PIN_COORDINATES[project.id];
-            if (!coords || coords.floor !== currentFloor) return;
-
-            const pinEl = document.createElement("div");
-            pinEl.className = "map-pin";
-            pinEl.style.left = `${coords.x}%`;
-            pinEl.style.top = `${coords.y}%`;
-            pinEl.dataset.projectId = project.id;
-
-            pinEl.innerHTML = `
-                    <div class="pin-marker">
-                        <i class="fas ${coords.icon || "fa-map-marker-alt"}"></i>
-                    </div>
-                    <div class="pin-label">
-                        <div class="pin-label-group">${project.groupName || ""}</div>
-                        <div class="pin-label-name">${project.name}</div>
-                    </div>
-                `;
-
-            pinEl.addEventListener("click", () => showProjectDetail(project));
-
-            pinsContainer.appendChild(pinEl);
-          });
-        }
-
-        function renderFacilities() {
-          // Remove existing facility icons
-          document
-            .querySelectorAll(".facility-icon")
-            .forEach((el) => el.remove());
-
-          Object.entries(FACILITY_MARKERS).forEach(([id, marker]) => {
-            if (marker.floor !== currentFloor) return;
-
-            const facilityEl = document.createElement("div");
-            facilityEl.className = "facility-icon";
-            facilityEl.style.left = `${marker.x}%`;
-            facilityEl.style.top = `${marker.y}%`;
-
-            facilityEl.innerHTML = `
-                    <div class="facility-marker ${marker.type}">
-                        <i class="fas ${marker.icon}"></i>
-                    </div>
-                `;
-
-            mapContainer.appendChild(facilityEl);
-          });
-        }
-
-        function showProjectDetail(project) {
-          // For now, just alert. Later, could open a modal or navigate
-          alert(
-            `${project.groupName}\n${project.name}\n\n場所: ${project.place}\n\n${project.description || ""}`,
-          );
-        }
-
-        // ==========================================
-        // View Toggle (2D / 3D)
-        // ==========================================
-        function setView(view) {
-          currentView = view;
-          viewButtons.forEach((btn) => {
-            btn.classList.toggle("active", btn.dataset.view === view);
-          });
-
-          if (view === "2d") {
-            mapContainer.classList.add("view-2d");
-          } else {
-            mapContainer.classList.remove("view-2d");
-          }
-        }
-
-        // ==========================================
-        // Zoom Controls
-        // ==========================================
-        function zoom(delta) {
-          currentScale = Math.max(
-            CONFIG.minScale,
-            Math.min(CONFIG.maxScale, currentScale + delta),
-          );
-          updateTransform();
-        }
-
-        // ==========================================
-        // Pan (Drag) Controls
-        // ==========================================
-        function startDrag(e) {
-          isDragging = true;
-          const point = e.touches ? e.touches[0] : e;
-          startX = point.clientX - translateX;
-          startY = point.clientY - translateY;
-          mapContainer.style.cursor = "grabbing";
-        }
-
-        function drag(e) {
-          if (!isDragging) return;
-          e.preventDefault();
-          const point = e.touches ? e.touches[0] : e;
-          translateX = point.clientX - startX;
-          translateY = point.clientY - startY;
-          updateTransform();
-        }
-
-        function endDrag() {
-          isDragging = false;
-          mapContainer.style.cursor = "grab";
-        }
-
-        function updateTransform() {
-          const baseTransform =
-            currentView === "2d"
-              ? `translate(${translateX}px, ${translateY}px) scale(${currentScale})`
-              : `translate(${translateX}px, ${translateY}px) rotateX(55deg) rotateZ(-45deg) scale(${currentScale})`;
-
-          mapContainer.style.transform = baseTransform;
-        }
-
-        function resetPosition() {
-          currentScale = 1;
-          translateX = 0;
-          translateY = 0;
-          updateTransform();
-        }
-
-        // ==========================================
-        // Pinch Zoom (Touch)
-        // ==========================================
-        let initialPinchDistance = null;
-        let initialScale = 1;
-
-        function handlePinchStart(e) {
-          if (e.touches.length === 2) {
-            initialPinchDistance = getPinchDistance(e.touches);
-            initialScale = currentScale;
-          }
-        }
-
-        function handlePinchMove(e) {
-          if (e.touches.length === 2 && initialPinchDistance) {
-            e.preventDefault();
-            const currentDistance = getPinchDistance(e.touches);
-            const scaleChange = currentDistance / initialPinchDistance;
-            currentScale = Math.max(
-              CONFIG.minScale,
-              Math.min(CONFIG.maxScale, initialScale * scaleChange),
+            const lng = 0.5 * (
+              (2 * p1[1]) +
+              (-p0[1] + p2[1]) * t +
+              (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
             );
-            updateTransform();
+            result.push([lat, lng]);
+          }
+        }
+        return result;
+      }
+
+      // ==========================================================================
+      // XSS Sanitization Helper
+      // ==========================================================================
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+          .replace(/=/g, '&#061;');
+      }
+
+      // ==========================================================================
+      // Geometry & Centroid Calculation (Green's Theorem with Local Origin Offset)
+      // ==========================================================================
+      function calculatePolygonCentroid(coords) {
+        if (!coords || coords.length === 0) return CAMPUS_CENTER;
+        if (coords.length === 1) return coords[0];
+        if (coords.length === 2) {
+          return [(coords[0][0] + coords[1][0]) / 2, (coords[0][1] + coords[1][1]) / 2];
+        }
+
+        const n = coords.length;
+        const x0 = coords[0][0];
+        const y0 = coords[0][1];
+
+        let area = 0;
+        let cLat = 0;
+        let cLng = 0;
+
+        for (let i = 0; i < n; i++) {
+          const j = (i + 1) % n;
+          const x1 = coords[i][0] - x0;
+          const y1 = coords[i][1] - y0;
+          const x2 = coords[j][0] - x0;
+          const y2 = coords[j][1] - y0;
+
+          const cross = x1 * y2 - x2 * y1;
+          area += cross;
+          cLat += (x1 + x2) * cross;
+          cLng += (y1 + y2) * cross;
+        }
+
+        area = area / 2;
+
+        if (Math.abs(area) < 1e-12) {
+          const sumLat = coords.reduce((acc, p) => acc + p[0], 0);
+          const sumLng = coords.reduce((acc, p) => acc + p[1], 0);
+          return [sumLat / n, sumLng / n];
+        }
+
+        cLat = x0 + cLat / (6 * area);
+        cLng = y0 + cLng / (6 * area);
+
+        return [cLat, cLng];
+      }
+
+      function resolveSpotCoordinate(target, campusMeta) {
+        // Level 1: explicit coordinate
+        if (target.pinCoord && Array.isArray(target.pinCoord) && target.pinCoord.length === 2) {
+          return target.pinCoord;
+        }
+        if (target.latlng && Array.isArray(target.latlng) && target.latlng.length === 2) {
+          return target.latlng;
+        }
+
+        // Level 2: Polygon Centroid
+        const poly = target.polygon || target.coordinates;
+        if (poly && Array.isArray(poly) && poly.length >= 3) {
+          return calculatePolygonCentroid(poly);
+        }
+
+        // Level 3: Building Centroid
+        if (target.buildingId && campusMeta && campusMeta.buildings) {
+          const bldg = campusMeta.buildings.find(b => b.id === target.buildingId);
+          if (bldg && (bldg.polygon || bldg.coordinates)) {
+            return calculatePolygonCentroid(bldg.polygon || bldg.coordinates);
           }
         }
 
-        function handlePinchEnd() {
-          initialPinchDistance = null;
+        // Level 4: Campus Center Fallback
+        return CAMPUS_CENTER;
+      }
+
+      // ==========================================================================
+      // Ray-Casting Point-in-Polygon (PIP) for Geolocation
+      // ==========================================================================
+      function isPointInCampus(lat, lng) {
+        const vs = CAMPUS_BOUNDARY_POLYGON;
+        let inside = false;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          const xi = vs[i][1], yi = vs[i][0];
+          const xj = vs[j][1], yj = vs[j][0];
+          const intersect = ((yi > lat) !== (yj > lat))
+              && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+
+      // ==========================================================================
+      // Toast Notification Helper
+      // ==========================================================================
+      let toastTimer = null;
+      function showToast(msg, duration = 3000) {
+        const box = document.getElementById('toastBox');
+        const text = document.getElementById('toastMessage');
+        if (!box || !text) return;
+        text.textContent = msg;
+        box.classList.add('active');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          box.classList.remove('active');
+        }, duration);
+      }
+
+      // ==========================================================================
+      // Bottom Sheet Controller (3-Stage Snap Engine)
+      // ==========================================================================
+      class BottomSheetController {
+        constructor() {
+          this.sheet = document.getElementById('bottomSheet');
+          this.backdrop = document.getElementById('sheetBackdrop');
+          this.handle = document.getElementById('sheetHandle');
+          this.content = document.getElementById('sheetContent');
+
+          this.STATES = {
+            COLLAPSED: 'collapsed',
+            PEEK: 'peek',
+            EXPANDED: 'expanded'
+          };
+          this.currentState = this.STATES.COLLAPSED;
+
+          this.startY = 0;
+          this.currentTranslateY = 0;
+          this.startTranslateY = 0;
+          this.startTime = 0;
+          this.isDragging = false;
+
+          this.initEvents();
+          this.snapTo(this.STATES.COLLAPSED, false);
         }
 
-        function getPinchDistance(touches) {
-          const dx = touches[0].clientX - touches[1].clientX;
-          const dy = touches[0].clientY - touches[1].clientY;
-          return Math.sqrt(dx * dx + dy * dy);
+        getSnapPoints() {
+          const vh = window.innerHeight;
+          return {
+            [this.STATES.COLLAPSED]: vh,
+            [this.STATES.PEEK]: vh * (1 - 0.38),
+            [this.STATES.EXPANDED]: vh * (1 - 0.88)
+          };
         }
 
-        // ==========================================
-        // Event Listeners
-        // ==========================================
-        function initEventListeners() {
-          // Floor switching
-          floorButtons.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              switchFloor(parseInt(btn.dataset.floor));
-            });
-          });
+        initEvents() {
+          const onStart = (e) => {
+            const pageY = e.touches ? e.touches[0].pageY : e.pageY;
+            const target = e.target;
+            const isHandle = this.handle.contains(target);
+            const isContentAtTop = this.content.scrollTop <= 0;
 
-          // View toggle
-          viewButtons.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              setView(btn.dataset.view);
-            });
-          });
-
-          // Zoom buttons
-          zoomInBtn.addEventListener("click", () => zoom(CONFIG.scaleStep));
-          zoomOutBtn.addEventListener("click", () => zoom(-CONFIG.scaleStep));
-
-          // Mouse wheel zoom
-          mapViewport.addEventListener(
-            "wheel",
-            (e) => {
-              e.preventDefault();
-              const delta = e.deltaY > 0 ? -CONFIG.scaleStep : CONFIG.scaleStep;
-              zoom(delta);
-            },
-            { passive: false },
-          );
-
-          // Mouse drag
-          mapContainer.addEventListener("mousedown", startDrag);
-          window.addEventListener("mousemove", drag);
-          window.addEventListener("mouseup", endDrag);
-
-          // Touch drag (single finger)
-          mapContainer.addEventListener(
-            "touchstart",
-            (e) => {
-              if (e.touches.length === 1) {
-                startDrag(e);
-              } else if (e.touches.length === 2) {
-                handlePinchStart(e);
-              }
-            },
-            { passive: true },
-          );
-
-          mapContainer.addEventListener(
-            "touchmove",
-            (e) => {
-              if (e.touches.length === 1) {
-                drag(e);
-              } else if (e.touches.length === 2) {
-                handlePinchMove(e);
-              }
-            },
-            { passive: false },
-          );
-
-          mapContainer.addEventListener("touchend", () => {
-            endDrag();
-            handlePinchEnd();
-          });
-
-          // Image load
-          mapImage.addEventListener("load", () => {
-            loadingOverlay.classList.add("hidden");
-          });
-        }
-
-        // ==========================================
-        // Initialization
-        // ==========================================
-        function init() {
-          initEventListeners();
-          switchFloor(1); // Start on 1F
-
-          // Hide loading after a short delay if image cached
-          setTimeout(() => {
-            if (mapImage.complete) {
-              loadingOverlay.classList.add("hidden");
+            if (isHandle || isContentAtTop) {
+              this.isDragging = true;
+              this.startY = pageY;
+              this.startTime = Date.now();
+              this.startTranslateY = this.currentTranslateY;
+              this.sheet.classList.add('dragging');
             }
-          }, 300);
+          };
+
+          const onMove = (e) => {
+            if (!this.isDragging) return;
+            const pageY = e.touches ? e.touches[0].pageY : e.pageY;
+            const deltaY = pageY - this.startY;
+
+            if (this.currentState === this.STATES.EXPANDED && deltaY < 0 && !this.handle.contains(e.target)) {
+              return;
+            }
+
+            let newTranslateY = this.startTranslateY + deltaY;
+            const snapPoints = this.getSnapPoints();
+
+            // Rubber-band resistance at top limit
+            const minSnap = snapPoints[this.STATES.EXPANDED];
+            if (newTranslateY < minSnap) {
+              const overshoot = minSnap - newTranslateY;
+              newTranslateY = minSnap - Math.pow(overshoot, 0.75);
+            }
+
+            this.currentTranslateY = newTranslateY;
+            this.sheet.style.transform = `translateY(${newTranslateY}px)`;
+
+            const maxSnap = snapPoints[this.STATES.PEEK];
+            const progress = Math.max(0, Math.min(1, (maxSnap - newTranslateY) / (maxSnap - minSnap)));
+            this.backdrop.style.opacity = (progress * 0.4).toString();
+            this.backdrop.style.pointerEvents = progress > 0.5 ? 'auto' : 'none';
+          };
+
+          const onEnd = (e) => {
+            if (!this.isDragging) return;
+            this.isDragging = false;
+            this.sheet.classList.remove('dragging');
+
+            const endTime = Date.now();
+            const deltaTime = Math.max(1, endTime - this.startTime);
+            const pageY = e.changedTouches ? e.changedTouches[0].pageY : e.pageY;
+            const deltaY = pageY - this.startY;
+            const velocity = deltaY / deltaTime;
+
+            const snapPoints = this.getSnapPoints();
+
+            // Velocity flick evaluation
+            if (velocity < -0.35) {
+              this.snapTo(this.STATES.EXPANDED);
+            } else if (velocity > 0.35) {
+              if (this.currentState === this.STATES.EXPANDED) {
+                this.snapTo(this.STATES.PEEK);
+              } else {
+                this.snapTo(this.STATES.COLLAPSED);
+              }
+            } else {
+              // Distance-based snapping
+              let closestState = this.STATES.COLLAPSED;
+              let minDiff = Infinity;
+              for (const [state, snapY] of Object.entries(snapPoints)) {
+                const diff = Math.abs(this.currentTranslateY - snapY);
+                if (diff < minDiff) {
+                  minDiff = diff;
+                  closestState = state;
+                }
+              }
+              this.snapTo(closestState);
+            }
+          };
+
+          this.sheet.addEventListener('touchstart', onStart, { passive: true });
+          window.addEventListener('touchmove', onMove, { passive: false });
+          window.addEventListener('touchend', onEnd, { passive: true });
+
+          // Mouse dragging support
+          this.handle.addEventListener('mousedown', onStart);
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onEnd);
+
+          // Handle double tap/click toggle
+          this.handle.addEventListener('click', () => {
+            if (this.currentState === this.STATES.PEEK) {
+              this.snapTo(this.STATES.EXPANDED);
+            } else if (this.currentState === this.STATES.EXPANDED) {
+              this.snapTo(this.STATES.PEEK);
+            }
+          });
+
+          // Backdrop tap
+          this.backdrop.addEventListener('click', () => {
+            if (this.currentState === this.STATES.EXPANDED) {
+              this.snapTo(this.STATES.PEEK);
+            } else {
+              this.snapTo(this.STATES.COLLAPSED);
+            }
+          });
+
+          // Window Resize & Orientation Change Handling
+          window.addEventListener('resize', () => {
+            this.handleResize();
+          });
+          window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+              this.handleResize();
+            }, 150);
+          });
         }
 
-        // Start
-        init();
-      })();
-    </script>
-  </body>
+        handleResize() {
+          if (this.currentState) {
+            this.snapTo(this.currentState, false);
+          }
+        }
+
+        snapTo(state, animate = true) {
+          this.currentState = state;
+          this.sheet.setAttribute('data-state', state);
+          const snapPoints = this.getSnapPoints();
+          this.currentTranslateY = snapPoints[state];
+
+          if (!animate) {
+            this.sheet.classList.add('dragging');
+            this.sheet.style.transform = `translateY(${this.currentTranslateY}px)`;
+            this.sheet.offsetHeight; // force reflow
+            this.sheet.classList.remove('dragging');
+          } else {
+            this.sheet.style.transform = `translateY(${this.currentTranslateY}px)`;
+          }
+
+          if (state === this.STATES.EXPANDED) {
+            this.backdrop.classList.add('active');
+          } else {
+            this.backdrop.classList.remove('active');
+            this.backdrop.style.opacity = '';
+          }
+
+          if (state === this.STATES.COLLAPSED) {
+            unhighlightActivePolygon();
+          }
+        }
+      }
+
+      let bottomSheet = null;
+
+      // ==========================================================================
+      // Data Model Join: campus_map_data.json + data.js (Zero-DB Principle)
+      // ==========================================================================
+      function buildJoinedPinsModel(campus, rawProjects) {
+        const projectsByRoom = new Map();
+        const validProjects = Array.isArray(rawProjects) ? rawProjects : [];
+
+        validProjects.forEach(p => {
+          if (!p.roomId) return;
+          if (!projectsByRoom.has(p.roomId)) {
+            projectsByRoom.set(p.roomId, []);
+          }
+          projectsByRoom.get(p.roomId).push(p);
+        });
+
+        const pins = [];
+
+        // 1. Indoor Floors (1F ~ 5F)
+        if (campus.indoorFloors) {
+          Object.keys(campus.indoorFloors).forEach(floorKey => {
+            const floorNum = parseInt(floorKey, 10);
+            const floorData = campus.indoorFloors[floorKey];
+            if (!floorData || !floorData.rooms) return;
+
+            floorData.rooms.forEach(room => {
+              const linkedProjects = projectsByRoom.get(room.roomId) || [];
+              const coord = resolveSpotCoordinate(room, campus);
+              const primaryCat = determinePrimaryCategory(room, linkedProjects);
+
+              pins.push({
+                id: `pin_${room.roomId}`,
+                roomId: room.roomId,
+                name: room.name,
+                floor: floorNum,
+                type: 'room',
+                coord: coord,
+                polygon: room.polygon || room.coordinates,
+                projects: linkedProjects,
+                isMulti: linkedProjects.length > 1,
+                category: primaryCat,
+                hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
+                rawRoom: room
+              });
+            });
+          });
+        }
+
+        // 2. Outdoor & Special Spots (spots)
+        if (campus.spots) {
+          campus.spots.forEach(spot => {
+            const linkedProjects = projectsByRoom.get(spot.id) || [];
+            const coord = resolveSpotCoordinate(spot, campus);
+            const primaryCat = determinePrimaryCategory(spot, linkedProjects);
+
+            pins.push({
+              id: `pin_${spot.id}`,
+              roomId: spot.id,
+              name: spot.name,
+              floor: spot.floor || 1,
+              type: 'spot',
+              coord: coord,
+              polygon: null,
+              projects: linkedProjects,
+              isMulti: linkedProjects.length > 1,
+              category: primaryCat,
+              hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
+              rawSpot: spot
+            });
+          });
+        }
+
+        return pins;
+      }
+
+      function determinePrimaryCategory(roomOrSpot, projects) {
+        if (!projects || projects.length === 0) {
+          return roomOrSpot.category || 'facility';
+        }
+        if (projects.some(p => p.category === 'food')) return 'food';
+        if (projects.some(p => p.category === 'stage')) return 'stage';
+        if (projects.some(p => p.category === 'shop')) return 'shop';
+        return projects[0].category || 'exhibit';
+      }
+
+      // ==========================================================================
+      // Map Initialization & Custom Panes
+      // ==========================================================================
+      function initMap() {
+        map = L.map('map', {
+          center: CAMPUS_CENTER,
+          zoom: DEFAULT_ZOOM,
+          minZoom: MIN_ZOOM,
+          maxZoom: MAX_ZOOM,
+          maxBounds: MAX_BOUNDS,
+          maxBoundsViscosity: 0.8,
+          zoomControl: false,
+          attributionControl: false,
+          tap: true
+        });
+
+        // 8-layer Custom Pane Architecture
+        map.createPane('groundPane');
+        map.getPane('groundPane').style.zIndex = 350;
+
+        map.createPane('buildingPane');
+        map.getPane('buildingPane').style.zIndex = 400;
+
+        map.createPane('indoorPane');
+        map.getPane('indoorPane').style.zIndex = 450;
+
+        map.createPane('overpassPane');
+        map.getPane('overpassPane').style.zIndex = 470;
+
+        map.createPane('routePane');
+        map.getPane('routePane').style.zIndex = 500;
+
+        map.createPane('userLocationPane');
+        map.getPane('userLocationPane').style.zIndex = 650;
+
+        // Layer Groups
+        groundLayerGroup = L.layerGroup().addTo(map);
+        buildingLayerGroup = L.layerGroup().addTo(map);
+        floorVectorLayerGroup = L.layerGroup().addTo(map);
+        pinLayerGroup = L.layerGroup().addTo(map);
+        activeRouteLayerGroup = L.layerGroup().addTo(map);
+        userLocationLayerGroup = L.layerGroup().addTo(map);
+
+        // GSI Ortho Photo Tile Layer (maxNativeZoom: 18 with client overzoom to 22)
+        const photoTileLayer = L.tileLayer(
+          'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
+          {
+            maxNativeZoom: 18,
+            maxZoom: MAX_ZOOM,
+            minZoom: MIN_ZOOM,
+            crossOrigin: true,
+            updateWhenIdle: false,
+            keepBuffer: 4,
+            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+          }
+        ).addTo(map);
+
+        // Offline / Network Fail-safe detection
+        let tileErrorCount = 0;
+        let offlineNotified = false;
+        photoTileLayer.on('tileerror', () => {
+          tileErrorCount++;
+          if (tileErrorCount > 5 && !offlineNotified) {
+            offlineNotified = true;
+            showToast('通信混雑モード：ベクター校内マップを表示中', 4000);
+          }
+        });
+        photoTileLayer.on('tileload', () => {
+          if (tileErrorCount > 0) tileErrorCount--;
+        });
+      }
+
+      // ==========================================================================
+      // Building & Outdoor Base Layer Rendering
+      // ==========================================================================
+      function renderStaticBaseLayers() {
+        if (!campusData) return;
+
+        groundLayerGroup.clearLayers();
+        buildingLayerGroup.clearLayers();
+
+        // 1. Outdoor Areas (Ground, Courtyard, Tennis)
+        if (campusData.outdoorAreas) {
+          campusData.outdoorAreas.forEach(area => {
+            const poly = L.polygon(area.polygon || area.coordinates, {
+              pane: 'groundPane',
+              color: area.strokeColor || '#2e7d32',
+              weight: 1.5,
+              fillColor: area.color || '#a7f3d0',
+              fillOpacity: 0.55,
+              className: 'outdoor-polygon'
+            });
+            poly.bindTooltip(area.name, {
+              pane: 'groundPane',
+              permanent: false,
+              direction: 'center',
+              className: 'pin-label'
+            });
+            groundLayerGroup.addLayer(poly);
+          });
+        }
+
+        // 2. Buildings Base Outline
+        if (campusData.buildings) {
+          campusData.buildings.forEach(bldg => {
+            const poly = L.polygon(bldg.polygon || bldg.coordinates, {
+              pane: 'buildingPane',
+              color: bldg.strokeColor || '#5e35b1',
+              weight: 2,
+              fillColor: bldg.color || '#7c5cff',
+              fillOpacity: bldg.id === 'student_bldg' ? 0.15 : 0.65,
+              className: 'building-polygon'
+            });
+            if (!bldg.hasIndoor) {
+              poly.bindTooltip(bldg.name, {
+                pane: 'buildingPane',
+                permanent: false,
+                direction: 'center',
+                className: 'pin-label'
+              });
+            }
+            buildingLayerGroup.addLayer(poly);
+          });
+        }
+      }
+
+      // ==========================================================================
+      // Floor & Vector Rooms Layer Rendering
+      // ==========================================================================
+      function renderCurrentFloorVectors() {
+        floorVectorLayerGroup.clearLayers();
+        polygonLayerMap.clear();
+
+        if (!campusData || !campusData.indoorFloors) return;
+
+        // If outdoor mode is active, only base layers + outdoor spots are visible
+        if (currentFloor === 'outdoor') {
+          renderPins();
+          return;
+        }
+
+        const floorData = campusData.indoorFloors[currentFloor];
+        if (!floorData) return;
+
+        // Corridors & Hallways
+        if (floorData.corridors) {
+          floorData.corridors.forEach(corr => {
+            const isOverpass = corr.id && corr.id.includes('overpass');
+            const poly = L.polygon(corr.polygon || corr.coordinates, {
+              pane: isOverpass ? 'overpassPane' : 'indoorPane',
+              color: corr.strokeColor || '#64748b',
+              weight: 1,
+              fillColor: corr.color || '#cbd5e1',
+              fillOpacity: 0.45,
+              className: isOverpass ? 'corridor-overpass' : 'corridor-polygon'
+            });
+            floorVectorLayerGroup.addLayer(poly);
+          });
+        }
+
+        // Stairs & Vertical Connectors
+        if (floorData.stairs) {
+          floorData.stairs.forEach(stair => {
+            const poly = L.polygon(stair.polygon || stair.coordinates, {
+              pane: 'indoorPane',
+              color: '#475569',
+              weight: 1,
+              fillColor: stair.color || '#94a3b8',
+              fillOpacity: 0.6,
+              className: 'stairs-polygon'
+            });
+            floorVectorLayerGroup.addLayer(poly);
+          });
+        }
+
+        // Toilets & Restrooms
+        if (floorData.toilets) {
+          floorData.toilets.forEach(toilet => {
+            const poly = L.polygon(toilet.polygon || toilet.coordinates, {
+              pane: 'indoorPane',
+              color: toilet.strokeColor || '#0284c7',
+              weight: 1,
+              fillColor: toilet.color || '#38bdf8',
+              fillOpacity: 0.5,
+              className: 'toilet-polygon'
+            });
+            toilet.bindTooltip = toilet.name;
+            floorVectorLayerGroup.addLayer(poly);
+          });
+        }
+
+        // Rooms & Classrooms
+        if (floorData.rooms) {
+          floorData.rooms.forEach(room => {
+            const pinModel = joinedPins.find(p => p.roomId === room.roomId);
+            const cat = pinModel ? pinModel.category : (room.category || 'facility');
+            const catColor = CATEGORY_META[cat] ? CATEGORY_META[cat].color : '#8b5cf6';
+
+            const poly = L.polygon(room.polygon || room.coordinates, {
+              pane: 'indoorPane',
+              color: room.strokeColor || catColor,
+              weight: 1.5,
+              fillColor: room.color || catColor,
+              fillOpacity: 0.45,
+              className: 'room-polygon'
+            });
+
+            poly.on('click', () => {
+              selectRoom(room.roomId, true);
+            });
+
+            polygonLayerMap.set(room.roomId, poly);
+            floorVectorLayerGroup.addLayer(poly);
+          });
+        }
+
+        renderPins();
+      }
+
+      // ==========================================================================
+      // Pin Marker Rendering (Filtered by Floor & Category)
+      // ==========================================================================
+      function renderPins() {
+        pinLayerGroup.clearLayers();
+
+        const filteredPins = joinedPins.filter(pin => {
+          // Floor check
+          if (currentFloor === 'outdoor') {
+            // Outdoor shows spots and ground floor pins
+            if (pin.type !== 'spot' && pin.floor !== 1) return false;
+          } else {
+            const floorNum = parseInt(currentFloor, 10);
+            if (pin.floor !== floorNum) return false;
+          }
+
+          // Category check
+          if (currentCategory !== 'all') {
+            const matchPrimary = pin.category === currentCategory;
+            const matchProject = pin.projects && pin.projects.some(p => p.category === currentCategory);
+            if (!matchPrimary && !matchProject) return false;
+          }
+
+          return true;
+        });
+
+        filteredPins.forEach(pin => {
+          const meta = CATEGORY_META[pin.category] || CATEGORY_META.facility;
+          const labelText = pin.projects.length > 0
+            ? (pin.projects.length === 1 ? pin.projects[0].name : `${pin.name} (${pin.projects.length})`)
+            : pin.name;
+
+          const customIcon = L.divIcon({
+            className: 'custom-map-pin-container',
+            html: `
+              <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}">
+                <div class="pin-body">
+                  <i class="fas ${meta.icon}"></i>
+                  ${pin.hasMobileOrder ? '<span class="pin-badge-order" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
+                  ${pin.isMulti ? `<span class="pin-badge-count" title="${pin.projects.length}企画">${pin.projects.length}</span>` : ''}
+                </div>
+                <div class="pin-arrow"></div>
+                <div class="pin-label">${escapeHtml(labelText)}</div>
+              </div>
+            `,
+            iconSize: [40, 56],
+            iconAnchor: [20, 56]
+          });
+
+          const marker = L.marker(pin.coord, {
+            icon: customIcon,
+            pane: 'markerPane'
+          });
+
+          marker.on('click', () => {
+            selectRoom(pin.roomId, true);
+          });
+
+          pinLayerGroup.addLayer(marker);
+        });
+
+        // Update Polygon opacity based on category filter
+        polygonLayerMap.forEach((poly, roomId) => {
+          const pin = joinedPins.find(p => p.roomId === roomId);
+          if (!pin) return;
+
+          let matches = (currentCategory === 'all');
+          if (!matches) {
+            matches = (pin.category === currentCategory || (pin.projects && pin.projects.some(p => p.category === currentCategory)));
+          }
+
+          poly.setStyle({
+            fillOpacity: matches ? (activeSelectedRoomId === roomId ? 0.75 : 0.45) : 0.08,
+            opacity: matches ? 1.0 : 0.2
+          });
+        });
+      }
+
+      // ==========================================================================
+      // Room Selection & Sheet Presentation
+      // ==========================================================================
+      function selectRoom(roomId, openSheet = true) {
+        activeSelectedRoomId = roomId;
+
+        const targetPin = joinedPins.find(p => p.roomId === roomId);
+        if (!targetPin) return;
+
+        // Switch floor if not currently matching (handles indoor-to-indoor and outdoor-to-indoor)
+        if (targetPin.floor && currentFloor !== targetPin.floor.toString()) {
+          setFloor(targetPin.floor.toString());
+        }
+
+        // Highlight Vector Polygon
+        unhighlightActivePolygon();
+        const poly = polygonLayerMap.get(roomId);
+        if (poly) {
+          poly.setStyle({
+            weight: 3,
+            fillOpacity: 0.75,
+            color: '#ff0080'
+          });
+          if (poly.getElement()) {
+            poly.getElement().classList.add('is-active');
+          }
+        }
+
+        // Pan map smoothly to the pin
+        if (map && targetPin.coord) {
+          map.panTo(targetPin.coord, { animate: true, duration: 0.6 });
+        }
+
+        // Render Sheet Content
+        renderBottomSheetContent(targetPin);
+
+        if (openSheet && bottomSheet) {
+          bottomSheet.snapTo('peek');
+        }
+
+        // Refresh pin active classes
+        document.querySelectorAll('.custom-map-pin').forEach(el => {
+          const rId = el.getAttribute('data-room-id');
+          el.classList.toggle('is-active', rId === roomId);
+        });
+      }
+
+      function unhighlightActivePolygon() {
+        polygonLayerMap.forEach((poly) => {
+          poly.setStyle({
+            weight: 1.5,
+            fillOpacity: 0.45,
+            color: '#7c5cff'
+          });
+          if (poly.getElement()) {
+            poly.getElement().classList.remove('is-active');
+          }
+        });
+      }
+
+      // ==========================================================================
+      // Render Dynamic Bottom Sheet Content (Multi-Project Support)
+      // ==========================================================================
+      function renderBottomSheetContent(pinModel) {
+        const container = document.getElementById('sheetContent');
+        if (!container) return;
+
+        const projects = pinModel.projects || [];
+
+        // If no projects (Facility POI)
+        if (projects.length === 0) {
+          container.innerHTML = `
+            <div class="project-sheet-card">
+              <div class="project-sheet-header">
+                <div class="project-tags-group">
+                  <span class="category-badge badge-facility"><i class="fas fa-circle-info"></i> 施設・共用設備</span>
+                  <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}</span>
+                </div>
+                <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div class="project-sheet-title-group">
+                <div class="project-group-name">南陵高校 校内施設</div>
+                <h2 class="project-sheet-title">${escapeHtml(pinModel.name)}</h2>
+              </div>
+
+              <div class="project-expanded-details">
+                <div class="project-description-section">
+                  <h3 class="section-subheading"><i class="fas fa-circle-info"></i> 施設情報</h3>
+                  <p class="project-description-text">南陵祭当日の来場者向け共用スペース・施設です。ご自由にご利用いただけます。</p>
+                </div>
+              </div>
+            </div>
+          `;
+          bindSheetEvents();
+          return;
+        }
+
+        // Single Project
+        if (projects.length === 1) {
+          container.innerHTML = generateProjectCardHtml(projects[0], pinModel);
+          bindSheetEvents();
+          return;
+        }
+
+        // Multi-Project in same room (e.g. 作法室: 華道部 + 茶道部)
+        let pillsHtml = `<div class="multi-project-pills-bar" id="multiProjectPills">`;
+        projects.forEach((p, idx) => {
+          pillsHtml += `<button type="button" class="multi-pill-btn ${idx === 0 ? 'active' : ''}" data-index="${idx}">${escapeHtml(p.groupName || p.name)}</button>`;
+        });
+        pillsHtml += `</div>`;
+
+        let cardsHtml = `<div id="multiProjectCardsContainer">`;
+        projects.forEach((p, idx) => {
+          cardsHtml += `<div class="multi-project-slide" data-index="${idx}" style="display: ${idx === 0 ? 'block' : 'none'}">
+            ${generateProjectCardHtml(p, pinModel, false)}
+          </div>`;
+        });
+        cardsHtml += `</div>`;
+
+        container.innerHTML = `
+          <div class="multi-project-wrapper">
+            <div class="project-sheet-header" style="margin-bottom: 8px;">
+              <div class="project-tags-group">
+                <span class="category-badge badge-shop"><i class="fas fa-layer-group"></i> 同室 ${projects.length}企画 出店中</span>
+                <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}</span>
+              </div>
+              <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            ${pillsHtml}
+            ${cardsHtml}
+          </div>
+        `;
+
+        // Multi pills click event
+        const pills = container.querySelectorAll('.multi-pill-btn');
+        const slides = container.querySelectorAll('.multi-project-slide');
+
+        pills.forEach(pill => {
+          pill.addEventListener('click', () => {
+            const idx = parseInt(pill.getAttribute('data-index'), 10);
+            pills.forEach((pl, i) => pl.classList.toggle('active', i === idx));
+            slides.forEach((sl, i) => sl.style.display = (i === idx ? 'block' : 'none'));
+          });
+        });
+
+        bindSheetEvents();
+      }
+
+      function generateProjectCardHtml(project, pinModel, showCloseBtn = true) {
+        const catMeta = CATEGORY_META[project.category] || CATEGORY_META.exhibit;
+        const placeStr = project.place || `${pinModel.floor}F ${pinModel.name}`;
+
+        // Menu items HTML
+        let menuHtml = '';
+        if (project.menu && Array.isArray(project.menu) && project.menu.length > 0) {
+          menuHtml = `
+            <div class="project-menu-section">
+              <h3 class="section-subheading"><i class="fas fa-book-open"></i> お品書き・メニュー</h3>
+              <div class="project-menu-list">
+                ${project.menu.map(item => `
+                  <div class="project-menu-item">
+                    <div class="menu-item-info">
+                      <div class="menu-item-name">
+                        <span>${escapeHtml(item.name)}</span>
+                        ${item.isRecommended ? '<span class="badge-recommend">おすすめ</span>' : ''}
+                      </div>
+                      ${item.description ? `<div class="menu-item-desc">${escapeHtml(item.description)}</div>` : ''}
+                    </div>
+                    <div class="menu-item-price">${escapeHtml(item.price || '')}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Stage Schedule items HTML
+        let stageHtml = '';
+        if (project.category === 'stage' && typeof stageData !== 'undefined') {
+          const timetable = stageData.find(s => s.id === project.id || (s.stages && s.stages.some(st => st.id === project.id)));
+          if (timetable) {
+            stageHtml = `
+              <div class="project-description-section">
+                <h3 class="section-subheading"><i class="fas fa-clock"></i> 公演タイムテーブル</h3>
+                <div class="stage-schedule-badge">
+                  <i class="fas fa-microphone"></i> 本部ステージ・タイムテーブルにて配信中
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        return `
+          <div class="project-sheet-card">
+            ${showCloseBtn ? `
+              <div class="project-sheet-header">
+                <div class="project-tags-group">
+                  <span class="category-badge ${catMeta.badgeClass}"><i class="fas ${catMeta.icon}"></i> ${catMeta.name}</span>
+                  <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(placeStr)}</span>
+                  ${project.useMobileOrder ? '<span class="mobile-order-badge"><i class="fas fa-bolt"></i> モバイルオーダー対応</span>' : ''}
+                </div>
+                <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            ` : `
+              <div class="project-tags-group">
+                <span class="category-badge ${catMeta.badgeClass}"><i class="fas ${catMeta.icon}"></i> ${catMeta.name}</span>
+                ${project.useMobileOrder ? '<span class="mobile-order-badge"><i class="fas fa-bolt"></i> モバイルオーダー</span>' : ''}
+              </div>
+            `}
+
+            <div class="project-sheet-title-group">
+              <div class="project-group-name">${escapeHtml(project.groupName || '')}</div>
+              <h2 class="project-sheet-title">${escapeHtml(project.name || '')}</h2>
+              ${project.catchphrase ? `<p class="project-catchphrase">「${escapeHtml(project.catchphrase)}」</p>` : ''}
+            </div>
+
+            <!-- Quick Action Buttons (Peek area) -->
+            <div class="project-action-buttons">
+              ${project.useMobileOrder ? `
+                <a href="../pos/mobile-order.html?store=${encodeURIComponent(project.id)}" class="btn-action-mobile-order">
+                  <div class="btn-icon"><i class="fas fa-bolt"></i></div>
+                  <div class="btn-text">
+                    <span class="sub">並ばずに受け取り可能</span>
+                    <span class="main">モバイルオーダーで注文する</span>
+                  </div>
+                  <i class="fas fa-chevron-right arrow-icon"></i>
+                </a>
+              ` : ''}
+
+              <a href="detail.html?id=${encodeURIComponent(project.id)}" class="btn-action-detail">
+                <i class="fas fa-circle-info"></i>
+                <span>企画の詳細情報を見る</span>
+              </a>
+            </div>
+
+            <!-- Expanded Details Area -->
+            <div class="project-expanded-details">
+              <div class="project-description-section">
+                <h3 class="section-subheading"><i class="fas fa-align-left"></i> 企画紹介</h3>
+                <p class="project-description-text">${escapeHtml(project.description || '皆様のご来場をお待ちしております！')}</p>
+              </div>
+
+              ${menuHtml}
+              ${stageHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      function bindSheetEvents() {
+        const closeBtn = document.getElementById('closeDetailBtn');
+        if (closeBtn && bottomSheet) {
+          closeBtn.addEventListener('click', () => {
+            bottomSheet.snapTo('collapsed');
+          });
+        }
+      }
+
+      // ==========================================================================
+      // UI Controls: Floor Switcher, Category Chips, Zoom, MyLocation, Route
+      // ==========================================================================
+      function setFloor(floor) {
+        currentFloor = floor;
+
+        // Update Floor Switcher Buttons
+        document.querySelectorAll('.floor-pill-btn').forEach(btn => {
+          const isActive = btn.getAttribute('data-floor') === floor;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+
+        renderCurrentFloorVectors();
+      }
+
+      function setCategory(cat) {
+        currentCategory = cat;
+
+        // Update Filter Chips
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+          const isActive = chip.getAttribute('data-category') === cat;
+          chip.classList.toggle('active', isActive);
+          chip.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        renderPins();
+      }
+
+      function initUiControls() {
+        // Floor Switcher
+        document.querySelectorAll('.floor-pill-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            setFloor(btn.getAttribute('data-floor'));
+          });
+        });
+
+        // Category Filter Chips
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            setCategory(chip.getAttribute('data-category'));
+          });
+        });
+
+        // Zoom In / Out
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        if (zoomInBtn && map) zoomInBtn.addEventListener('click', () => map.zoomIn());
+        if (zoomOutBtn && map) zoomOutBtn.addEventListener('click', () => map.zoomOut());
+
+        // Reset View to Campus Center
+        const resetBtn = document.getElementById('resetViewBtn');
+        if (resetBtn && map) {
+          resetBtn.addEventListener('click', () => {
+            map.flyTo(CAMPUS_CENTER, DEFAULT_ZOOM, { duration: 0.8 });
+            showToast('キャンパス全景を表示しました');
+          });
+        }
+
+        // Theme Toggle (Light / Dark)
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeBtn) {
+          themeBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            try {
+              localStorage.setItem('app-theme', nextTheme);
+            } catch (e) {}
+            if (themeIcon) {
+              themeIcon.className = nextTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            showToast(nextTheme === 'dark' ? '🌙 ダークモード' : '☀️ ライトモード');
+          });
+
+          // Sync initial icon
+          const currentIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          if (themeIcon) {
+            themeIcon.className = currentIsDark ? 'fas fa-sun' : 'fas fa-moon';
+          }
+        }
+
+        // Geolocation / MyLocation Button (Ray-Casting PIP)
+        const myLocationBtn = document.getElementById('myLocationBtn');
+        if (myLocationBtn) {
+          myLocationBtn.addEventListener('click', () => {
+            if (!('geolocation' in navigator)) {
+              showToast('お使いの端末は位置情報取得に対応していません');
+              return;
+            }
+
+            showToast('現在地を取得中...');
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy;
+
+                userLocationLayerGroup.clearLayers();
+
+                // User Pulse Dot
+                const userIcon = L.divIcon({
+                  className: 'user-location-wrapper',
+                  html: '<div class="user-location-marker"></div>',
+                  iconSize: [20, 20],
+                  iconAnchor: [10, 10]
+                });
+
+                const userMarker = L.marker([lat, lng], {
+                  icon: userIcon,
+                  pane: 'userLocationPane'
+                });
+                userLocationLayerGroup.addLayer(userMarker);
+
+                // Accuracy Circle
+                if (accuracy && accuracy < 500) {
+                  const circle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    pane: 'userLocationPane',
+                    color: '#007aff',
+                    weight: 1,
+                    fillColor: '#007aff',
+                    fillOpacity: 0.12
+                  });
+                  userLocationLayerGroup.addLayer(circle);
+                }
+
+                const insideCampus = isPointInCampus(lat, lng);
+                if (insideCampus) {
+                  showToast('📍 校内にいます');
+                  map.flyTo([lat, lng], 19, { duration: 1.0 });
+                } else {
+                  showToast('📍 校外にいます（アクセスルートをご利用ください）', 4000);
+                  map.fitBounds(L.latLngBounds([[lat, lng], CAMPUS_CENTER]), {
+                    padding: [60, 60],
+                    duration: 1.0
+                  });
+                }
+              },
+              (err) => {
+                console.warn('Geolocation failed:', err);
+                showToast('位置情報の取得が許可されていないか、タイムアウトしました');
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
+            );
+          });
+        }
+
+        // Access Route Modal & Options
+        const routeModalBtn = document.getElementById('routeModalBtn');
+        const routeModal = document.getElementById('routeModal');
+        const closeRouteModalBtn = document.getElementById('closeRouteModalBtn');
+        const clearRouteBtn = document.getElementById('clearRouteBtn');
+
+        if (routeModalBtn && routeModal) {
+          routeModalBtn.addEventListener('click', () => {
+            routeModal.classList.add('active');
+          });
+        }
+        if (closeRouteModalBtn && routeModal) {
+          closeRouteModalBtn.addEventListener('click', () => {
+            routeModal.classList.remove('active');
+          });
+        }
+        if (clearRouteBtn && routeModal) {
+          clearRouteBtn.addEventListener('click', () => {
+            activeRouteLayerGroup.clearLayers();
+            document.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
+            routeModal.classList.remove('active');
+            showToast('ルート表示を解除しました');
+          });
+        }
+        if (routeModal) {
+          routeModal.addEventListener('click', (e) => {
+            if (e.target === routeModal) {
+              routeModal.classList.remove('active');
+            }
+          });
+        }
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            if (routeModal && routeModal.classList.contains('active')) {
+              routeModal.classList.remove('active');
+            }
+          }
+        });
+
+        document.querySelectorAll('.route-option-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const routeId = card.getAttribute('data-route-id');
+            document.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            renderAccessRouteById(routeId);
+            if (routeModal) routeModal.classList.remove('active');
+          });
+        });
+
+        // Window Resize & Orientation Change Map Size Invalidation
+        window.addEventListener('resize', () => {
+          if (map) {
+            map.invalidateSize();
+          }
+          if (bottomSheet) {
+            bottomSheet.handleResize();
+          }
+        });
+
+        window.addEventListener('orientationchange', () => {
+          setTimeout(() => {
+            if (map) {
+              map.invalidateSize();
+            }
+            if (bottomSheet) {
+              bottomSheet.handleResize();
+            }
+          }, 150);
+        });
+      }
+
+      // ==========================================================================
+      // Access Route Rendering (Catmull-Rom Multi-Line & fitBounds)
+      // ==========================================================================
+      function renderAccessRouteById(routeId) {
+        if (!campusData || !campusData.accessRoutes) return;
+        const route = campusData.accessRoutes.find(r => r.id === routeId);
+        if (!route) return;
+
+        activeRouteLayerGroup.clearLayers();
+
+        const smoothedCoords = route.smooth ? getCatmullRomSpline(route.polyline, 0.5, 15) : route.polyline;
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        // 1. Casing Outer Polyline
+        const casing = L.polyline(smoothedCoords, {
+          pane: 'routePane',
+          weight: 8,
+          color: isDarkMode ? '#0f172a' : '#ffffff',
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
+        });
+
+        // 2. Core Inner Polyline
+        const core = L.polyline(smoothedCoords, {
+          pane: 'routePane',
+          weight: 5,
+          color: route.color || '#eab308',
+          opacity: 1.0,
+          lineCap: 'round',
+          lineJoin: 'round',
+          className: 'access-route-neon'
+        });
+
+        // 3. Start Point Badge
+        const startIcon = L.divIcon({
+          className: 'route-badge-marker',
+          html: `<div class="route-badge start" style="border-color:${escapeHtml(route.color || '#eab308')}">
+                   <i class="fas fa-bus"></i>
+                   <span>${escapeHtml(route.startPoint.name)}</span>
+                   <span class="route-min">${escapeHtml(route.timeMinutes)}分</span>
+                 </div>`,
+          iconSize: [160, 32],
+          iconAnchor: [80, 16]
+        });
+        const startMarker = L.marker(route.startPoint.latlng, { icon: startIcon, pane: 'markerPane' });
+
+        // 4. End Point Badge (Main Gate)
+        const endIcon = L.divIcon({
+          className: 'route-badge-marker',
+          html: `<div class="route-badge end">
+                   <i class="fas fa-school"></i>
+                   <span>${escapeHtml(route.endPoint.name)}</span>
+                 </div>`,
+          iconSize: [130, 32],
+          iconAnchor: [65, 16]
+        });
+        const endMarker = L.marker(route.endPoint.latlng, { icon: endIcon, pane: 'markerPane' });
+
+        activeRouteLayerGroup.addLayer(casing);
+        activeRouteLayerGroup.addLayer(core);
+        activeRouteLayerGroup.addLayer(startMarker);
+        activeRouteLayerGroup.addLayer(endMarker);
+
+        // 5. Fit camera bounds
+        map.fitBounds(L.latLngBounds(route.polyline), {
+          paddingTopLeft: [80, 24],
+          paddingBottomRight: [24, 24],
+          maxZoom: 18,
+          animate: true,
+          duration: 0.8
+        });
+
+        showToast(`🚩 ${escapeHtml(route.name)}を表示しました（${escapeHtml(route.timeMinutes)}分）`);
+      }
+
+      // ==========================================================================
+      // App Bootstrap
+      // ==========================================================================
+      async function bootstrap() {
+        initMap();
+        bottomSheet = new BottomSheetController();
+        initUiControls();
+
+        try {
+          const response = await fetch('data/campus_map_data.json');
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          campusData = await response.json();
+        } catch (err) {
+          console.warn('Could not fetch campus_map_data.json via network, using static fallback:', err);
+          // Safety Fallback (minimal structure if fetch failed)
+          campusData = window.CAMPUS_MAP_DATA_FALLBACK || {
+            metadata: { center: CAMPUS_CENTER, defaultZoom: 18 },
+            buildings: [],
+            outdoorAreas: [],
+            spots: [],
+            indoorFloors: {}
+          };
+        }
+
+        // Build Client-Side Model (Zero-DB Principle)
+        const rawProjects = (typeof projectData !== 'undefined' && Array.isArray(projectData)) ? projectData : [];
+        joinedPins = buildJoinedPinsModel(campusData, rawProjects);
+
+        // Render Layers
+        renderStaticBaseLayers();
+        renderCurrentFloorVectors();
+
+        // Check URL parameter (?room=... or ?project=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetRoom = urlParams.get('room');
+        const targetProject = urlParams.get('project') || urlParams.get('id');
+
+        if (targetRoom) {
+          selectRoom(targetRoom, true);
+        } else if (targetProject) {
+          const foundPin = joinedPins.find(p => p.projects && p.projects.some(pr => pr.id === targetProject));
+          if (foundPin) {
+            selectRoom(foundPin.roomId, true);
+          }
+        }
+      }
+
+      // Start on DOMContentLoaded
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
+      } else {
+        bootstrap();
+      }
+    })();
+  </script>
+</body>
 </html>

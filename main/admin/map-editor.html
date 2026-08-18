@@ -1,0 +1,3514 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nanryosai '26 Map Studio | キャンパスマップ高度エディタ</title>
+  <meta name="description" content="南陵祭2026 管理者用キャンパスマップ・屋内フロア図オーサリングツール">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6.4.0 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
+  <!-- Leaflet 1.9.4 CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+
+  <style>
+    /* ==========================================================================
+       Nanryosai '26 Map Studio - Core Glassmorphism Design System
+       ========================================================================== */
+    :root {
+      --bg-dark: #090d16;
+      --panel-bg: rgba(15, 23, 42, 0.85);
+      --panel-bg-solid: #0f172a;
+      --panel-border: rgba(255, 255, 255, 0.1);
+      --panel-border-subtle: rgba(255, 255, 255, 0.05);
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      
+      --primary: #7c5cff;
+      --primary-hover: #9074ff;
+      --primary-glow: rgba(124, 92, 255, 0.35);
+      --primary-gradient: linear-gradient(135deg, #7c5cff 0%, #3b82f6 100%);
+      
+      --accent-green: #10b981;
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
+      --accent-blue: #38bdf8;
+      --accent-pink: #ec4899;
+      
+      --map-fallback-bg: #cfe3d8;
+      --map-fallback-bg-dark: #14201a;
+      
+      --header-height: 52px;
+      --statusbar-height: 28px;
+      --sidebar-left-width: 290px;
+      --sidebar-right-width: 330px;
+    }
+
+    [data-theme="light"] {
+      --bg-dark: #f1f5f9;
+      --panel-bg: rgba(255, 255, 255, 0.92);
+      --panel-bg-solid: #ffffff;
+      --panel-border: rgba(0, 0, 0, 0.1);
+      --panel-border-subtle: rgba(0, 0, 0, 0.05);
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --map-fallback-bg: #cfe3d8;
+      --map-fallback-bg-dark: #cfe3d8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+    }
+
+    input, select, textarea, button {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      user-select: auto;
+    }
+
+    /* ==========================================================================
+       App Layout Grid
+       ========================================================================== */
+    .app-layout {
+      display: grid;
+      grid-template-rows: var(--header-height) 1fr var(--statusbar-height);
+      grid-template-columns: var(--sidebar-left-width) 1fr var(--sidebar-right-width);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .app-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 1000;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--primary-gradient);
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      background: rgba(124, 92, 255, 0.2);
+      color: var(--primary);
+      border-radius: 4px;
+      border: 1px solid rgba(124, 92, 255, 0.3);
+      text-transform: uppercase;
+    }
+
+    /* Toolbar Groups */
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border-subtle);
+    }
+
+    [data-theme="light"] .toolbar-group {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .tool-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    [data-theme="light"] .tool-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .tool-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .tool-btn .kbd-hint {
+      font-size: 9px;
+      padding: 1px 4px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 3px;
+      opacity: 0.8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .tool-btn.active .kbd-hint {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-toggle-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+    }
+
+    .tool-btn.active .btn-toggle-badge {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      transition: all 0.15s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn.btn-primary {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+
+    .action-btn.btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Left Sidebar */
+    .sidebar-left {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 900;
+    }
+
+    .sidebar-section {
+      padding: 12px;
+      border-bottom: 1px solid var(--panel-border-subtle);
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Floor Selector Pills */
+    .floor-pills-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    .floor-pill {
+      padding: 6px 4px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-border-subtle);
+      border-radius: 6px;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.15s ease;
+    }
+
+    .floor-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .floor-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    /* Preset Buttons */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .preset-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-border-subtle);
+      border-radius: 6px;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .preset-btn i {
+      font-size: 12px;
+      width: 14px;
+      text-align: center;
+    }
+
+    /* Feature Tree List */
+    .tree-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tree-search-box {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--panel-border-subtle);
+    }
+
+    .tree-search-input {
+      width: 100%;
+      padding: 5px 8px 5px 26px;
+      background: rgba(0, 0, 0, 0.2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat 8px center;
+      border: 1px solid var(--panel-border-subtle);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 11px;
+      outline: none;
+    }
+
+    .tree-search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .feature-tree-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      font-size: 11.5px;
+      border: 1px solid transparent;
+    }
+
+    .tree-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tree-item.selected {
+      background: rgba(124, 92, 255, 0.2);
+      border-color: rgba(124, 92, 255, 0.4);
+      color: #fff;
+    }
+
+    .tree-item-icon {
+      width: 16px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .tree-item-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+
+    .tree-item-badge {
+      font-size: 9.5px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+    }
+
+    .tree-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+
+    .tree-item:hover .tree-item-actions,
+    .tree-item.selected .tree-item-actions {
+      opacity: 1;
+    }
+
+    .tree-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 3px;
+    }
+
+    .tree-action-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Center Map Container */
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: var(--map-fallback-bg);
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .map-container {
+      background-color: var(--map-fallback-bg-dark);
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+    }
+
+    [data-theme="dark"] .leaflet-tile-pane {
+      filter: brightness(0.7) contrast(1.15) saturate(0.9);
+    }
+
+    /* Map Overlay Tools / Floating Pills */
+    .map-floating-controls {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 800;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .floating-pill {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .drawing-banner {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 850;
+      background: rgba(16, 185, 129, 0.9);
+      backdrop-filter: blur(10px);
+      color: #ffffff;
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 12px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: bannerSlideDown 0.2s ease-out;
+    }
+
+    @keyframes bannerSlideDown {
+      from { transform: translate(-50%, -10px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    /* Right Sidebar (Property Inspector) */
+    .sidebar-right {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 900;
+    }
+
+    .inspector-header {
+      padding: 14px 16px 10px 16px;
+      border-bottom: 1px solid var(--panel-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .inspector-title {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inspector-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(124, 92, 255, 0.2);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .inspector-body {
+      flex: 1;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .insp-empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+    }
+
+    .insp-empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .map-stats-card {
+      margin-top: 20px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      border: 1px solid var(--panel-border-subtle);
+      text-align: left;
+    }
+
+    .map-stats-card h4 {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .map-stats-card ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .map-stats-card li {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+    }
+
+    .map-stats-card li span {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Form Controls */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group label .required {
+      color: var(--accent-red);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .flex-1 { flex: 1; }
+    .flex-2 { flex: 2; }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 6px 9px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    [data-theme="light"] input[type="text"],
+    [data-theme="light"] input[type="number"],
+    [data-theme="light"] select,
+    [data-theme="light"] textarea {
+      background: #ffffff;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      background: none;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .color-hex-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .range-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .range-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-sub);
+      width: 32px;
+      text-align: right;
+    }
+
+    .checkbox-pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .checkbox-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-border-subtle);
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .checkbox-pill input {
+      accent-color: var(--primary);
+    }
+
+    .type-specific-box {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border-subtle);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .inspector-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--panel-border-subtle);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fff;
+    }
+
+    /* Statusbar */
+    .app-statusbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--panel-border);
+      font-size: 11px;
+      color: var(--text-sub);
+      z-index: 1000;
+    }
+
+    .status-left, .status-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-badge {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+
+    .status-badge.warning { background: var(--accent-orange); }
+    .status-badge.error { background: var(--accent-red); }
+
+    /* Modals & Dialogs */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-window {
+      background: var(--panel-bg-solid);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      animation: modalPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--panel-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .modal-body {
+      padding: 18px;
+      font-size: 12.5px;
+      color: var(--text-sub);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--panel-border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .dropzone-area {
+      border: 2px dashed var(--panel-border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .dropzone-area:hover,
+    .dropzone-area.dragover {
+      border-color: var(--primary);
+      background: rgba(124, 92, 255, 0.05);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 40px;
+      right: 20px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 10px 16px;
+      background: var(--panel-bg-solid);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+      animation: toastSlideIn 0.2s ease-out;
+    }
+
+    .toast.success i { color: var(--accent-green); }
+    .toast.error i { color: var(--accent-red); }
+    .toast.info i { color: var(--accent-blue); }
+
+    @keyframes toastSlideIn {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Leaflet Custom Handles & Snap Indicator */
+    .snap-indicator-pulse {
+      animation: snapPulse 1s infinite alternate;
+    }
+
+    @keyframes snapPulse {
+      0% { stroke-width: 2px; r: 6px; }
+      100% { stroke-width: 4px; r: 9px; }
+    }
+
+    /* Custom Leaflet Tooltip */
+    .leaflet-tooltip.custom-map-tooltip {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ==========================================================================
+       1. Header Toolbar
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo"><i class="fa-solid fa-layer-group"></i></div>
+      <div class="brand-title">
+        <span>Nanryosai '26 Map Studio</span>
+        <span class="brand-tag">Admin M2</span>
+      </div>
+    </div>
+
+    <!-- Drawing & Selection Tools -->
+    <div class="toolbar-group">
+      <button type="button" class="tool-btn active" id="toolSelect" title="選択・編集ツール [V]">
+        <i class="fa-solid fa-arrow-pointer"></i> 選択 <span class="kbd-hint">V</span>
+      </button>
+      <button type="button" class="tool-btn" id="toolPolygon" title="多角形作図ツール [P]">
+        <i class="fa-solid fa-draw-polygon"></i> ポリゴン <span class="kbd-hint">P</span>
+      </button>
+      <button type="button" class="tool-btn" id="toolPath" title="通路・ルート・スプライン作図 [L]">
+        <i class="fa-solid fa-bezier-curve"></i> パス/スプライン <span class="kbd-hint">L</span>
+      </button>
+      <button type="button" class="tool-btn" id="toolSpot" title="スポット・ピン配置 [M]">
+        <i class="fa-solid fa-location-dot"></i> スポット <span class="kbd-hint">M</span>
+      </button>
+      <button type="button" class="tool-btn" id="toolDelete" title="クリック削除ツール [D]">
+        <i class="fa-solid fa-trash-can"></i> 削除 <span class="kbd-hint">D</span>
+      </button>
+    </div>
+
+    <!-- Snapping & Ortho Toggles -->
+    <div class="toolbar-group">
+      <button type="button" class="tool-btn active" id="toggleSnap" title="12px 頂点スナップ切替 [S]">
+        <i class="fa-solid fa-magnet"></i> スナップ <span class="btn-toggle-badge" id="snapStatusBadge">ON</span>
+      </button>
+      <button type="button" class="tool-btn" id="toggleOrtho" title="直交90度拘束 [Shiftキー押下またはトグル]">
+        <i class="fa-solid fa-arrows-to-dot"></i> 直交90° <span class="btn-toggle-badge" id="orthoStatusBadge">OFF</span>
+      </button>
+      <button type="button" class="tool-btn active" id="toggleSpline" title="Catmull-Rom スプライン補間 (α=0.5)">
+        <i class="fa-solid fa-wave-square"></i> スプライン <span class="btn-toggle-badge" id="splineStatusBadge">ON</span>
+      </button>
+    </div>
+
+    <!-- History & Actions -->
+    <div class="header-actions">
+      <button type="button" class="action-btn" id="btnUndo" disabled title="元に戻す [Ctrl+Z]">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <button type="button" class="action-btn" id="btnRedo" disabled title="やり直し [Ctrl+Y]">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+
+      <div style="width: 1px; height: 20px; background: var(--panel-border); margin: 0 2px;"></div>
+
+      <button type="button" class="action-btn" id="btnImportModal" title="JSONインポート">
+        <i class="fa-solid fa-file-import"></i> インポート
+      </button>
+      <button type="button" class="action-btn" id="btnCopyJson" title="JSONをクリップボードにコピー">
+        <i class="fa-solid fa-copy"></i> コピー
+      </button>
+      <button type="button" class="action-btn btn-primary" id="btnDownloadJson" title="nanryosai_map_data.json をダウンロード">
+        <i class="fa-solid fa-download"></i> エクスポート
+      </button>
+      <button type="button" class="action-btn" id="btnThemeToggle" title="ライト/ダークテーマ切替">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       2. Left Sidebar (Floors, Presets, Tree)
+       ========================================================================== -->
+  <aside class="sidebar-left">
+    <!-- Floor Selector -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">
+        <span>表示フロア・レイヤー</span>
+        <i class="fa-solid fa-filter"></i>
+      </div>
+      <div class="floor-pills-grid" id="floorPillsContainer">
+        <div class="floor-pill active" data-floor="All">All</div>
+        <div class="floor-pill" data-floor="1">1F</div>
+        <div class="floor-pill" data-floor="2">2F</div>
+        <div class="floor-pill" data-floor="3">3F</div>
+        <div class="floor-pill" data-floor="4">4F</div>
+        <div class="floor-pill" data-floor="5">5F</div>
+        <div class="floor-pill" data-floor="Outdoor">屋外</div>
+        <div class="floor-pill" data-floor="Routes">ルート</div>
+      </div>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">
+        <span>クイック作図プリセット</span>
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </div>
+      <div class="preset-grid">
+        <button type="button" class="preset-btn" data-preset="classroom">
+          <i class="fa-solid fa-chalkboard-user" style="color: #7c5cff;"></i> 普通教室
+        </button>
+        <button type="button" class="preset-btn" data-preset="special_room">
+          <i class="fa-solid fa-flask" style="color: #38bdf8;"></i> 特別教室
+        </button>
+        <button type="button" class="preset-btn" data-preset="toilet">
+          <i class="fa-solid fa-restroom" style="color: #ec4899;"></i> トイレ
+        </button>
+        <button type="button" class="preset-btn" data-preset="stairs">
+          <i class="fa-solid fa-stairs" style="color: #f97316;"></i> 階段
+        </button>
+        <button type="button" class="preset-btn" data-preset="corridor">
+          <i class="fa-solid fa-arrows-left-right" style="color: #94a3b8;"></i> 通路/廊下
+        </button>
+        <button type="button" class="preset-btn" data-preset="overpass">
+          <i class="fa-solid fa-bridge" style="color: #a855f7;"></i> 渡り廊下
+        </button>
+        <button type="button" class="preset-btn" data-preset="spot">
+          <i class="fa-solid fa-tent" style="color: #10b981;"></i> テント/スポット
+        </button>
+        <button type="button" class="preset-btn" data-preset="route">
+          <i class="fa-solid fa-route" style="color: #eab308;"></i> 通学路ルート
+        </button>
+      </div>
+    </div>
+
+    <!-- Feature Tree -->
+    <div class="tree-container">
+      <div class="tree-search-box">
+        <input type="text" id="treeSearchInput" class="tree-search-input" placeholder="要素名 / IDで検索...">
+      </div>
+      <div class="feature-tree-list" id="featureTreeList">
+        <!-- JS で動的描画 -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==========================================================================
+       3. Center Map Canvas
+       ========================================================================== -->
+  <main class="map-container" id="mapContainer">
+    <div id="map"></div>
+
+    <!-- Drawing in progress Banner -->
+    <div class="drawing-banner" id="drawingBanner">
+      <i class="fa-solid fa-pencil"></i>
+      <span id="drawingBannerText">ポリゴン作図中: クリックで頂点追加 / ダブルクリックまたは始点クリックで確定 (Escでキャンセル)</span>
+    </div>
+
+    <!-- Floating Zoom / Reset pill -->
+    <div class="map-floating-controls">
+      <div class="floating-pill">
+        <i class="fa-solid fa-crosshairs" style="cursor: pointer;" id="btnResetView" title="校内中心へリセット"></i>
+        <span>Zoom: <strong id="lblZoomLevel">18.0</strong></span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       4. Right Sidebar (Property Inspector)
+       ========================================================================== -->
+  <aside class="sidebar-right" id="sidebarRight">
+    <div class="inspector-header">
+      <div class="inspector-title">
+        <i class="fa-solid fa-sliders"></i>
+        <span>プロパティ</span>
+      </div>
+      <div class="inspector-badge" id="inspBadge">未選択</div>
+    </div>
+
+    <div class="inspector-body">
+      <!-- Empty State -->
+      <div id="inspEmptyState" class="insp-empty-state">
+        <div class="insp-empty-icon"><i class="fa-solid fa-hand-pointer"></i></div>
+        <p>図形を選択するか、作図ツールを開始してください。</p>
+        
+        <div class="map-stats-card">
+          <h4>キャンパスマップ統計</h4>
+          <ul>
+            <li>建物: <span id="statBldgCount">0</span></li>
+            <li>屋外エリア: <span id="statOutdoorCount">0</span></li>
+            <li>部屋: <span id="statRoomCount">0</span></li>
+            <li>通路: <span id="statCorridorCount">0</span></li>
+            <li>階段: <span id="statStairsCount">0</span></li>
+            <li>トイレ: <span id="statToiletCount">0</span></li>
+            <li>スポット: <span id="statSpotCount">0</span></li>
+            <li>ルート: <span id="statRouteCount">0</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Active Inspector Form -->
+      <form id="inspForm" style="display: none;" onsubmit="return false;">
+        <!-- Base Info -->
+        <div class="form-group">
+          <label for="fieldId">要素 ID <span class="required">*</span></label>
+          <input type="text" id="fieldId" required placeholder="例: room_301, tent_a">
+        </div>
+
+        <div class="form-group">
+          <label for="fieldName">名称 (表示名) <span class="required">*</span></label>
+          <input type="text" id="fieldName" required placeholder="例: 3年1組, 作法室">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="fieldCategory">カテゴリ / 種別</label>
+            <select id="fieldCategory">
+              <optgroup label="屋内教室・施設">
+                <option value="classroom">普通教室 (classroom)</option>
+                <option value="special_room">特別教室 (special_room)</option>
+                <option value="hall">ホール・昇降口 (hall)</option>
+                <option value="staff_room">職員室・事務室 (staff_room)</option>
+                <option value="facility">保健室・相談室 (facility)</option>
+                <option value="stage">ステージ (stage)</option>
+              </optgroup>
+              <optgroup label="建物・屋外">
+                <option value="main">メイン校舎 (main)</option>
+                <option value="gym">体育館 (gym)</option>
+                <option value="admin">管理棟 (admin)</option>
+                <option value="special">特別棟 (special)</option>
+                <option value="ground">グラウンド (ground)</option>
+                <option value="plaza">中庭・広場 (plaza)</option>
+                <option value="court">テニスコート (court)</option>
+              </optgroup>
+              <optgroup label="スポット・模擬店">
+                <option value="food">模擬店・飲食 (food)</option>
+                <option value="exhibit">展示・企画 (exhibit)</option>
+                <option value="info">総合受付・本部 (info)</option>
+                <option value="shop">物販・販売 (shop)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="fieldFloor">所属フロア</label>
+            <select id="fieldFloor">
+              <option value="outdoor">屋外 (Outdoor)</option>
+              <option value="1">1F</option>
+              <option value="2">2F</option>
+              <option value="3">3F</option>
+              <option value="4">4F</option>
+              <option value="5">5F</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="grpBuildingId">
+          <label for="fieldBuildingId">所属建物</label>
+          <select id="fieldBuildingId">
+            <option value="student_bldg">生徒棟 (student_bldg)</option>
+            <option value="gym">体育館 (gym)</option>
+            <option value="admin">管理棟 (admin)</option>
+            <option value="health">保健棟 (health)</option>
+            <option value="courtyard">中庭 (courtyard)</option>
+            <option value="schoolyard">グラウンド (schoolyard)</option>
+            <option value="">(なし / 単独エリア)</option>
+          </select>
+        </div>
+
+        <!-- Section: Building Specific -->
+        <div id="sectionBuilding" class="type-specific-box" style="display: none;">
+          <div class="form-group">
+            <label>フロア構成 (Floors)</label>
+            <div class="checkbox-pill-group" id="bldgFloorsGroup">
+              <label class="checkbox-pill"><input type="checkbox" value="1"> 1F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="2"> 2F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="3"> 3F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="4"> 4F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="5"> 5F</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-pill"><input type="checkbox" id="fieldHasIndoor"> 屋内フロアプランあり (hasIndoor)</label>
+          </div>
+        </div>
+
+        <!-- Section: Room / Spot Specific (Linked Projects & Pin Centroid) -->
+        <div id="sectionRoom" class="type-specific-box" style="display: none;">
+          <div class="form-group">
+            <label for="fieldLinkedProjects">連携企画ID (カンマ区切り)</label>
+            <input type="text" id="fieldLinkedProjects" placeholder="例: 201, 301, stage_a">
+          </div>
+          <div class="form-group">
+            <label>ピン配置座標 (Centroid)</label>
+            <div class="form-row">
+              <input type="text" id="fieldPinLat" placeholder="緯度" readonly class="flex-1">
+              <input type="text" id="fieldPinLng" placeholder="経度" readonly class="flex-1">
+              <button type="button" class="action-btn" id="btnRecalcCentroid" title="幾何重心を自動再計算">重心計算</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Corridor Specific -->
+        <div id="sectionCorridor" class="type-specific-box" style="display: none;">
+          <div class="form-group">
+            <label class="checkbox-pill"><input type="checkbox" id="fieldIsOverpass"> 渡り廊下 (立体交差 Overpass レイヤー)</label>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="fieldBuildingFrom">接続元建物</label>
+              <input type="text" id="fieldBuildingFrom" placeholder="student_bldg">
+            </div>
+            <div class="form-group flex-1">
+              <label for="fieldBuildingTo">接続先建物</label>
+              <input type="text" id="fieldBuildingTo" placeholder="admin">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Toilet Specific -->
+        <div id="sectionToilet" class="type-specific-box" style="display: none;">
+          <div class="form-group">
+            <label for="fieldGender">トイレ区分</label>
+            <select id="fieldGender">
+              <option value="all">🚻 共用 / 多目的 (all)</option>
+              <option value="male">🚹 男子 (male)</option>
+              <option value="female">🚺 女子 (female)</option>
+              <option value="accessible">♿ バリアフリー・だれでもトイレ (accessible)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section: Route Specific -->
+        <div id="sectionRoute" class="type-specific-box" style="display: none;">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="fieldTimeMin">所要分数 (分)</label>
+              <input type="number" id="fieldTimeMin" min="1" max="120">
+            </div>
+            <div class="form-group flex-1">
+              <label for="fieldDistanceM">距離 (m)</label>
+              <input type="number" id="fieldDistanceM" min="10" step="10">
+            </div>
+            <div class="form-group flex-1">
+              <label for="fieldElevationM">標高差 (m)</label>
+              <input type="number" id="fieldElevationM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-pill"><input type="checkbox" id="fieldSmooth"> Catmull-Rom スプライン補間を適用</label>
+          </div>
+          <div class="form-group">
+            <label for="fieldRouteDesc">ルート案内文</label>
+            <textarea id="fieldRouteDesc" rows="2" placeholder="洋光台駅北口からの案内..."></textarea>
+          </div>
+        </div>
+
+        <!-- Style Settings -->
+        <div class="type-specific-box">
+          <div class="sidebar-title" style="margin-bottom: 4px;">スタイル設定</div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>塗り色</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="fieldColor" value="#7c5cff">
+                <span class="color-hex-text" id="lblColorHex">#7c5cff</span>
+              </div>
+            </div>
+            <div class="form-group flex-1">
+              <label>線色</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="fieldStrokeColor" value="#5e35b1">
+                <span class="color-hex-text" id="lblStrokeHex">#5e35b1</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>塗り透過度: <span class="range-val" id="lblOpacityVal">0.40</span></label>
+            <div class="range-wrapper">
+              <input type="range" id="fieldOpacity" min="0" max="1" step="0.05" value="0.4">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>枠線幅 (px): <span class="range-val" id="lblWeightVal">2</span></label>
+            <div class="range-wrapper">
+              <input type="range" id="fieldWeight" min="1" max="10" step="1" value="2">
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertices Geometry Info -->
+        <div class="type-specific-box" id="grpGeometryInfo">
+          <div class="sidebar-title" style="margin-bottom: 4px;">幾何頂点 (<span id="lblVertexCount">0</span> 点)</div>
+          <p style="font-size: 10.5px; color: var(--text-muted);">頂点マーカーをドラッグして移動、中間点「＋」で頂点挿入、頂点右クリックで削除。</p>
+        </div>
+
+        <!-- Inspector Action Buttons -->
+        <div class="inspector-actions">
+          <button type="button" class="action-btn" id="btnDuplicateFeature">
+            <i class="fa-solid fa-clone"></i> 図形を複製
+          </button>
+          <button type="button" class="action-btn btn-danger" id="btnDeleteFeature">
+            <i class="fa-solid fa-trash-can"></i> 図形を削除
+          </button>
+          <button type="button" class="action-btn" id="btnDeselectFeature">
+            選択を解除
+          </button>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ==========================================================================
+       5. Statusbar
+       ========================================================================== -->
+  <footer class="app-statusbar">
+    <div class="status-left">
+      <div class="status-item">
+        <span class="status-badge" id="statusBadgeIndicator"></span>
+        <span id="statusMessage">準備完了</span>
+      </div>
+      <div class="status-item">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        <span id="statusCoords">35.386167, 139.585500</span>
+      </div>
+    </div>
+
+    <div class="status-right">
+      <div class="status-item">
+        <i class="fa-solid fa-magnet"></i>
+        <span id="statusSnapInfo">Snap: 待機中</span>
+      </div>
+      <div class="status-item">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span id="statusAutoSave">LocalStorage 自動保存: ON</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ==========================================================================
+     Modals & Dialogs
+     ========================================================================== -->
+<!-- Import Modal -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span>JSONマップデータのインポート</span>
+      <button type="button" class="tree-action-btn" id="btnCloseImportModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>南陵祭キャンパスマップ形式（<code>campus_map_data.json</code>）の JSON ファイルをドラッグ＆ドロップするか、ファイルを選択してください。</p>
+      
+      <div class="dropzone-area" id="importDropzone">
+        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; color: var(--primary); margin-bottom: 8px;"></i>
+        <p><strong>JSONファイルをここにドロップ</strong></p>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">または クリックしてファイルを選択</p>
+        <input type="file" id="fileInput" accept=".json,application/json" style="display: none;">
+      </div>
+
+      <div style="font-size: 11px; color: var(--accent-orange);">
+        <i class="fa-solid fa-triangle-exclamation"></i> インポートを実行すると、現在の編集内容は上書きされます。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="action-btn" id="btnCancelImport">キャンセル</button>
+      <button type="button" class="action-btn" id="btnResetDefaultData">初期JSONにリセット</button>
+    </div>
+  </div>
+</div>
+
+<!-- Draft Restore Modal -->
+<div class="modal-backdrop" id="restoreModal">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span>下書きの復元</span>
+    </div>
+    <div class="modal-body">
+      <p>前回ブラウザに自動保存された下書きデータが見つかりました。</p>
+      <div style="padding: 10px; background: rgba(0, 0, 0, 0.25); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">
+        保存日時: <strong id="lblDraftSavedAt">2026-08-15 00:00:00</strong>
+      </div>
+      <p>作業を再開しますか？ それとも初期データ（<code>campus_map_data.json</code>）を読み込みますか？</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="action-btn" id="btnDiscardDraft">初期データをロード</button>
+      <button type="button" class="action-btn btn-primary" id="btnRestoreDraft">下書きを復元する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Leaflet 1.9.4 JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+
+<!-- Map Studio Core Implementation -->
+<script>
+/**
+ * Nanryosai '26 Map Studio (Admin M2)
+ * Zero Remote Database Architecture
+ * EPSG:3857 Leaflet + GSI Aerial Photo Overlay
+ */
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/=/g, '&#061;');
+}
+const escapeHTML = escapeHtml;
+
+// =============================================================================
+// 1. Math & Geometry Engine (Centripetal Catmull-Rom, Snapping, Ortho)
+// =============================================================================
+class GeometryEngine {
+  /**
+   * 求心性 Catmull-Rom スプライン補間 (Centripetal: alpha = 0.5)
+   * 局所直交メートル座標変換により経度収縮歪みを完全補正
+   */
+  static interpolateCatmullRom(points, isClosed = false, segments = 16, alpha = 0.5) {
+    if (!points || points.length < 2) return points || [];
+    if (points.length === 2 && !isClosed) return [...points];
+
+    const refLat = points[0][0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const xyPoints = points.map(([lat, lng]) => [
+      (lng - points[0][1]) * lng2m,
+      (lat - points[0][0]) * lat2m
+    ]);
+
+    let pts = [];
+    if (isClosed) {
+      const n = xyPoints.length;
+      pts = [
+        xyPoints[n - 1],
+        ...xyPoints,
+        xyPoints[0],
+        xyPoints[1 % n]
+      ];
+    } else {
+      const p0_phantom = [
+        xyPoints[0][0] * 2 - xyPoints[1][0],
+        xyPoints[0][1] * 2 - xyPoints[1][1]
+      ];
+      const pn_phantom = [
+        xyPoints[xyPoints.length - 1][0] * 2 - xyPoints[xyPoints.length - 2][0],
+        xyPoints[xyPoints.length - 1][1] * 2 - xyPoints[xyPoints.length - 2][1]
+      ];
+      pts = [p0_phantom, ...xyPoints, pn_phantom];
+    }
+
+    const resultXY = [];
+    const getKnot = (ti, pA, pB) => {
+      const dx = pB[0] - pA[0];
+      const dy = pB[1] - pA[1];
+      const d = Math.sqrt(dx * dx + dy * dy);
+      return ti + Math.pow(Math.max(d, 1e-6), alpha);
+    };
+
+    const loopLimit = pts.length - 2;
+    for (let i = 1; i < loopLimit; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2];
+
+      const t0 = 0;
+      const t1 = getKnot(t0, p0, p1);
+      const t2 = getKnot(t1, p1, p2);
+      const t3 = getKnot(t2, p2, p3);
+
+      for (let s = 0; s < segments; s++) {
+        const t = t1 + ((t2 - t1) * s) / segments;
+
+        const a1_x = ((t1 - t) * p0[0] + (t - t0) * p1[0]) / (t1 - t0);
+        const a1_y = ((t1 - t) * p0[1] + (t - t0) * p1[1]) / (t1 - t0);
+
+        const a2_x = ((t2 - t) * p1[0] + (t - t1) * p2[0]) / (t2 - t1);
+        const a2_y = ((t2 - t) * p1[1] + (t - t1) * p2[1]) / (t2 - t1);
+
+        const a3_x = ((t3 - t) * p2[0] + (t - t2) * p3[0]) / (t3 - t2);
+        const a3_y = ((t3 - t) * p2[1] + (t - t2) * p3[1]) / (t3 - t2);
+
+        const b1_x = ((t2 - t) * a1_x + (t - t0) * a2_x) / (t2 - t0);
+        const b1_y = ((t2 - t) * a1_y + (t - t0) * a2_y) / (t2 - t0);
+
+        const b2_x = ((t3 - t) * a2_x + (t - t1) * a3_x) / (t3 - t1);
+        const b2_y = ((t3 - t) * a2_y + (t - t1) * a3_y) / (t3 - t1);
+
+        const c_x = ((t2 - t) * b1_x + (t - t1) * b2_x) / (t2 - t1);
+        const c_y = ((t2 - t) * b1_y + (t - t1) * b2_y) / (t2 - t1);
+
+        resultXY.push([c_x, c_y]);
+      }
+    }
+
+    if (!isClosed) {
+      resultXY.push(xyPoints[xyPoints.length - 1]);
+    } else {
+      resultXY.push(resultXY[0]);
+    }
+
+    return resultXY.map(([x, y]) => [
+      parseFloat((points[0][0] + y / lat2m).toFixed(6)),
+      parseFloat((points[0][1] + x / lng2m).toFixed(6))
+    ]);
+  }
+
+  /**
+   * ポリゴン幾何重心（Centroid）の算出
+   */
+  static computeCentroid(polygon) {
+    if (!polygon || polygon.length === 0) return [35.386167, 139.585500];
+    let sumLat = 0, sumLng = 0;
+    polygon.forEach(([lat, lng]) => {
+      sumLat += lat;
+      sumLng += lng;
+    });
+    return [
+      parseFloat((sumLat / polygon.length).toFixed(6)),
+      parseFloat((sumLng / polygon.length).toFixed(6))
+    ];
+  }
+}
+
+// =============================================================================
+// 2. Undo / Redo History Manager (Immutable Snapshot Pattern)
+// =============================================================================
+class HistoryManager {
+  constructor(onChangeCallback) {
+    this.undoStack = [];
+    this.redoStack = [];
+    this.maxSize = 50;
+    this.onChange = onChangeCallback;
+  }
+
+  pushState(data, actionName = '編集') {
+    this.redoStack = [];
+    this.undoStack.push({
+      timestamp: Date.now(),
+      action: actionName,
+      data: JSON.parse(JSON.stringify(data))
+    });
+
+    if (this.undoStack.length > this.maxSize) {
+      this.undoStack.shift();
+    }
+    this.notify();
+  }
+
+  canUndo() { return this.undoStack.length > 1; }
+  canRedo() { return this.redoStack.length > 0; }
+
+  undo() {
+    if (!this.canUndo()) return null;
+    const currentState = this.undoStack.pop();
+    this.redoStack.push(currentState);
+    const prevState = this.undoStack[this.undoStack.length - 1];
+    this.notify();
+    return JSON.parse(JSON.stringify(prevState.data));
+  }
+
+  redo() {
+    if (!this.canRedo()) return null;
+    const nextState = this.redoStack.pop();
+    this.undoStack.push(nextState);
+    this.notify();
+    return JSON.parse(JSON.stringify(nextState.data));
+  }
+
+  notify() {
+    if (typeof this.onChange === 'function') {
+      this.onChange({
+        canUndo: this.canUndo(),
+        canRedo: this.canRedo(),
+        lastAction: this.undoStack[this.undoStack.length - 1]?.action || ''
+      });
+    }
+  }
+}
+
+// =============================================================================
+// 3. Main Editor App
+// =============================================================================
+class MapStudioApp {
+  constructor() {
+    this.map = null;
+    this.currentFloor = 'All';
+    this.activeTool = 'select'; // 'select' | 'polygon' | 'path' | 'spot' | 'delete'
+    this.isSnapEnabled = true;
+    this.isOrthoEnabled = false;
+    this.isSplineEnabled = true;
+    this.isShiftKeyPressed = false;
+
+    // Feature Data Store
+    this.mapData = {
+      $schema: "nanryosai-campus-map-v3",
+      version: "3.0.0",
+      metadata: {
+        title: "南陵祭2026 キャンパスマップ",
+        updatedAt: new Date().toISOString(),
+        center: [35.386167, 139.585500],
+        defaultZoom: 18,
+        minZoom: 15,
+        maxZoom: 22,
+        bounds: [
+          [35.381000, 139.578000],
+          [35.390000, 139.592000]
+        ]
+      },
+      buildings: [],
+      outdoorAreas: [],
+      spots: [],
+      accessRoutes: [],
+      indoorFloors: {
+        "1": { rooms: [], corridors: [], stairs: [], toilets: [] },
+        "2": { rooms: [], corridors: [], stairs: [], toilets: [] },
+        "3": { rooms: [], corridors: [], stairs: [], toilets: [] },
+        "4": { rooms: [], corridors: [], stairs: [], toilets: [] },
+        "5": { rooms: [], corridors: [], stairs: [], toilets: [] }
+      }
+    };
+
+    // Layer Group Maps
+    this.layerGroups = {
+      buildings: null,
+      outdoor: null,
+      spots: null,
+      routes: null,
+      indoorFloors: {
+        "1": null, "2": null, "3": null, "4": null, "5": null
+      }
+    };
+
+    // Active Selection & Drawing State
+    this.selectedFeature = null;
+    this.selectedLayer = null;
+    this.drawingPoints = [];
+    this.drawingPreviewLayer = null;
+    this.snapIndicator = null;
+    this.vertexHandles = [];
+    this.midpointHandles = [];
+    this.activeDragHandle = null;
+
+    // Preset selection for next drawing
+    this.activePreset = null;
+
+    // Auto-save timer
+    this.autoSaveTimer = null;
+
+    // History Manager
+    this.history = new HistoryManager((state) => this.onHistoryChange(state));
+  }
+
+  init() {
+    this.initMap();
+    this.initCustomPanes();
+    this.initTileLayer();
+    this.initLayerGroups();
+    this.initSnapIndicator();
+    this.initEventBindings();
+    this.checkInitialData();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Map & Layer Setup
+  // ---------------------------------------------------------------------------
+  initMap() {
+    const config = this.mapData.metadata;
+    this.map = L.map('map', {
+      center: config.center,
+      zoom: config.defaultZoom,
+      minZoom: config.minZoom,
+      maxZoom: config.maxZoom,
+      maxBounds: config.bounds,
+      maxBoundsViscosity: 0.8,
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
+      doubleClickZoom: false,
+      attributionControl: true
+    });
+
+    this.map.on('mousemove', (e) => this.onMapMouseMove(e));
+    this.map.on('click', (e) => this.onMapClick(e));
+    this.map.on('dblclick', (e) => this.onMapDblClick(e));
+    this.map.on('zoomend', () => {
+      document.getElementById('lblZoomLevel').textContent = this.map.getZoom().toFixed(1);
+    });
+  }
+
+  initCustomPanes() {
+    const panes = [
+      { name: 'buildingPane', z: 400 },
+      { name: 'indoorFloorPane', z: 420 },
+      { name: 'overpassPane', z: 450, filter: 'drop-shadow(0px 3px 6px rgba(0,0,0,0.4))' },
+      { name: 'routePane', z: 520 },
+      { name: 'spotPane', z: 540 },
+      { name: 'editorHandlePane', z: 650 }
+    ];
+
+    panes.forEach(p => {
+      this.map.createPane(p.name);
+      const paneEl = this.map.getPane(p.name);
+      paneEl.style.zIndex = p.z;
+      if (p.filter) paneEl.style.filter = p.filter;
+    });
+  }
+
+  initTileLayer() {
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+      attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+      maxNativeZoom: 18,
+      maxZoom: 22,
+      minZoom: 15,
+      errorTileUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="%23cfe3d8"/></svg>'
+    }).addTo(this.map);
+  }
+
+  initLayerGroups() {
+    this.layerGroups.buildings = L.layerGroup().addTo(this.map);
+    this.layerGroups.outdoor = L.layerGroup().addTo(this.map);
+    this.layerGroups.spots = L.layerGroup().addTo(this.map);
+    this.layerGroups.routes = L.layerGroup().addTo(this.map);
+
+    for (let f = 1; f <= 5; f++) {
+      this.layerGroups.indoorFloors[String(f)] = L.layerGroup();
+    }
+  }
+
+  initSnapIndicator() {
+    this.snapIndicator = L.circleMarker([0, 0], {
+      radius: 6,
+      color: '#f97316',
+      weight: 2,
+      fillColor: '#fdba74',
+      fillOpacity: 0.8,
+      pane: 'editorHandlePane',
+      interactive: false
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Data Loading & Auto-save / Restore
+  // ---------------------------------------------------------------------------
+  async checkInitialData() {
+    const draftJson = localStorage.getItem('nanryosai_editor_autosave');
+    if (draftJson) {
+      try {
+        const draft = JSON.parse(draftJson);
+        if (draft && draft.mapData) {
+          const dateStr = draft.savedAt ? new Date(draft.savedAt).toLocaleString('ja-JP') : '不明';
+          document.getElementById('lblDraftSavedAt').textContent = dateStr;
+          document.getElementById('restoreModal').style.display = 'flex';
+          return;
+        }
+      } catch (e) {
+        console.warn('Draft parse error:', e);
+      }
+    }
+
+    await this.loadCampusMapData();
+  }
+
+  async loadCampusMapData() {
+    try {
+      this.showToast('キャンパスマップデータを読み込み中...', 'info');
+      const res = await fetch('../data/campus_map_data.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      this.loadData(data, '初期データ読込');
+      this.showToast('マップデータを読み込みました', 'success');
+    } catch (err) {
+      console.warn('Fetch fallback to static structure:', err);
+      this.renderAll();
+      this.history.pushState(this.mapData, '初期化');
+      this.showToast('初期テンプレートで起動しました', 'info');
+    }
+  }
+
+  loadData(data, historyLabel = 'データ読込') {
+    if (!data || typeof data !== 'object') return;
+    this.mapData = JSON.parse(JSON.stringify(data));
+    
+    // Ensure indoorFloors keys exist
+    if (!this.mapData.indoorFloors) this.mapData.indoorFloors = {};
+    for (let f = 1; f <= 5; f++) {
+      if (!this.mapData.indoorFloors[String(f)]) {
+        this.mapData.indoorFloors[String(f)] = { rooms: [], corridors: [], stairs: [], toilets: [] };
+      }
+    }
+
+    this.renderAll();
+    this.setFloor(this.currentFloor);
+    this.history.pushState(this.mapData, historyLabel);
+    this.updateStats();
+  }
+
+  triggerAutoSave() {
+    clearTimeout(this.autoSaveTimer);
+    document.getElementById('statusAutoSave').textContent = 'LocalStorage: 保存中...';
+    document.getElementById('statusBadgeIndicator').className = 'status-badge warning';
+
+    this.autoSaveTimer = setTimeout(() => {
+      try {
+        const payload = {
+          savedAt: new Date().toISOString(),
+          version: '3.0.0',
+          mapData: this.mapData
+        };
+        localStorage.setItem('nanryosai_editor_autosave', JSON.stringify(payload));
+        document.getElementById('statusAutoSave').textContent = 'LocalStorage: 保存完了';
+        document.getElementById('statusBadgeIndicator').className = 'status-badge';
+      } catch (e) {
+        console.warn('LocalStorage Save Error:', e);
+        document.getElementById('statusAutoSave').textContent = 'LocalStorage: 容量エラー';
+        document.getElementById('statusBadgeIndicator').className = 'status-badge error';
+      }
+    }, 800);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Geometry Rendering & Floor Layer Management
+  // ---------------------------------------------------------------------------
+  renderAll() {
+    this.clearAllLayers();
+
+    // 1. Buildings
+    (this.mapData.buildings || []).forEach(b => {
+      const polygon = b.polygon || b.coordinates;
+      if (!polygon || polygon.length < 3) return;
+      const layer = L.polygon(polygon, {
+        pane: 'buildingPane',
+        fillColor: b.color || '#7c5cff',
+        fillOpacity: 0.7,
+        color: b.strokeColor || '#5e35b1',
+        weight: 2
+      });
+      layer.feature = { properties: { ...b, entityType: 'building' }, _entityRef: b };
+      layer._entityRef = b;
+      this.bindLayerEvents(layer);
+      this.layerGroups.buildings.addLayer(layer);
+    });
+
+    // 2. Outdoor Areas
+    (this.mapData.outdoorAreas || []).forEach(a => {
+      const polygon = a.polygon || a.coordinates;
+      if (!polygon || polygon.length < 3) return;
+      const layer = L.polygon(polygon, {
+        pane: 'indoorFloorPane',
+        fillColor: a.color || '#2eb872',
+        fillOpacity: 0.5,
+        color: a.strokeColor || '#1e7e4c',
+        weight: 2
+      });
+      layer.feature = { properties: { ...a, entityType: 'outdoor' }, _entityRef: a };
+      layer._entityRef = a;
+      this.bindLayerEvents(layer);
+      this.layerGroups.outdoor.addLayer(layer);
+    });
+
+    // 3. Indoor Floors (1F - 5F)
+    for (let f = 1; f <= 5; f++) {
+      const floorData = this.mapData.indoorFloors[String(f)] || {};
+      const group = this.layerGroups.indoorFloors[String(f)];
+
+      // Rooms
+      (floorData.rooms || []).forEach(r => {
+        const poly = r.polygon || r.coordinates;
+        if (!poly || poly.length < 3) return;
+        const style = r.style || {};
+        const layer = L.polygon(poly, {
+          pane: 'indoorFloorPane',
+          fillColor: style.fillColor || r.color || '#7c5cff',
+          fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : 0.45,
+          color: style.strokeColor || r.strokeColor || '#5e35b1',
+          weight: style.weight || 1.5
+        });
+        layer.feature = { properties: { ...r, floor: f, entityType: 'room' }, _entityRef: r };
+        layer._entityRef = r;
+        this.bindLayerEvents(layer);
+        group.addLayer(layer);
+      });
+
+      // Corridors
+      (floorData.corridors || []).forEach(c => {
+        const poly = c.polygon || c.coordinates;
+        if (!poly || poly.length < 2) return;
+        const isPoly = poly.length >= 3;
+        const pane = c.isOverpass ? 'overpassPane' : 'indoorFloorPane';
+        const style = c.style || {};
+
+        let layer;
+        if (isPoly) {
+          layer = L.polygon(poly, {
+            pane: pane,
+            fillColor: style.fillColor || (c.isOverpass ? '#a855f7' : '#94a3b8'),
+            fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : (c.isOverpass ? 0.8 : 0.4),
+            color: style.strokeColor || (c.isOverpass ? '#7e22ce' : '#64748b'),
+            weight: style.weight || 2
+          });
+        } else {
+          layer = L.polyline(poly, {
+            pane: pane,
+            color: style.strokeColor || '#94a3b8',
+            weight: style.weight || 4
+          });
+        }
+        layer.feature = { properties: { ...c, floor: f, entityType: 'corridor' }, _entityRef: c };
+        layer._entityRef = c;
+        this.bindLayerEvents(layer);
+        group.addLayer(layer);
+      });
+
+      // Stairs
+      (floorData.stairs || []).forEach(s => {
+        const poly = s.polygon || s.coordinates;
+        if (!poly || poly.length < 3) return;
+        const layer = L.polygon(poly, {
+          pane: 'indoorFloorPane',
+          fillColor: '#f97316',
+          fillOpacity: 0.6,
+          color: '#c2410c',
+          weight: 2
+        });
+        layer.feature = { properties: { ...s, floor: f, entityType: 'stairs' }, _entityRef: s };
+        layer._entityRef = s;
+        this.bindLayerEvents(layer);
+        group.addLayer(layer);
+      });
+
+      // Toilets
+      (floorData.toilets || []).forEach(t => {
+        const poly = t.polygon || t.coordinates;
+        if (!poly || poly.length < 3) return;
+        const layer = L.polygon(poly, {
+          pane: 'indoorFloorPane',
+          fillColor: t.gender === 'female' ? '#ec4899' : (t.gender === 'male' ? '#38bdf8' : '#10b981'),
+          fillOpacity: 0.65,
+          color: '#ffffff',
+          weight: 1.5
+        });
+        layer.feature = { properties: { ...t, floor: f, entityType: 'toilet' }, _entityRef: t };
+        layer._entityRef = t;
+        this.bindLayerEvents(layer);
+        group.addLayer(layer);
+      });
+    }
+
+    // 4. Spots
+    (this.mapData.spots || []).forEach(s => {
+      const latlng = s.latlng || s.coordinates;
+      if (!latlng || latlng.length < 2) return;
+      const marker = L.circleMarker([latlng[0], latlng[1]], {
+        pane: 'spotPane',
+        radius: 7,
+        fillColor: '#10b981',
+        fillOpacity: 0.9,
+        color: '#ffffff',
+        weight: 2
+      });
+      marker.feature = { properties: { ...s, entityType: 'spot' }, _entityRef: s };
+      marker._entityRef = s;
+      this.bindLayerEvents(marker);
+      this.layerGroups.spots.addLayer(marker);
+    });
+
+    // 5. Access Routes
+    (this.mapData.accessRoutes || []).forEach(r => {
+      let poly = r.polyline || r.coordinates;
+      if (!poly || poly.length < 2) return;
+      if (r.smooth) {
+        poly = GeometryEngine.interpolateCatmullRom(poly, false, 16, 0.5);
+      }
+      const layer = L.polyline(poly, {
+        pane: 'routePane',
+        color: r.color || '#eab308',
+        weight: r.strokeWidth || 4,
+        dashArray: r.dashArray || '6, 6'
+      });
+      layer.feature = { properties: { ...r, entityType: 'route' }, _entityRef: r };
+      layer._entityRef = r;
+      this.bindLayerEvents(layer);
+      this.layerGroups.routes.addLayer(layer);
+    });
+
+    this.updateTreeList();
+    this.updateStats();
+  }
+
+  clearAllLayers() {
+    this.layerGroups.buildings.clearLayers();
+    this.layerGroups.outdoor.clearLayers();
+    this.layerGroups.spots.clearLayers();
+    this.layerGroups.routes.clearLayers();
+    for (let f = 1; f <= 5; f++) {
+      this.layerGroups.indoorFloors[String(f)].clearLayers();
+    }
+  }
+
+  setFloor(floor) {
+    if (this.selectedFeature) {
+      this.deselectFeature();
+    }
+    this.currentFloor = floor;
+    document.querySelectorAll('.floor-pill').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('data-floor') === floor);
+    });
+
+    // Hide all indoor floors first
+    for (let f = 1; f <= 5; f++) {
+      this.map.removeLayer(this.layerGroups.indoorFloors[String(f)]);
+    }
+
+    if (['1', '2', '3', '4', '5'].includes(floor)) {
+      this.map.addLayer(this.layerGroups.indoorFloors[floor]);
+      this.setBuildingsOpacity(0.35);
+      this.filterSpotsByFloor(parseInt(floor));
+    } else if (floor === 'All') {
+      this.setBuildingsOpacity(0.75);
+      this.map.addLayer(this.layerGroups.outdoor);
+      this.map.addLayer(this.layerGroups.routes);
+      this.map.addLayer(this.layerGroups.indoorFloors['1']); // Show 1F as default base
+      this.showAllSpots();
+    } else if (floor === 'Outdoor') {
+      this.setBuildingsOpacity(0.4);
+      this.map.addLayer(this.layerGroups.outdoor);
+      this.showAllSpots();
+    } else if (floor === 'Routes') {
+      this.setBuildingsOpacity(0.4);
+      this.map.addLayer(this.layerGroups.routes);
+    }
+
+    this.updateTreeList();
+  }
+
+  setBuildingsOpacity(opacity) {
+    this.layerGroups.buildings.eachLayer(layer => {
+      layer.setStyle({ fillOpacity: opacity });
+    });
+  }
+
+  filterSpotsByFloor(floorNum) {
+    this.layerGroups.spots.eachLayer(layer => {
+      const sFloor = layer.feature?.properties?.floor;
+      if (sFloor === floorNum || sFloor === undefined || sFloor === 'outdoor') {
+        layer.setStyle({ opacity: 1, fillOpacity: 0.9 });
+      } else {
+        layer.setStyle({ opacity: 0.2, fillOpacity: 0.1 });
+      }
+    });
+  }
+
+  showAllSpots() {
+    this.layerGroups.spots.eachLayer(layer => {
+      layer.setStyle({ opacity: 1, fillOpacity: 0.9 });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Event Bindings & Snapping / Ortho
+  // ---------------------------------------------------------------------------
+  bindLayerEvents(layer) {
+    const props = layer.feature?.properties || {};
+    if (props.name) {
+      layer.bindTooltip(props.name, {
+        className: 'custom-map-tooltip',
+        direction: 'center',
+        permanent: false
+      });
+    }
+
+    layer.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      if (this.activeTool === 'delete') {
+        this.deleteFeature(layer.feature.properties);
+      } else if (this.activeTool === 'select') {
+        this.selectFeature(layer);
+      }
+    });
+  }
+
+  onMapMouseMove(e) {
+    const rawLatLng = e.latlng;
+    let finalLatLng = rawLatLng;
+
+    // Status Coords
+    document.getElementById('statusCoords').textContent = 
+      `${rawLatLng.lat.toFixed(6)}, ${rawLatLng.lng.toFixed(6)}`;
+
+    // 1. Orthogonal constraint if Shift pressed & drawing
+    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && this.drawingPoints.length > 0) {
+      const lastPt = this.drawingPoints[this.drawingPoints.length - 1];
+      finalLatLng = this.getOrthogonalLatLng(lastPt, rawLatLng);
+    }
+
+    // 2. Snapping (12px containerPoint)
+    if (this.isSnapEnabled) {
+      const snap = this.findNearestSnapVertex(finalLatLng);
+      if (snap) {
+        finalLatLng = snap.latlng;
+        this.showSnapIndicator(snap.latlng, snap.isClosing);
+        document.getElementById('statusSnapInfo').textContent = snap.isClosing ? 'Snap: 始点閉合 (16px)' : 'Snap: 頂点吸着 (12px)';
+      } else {
+        this.hideSnapIndicator();
+        document.getElementById('statusSnapInfo').textContent = 'Snap: 待機中';
+      }
+    } else {
+      this.hideSnapIndicator();
+    }
+
+    // 3. Update drawing preview
+    if (this.drawingPoints.length > 0 && (this.activeTool === 'polygon' || this.activeTool === 'path')) {
+      this.updateDrawingPreview(finalLatLng);
+    }
+  }
+
+  onMapClick(e) {
+    if (this.activeTool === 'select') {
+      this.deselectFeature();
+      return;
+    }
+
+    let latlng = e.latlng;
+    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && this.drawingPoints.length > 0) {
+      latlng = this.getOrthogonalLatLng(this.drawingPoints[this.drawingPoints.length - 1], latlng);
+    }
+    if (this.isSnapEnabled) {
+      const snap = this.findNearestSnapVertex(latlng);
+      if (snap) latlng = snap.latlng;
+    }
+
+    const coord = [
+      parseFloat(latlng.lat.toFixed(6)),
+      parseFloat(latlng.lng.toFixed(6))
+    ];
+
+    if (this.activeTool === 'polygon') {
+      // Check start-point closing (3+ vertices)
+      if (this.drawingPoints.length >= 3) {
+        const p0 = this.drawingPoints[0];
+        const p0Point = this.map.latLngToContainerPoint(L.latLng(p0[0], p0[1]));
+        const currPoint = this.map.latLngToContainerPoint(latlng);
+        if (p0Point.distanceTo(currPoint) <= 16) {
+          this.finishPolygonDrawing();
+          return;
+        }
+      }
+      this.drawingPoints.push(coord);
+      this.updateDrawingPreview(latlng);
+    } else if (this.activeTool === 'path') {
+      this.drawingPoints.push(coord);
+      this.updateDrawingPreview(latlng);
+    } else if (this.activeTool === 'spot') {
+      this.createSpotFeature(coord);
+    }
+  }
+
+  onMapDblClick(e) {
+    L.DomEvent.stopPropagation(e);
+    if (this.activeTool === 'polygon' && this.drawingPoints.length >= 3) {
+      this.finishPolygonDrawing();
+    } else if (this.activeTool === 'path' && this.drawingPoints.length >= 2) {
+      this.finishPathDrawing();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Snapping & Ortho Logic
+  // ---------------------------------------------------------------------------
+  findNearestSnapVertex(latlng) {
+    const mousePt = this.map.latLngToContainerPoint(latlng);
+    const snapThreshold = 12; // 12px
+    const closeThreshold = 16; // 16px for polygon closure
+
+    // Check closure on start vertex
+    if (this.activeTool === 'polygon' && this.drawingPoints.length >= 3) {
+      const startPt = this.map.latLngToContainerPoint(L.latLng(this.drawingPoints[0][0], this.drawingPoints[0][1]));
+      if (mousePt.distanceTo(startPt) <= closeThreshold) {
+        return { latlng: L.latLng(this.drawingPoints[0][0], this.drawingPoints[0][1]), isClosing: true };
+      }
+    }
+
+    let closest = null;
+    let minDistance = snapThreshold;
+
+    const allVertices = this.getAllFeatureVertices();
+    for (const v of allVertices) {
+      const vPt = this.map.latLngToContainerPoint(v);
+      const d = mousePt.distanceTo(vPt);
+      if (d < minDistance) {
+        minDistance = d;
+        closest = { latlng: v, isClosing: false };
+      }
+    }
+
+    return closest;
+  }
+
+  getAllFeatureVertices() {
+    const list = [];
+    const collectFromList = (arr) => {
+      (arr || []).forEach(item => {
+        const poly = item.polygon || item.coordinates || item.polyline;
+        if (Array.isArray(poly)) {
+          if (Array.isArray(poly[0])) {
+            poly.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+          } else if (typeof poly[0] === 'number') {
+            list.push(L.latLng(poly[0], poly[1]));
+          }
+        }
+        if (item.latlng) list.push(L.latLng(item.latlng[0], item.latlng[1]));
+      });
+    };
+
+    collectFromList(this.mapData.buildings);
+    collectFromList(this.mapData.outdoorAreas);
+    collectFromList(this.mapData.spots);
+    collectFromList(this.mapData.accessRoutes);
+
+    for (let f = 1; f <= 5; f++) {
+      const fl = this.mapData.indoorFloors[String(f)] || {};
+      collectFromList(fl.rooms);
+      collectFromList(fl.corridors);
+      collectFromList(fl.stairs);
+      collectFromList(fl.toilets);
+    }
+
+    // Add currently drawing vertices
+    this.drawingPoints.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+
+    return list;
+  }
+
+  getOrthogonalLatLng(lastCoord, currentLatLng) {
+    const p0 = this.map.latLngToContainerPoint(L.latLng(lastCoord[0], lastCoord[1]));
+    const p1 = this.map.latLngToContainerPoint(currentLatLng);
+
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const r = Math.hypot(dx, dy);
+    if (r < 2) return currentLatLng;
+
+    const angle = Math.atan2(dy, dx);
+    const snapAngle = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2);
+
+    const snappedPt = L.point(
+      p0.x + r * Math.cos(snapAngle),
+      p0.y + r * Math.sin(snapAngle)
+    );
+    return this.map.containerPointToLatLng(snappedPt);
+  }
+
+  showSnapIndicator(latlng, isClosing = false) {
+    this.snapIndicator.setLatLng(latlng);
+    this.snapIndicator.setStyle({
+      color: isClosing ? '#22c55e' : '#f97316',
+      fillColor: isClosing ? '#86efac' : '#fdba74',
+      radius: isClosing ? 8 : 6
+    });
+    if (!this.map.hasLayer(this.snapIndicator)) {
+      this.snapIndicator.addTo(this.map);
+    }
+  }
+
+  hideSnapIndicator() {
+    if (this.map.hasLayer(this.snapIndicator)) {
+      this.map.removeLayer(this.snapIndicator);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing Preview & Completion
+  // ---------------------------------------------------------------------------
+  updateDrawingPreview(currentLatLng) {
+    if (this.drawingPreviewLayer) {
+      this.map.removeLayer(this.drawingPreviewLayer);
+      this.drawingPreviewLayer = null;
+    }
+
+    const tempCoords = [
+      ...this.drawingPoints,
+      [parseFloat(currentLatLng.lat.toFixed(6)), parseFloat(currentLatLng.lng.toFixed(6))]
+    ];
+
+    if (this.activeTool === 'polygon') {
+      this.drawingPreviewLayer = L.polygon(tempCoords, {
+        pane: 'editorHandlePane',
+        color: '#10b981',
+        weight: 2,
+        fillColor: '#86efac',
+        fillOpacity: 0.35,
+        dashArray: '4, 4'
+      }).addTo(this.map);
+    } else if (this.activeTool === 'path') {
+      let renderCoords = tempCoords;
+      if (this.isSplineEnabled && tempCoords.length >= 3) {
+        renderCoords = GeometryEngine.interpolateCatmullRom(tempCoords, false, 16, 0.5);
+      }
+      this.drawingPreviewLayer = L.polyline(renderCoords, {
+        pane: 'editorHandlePane',
+        color: '#38bdf8',
+        weight: 3,
+        dashArray: '5, 5'
+      }).addTo(this.map);
+    }
+  }
+
+  finishPolygonDrawing() {
+    if (this.drawingPoints.length < 3) {
+      this.cancelDrawing();
+      return;
+    }
+
+    const targetFloor = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : 1;
+    const preset = this.activePreset || 'classroom';
+    const newId = `${preset}_${Date.now().toString().slice(-6)}`;
+    const centroid = GeometryEngine.computeCentroid(this.drawingPoints);
+
+    let newFeature = {
+      id: newId,
+      name: `新規 ${this.getPresetLabel(preset)}`,
+      category: preset,
+      floor: targetFloor,
+      buildingId: 'student_bldg',
+      polygon: [...this.drawingPoints],
+      coordinates: [...this.drawingPoints],
+      pinCoord: centroid
+    };
+
+    if (preset === 'toilet') {
+      newFeature.gender = 'all';
+      this.mapData.indoorFloors[String(targetFloor)].toilets.push(newFeature);
+    } else if (preset === 'stairs') {
+      newFeature.connectsFloors = [targetFloor, targetFloor + 1];
+      this.mapData.indoorFloors[String(targetFloor)].stairs.push(newFeature);
+    } else if (preset === 'corridor' || preset === 'overpass') {
+      newFeature.isOverpass = (preset === 'overpass');
+      this.mapData.indoorFloors[String(targetFloor)].corridors.push(newFeature);
+    } else {
+      newFeature.roomId = newId;
+      newFeature.style = { fillColor: '#7c5cff', fillOpacity: 0.45, strokeColor: '#5e35b1', weight: 2 };
+      this.mapData.indoorFloors[String(targetFloor)].rooms.push(newFeature);
+    }
+
+    this.cancelDrawing();
+    this.renderAll();
+    this.history.pushState(this.mapData, `ポリゴン作図: ${newFeature.name}`);
+    this.triggerAutoSave();
+    this.showToast(`図形 [${newFeature.name}] を作成しました`, 'success');
+
+    // Auto select created feature
+    this.selectFeatureById(newId);
+  }
+
+  finishPathDrawing() {
+    if (this.drawingPoints.length < 2) {
+      this.cancelDrawing();
+      return;
+    }
+
+    const newId = `route_${Date.now().toString().slice(-6)}`;
+    const newRoute = {
+      id: newId,
+      name: '新規アクセスルート',
+      color: '#eab308',
+      strokeWidth: 4,
+      smooth: this.isSplineEnabled,
+      timeMinutes: 10,
+      distanceMeters: 500,
+      elevationGainMeters: 10,
+      polyline: [...this.drawingPoints],
+      coordinates: [...this.drawingPoints]
+    };
+
+    this.mapData.accessRoutes.push(newRoute);
+    this.cancelDrawing();
+    this.renderAll();
+    this.history.pushState(this.mapData, `ルート作図: ${newRoute.name}`);
+    this.triggerAutoSave();
+    this.showToast(`ルート [${newRoute.name}] を作成しました`, 'success');
+    this.selectFeatureById(newId);
+  }
+
+  createSpotFeature(coord) {
+    const newId = `spot_${Date.now().toString().slice(-6)}`;
+    const newSpot = {
+      id: newId,
+      name: '新規模擬店/スポット',
+      category: 'food',
+      floor: ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : undefined,
+      buildingId: 'courtyard',
+      latlng: coord,
+      coordinates: coord
+    };
+
+    this.mapData.spots.push(newSpot);
+    this.renderAll();
+    this.history.pushState(this.mapData, `スポット作成: ${newSpot.name}`);
+    this.triggerAutoSave();
+    this.showToast(`スポット [${newSpot.name}] を配置しました`, 'success');
+    this.setTool('select');
+    this.selectFeatureById(newId);
+  }
+
+  cancelDrawing() {
+    this.drawingPoints = [];
+    if (this.drawingPreviewLayer) {
+      this.map.removeLayer(this.drawingPreviewLayer);
+      this.drawingPreviewLayer = null;
+    }
+    document.getElementById('drawingBanner').style.display = 'none';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vertex Editing (Drag, Midpoint Insert, Right-click Delete)
+  // ---------------------------------------------------------------------------
+  attachVertexHandles(layer) {
+    this.clearVertexHandles();
+    if (!layer || !layer.feature) return;
+
+    const feature = layer.feature.properties;
+    const coords = feature.polygon || feature.coordinates || feature.polyline;
+    if (!coords || !Array.isArray(coords) || coords.length === 0) return;
+
+    const isPolygon = !feature.polyline && feature.entityType !== 'route';
+
+    // 1. Vertex Drag Handles
+    coords.forEach((coord, idx) => {
+      const latlng = L.latLng(coord[0], coord[1]);
+      const handle = L.circleMarker(latlng, {
+        pane: 'editorHandlePane',
+        radius: 6,
+        color: '#2563eb',
+        fillColor: '#60a5fa',
+        fillOpacity: 0.95,
+        weight: 2
+      }).addTo(this.map);
+
+      // Drag logic
+      handle.on('mousedown', (e) => {
+        L.DomEvent.stopPropagation(e);
+        this.map.dragging.disable();
+
+        const onMouseMove = (ev) => {
+          let moveLatLng = ev.latlng;
+          if (this.isSnapEnabled) {
+            const snap = this.findNearestSnapVertex(moveLatLng);
+            if (snap) moveLatLng = snap.latlng;
+          }
+          handle.setLatLng(moveLatLng);
+          coords[idx] = [
+            parseFloat(moveLatLng.lat.toFixed(6)),
+            parseFloat(moveLatLng.lng.toFixed(6))
+          ];
+          layer.setLatLngs(coords);
+          const target = layer._entityRef || this.findMapDataEntity(feature);
+          if (target) {
+            if (target.polygon) target.polygon = coords;
+            if (target.coordinates) target.coordinates = coords;
+            if (target.polyline) target.polyline = coords;
+          }
+          this.updateCentroidDisplay();
+        };
+
+        const onMouseUp = () => {
+          this.map.off('mousemove', onMouseMove);
+          this.map.off('mouseup', onMouseUp);
+          this.map.dragging.enable();
+          this.attachVertexHandles(layer);
+          const target = layer._entityRef || this.findMapDataEntity(feature);
+          if (target) {
+            if (target.polygon) target.polygon = coords;
+            if (target.coordinates) target.coordinates = coords;
+            if (target.polyline) target.polyline = coords;
+          }
+          this.history.pushState(this.mapData, `頂点移動: ${feature.name || feature.id}`);
+          this.triggerAutoSave();
+        };
+
+        this.map.on('mousemove', onMouseMove);
+        this.map.on('mouseup', onMouseUp);
+      });
+
+      // Right-click delete vertex
+      handle.on('contextmenu', (e) => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+
+        const minPoints = isPolygon ? 3 : 2;
+        if (coords.length <= minPoints) {
+          this.showToast(`頂点を削除できません（最小 ${minPoints} 点必要です）`, 'error');
+          return;
+        }
+
+        coords.splice(idx, 1);
+        layer.setLatLngs(coords);
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          if (target.polygon) target.polygon = coords;
+          if (target.coordinates) target.coordinates = coords;
+          if (target.polyline) target.polyline = coords;
+        }
+        this.attachVertexHandles(layer);
+        this.history.pushState(this.mapData, `頂点削除: ${feature.name || feature.id}`);
+        this.triggerAutoSave();
+        this.showToast('頂点を削除しました', 'info');
+      });
+
+      this.vertexHandles.push(handle);
+    });
+
+    // 2. Midpoint "+" Insert Handles
+    const loopLimit = isPolygon ? coords.length : coords.length - 1;
+    for (let i = 0; i < loopLimit; i++) {
+      const p1 = coords[i];
+      const p2 = coords[(i + 1) % coords.length];
+      const midLatLng = L.latLng((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2);
+
+      const midHandle = L.circleMarker(midLatLng, {
+        pane: 'editorHandlePane',
+        radius: 4,
+        color: '#64748b',
+        fillColor: '#ffffff',
+        fillOpacity: 0.9,
+        weight: 1.5
+      }).addTo(this.map);
+
+      midHandle.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        const newVertex = [
+          parseFloat(midLatLng.lat.toFixed(6)),
+          parseFloat(midLatLng.lng.toFixed(6))
+        ];
+        coords.splice(i + 1, 0, newVertex);
+        layer.setLatLngs(coords);
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          if (target.polygon) target.polygon = coords;
+          if (target.coordinates) target.coordinates = coords;
+          if (target.polyline) target.polyline = coords;
+        }
+        this.attachVertexHandles(layer);
+        this.history.pushState(this.mapData, `頂点挿入: ${feature.name || feature.id}`);
+        this.triggerAutoSave();
+        this.showToast('新規頂点を挿入しました', 'success');
+      });
+
+      this.midpointHandles.push(midHandle);
+    }
+
+    document.getElementById('lblVertexCount').textContent = coords.length;
+  }
+
+  clearVertexHandles() {
+    this.vertexHandles.forEach(h => this.map.removeLayer(h));
+    this.midpointHandles.forEach(h => this.map.removeLayer(h));
+    this.vertexHandles = [];
+    this.midpointHandles = [];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Selection & Inspector Binding
+  // ---------------------------------------------------------------------------
+  selectFeature(layer) {
+    this.deselectFeature();
+    this.selectedLayer = layer;
+    this.selectedFeature = layer.feature.properties;
+
+    // Highlight style
+    if (typeof layer.setStyle === 'function') {
+      layer.setStyle({ weight: (this.selectedFeature.style?.weight || 2) + 2 });
+    }
+
+    this.attachVertexHandles(layer);
+    this.populateInspector(this.selectedFeature);
+    this.highlightTreeItem(this.selectedFeature.id || this.selectedFeature.roomId);
+  }
+
+  selectFeatureById(id) {
+    let foundLayer = null;
+    const searchInGroup = (group) => {
+      group.eachLayer(layer => {
+        const p = layer.feature?.properties;
+        if (p && (p.id === id || p.roomId === id)) {
+          foundLayer = layer;
+        }
+      });
+    };
+
+    searchInGroup(this.layerGroups.buildings);
+    searchInGroup(this.layerGroups.outdoor);
+    searchInGroup(this.layerGroups.spots);
+    searchInGroup(this.layerGroups.routes);
+    for (let f = 1; f <= 5; f++) {
+      searchInGroup(this.layerGroups.indoorFloors[String(f)]);
+    }
+
+    if (foundLayer) {
+      this.selectFeature(foundLayer);
+      if (foundLayer.getBounds) {
+        this.map.fitBounds(foundLayer.getBounds(), { maxZoom: 20, padding: [40, 40] });
+      } else if (foundLayer.getLatLng) {
+        this.map.setView(foundLayer.getLatLng(), 20);
+      }
+    }
+  }
+
+  deselectFeature() {
+    if (this.selectedLayer) {
+      if (typeof this.selectedLayer.setStyle === 'function') {
+        const st = this.selectedFeature.style || {};
+        this.selectedLayer.setStyle({
+          weight: st.weight || this.selectedFeature.strokeWidth || 2
+        });
+      }
+    }
+    this.clearVertexHandles();
+    this.selectedLayer = null;
+    this.selectedFeature = null;
+
+    document.getElementById('inspEmptyState').style.display = 'block';
+    document.getElementById('inspForm').style.display = 'none';
+    document.getElementById('inspBadge').textContent = '未選択';
+    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('selected'));
+  }
+
+  populateInspector(feat) {
+    document.getElementById('inspEmptyState').style.display = 'none';
+    document.getElementById('inspForm').style.display = 'block';
+
+    const entityType = feat.entityType || 'room';
+    document.getElementById('inspBadge').textContent = `${entityType.toUpperCase()}`;
+
+    // Base Fields
+    document.getElementById('fieldId').value = feat.id || feat.roomId || '';
+    document.getElementById('fieldName').value = feat.name || '';
+    document.getElementById('fieldCategory').value = feat.category || feat.type || 'classroom';
+    document.getElementById('fieldFloor').value = feat.floor !== undefined ? String(feat.floor) : 'outdoor';
+    document.getElementById('fieldBuildingId').value = feat.buildingId || '';
+
+    // Style
+    const style = feat.style || {};
+    const color = style.fillColor || feat.color || '#7c5cff';
+    const strokeColor = style.strokeColor || feat.strokeColor || '#5e35b1';
+    const opacity = style.fillOpacity !== undefined ? style.fillOpacity : 0.4;
+    const weight = style.weight || feat.strokeWidth || 2;
+
+    document.getElementById('fieldColor').value = color;
+    document.getElementById('lblColorHex').textContent = color;
+    document.getElementById('fieldStrokeColor').value = strokeColor;
+    document.getElementById('lblStrokeHex').textContent = strokeColor;
+    document.getElementById('fieldOpacity').value = opacity;
+    document.getElementById('lblOpacityVal').textContent = parseFloat(opacity).toFixed(2);
+    document.getElementById('fieldWeight').value = weight;
+    document.getElementById('lblWeightVal').textContent = weight;
+
+    // Type specific sections
+    document.getElementById('sectionBuilding').style.display = entityType === 'building' ? 'block' : 'none';
+    document.getElementById('sectionRoom').style.display = (entityType === 'room' || entityType === 'spot') ? 'block' : 'none';
+    document.getElementById('sectionCorridor').style.display = entityType === 'corridor' ? 'block' : 'none';
+    document.getElementById('sectionToilet').style.display = entityType === 'toilet' ? 'block' : 'none';
+    document.getElementById('sectionRoute').style.display = entityType === 'route' ? 'block' : 'none';
+
+    if (entityType === 'building') {
+      document.getElementById('fieldHasIndoor').checked = !!feat.hasIndoor;
+      const bldgFloors = feat.floors || [1];
+      document.querySelectorAll('#bldgFloorsGroup input').forEach(cb => {
+        cb.checked = bldgFloors.includes(parseInt(cb.value));
+      });
+    }
+
+    if (entityType === 'room' || entityType === 'spot') {
+      document.getElementById('fieldLinkedProjects').value = (feat.linkedProjectIds || []).join(', ');
+      this.updateCentroidDisplay();
+    }
+
+    if (entityType === 'corridor') {
+      document.getElementById('fieldIsOverpass').checked = !!feat.isOverpass;
+      document.getElementById('fieldBuildingFrom').value = feat.buildingFrom || '';
+      document.getElementById('fieldBuildingTo').value = feat.buildingTo || '';
+    }
+
+    if (entityType === 'toilet') {
+      document.getElementById('fieldGender').value = feat.gender || 'all';
+    }
+
+    if (entityType === 'route') {
+      document.getElementById('fieldTimeMin').value = feat.timeMinutes || 10;
+      document.getElementById('fieldDistanceM').value = feat.distanceMeters || 500;
+      document.getElementById('fieldElevationM').value = feat.elevationGainMeters || 0;
+      document.getElementById('fieldSmooth').checked = !!feat.smooth;
+      document.getElementById('fieldRouteDesc').value = feat.description || '';
+    }
+  }
+
+  updateCentroidDisplay() {
+    if (!this.selectedFeature) return;
+    const coords = this.selectedFeature.polygon || this.selectedFeature.coordinates;
+    let pin = this.selectedFeature.pinCoord || this.selectedFeature.latlng;
+    if (!pin && coords && coords.length > 0) {
+      pin = GeometryEngine.computeCentroid(coords);
+    }
+    if (pin) {
+      document.getElementById('fieldPinLat').value = pin[0].toFixed(6);
+      document.getElementById('fieldPinLng').value = pin[1].toFixed(6);
+    }
+  }
+
+  findMapDataEntity(feat) {
+    if (!feat) return null;
+    if (feat._entityRef) return feat._entityRef;
+    const id = feat.id || feat.roomId;
+
+    if (this.mapData.buildings) {
+      const found = this.mapData.buildings.find(b => b === feat || (id && b.id === id));
+      if (found) return found;
+    }
+    if (this.mapData.outdoorAreas) {
+      const found = this.mapData.outdoorAreas.find(a => a === feat || (id && a.id === id));
+      if (found) return found;
+    }
+    if (this.mapData.spots) {
+      const found = this.mapData.spots.find(s => s === feat || (id && s.id === id));
+      if (found) return found;
+    }
+    if (this.mapData.accessRoutes) {
+      const found = this.mapData.accessRoutes.find(r => r === feat || (id && r.id === id));
+      if (found) return found;
+    }
+    if (this.mapData.indoorFloors) {
+      for (let f = 1; f <= 5; f++) {
+        const floorData = this.mapData.indoorFloors[String(f)];
+        if (!floorData) continue;
+        for (const cat of ['rooms', 'corridors', 'stairs', 'toilets']) {
+          const arr = floorData[cat];
+          if (Array.isArray(arr)) {
+            const found = arr.find(item => item === feat || (id && (item.id === id || item.roomId === id)));
+            if (found) return found;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  applyInspectorChanges() {
+    if (!this.selectedFeature || !this.selectedLayer) return;
+    const f = this.selectedFeature;
+    const target = this.selectedLayer._entityRef || this.findMapDataEntity(f);
+
+    f.id = document.getElementById('fieldId').value.trim();
+    f.name = document.getElementById('fieldName').value.trim();
+    f.category = document.getElementById('fieldCategory').value;
+    const floorVal = document.getElementById('fieldFloor').value;
+    f.floor = floorVal === 'outdoor' ? undefined : parseInt(floorVal);
+    f.buildingId = document.getElementById('fieldBuildingId').value;
+
+    const color = document.getElementById('fieldColor').value;
+    const strokeColor = document.getElementById('fieldStrokeColor').value;
+    const opacity = parseFloat(document.getElementById('fieldOpacity').value);
+    const weight = parseInt(document.getElementById('fieldWeight').value, 10);
+
+    f.color = color;
+    f.strokeColor = strokeColor;
+    f.style = { fillColor: color, strokeColor, fillOpacity: opacity, weight };
+
+    if (f.entityType === 'building') {
+      f.hasIndoor = document.getElementById('fieldHasIndoor').checked;
+      const bldgFloors = [];
+      document.querySelectorAll('#bldgFloorsGroup input:checked').forEach(cb => bldgFloors.push(parseInt(cb.value)));
+      f.floors = bldgFloors;
+    } else if (f.entityType === 'room' || f.entityType === 'spot') {
+      const pStr = document.getElementById('fieldLinkedProjects').value.trim();
+      f.linkedProjectIds = pStr ? pStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+    } else if (f.entityType === 'corridor') {
+      f.isOverpass = document.getElementById('fieldIsOverpass').checked;
+      f.buildingFrom = document.getElementById('fieldBuildingFrom').value.trim();
+      f.buildingTo = document.getElementById('fieldBuildingTo').value.trim();
+    } else if (f.entityType === 'toilet') {
+      f.gender = document.getElementById('fieldGender').value;
+    } else if (f.entityType === 'route') {
+      f.timeMinutes = parseInt(document.getElementById('fieldTimeMin').value) || 10;
+      f.distanceMeters = parseInt(document.getElementById('fieldDistanceM').value) || 500;
+      f.elevationGainMeters = parseInt(document.getElementById('fieldElevationM').value) || 0;
+      f.smooth = document.getElementById('fieldSmooth').checked;
+      f.description = document.getElementById('fieldRouteDesc').value.trim();
+    }
+
+    // Synchronize to in-memory mapData entity
+    if (target) {
+      target.id = f.id;
+      if ('roomId' in target || f.roomId !== undefined || f.entityType === 'room') {
+        target.roomId = f.id;
+      }
+      target.name = f.name;
+      if (f.category !== undefined) target.category = f.category;
+      if (f.floor !== undefined) target.floor = f.floor;
+      else if ('floor' in target && f.entityType === 'building') delete target.floor;
+      if (f.buildingId !== undefined) target.buildingId = f.buildingId;
+      if (color) target.color = color;
+      if (strokeColor) target.strokeColor = strokeColor;
+      if (f.style || target.style) {
+        target.style = { ...(target.style || {}), fillColor: color, strokeColor, fillOpacity: opacity, weight };
+      }
+
+      if (f.entityType === 'building') {
+        target.hasIndoor = f.hasIndoor;
+        target.floors = f.floors;
+      } else if (f.entityType === 'room' || f.entityType === 'spot') {
+        target.linkedProjectIds = f.linkedProjectIds;
+        if (f.pinCoord) target.pinCoord = f.pinCoord;
+      } else if (f.entityType === 'corridor') {
+        target.isOverpass = f.isOverpass;
+        target.buildingFrom = f.buildingFrom;
+        target.buildingTo = f.buildingTo;
+      } else if (f.entityType === 'toilet') {
+        target.gender = f.gender;
+      } else if (f.entityType === 'route') {
+        target.timeMinutes = f.timeMinutes;
+        target.distanceMeters = f.distanceMeters;
+        target.elevationGainMeters = f.elevationGainMeters;
+        target.smooth = f.smooth;
+        target.description = f.description;
+        target.strokeWidth = weight;
+        target.color = color;
+      }
+
+      if (f.polygon && target.polygon) target.polygon = f.polygon;
+      if (f.coordinates && target.coordinates) target.coordinates = f.coordinates;
+      if (f.polyline && target.polyline) target.polyline = f.polyline;
+      if (f.latlng && target.latlng) target.latlng = f.latlng;
+    }
+
+    // Live update layer style & tooltip
+    if (typeof this.selectedLayer.setStyle === 'function') {
+      this.selectedLayer.setStyle({
+        fillColor: color,
+        color: strokeColor,
+        fillOpacity: opacity,
+        weight: weight
+      });
+    }
+    if (this.selectedLayer.setTooltipContent) {
+      this.selectedLayer.setTooltipContent(f.name);
+    }
+
+    this.updateTreeList();
+    this.triggerAutoSave();
+  }
+
+  deleteFeature(feat) {
+    if (!feat) return;
+    if (!confirm(`図形 [${feat.name || feat.id}] を削除しますか？`)) return;
+
+    const id = feat.id || feat.roomId;
+    const filterOut = (arr) => (arr || []).filter(item => (item.id !== id && item.roomId !== id));
+
+    this.mapData.buildings = filterOut(this.mapData.buildings);
+    this.mapData.outdoorAreas = filterOut(this.mapData.outdoorAreas);
+    this.mapData.spots = filterOut(this.mapData.spots);
+    this.mapData.accessRoutes = filterOut(this.mapData.accessRoutes);
+
+    for (let f = 1; f <= 5; f++) {
+      const fl = this.mapData.indoorFloors[String(f)] || {};
+      fl.rooms = filterOut(fl.rooms);
+      fl.corridors = filterOut(fl.corridors);
+      fl.stairs = filterOut(fl.stairs);
+      fl.toilets = filterOut(fl.toilets);
+    }
+
+    this.deselectFeature();
+    this.renderAll();
+    this.history.pushState(this.mapData, `図形削除: ${feat.name || id}`);
+    this.triggerAutoSave();
+    this.showToast(`図形 [${feat.name || id}] を削除しました`, 'info');
+  }
+
+  duplicateFeature() {
+    if (!this.selectedFeature) return;
+    const clone = JSON.parse(JSON.stringify(this.selectedFeature));
+    const newId = `${clone.category || 'feat'}_${Date.now().toString().slice(-6)}`;
+    clone.id = newId;
+    if (clone.roomId) clone.roomId = newId;
+    clone.name = `${clone.name} (コピー)`;
+
+    // Shift coordinates slightly (approx 5 meters)
+    const shift = 0.000045;
+    const shiftCoords = (pts) => pts.map(([lat, lng]) => [
+      parseFloat((lat + shift).toFixed(6)),
+      parseFloat((lng + shift).toFixed(6))
+    ]);
+
+    if (clone.polygon) clone.polygon = shiftCoords(clone.polygon);
+    if (clone.coordinates && Array.isArray(clone.coordinates[0])) clone.coordinates = shiftCoords(clone.coordinates);
+    if (clone.polyline) clone.polyline = shiftCoords(clone.polyline);
+    if (clone.latlng) clone.latlng = [clone.latlng[0] + shift, clone.latlng[1] + shift];
+    if (clone.pinCoord) clone.pinCoord = [clone.pinCoord[0] + shift, clone.pinCoord[1] + shift];
+
+    // Push to respective collection
+    const targetFloor = clone.floor ? String(clone.floor) : '1';
+    if (clone.entityType === 'building') this.mapData.buildings.push(clone);
+    else if (clone.entityType === 'outdoor') this.mapData.outdoorAreas.push(clone);
+    else if (clone.entityType === 'spot') this.mapData.spots.push(clone);
+    else if (clone.entityType === 'route') this.mapData.accessRoutes.push(clone);
+    else if (clone.entityType === 'toilet') this.mapData.indoorFloors[targetFloor].toilets.push(clone);
+    else if (clone.entityType === 'stairs') this.mapData.indoorFloors[targetFloor].stairs.push(clone);
+    else if (clone.entityType === 'corridor') this.mapData.indoorFloors[targetFloor].corridors.push(clone);
+    else this.mapData.indoorFloors[targetFloor].rooms.push(clone);
+
+    this.renderAll();
+    this.history.pushState(this.mapData, `図形複製: ${clone.name}`);
+    this.triggerAutoSave();
+    this.showToast(`図形 [${clone.name}] を複製しました`, 'success');
+    this.selectFeatureById(newId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tree View & Stats Management
+  // ---------------------------------------------------------------------------
+  updateTreeList() {
+    const listEl = document.getElementById('featureTreeList');
+    listEl.innerHTML = '';
+    const query = (document.getElementById('treeSearchInput').value || '').toLowerCase();
+
+    const items = [];
+    const collectItems = (arr, typeName, icon) => {
+      (arr || []).forEach(f => {
+        const id = f.id || f.roomId || '';
+        const name = f.name || '名称未設定';
+        if (query && !id.toLowerCase().includes(query) && !name.toLowerCase().includes(query)) {
+          return;
+        }
+        // Filter by active floor
+        if (['1', '2', '3', '4', '5'].includes(this.currentFloor)) {
+          if (f.floor !== undefined && String(f.floor) !== this.currentFloor && f.entityType !== 'building') {
+            return;
+          }
+        }
+        items.push({ feature: f, id, name, typeName, icon });
+      });
+    };
+
+    collectItems(this.mapData.buildings, '建物', 'fa-building');
+    collectItems(this.mapData.outdoorAreas, '屋外', 'fa-tree');
+    collectItems(this.mapData.spots, 'スポット', 'fa-location-dot');
+    collectItems(this.mapData.accessRoutes, 'ルート', 'fa-route');
+
+    for (let f = 1; f <= 5; f++) {
+      const fl = this.mapData.indoorFloors[String(f)] || {};
+      collectItems(fl.rooms, `${f}F 部屋`, 'fa-chalkboard-user');
+      collectItems(fl.corridors, `${f}F 通路`, 'fa-arrows-left-right');
+      collectItems(fl.stairs, `${f}F 階段`, 'fa-stairs');
+      collectItems(fl.toilets, `${f}F トイレ`, 'fa-restroom');
+    }
+
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = `tree-item ${this.selectedFeature && (this.selectedFeature.id === item.id || this.selectedFeature.roomId === item.id) ? 'selected' : ''}`;
+
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'tree-item-icon';
+      const iconI = document.createElement('i');
+      iconI.className = `fa-solid ${item.icon}`;
+      iconDiv.appendChild(iconI);
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'tree-item-title';
+      titleDiv.textContent = escapeHtml(item.name);
+
+      const badgeDiv = document.createElement('div');
+      badgeDiv.className = 'tree-item-badge';
+      badgeDiv.textContent = escapeHtml(item.typeName);
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'tree-item-actions';
+      const focusBtn = document.createElement('button');
+      focusBtn.type = 'button';
+      focusBtn.className = 'tree-action-btn btn-focus';
+      focusBtn.title = 'フォーカス';
+      const focusI = document.createElement('i');
+      focusI.className = 'fa-solid fa-crosshairs';
+      focusBtn.appendChild(focusI);
+      actionsDiv.appendChild(focusBtn);
+
+      row.appendChild(iconDiv);
+      row.appendChild(titleDiv);
+      row.appendChild(badgeDiv);
+      row.appendChild(actionsDiv);
+
+      row.addEventListener('click', (e) => {
+        this.selectFeatureById(item.id);
+      });
+
+      focusBtn.addEventListener('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        this.selectFeatureById(item.id);
+      });
+
+      listEl.appendChild(row);
+    });
+  }
+
+  highlightTreeItem(id) {
+    document.querySelectorAll('.tree-item').forEach(el => {
+      const match = el.textContent.includes(id);
+      el.classList.toggle('selected', match);
+    });
+  }
+
+  updateStats() {
+    let roomCount = 0, corridorCount = 0, stairsCount = 0, toiletCount = 0;
+    for (let f = 1; f <= 5; f++) {
+      const fl = this.mapData.indoorFloors[String(f)] || {};
+      roomCount += (fl.rooms || []).length;
+      corridorCount += (fl.corridors || []).length;
+      stairsCount += (fl.stairs || []).length;
+      toiletCount += (fl.toilets || []).length;
+    }
+
+    document.getElementById('statBldgCount').textContent = (this.mapData.buildings || []).length;
+    document.getElementById('statOutdoorCount').textContent = (this.mapData.outdoorAreas || []).length;
+    document.getElementById('statRoomCount').textContent = roomCount;
+    document.getElementById('statCorridorCount').textContent = corridorCount;
+    document.getElementById('statStairsCount').textContent = stairsCount;
+    document.getElementById('statToiletCount').textContent = toiletCount;
+    document.getElementById('statSpotCount').textContent = (this.mapData.spots || []).length;
+    document.getElementById('statRouteCount').textContent = (this.mapData.accessRoutes || []).length;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tool & State Switching
+  // ---------------------------------------------------------------------------
+  setTool(tool) {
+    this.activeTool = tool;
+    this.cancelDrawing();
+
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    const toolBtnMap = {
+      select: 'toolSelect',
+      polygon: 'toolPolygon',
+      path: 'toolPath',
+      spot: 'toolSpot',
+      delete: 'toolDelete'
+    };
+
+    const targetBtn = document.getElementById(toolBtnMap[tool]);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    const banner = document.getElementById('drawingBanner');
+    const bannerText = document.getElementById('drawingBannerText');
+
+    if (tool === 'polygon') {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'ポリゴン作図中: クリックで頂点追加 / ダブルクリックまたは始点クリックで確定 (Escでキャンセル)';
+      this.deselectFeature();
+    } else if (tool === 'path') {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'パス作図中: クリックで点追加 / ダブルクリックで確定 (Escでキャンセル)';
+      this.deselectFeature();
+    } else if (tool === 'spot') {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'スポット配置: 地図上の配置したい場所をクリックしてください';
+      this.deselectFeature();
+    } else if (tool === 'delete') {
+      banner.style.display = 'flex';
+      bannerText.textContent = '削除ツール: 削除したい図形をクリックしてください';
+      this.deselectFeature();
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  getPresetLabel(preset) {
+    const map = {
+      classroom: '普通教室',
+      special_room: '特別教室',
+      toilet: 'トイレ',
+      stairs: '階段',
+      corridor: '通路',
+      overpass: '渡り廊下',
+      spot: 'スポット',
+      route: 'ルート'
+    };
+    return map[preset] || '教室';
+  }
+
+  // ---------------------------------------------------------------------------
+  // JSON Export / Import / Clipboard
+  // ---------------------------------------------------------------------------
+  getCleanExportData() {
+    this.mapData.metadata.updatedAt = new Date().toISOString();
+    return JSON.parse(JSON.stringify(this.mapData));
+  }
+
+  downloadJson() {
+    const data = this.getCleanExportData();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'nanryosai_map_data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.showToast('nanryosai_map_data.json をダウンロードしました', 'success');
+  }
+
+  async copyJson() {
+    const data = this.getCleanExportData();
+    const jsonStr = JSON.stringify(data, null, 2);
+    try {
+      await navigator.clipboard.writeText(jsonStr);
+      this.showToast('JSONデータをクリップボードにコピーしました！', 'success');
+    } catch (e) {
+      this.showToast('クリップボードの書き込みに失敗しました', 'error');
+    }
+  }
+
+  handleFileImport(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (!json || typeof json !== 'object' || !json.metadata) {
+          throw new Error('南陵祭キャンパスマップスキーマと一致しません');
+        }
+        this.loadData(json, 'ファイルインポート');
+        document.getElementById('importModal').style.display = 'none';
+        this.showToast('マップデータを正常にインポートしました！', 'success');
+      } catch (err) {
+        alert(`インポートエラー: ${err.message}`);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------------------------------------------------------------------------
+  // History & UI State Changes
+  // ---------------------------------------------------------------------------
+  onHistoryChange(state) {
+    document.getElementById('btnUndo').disabled = !state.canUndo;
+    document.getElementById('btnRedo').disabled = !state.canRedo;
+  }
+
+  undo() {
+    const prev = this.history.undo();
+    if (prev) {
+      this.mapData = prev;
+      this.renderAll();
+      this.deselectFeature();
+      this.triggerAutoSave();
+      this.showToast('操作を元に戻しました (Undo)', 'info');
+    }
+  }
+
+  redo() {
+    const next = this.history.redo();
+    if (next) {
+      this.mapData = next;
+      this.renderAll();
+      this.deselectFeature();
+      this.triggerAutoSave();
+      this.showToast('操作をやり直しました (Redo)', 'info');
+    }
+  }
+
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info');
+
+    const iconEl = document.createElement('i');
+    iconEl.className = `fa-solid ${icon}`;
+
+    const spanEl = document.createElement('span');
+    spanEl.textContent = escapeHtml(message);
+
+    toast.appendChild(iconEl);
+    toast.appendChild(spanEl);
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 2800);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Global Event Bindings
+  // ---------------------------------------------------------------------------
+  initEventBindings() {
+    // Toolbar Tools
+    document.getElementById('toolSelect').addEventListener('click', () => this.setTool('select'));
+    document.getElementById('toolPolygon').addEventListener('click', () => this.setTool('polygon'));
+    document.getElementById('toolPath').addEventListener('click', () => this.setTool('path'));
+    document.getElementById('toolSpot').addEventListener('click', () => this.setTool('spot'));
+    document.getElementById('toolDelete').addEventListener('click', () => this.setTool('delete'));
+
+    // Snapping / Ortho / Spline Toggles
+    const btnSnap = document.getElementById('toggleSnap');
+    btnSnap.addEventListener('click', () => {
+      this.isSnapEnabled = !this.isSnapEnabled;
+      btnSnap.classList.toggle('active', this.isSnapEnabled);
+      document.getElementById('snapStatusBadge').textContent = this.isSnapEnabled ? 'ON' : 'OFF';
+      this.showToast(`12px 頂点スナップ: ${this.isSnapEnabled ? 'ON' : 'OFF'}`, 'info');
+    });
+
+    const btnOrtho = document.getElementById('toggleOrtho');
+    btnOrtho.addEventListener('click', () => {
+      this.isOrthoEnabled = !this.isOrthoEnabled;
+      btnOrtho.classList.toggle('active', this.isOrthoEnabled);
+      document.getElementById('orthoStatusBadge').textContent = this.isOrthoEnabled ? 'ON' : 'OFF';
+      this.showToast(`直交90°拘束: ${this.isOrthoEnabled ? 'ON' : 'OFF'}`, 'info');
+    });
+
+    const btnSpline = document.getElementById('toggleSpline');
+    btnSpline.addEventListener('click', () => {
+      this.isSplineEnabled = !this.isSplineEnabled;
+      btnSpline.classList.toggle('active', this.isSplineEnabled);
+      document.getElementById('splineStatusBadge').textContent = this.isSplineEnabled ? 'ON' : 'OFF';
+      this.showToast(`Catmull-Rom スプライン補間: ${this.isSplineEnabled ? 'ON' : 'OFF'}`, 'info');
+    });
+
+    // History Buttons
+    document.getElementById('btnUndo').addEventListener('click', () => this.undo());
+    document.getElementById('btnRedo').addEventListener('click', () => this.redo());
+
+    // Export / Import
+    document.getElementById('btnDownloadJson').addEventListener('click', () => this.downloadJson());
+    document.getElementById('btnCopyJson').addEventListener('click', () => this.copyJson());
+
+    // Import Modal
+    const importModal = document.getElementById('importModal');
+    document.getElementById('btnImportModal').addEventListener('click', () => {
+      importModal.style.display = 'flex';
+    });
+    document.getElementById('btnCloseImportModal').addEventListener('click', () => {
+      importModal.style.display = 'none';
+    });
+    document.getElementById('btnCancelImport').addEventListener('click', () => {
+      importModal.style.display = 'none';
+    });
+    document.getElementById('btnResetDefaultData').addEventListener('click', () => {
+      if (confirm('初期JSONデータにリセットしますか？')) {
+        localStorage.removeItem('nanryosai_editor_autosave');
+        this.loadCampusMapData();
+        importModal.style.display = 'none';
+      }
+    });
+
+    const dropzone = document.getElementById('importDropzone');
+    const fileInput = document.getElementById('fileInput');
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => this.handleFileImport(e.target.files[0]));
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        this.handleFileImport(e.dataTransfer.files[0]);
+      }
+    });
+
+    // Draft Restore Modal
+    const restoreModal = document.getElementById('restoreModal');
+    document.getElementById('btnRestoreDraft').addEventListener('click', () => {
+      try {
+        const draft = JSON.parse(localStorage.getItem('nanryosai_editor_autosave'));
+        this.loadData(draft.mapData, '下書き復元');
+        restoreModal.style.display = 'none';
+        this.showToast('下書きデータを復元しました', 'success');
+      } catch (e) {
+        this.loadCampusMapData();
+        restoreModal.style.display = 'none';
+      }
+    });
+    document.getElementById('btnDiscardDraft').addEventListener('click', () => {
+      localStorage.removeItem('nanryosai_editor_autosave');
+      this.loadCampusMapData();
+      restoreModal.style.display = 'none';
+    });
+
+    // Floor Selector Pills
+    document.getElementById('floorPillsContainer').addEventListener('click', (e) => {
+      const pill = e.target.closest('.floor-pill');
+      if (pill) {
+        const floor = pill.getAttribute('data-floor');
+        this.setFloor(floor);
+      }
+    });
+
+    // Preset Buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        this.activePreset = preset;
+        if (preset === 'spot') {
+          this.setTool('spot');
+        } else if (preset === 'route') {
+          this.setTool('path');
+        } else {
+          this.setTool('polygon');
+        }
+        this.showToast(`[${this.getPresetLabel(preset)}] 作図モード開始`, 'info');
+      });
+    });
+
+    // Search filter
+    document.getElementById('treeSearchInput').addEventListener('input', () => this.updateTreeList());
+
+    // Map Center Reset
+    document.getElementById('btnResetView').addEventListener('click', () => {
+      this.map.setView(this.mapData.metadata.center, this.mapData.metadata.defaultZoom);
+    });
+
+    // Theme Toggle
+    document.getElementById('btnThemeToggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      const icon = document.querySelector('#btnThemeToggle i');
+      icon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    });
+
+    // Inspector Live Inputs
+    const form = document.getElementById('inspForm');
+    form.addEventListener('input', (e) => {
+      if (e.target.id === 'fieldColor') {
+        document.getElementById('lblColorHex').textContent = e.target.value;
+      } else if (e.target.id === 'fieldStrokeColor') {
+        document.getElementById('lblStrokeHex').textContent = e.target.value;
+      } else if (e.target.id === 'fieldOpacity') {
+        document.getElementById('lblOpacityVal').textContent = parseFloat(e.target.value).toFixed(2);
+      } else if (e.target.id === 'fieldWeight') {
+        document.getElementById('lblWeightVal').textContent = e.target.value;
+      }
+      this.applyInspectorChanges();
+    });
+
+    // Centroid Recalc Button
+    document.getElementById('btnRecalcCentroid').addEventListener('click', () => {
+      if (!this.selectedFeature) return;
+      const coords = this.selectedFeature.polygon || this.selectedFeature.coordinates;
+      if (coords && coords.length > 0) {
+        const c = GeometryEngine.computeCentroid(coords);
+        this.selectedFeature.pinCoord = c;
+        const target = this.selectedLayer?._entityRef || this.findMapDataEntity(this.selectedFeature);
+        if (target) target.pinCoord = c;
+        this.updateCentroidDisplay();
+        this.triggerAutoSave();
+        this.showToast('幾何重心を再計算しました', 'success');
+      }
+    });
+
+    // Feature Duplicate / Delete / Deselect Buttons
+    document.getElementById('btnDuplicateFeature').addEventListener('click', () => this.duplicateFeature());
+    document.getElementById('btnDeleteFeature').addEventListener('click', () => this.deleteFeature(this.selectedFeature));
+    document.getElementById('btnDeselectFeature').addEventListener('click', () => this.deselectFeature());
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      // Ignore in input fields
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        return;
+      }
+
+      if (e.key === 'Shift') {
+        this.isShiftKeyPressed = true;
+      } else if (e.key === 'v' || e.key === 'V') {
+        this.setTool('select');
+      } else if (e.key === 'p' || e.key === 'P') {
+        this.setTool('polygon');
+      } else if (e.key === 'l' || e.key === 'L') {
+        this.setTool('path');
+      } else if (e.key === 'm' || e.key === 'M') {
+        this.setTool('spot');
+      } else if (e.key === 'd' || e.key === 'D') {
+        this.setTool('delete');
+      } else if (e.key === 's' || e.key === 'S') {
+        document.getElementById('toggleSnap').click();
+      } else if (e.key === 'Escape') {
+        this.cancelDrawing();
+        this.deselectFeature();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (this.selectedFeature) this.deleteFeature(this.selectedFeature);
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        if (e.shiftKey) this.redo();
+        else this.undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault();
+        this.redo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        this.downloadJson();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Shift') {
+        this.isShiftKeyPressed = false;
+      }
+    });
+  }
+}
+
+// Instantiate and launch on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new MapStudioApp();
+  app.init();
+  window.mapStudio = app; // Expose for testing/debugging
+});
+</script>
+
+</body>
+</html>
