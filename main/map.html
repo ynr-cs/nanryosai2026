@@ -1342,11 +1342,11 @@
       // ==========================================================================
       const CAMPUS_CENTER = [35.386167, 139.585500];
       const DEFAULT_ZOOM = 18;
-      const MIN_ZOOM = 15;
+      const MIN_ZOOM = 13;
       const MAX_ZOOM = 22;
       const MAX_BOUNDS = [
-        [35.378000, 139.575000],
-        [35.394000, 139.596000]
+        [35.365000, 139.555000],
+        [35.410000, 139.620000]
       ];
 
       // Campus boundary polygon for Ray-Casting PIP Geolocation test
@@ -1825,7 +1825,7 @@
           minZoom: MIN_ZOOM,
           maxZoom: MAX_ZOOM,
           maxBounds: MAX_BOUNDS,
-          maxBoundsViscosity: 0.8,
+          maxBoundsViscosity: 0.2,
           zoomControl: false,
           attributionControl: false,
           tap: true
@@ -1917,40 +1917,184 @@
           });
         }
 
-        // 2. Buildings Base Outline
+        // 2. Buildings Base Outline (with 1F Piloti Exclusion for Student Bldg)
         if (campusData.buildings) {
           campusData.buildings.forEach(bldg => {
-            const poly = L.polygon(bldg.polygon || bldg.coordinates, {
-              pane: 'buildingPane',
-              color: bldg.strokeColor || '#5e35b1',
-              weight: 2,
-              fillColor: bldg.color || '#7c5cff',
-              fillOpacity: bldg.id === 'student_bldg' ? 0.15 : 0.65,
-              className: 'building-polygon'
-            });
-            if (!bldg.hasIndoor) {
-              poly.bindTooltip(bldg.name, {
-                pane: 'buildingPane',
-                permanent: false,
-                direction: 'center',
-                className: 'pin-label'
-              });
+            const isStudentBldg = bldg.id === '生徒棟' || bldg.id === 'student_bldg' || (bldg.name && bldg.name.includes('生徒棟'));
+            let polyList = [bldg.polygon || bldg.coordinates];
+
+            if (isStudentBldg) {
+              if (currentFloor === '1') {
+                const mainBldg = [
+                  [35.386522, 139.585021],
+                  [35.386520, 139.585153],
+                  [35.386245, 139.585142],
+                  [35.386230, 139.585545],
+                  [35.386229, 139.585608],
+                  [35.386226, 139.585734],
+                  [35.386484, 139.585749],
+                  [35.386478, 139.585877],
+                  [35.386240, 139.585871],
+                  [35.386243, 139.585794],
+                  [35.386224, 139.585793],
+                  [35.386222, 139.585911],
+                  [35.386118, 139.585915],
+                  [35.386144, 139.585004]
+                ];
+                const eastBldg = [
+                  [35.386229, 139.586080],
+                  [35.386302, 139.586079],
+                  [35.386305, 139.586211],
+                  [35.386129, 139.586218],
+                  [35.386125, 139.586080]
+                ];
+                polyList = [mainBldg, eastBldg];
+              } else if (currentFloor === '5') {
+                polyList = [[
+                  [35.386224, 139.585937],
+                  [35.386229, 139.586080],
+                  [35.386302, 139.586079],
+                  [35.386305, 139.586211],
+                  [35.386129, 139.586218],
+                  [35.386123, 139.585940]
+                ]];
+              }
             }
-            buildingLayerGroup.addLayer(poly);
+
+            polyList.forEach(polyCoords => {
+              const poly = L.polygon(polyCoords, {
+                pane: 'buildingPane',
+                color: bldg.strokeColor || '#5e35b1',
+                weight: 2,
+                fillColor: bldg.color || '#7c5cff',
+                fillOpacity: isStudentBldg ? 0.15 : 0.65,
+                className: 'building-polygon'
+              });
+
+              if (!bldg.hasIndoor) {
+                poly.bindTooltip(bldg.name, {
+                  pane: 'buildingPane',
+                  permanent: false,
+                  direction: 'center',
+                  className: 'pin-label'
+                });
+              }
+              buildingLayerGroup.addLayer(poly);
+            });
           });
         }
       }
 
       // ==========================================================================
-      // Floor & Vector Rooms Layer Rendering
+      // Geometric Helper: Merge Adjacent Polygons for Seamless Corridors
       // ==========================================================================
-      function renderCurrentFloorVectors() {
+      function mergeAdjacentPolygons(polygons, toleranceMeters = 0.5) {
+        if (!polygons || polygons.length === 0) return [];
+        const validPolys = polygons.filter(p => p && p.length >= 3);
+        if (validPolys.length <= 1) return validPolys;
+
+        const refLat = validPolys[0][0][0];
+        const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+        const lat2m = 111132.954;
+        const lng2m = 111132.954 * cosLat;
+
+        const toXY = ([lat, lng]) => [
+          (lng - validPolys[0][0][1]) * lng2m,
+          (lat - validPolys[0][0][0]) * lat2m
+        ];
+        const toLatLng = ([x, y]) => [
+          parseFloat((validPolys[0][0][0] + y / lat2m).toFixed(6)),
+          parseFloat((validPolys[0][0][1] + x / lng2m).toFixed(6))
+        ];
+
+        let allEdges = [];
+        validPolys.forEach((poly, polyIdx) => {
+          const xy = poly.map(toXY);
+          for (let i = 0; i < xy.length; i++) {
+            const p1 = xy[i];
+            const p2 = xy[(i + 1) % xy.length];
+            allEdges.push({ p1, p2, polyIdx });
+          }
+        });
+
+        const distSq = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+        const tolSq = toleranceMeters * toleranceMeters;
+
+        const isOppositeEdge = (e1, e2) => {
+          return (distSq(e1.p1, e2.p2) <= tolSq && distSq(e1.p2, e2.p1) <= tolSq);
+        };
+
+        const sharedIndices = new Set();
+        for (let i = 0; i < allEdges.length; i++) {
+          for (let j = i + 1; j < allEdges.length; j++) {
+            if (allEdges[i].polyIdx !== allEdges[j].polyIdx && isOppositeEdge(allEdges[i], allEdges[j])) {
+              sharedIndices.add(i);
+              sharedIndices.add(j);
+            }
+          }
+        }
+
+        const outerEdges = allEdges.filter((_, idx) => !sharedIndices.has(idx));
+        if (outerEdges.length === 0) return validPolys;
+
+        const mergedPolygons = [];
+        const usedEdges = new Set();
+
+        for (let startIdx = 0; startIdx < outerEdges.length; startIdx++) {
+          if (usedEdges.has(startIdx)) continue;
+
+          const loop = [];
+          let currentIdx = startIdx;
+          let iterations = 0;
+          const maxIter = outerEdges.length * 2;
+
+          while (currentIdx !== -1 && !usedEdges.has(currentIdx) && iterations < maxIter) {
+            usedEdges.add(currentIdx);
+            const edge = outerEdges[currentIdx];
+            loop.push(edge.p1);
+
+            let nextIdx = -1;
+            let bestDist = tolSq * 4;
+
+            for (let j = 0; j < outerEdges.length; j++) {
+              if (!usedEdges.has(j)) {
+                const d = distSq(edge.p2, outerEdges[j].p1);
+                if (d <= bestDist) {
+                  bestDist = d;
+                  nextIdx = j;
+                }
+              }
+            }
+
+            currentIdx = nextIdx;
+            iterations++;
+          }
+
+          if (loop.length >= 3) {
+            const cleanedLoop = [];
+            for (let i = 0; i < loop.length; i++) {
+              const curr = loop[i];
+              const next = loop[(i + 1) % loop.length];
+              if (distSq(curr, next) > 0.04) {
+                cleanedLoop.push(curr);
+              }
+            }
+            if (cleanedLoop.length >= 3) {
+              mergedPolygons.push(cleanedLoop.map(toLatLng));
+            }
+          }
+        }
+
+        return mergedPolygons.length > 0 ? mergedPolygons : validPolys;
+      }
+
+      // ==========================================================================
+      // Vector Polygon Rendering (Filtered by Floor)
+      // ==========================================================================
+      function renderFloorPolygons() {
         floorVectorLayerGroup.clearLayers();
         polygonLayerMap.clear();
 
-        if (!campusData || !campusData.indoorFloors) return;
-
-        // If outdoor mode is active, only base layers + outdoor spots are visible
         if (currentFloor === 'outdoor') {
           renderPins();
           return;
@@ -1959,36 +2103,59 @@
         const floorData = campusData.indoorFloors[currentFloor];
         if (!floorData) return;
 
-        // Corridors & Hallways
-        if (floorData.corridors) {
-          floorData.corridors.forEach(corr => {
-            const isOverpass = corr.id && corr.id.includes('overpass');
+        // Corridors & Hallways (Unified Seamless Merging for Connected Corridors)
+        if (floorData.corridors && floorData.corridors.length > 0) {
+          const normalCorrs = floorData.corridors.filter(c => !c.id?.includes('overpass') && !c.isOverpass);
+          const overpassCorrs = floorData.corridors.filter(c => c.id?.includes('overpass') || c.isOverpass);
+
+          // 1. Normal Corridors: Clean vector rendering
+          normalCorrs.forEach(corr => {
             const poly = L.polygon(corr.polygon || corr.coordinates, {
-              pane: isOverpass ? 'overpassPane' : 'indoorPane',
+              pane: 'indoorPane',
               color: corr.strokeColor || '#64748b',
-              weight: 1,
+              weight: 1.5,
               fillColor: corr.color || '#cbd5e1',
               fillOpacity: 0.45,
-              className: isOverpass ? 'corridor-overpass' : 'corridor-polygon'
+              className: 'corridor-polygon'
+            });
+            floorVectorLayerGroup.addLayer(poly);
+          });
+
+          // 2. Overpasses
+          overpassCorrs.forEach(corr => {
+            const poly = L.polygon(corr.polygon || corr.coordinates, {
+              pane: 'overpassPane',
+              color: corr.strokeColor || '#7e22ce',
+              weight: 1.5,
+              fillColor: corr.color || '#a855f7',
+              fillOpacity: 0.7,
+              className: 'corridor-overpass'
             });
             floorVectorLayerGroup.addLayer(poly);
           });
         }
 
-        // Stairs & Vertical Connectors
-        if (floorData.stairs) {
-          floorData.stairs.forEach(stair => {
-            const poly = L.polygon(stair.polygon || stair.coordinates, {
-              pane: 'indoorPane',
-              color: '#475569',
-              weight: 1,
-              fillColor: stair.color || '#94a3b8',
-              fillOpacity: 0.6,
-              className: 'stairs-polygon'
-            });
-            floorVectorLayerGroup.addLayer(poly);
+        // Stairs & Vertical Connectors (All-Floor Shared & Synced)
+        const allStairs = [];
+        Object.values(campusData.indoorFloors || {}).forEach(fl => {
+          (fl.stairs || []).forEach(st => {
+            if (st && st.id && !allStairs.some(existing => existing.id === st.id)) {
+              allStairs.push(st);
+            }
           });
-        }
+        });
+        const stairsToRender = (floorData.stairs && floorData.stairs.length > 0) ? floorData.stairs : allStairs;
+        stairsToRender.forEach(stair => {
+          const poly = L.polygon(stair.polygon || stair.coordinates, {
+            pane: 'indoorPane',
+            color: stair.strokeColor || '#c2410c',
+            weight: 1.5,
+            fillColor: stair.color || '#f97316',
+            fillOpacity: 0.6,
+            className: 'stairs-polygon'
+          });
+          floorVectorLayerGroup.addLayer(poly);
+        });
 
         // Toilets & Restrooms
         if (floorData.toilets) {

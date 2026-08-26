@@ -110,63 +110,99 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 14px;
+      gap: 8px;
+      padding: 0 12px;
       background: var(--panel-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--panel-border);
       z-index: 1000;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    .app-header::-webkit-scrollbar {
+      display: none; /* Chrome, Safari */
+    }
+
+    .header-left-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .header-center-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .header-right-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .brand-section {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     .brand-logo {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       background: var(--primary-gradient);
-      border-radius: 8px;
+      border-radius: 7px;
       color: #fff;
       font-weight: 800;
-      font-size: 15px;
-      box-shadow: 0 2px 10px var(--primary-glow);
+      font-size: 14px;
+      box-shadow: 0 2px 8px var(--primary-glow);
+      flex-shrink: 0;
     }
 
     .brand-title {
       font-weight: 700;
-      font-size: 15px;
-      letter-spacing: -0.3px;
+      font-size: 13.5px;
+      letter-spacing: -0.2px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      white-space: nowrap;
     }
 
     .brand-tag {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
-      padding: 2px 6px;
+      padding: 1px 5px;
       background: rgba(124, 92, 255, 0.2);
       color: var(--primary);
       border-radius: 4px;
       border: 1px solid rgba(124, 92, 255, 0.3);
       text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     /* Toolbar Groups */
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 3px;
-      border-radius: 8px;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 3px 4px;
+      border-radius: 7px;
       border: 1px solid var(--panel-border-subtle);
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     [data-theme="light"] .toolbar-group {
@@ -174,16 +210,20 @@
     }
 
     .tool-btn {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 6px;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 5px;
       border: none;
       background: transparent;
       color: var(--text-sub);
       cursor: pointer;
       font-weight: 500;
+      font-size: 11.5px;
+      line-height: 1;
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.15s ease;
     }
 
@@ -209,6 +249,7 @@
       border-radius: 3px;
       opacity: 0.8;
       font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
     }
 
     .tool-btn.active .kbd-hint {
@@ -216,35 +257,158 @@
     }
 
     .btn-toggle-badge {
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      font-weight: 600;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      font-weight: 700;
+      line-height: 1;
     }
 
     .tool-btn.active .btn-toggle-badge {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.3);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Mode Switcher Buttons */
+    .mode-switch-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 3px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    [data-theme="light"] .mode-switch-group {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .mode-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11.5px;
+      line-height: 1;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+
+    .mode-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .mode-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Compact Focus Pill Badge */
+    .building-focus-pill {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(124, 92, 255, 0.2);
+      border: 1px solid rgba(124, 92, 255, 0.45);
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .building-focus-pill .btn-back-campus {
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .building-focus-pill .btn-back-campus:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
+
+    /* Mode Banner & Callouts */
+    .mode-banner-info {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(124, 92, 255, 0.12);
+      border: 1px solid rgba(124, 92, 255, 0.25);
+      color: var(--text-main);
+      font-size: 11.5px;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .empty-state-card {
+      padding: 16px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--panel-border);
+      border-radius: 8px;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 10px 0;
+    }
+
+    .empty-state-card i {
+      font-size: 22px;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: block;
     }
 
     .action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 6px 11px;
+      gap: 4px;
+      padding: 5px 9px;
       border-radius: 6px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11.5px;
+      line-height: 1;
       cursor: pointer;
       border: 1px solid var(--panel-border);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.15s ease;
     }
 
@@ -521,6 +685,43 @@
       font-size: 11px;
     }
 
+    /* Blueprint Overlay Widget Styles */
+    .blueprint-panel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 280px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      z-index: 850;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: bannerSlideDown 0.2s ease-out;
+    }
+
+    .blueprint-header {
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--panel-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .blueprint-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .drawing-banner {
       position: absolute;
       top: 14px;
@@ -709,6 +910,7 @@
 
     input[type="color"] {
       -webkit-appearance: none;
+      appearance: none;
       border: none;
       width: 24px;
       height: 24px;
@@ -972,6 +1174,66 @@
       padding: 3px 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
+
+    /* Drawing Angle & Dimension HUD Tooltip */
+    .leaflet-tooltip.drawing-hud-tooltip {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(124, 92, 255, 0.5);
+      border-radius: 8px;
+      color: #f8fafc;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+    .drawing-hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .drawing-hud-badge .hud-angle {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .drawing-hud-badge .hud-angle.is-right-angle {
+      color: #4ade80;
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.5);
+      font-weight: 800;
+    }
+    .drawing-hud-badge .hud-dist {
+      color: #fcd34d;
+      background: rgba(252, 211, 77, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(252, 211, 77, 0.3);
+    }
+
+    /* Angle Sector Wedge Badge (扇形アーク上ラベル) */
+    .leaflet-tooltip.angle-sector-tooltip {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1.5px solid #38bdf8;
+      border-radius: 6px;
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .leaflet-tooltip.angle-sector-tooltip.is-right-angle {
+      border-color: #22c55e;
+      color: #4ade80;
+      background: rgba(5, 46, 22, 0.95);
+    }
   </style>
 </head>
 <body>
@@ -982,69 +1244,114 @@
        1. Header Toolbar
        ========================================================================== -->
   <header class="app-header">
-    <div class="brand-section">
-      <div class="brand-logo"><i class="fa-solid fa-layer-group"></i></div>
-      <div class="brand-title">
-        <span>Nanryosai '26 Map Studio</span>
-        <span class="brand-tag">Admin M2</span>
+    <!-- Left Group: Brand & Mode Switcher -->
+    <div class="header-left-group">
+      <div class="brand-section">
+        <div class="brand-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="brand-title">
+          <span>Map Studio</span>
+          <span class="brand-tag">Admin</span>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="mode-switch-group">
+        <button type="button" class="mode-btn active" id="btnModeCampus" title="校舎・体育館・屋外エリアなどの外枠をプロットするモード">
+          <i class="fa-solid fa-school"></i> 🏛️ キャンパス外郭
+        </button>
+        <button type="button" class="mode-btn" id="btnModeInterior" disabled title="建物を選択するか「内部を編集」を押すと有効になります">
+          <i class="fa-solid fa-door-open"></i> 🚪 建物内部フロア
+        </button>
+      </div>
+
+      <!-- Building Focus Indicator (Hierarchical Scope Pill) -->
+      <div class="building-focus-pill" id="buildingFocusIndicator" style="display: none;">
+        <i class="fa-solid fa-building" style="color: #c4b5fd;"></i>
+        <span id="lblFocusedBuildingName">生徒棟</span>
+        <button type="button" class="btn-back-campus" id="btnExitBuildingFocus" title="建物編集を終了しキャンパス全体へ戻る">
+          <i class="fa-solid fa-arrow-left"></i> 全体へ
+        </button>
       </div>
     </div>
 
-    <!-- Drawing & Selection Tools -->
-    <div class="toolbar-group">
-      <button type="button" class="tool-btn active" id="toolSelect" title="選択・編集ツール [V]">
-        <i class="fa-solid fa-arrow-pointer"></i> 選択 <span class="kbd-hint">V</span>
-      </button>
-      <button type="button" class="tool-btn" id="toolPolygon" title="多角形作図ツール [P]">
-        <i class="fa-solid fa-draw-polygon"></i> ポリゴン <span class="kbd-hint">P</span>
-      </button>
-      <button type="button" class="tool-btn" id="toolPath" title="通路・ルート・スプライン作図 [L]">
-        <i class="fa-solid fa-bezier-curve"></i> パス/スプライン <span class="kbd-hint">L</span>
-      </button>
-      <button type="button" class="tool-btn" id="toolSpot" title="スポット・ピン配置 [M]">
-        <i class="fa-solid fa-location-dot"></i> スポット <span class="kbd-hint">M</span>
-      </button>
-      <button type="button" class="tool-btn" id="toolDelete" title="クリック削除ツール [D]">
-        <i class="fa-solid fa-trash-can"></i> 削除 <span class="kbd-hint">D</span>
-      </button>
+    <!-- Center Group: Drawing Tools & Snapping -->
+    <div class="header-center-group">
+      <!-- Drawing & Selection Tools -->
+      <div class="toolbar-group">
+        <button type="button" class="tool-btn active" id="toolSelect" title="選択・編集ツール [V]">
+          <i class="fa-solid fa-arrow-pointer"></i> 選択 <span class="kbd-hint">V</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolRect" title="直角長方形作図ツール (校舎角度アライメント) [R]">
+          <i class="fa-solid fa-vector-square" style="color: #38bdf8;"></i> 長方形 <span class="kbd-hint">R</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolSubdivide" title="指定範囲を直線的に均等なN部屋に一括自動生成 [G]">
+          <i class="fa-solid fa-table-columns" style="color: #10b981;"></i> N部屋一括 <span class="kbd-hint">G</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolPolygon" title="多角形作図ツール [P]">
+          <i class="fa-solid fa-draw-polygon"></i> ポリゴン <span class="kbd-hint">P</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolSlice" style="display: none;" title="ポリゴンスライスカッター（2点直線で分割） [C]">
+          <i class="fa-solid fa-scissors" style="color: #f43f5e;"></i> スライス <span class="kbd-hint">C</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolPath" title="通路・ルート・スプライン作図 [L]">
+          <i class="fa-solid fa-bezier-curve"></i> パス <span class="kbd-hint">L</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolSpot" title="スポット・ピン配置 [M]">
+          <i class="fa-solid fa-location-dot"></i> スポット <span class="kbd-hint">M</span>
+        </button>
+        <button type="button" class="tool-btn" id="toolDelete" title="クリック削除ツール [D]">
+          <i class="fa-solid fa-trash-can"></i> 削除 <span class="kbd-hint">D</span>
+        </button>
+      </div>
+
+      <!-- Subdivide Count Config Pill -->
+      <div class="toolbar-group" id="subdivideCountGroup" style="display: flex; align-items: center; gap: 4px; padding: 2px 6px;">
+        <span style="font-size: 11px; color: var(--text-sub); white-space: nowrap;"><i class="fa-solid fa-hashtag" style="color: #10b981;"></i> 部屋数:</span>
+        <input type="number" id="numSubdivideCount" value="3" min="2" max="20" style="width: 44px; padding: 2px 4px; font-size: 12px; font-weight: 700; text-align: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 4px; color: #10b981;" title="N部屋一括作成時の分割数 (2〜20部屋)">
+      </div>
+
+      <!-- Snapping, Ortho & Blueprint Toggles -->
+      <div class="toolbar-group">
+        <button type="button" class="tool-btn active" id="toggleSnap" title="12px 頂点・エッジマグネット吸着 [S]">
+          <i class="fa-solid fa-magnet"></i> スナップ <span class="btn-toggle-badge" id="snapStatusBadge">ON</span>
+        </button>
+        <button type="button" class="tool-btn" id="toggleOrtho" title="校舎主軸直交90度拘束 [Shiftキー押下またはトグル]">
+          <i class="fa-solid fa-arrows-to-dot" style="color: #38bdf8;"></i> 直交90° <span class="btn-toggle-badge" id="orthoStatusBadge">OFF</span>
+        </button>
+        <button type="button" class="tool-btn active" id="toggleSpline" title="Catmull-Rom スプライン補間 (α=0.5)">
+          <i class="fa-solid fa-wave-square"></i> スプライン <span class="btn-toggle-badge" id="splineStatusBadge">ON</span>
+        </button>
+        <button type="button" class="tool-btn" id="btnToggleBlueprint" title="設計図・校舎配置図の下絵オーバーレイ">
+          <i class="fa-solid fa-image" style="color: #eab308;"></i> 設計図下絵 <span class="btn-toggle-badge" id="blueprintStatusBadge">OFF</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Snapping & Ortho Toggles -->
-    <div class="toolbar-group">
-      <button type="button" class="tool-btn active" id="toggleSnap" title="12px 頂点スナップ切替 [S]">
-        <i class="fa-solid fa-magnet"></i> スナップ <span class="btn-toggle-badge" id="snapStatusBadge">ON</span>
-      </button>
-      <button type="button" class="tool-btn" id="toggleOrtho" title="直交90度拘束 [Shiftキー押下またはトグル]">
-        <i class="fa-solid fa-arrows-to-dot"></i> 直交90° <span class="btn-toggle-badge" id="orthoStatusBadge">OFF</span>
-      </button>
-      <button type="button" class="tool-btn active" id="toggleSpline" title="Catmull-Rom スプライン補間 (α=0.5)">
-        <i class="fa-solid fa-wave-square"></i> スプライン <span class="btn-toggle-badge" id="splineStatusBadge">ON</span>
-      </button>
-    </div>
+    <!-- Right Group: Actions, Export & Theme -->
+    <div class="header-right-group">
+      <div class="header-actions">
+        <button type="button" class="action-btn" id="btnUndo" disabled title="元に戻す [Ctrl+Z]">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button type="button" class="action-btn" id="btnRedo" disabled title="やり直し [Ctrl+Y]">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
 
-    <!-- History & Actions -->
-    <div class="header-actions">
-      <button type="button" class="action-btn" id="btnUndo" disabled title="元に戻す [Ctrl+Z]">
-        <i class="fa-solid fa-rotate-left"></i>
-      </button>
-      <button type="button" class="action-btn" id="btnRedo" disabled title="やり直し [Ctrl+Y]">
-        <i class="fa-solid fa-rotate-right"></i>
-      </button>
+        <div style="width: 1px; height: 18px; background: var(--panel-border); margin: 0 1px;"></div>
 
-      <div style="width: 1px; height: 20px; background: var(--panel-border); margin: 0 2px;"></div>
-
-      <button type="button" class="action-btn" id="btnImportModal" title="JSONインポート">
-        <i class="fa-solid fa-file-import"></i> インポート
-      </button>
-      <button type="button" class="action-btn" id="btnCopyJson" title="JSONをクリップボードにコピー">
-        <i class="fa-solid fa-copy"></i> コピー
-      </button>
-      <button type="button" class="action-btn btn-primary" id="btnDownloadJson" title="nanryosai_map_data.json をダウンロード">
-        <i class="fa-solid fa-download"></i> エクスポート
-      </button>
-      <button type="button" class="action-btn" id="btnThemeToggle" title="ライト/ダークテーマ切替">
-        <i class="fa-solid fa-moon"></i>
-      </button>
+        <button type="button" class="action-btn" id="btnImportModal" title="JSONインポート">
+          <i class="fa-solid fa-file-import"></i> インポート
+        </button>
+        <button type="button" class="action-btn" id="btnCopyJson" title="JSONをクリップボードにコピー">
+          <i class="fa-solid fa-copy"></i> コピー
+        </button>
+        <button type="button" class="action-btn btn-primary" id="btnDownloadJson" title="nanryosai_map_data.json をダウンロード">
+          <i class="fa-solid fa-download"></i> エクスポート
+        </button>
+        <button type="button" class="action-btn" id="btnThemeToggle" title="ライト/ダークテーマ切替">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -1052,31 +1359,78 @@
        2. Left Sidebar (Floors, Presets, Tree)
        ========================================================================== -->
   <aside class="sidebar-left">
-    <!-- Floor Selector -->
+    <!-- Mode Banner Description -->
+    <div id="campusModeCard" class="mode-banner-info">
+      <i class="fa-solid fa-circle-info" style="color: var(--primary); margin-top: 2px;"></i>
+      <div>
+        <strong>🏛️ キャンパス外郭モード</strong><br>
+        航空写真に合わせて校舎（生徒棟・体育館等）の外枠をプロットします。作成した建物の「🚪 内部を編集」を押すと、建物の中に教室を作図できます。
+      </div>
+    </div>
+
+    <div id="interiorModeCard" class="mode-banner-info" style="display: none; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">
+      <i class="fa-solid fa-door-open" style="color: #38bdf8; margin-top: 2px;"></i>
+      <div>
+        <strong>🏢 建物内部フロア作成モード</strong><br>
+        <span id="lblInteriorBuildingDesc" style="color: #38bdf8; font-weight: 700;">生徒棟</span> の内部フロアを編集中です。親建物の外枠ガイド内に部屋や廊下を作図・スライスできます。
+      </div>
+    </div>
+
+    <!-- Floor Selector (Campus Mode vs Interior Mode) -->
     <div class="sidebar-section">
       <div class="sidebar-title">
-        <span>表示フロア・レイヤー</span>
+        <span id="lblFloorSectionTitle">表示フロア・レイヤー</span>
         <i class="fa-solid fa-filter"></i>
       </div>
-      <div class="floor-pills-grid" id="floorPillsContainer">
-        <div class="floor-pill active" data-floor="All">All</div>
-        <div class="floor-pill" data-floor="1">1F</div>
+
+      <!-- Campus Mode Layer Pills -->
+      <div class="floor-pills-grid" id="campusFloorPills">
+        <div class="floor-pill active" data-floor="All">🏛️ キャンパス全体</div>
+        <div class="floor-pill" data-floor="Outdoor">🌳 屋外敷地</div>
+        <div class="floor-pill" data-floor="Routes">🚶 アクセスルート</div>
+      </div>
+
+      <!-- Interior Mode Floor Pills -->
+      <div class="floor-pills-grid" id="interiorFloorPills" style="display: none;">
+        <div class="floor-pill active" data-floor="1">1F</div>
         <div class="floor-pill" data-floor="2">2F</div>
         <div class="floor-pill" data-floor="3">3F</div>
         <div class="floor-pill" data-floor="4">4F</div>
         <div class="floor-pill" data-floor="5">5F</div>
-        <div class="floor-pill" data-floor="Outdoor">屋外</div>
-        <div class="floor-pill" data-floor="Routes">ルート</div>
+      </div>
+
+      <div id="floorCloneBtnContainer" style="margin-top: 8px; display: none;">
+        <button type="button" class="action-btn" id="btnOpenFloorCloneModal" style="width: 100%; justify-content: center; font-size: 11px; padding: 6px 8px; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4);" title="1階の部屋割りを他の階層へ一括複製">
+          <i class="fa-solid fa-clone" style="color: #38bdf8;"></i> 📋 階層クローン (フロア一括複製)
+        </button>
       </div>
     </div>
 
     <!-- Quick Presets -->
     <div class="sidebar-section">
       <div class="sidebar-title">
-        <span>クイック作図プリセット</span>
+        <span id="lblPresetSectionTitle">クイック作図プリセット</span>
         <i class="fa-solid fa-wand-magic-sparkles"></i>
       </div>
-      <div class="preset-grid">
+
+      <!-- Campus Mode Presets -->
+      <div class="preset-grid" id="campusPresetsGroup">
+        <button type="button" class="preset-btn active" data-preset="building">
+          <i class="fa-solid fa-building" style="color: #7c5cff;"></i> 🏢 建物ポリゴン
+        </button>
+        <button type="button" class="preset-btn" data-preset="outdoor">
+          <i class="fa-solid fa-tree" style="color: #10b981;"></i> 🌳 屋外エリア
+        </button>
+        <button type="button" class="preset-btn" data-preset="route">
+          <i class="fa-solid fa-route" style="color: #eab308;"></i> 🚶 通学路ルート
+        </button>
+        <button type="button" class="preset-btn" data-preset="spot">
+          <i class="fa-solid fa-tent" style="color: #f97316;"></i> 📍 屋外スポット
+        </button>
+      </div>
+
+      <!-- Interior Mode Presets -->
+      <div class="preset-grid" id="interiorPresetsGroup" style="display: none;">
         <button type="button" class="preset-btn" data-preset="classroom">
           <i class="fa-solid fa-chalkboard-user" style="color: #7c5cff;"></i> 普通教室
         </button>
@@ -1096,10 +1450,10 @@
           <i class="fa-solid fa-bridge" style="color: #a855f7;"></i> 渡り廊下
         </button>
         <button type="button" class="preset-btn" data-preset="spot">
-          <i class="fa-solid fa-tent" style="color: #10b981;"></i> テント/スポット
+          <i class="fa-solid fa-location-dot" style="color: #10b981;"></i> 室内スポット
         </button>
-        <button type="button" class="preset-btn" data-preset="route">
-          <i class="fa-solid fa-route" style="color: #eab308;"></i> 通学路ルート
+        <button type="button" class="preset-btn" data-preset="slice">
+          <i class="fa-solid fa-scissors" style="color: #f43f5e;"></i> ✂️ スライス
         </button>
       </div>
     </div>
@@ -1134,6 +1488,37 @@
         <span>Zoom: <strong id="lblZoomLevel">18.0</strong></span>
       </div>
     </div>
+
+    <!-- Blueprint Overlay Control Widget -->
+    <div class="blueprint-panel" id="blueprintControlPanel" style="display: none;">
+      <div class="blueprint-header">
+        <span><i class="fa-solid fa-image" style="color: #eab308; margin-right: 6px;"></i> 設計図下絵設定</span>
+        <button type="button" class="tree-action-btn" id="btnCloseBlueprintPanel"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="blueprint-body">
+        <div class="form-group">
+          <label>下絵画像ソース</label>
+          <select id="blueprintImageSelect">
+            <option value="../map_editor_v2/images/校舎全体図.jpg">校舎全体図 (公式図面)</option>
+            <option value="../lastyear/images/map-1f.png">1F フロア図</option>
+            <option value="../lastyear/images/map-2f.png">2F フロア図</option>
+            <option value="../lastyear/images/map-3f.png">3F フロア図</option>
+            <option value="../lastyear/images/map-4f.png">4F フロア図</option>
+            <option value="../lastyear/images/map-5f.png">5F フロア図</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>不透明度: <span id="lblBlueprintOpacity">50%</span></label>
+          <input type="range" id="blueprintOpacityRange" min="0" max="1" step="0.05" value="0.5">
+        </div>
+        <div class="form-row">
+          <button type="button" class="action-btn" id="btnFitBlueprintToBuilding" style="flex: 1; font-size: 11px; justify-content: center;">
+            <i class="fa-solid fa-expand"></i> 生徒棟にフィット
+          </button>
+          <button type="button" class="action-btn" id="btnResetBlueprint" style="font-size: 11px;">リセット</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- ==========================================================================
@@ -1149,6 +1534,13 @@
     </div>
 
     <div class="inspector-body">
+      <!-- Direct Enter Interior Button (High Priority Callout for Buildings) -->
+      <div id="inspEnterInteriorBox" style="display: none; margin-bottom: 12px;">
+        <button type="button" class="action-btn btn-primary" id="btnEnterBuildingFocusDirect" style="width: 100%; justify-content: center; padding: 10px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 15px rgba(124, 92, 255, 0.4);">
+          <i class="fa-solid fa-door-open"></i> この建物の内部フロア (1F〜5F) を編集する →
+        </button>
+      </div>
+
       <!-- Empty State -->
       <div id="inspEmptyState" class="insp-empty-state">
         <div class="insp-empty-icon"><i class="fa-solid fa-hand-pointer"></i></div>
@@ -1179,13 +1571,23 @@
 
         <div class="form-group">
           <label for="fieldName">名称 (表示名) <span class="required">*</span></label>
-          <input type="text" id="fieldName" required placeholder="例: 3年1組, 作法室">
+          <input type="text" id="fieldName" required placeholder="例: 3年1組, 生徒棟">
         </div>
 
         <div class="form-row">
           <div class="form-group flex-1">
             <label for="fieldCategory">カテゴリ / 種別</label>
             <select id="fieldCategory">
+              <optgroup label="建物・屋外">
+                <option value="main">メイン校舎 (main)</option>
+                <option value="gym">体育館 (gym)</option>
+                <option value="admin">管理棟 (admin)</option>
+                <option value="special">特別棟 (special)</option>
+                <option value="sports">武道場/プール (sports)</option>
+                <option value="ground">グラウンド (ground)</option>
+                <option value="plaza">中庭・広場 (plaza)</option>
+                <option value="court">テニスコート (court)</option>
+              </optgroup>
               <optgroup label="屋内教室・施設">
                 <option value="classroom">普通教室 (classroom)</option>
                 <option value="special_room">特別教室 (special_room)</option>
@@ -1193,15 +1595,6 @@
                 <option value="staff_room">職員室・事務室 (staff_room)</option>
                 <option value="facility">保健室・相談室 (facility)</option>
                 <option value="stage">ステージ (stage)</option>
-              </optgroup>
-              <optgroup label="建物・屋外">
-                <option value="main">メイン校舎 (main)</option>
-                <option value="gym">体育館 (gym)</option>
-                <option value="admin">管理棟 (admin)</option>
-                <option value="special">特別棟 (special)</option>
-                <option value="ground">グラウンド (ground)</option>
-                <option value="plaza">中庭・広場 (plaza)</option>
-                <option value="court">テニスコート (court)</option>
               </optgroup>
               <optgroup label="スポット・模擬店">
                 <option value="food">模擬店・飲食 (food)</option>
@@ -1212,7 +1605,7 @@
             </select>
           </div>
 
-          <div class="form-group flex-1">
+          <div class="form-group flex-1" id="grpFieldFloor">
             <label for="fieldFloor">所属フロア</label>
             <select id="fieldFloor">
               <option value="outdoor">屋外 (Outdoor)</option>
@@ -1228,12 +1621,6 @@
         <div class="form-group" id="grpBuildingId">
           <label for="fieldBuildingId">所属建物</label>
           <select id="fieldBuildingId">
-            <option value="student_bldg">生徒棟 (student_bldg)</option>
-            <option value="gym">体育館 (gym)</option>
-            <option value="admin">管理棟 (admin)</option>
-            <option value="health">保健棟 (health)</option>
-            <option value="courtyard">中庭 (courtyard)</option>
-            <option value="schoolyard">グラウンド (schoolyard)</option>
             <option value="">(なし / 単独エリア)</option>
           </select>
         </div>
@@ -1243,15 +1630,15 @@
           <div class="form-group">
             <label>フロア構成 (Floors)</label>
             <div class="checkbox-pill-group" id="bldgFloorsGroup">
-              <label class="checkbox-pill"><input type="checkbox" value="1"> 1F</label>
-              <label class="checkbox-pill"><input type="checkbox" value="2"> 2F</label>
-              <label class="checkbox-pill"><input type="checkbox" value="3"> 3F</label>
-              <label class="checkbox-pill"><input type="checkbox" value="4"> 4F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="1" checked> 1F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="2" checked> 2F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="3" checked> 3F</label>
+              <label class="checkbox-pill"><input type="checkbox" value="4" checked> 4F</label>
               <label class="checkbox-pill"><input type="checkbox" value="5"> 5F</label>
             </div>
           </div>
           <div class="form-group">
-            <label class="checkbox-pill"><input type="checkbox" id="fieldHasIndoor"> 屋内フロアプランあり (hasIndoor)</label>
+            <label class="checkbox-pill"><input type="checkbox" id="fieldHasIndoor" checked> 屋内フロアプランあり (hasIndoor)</label>
           </div>
         </div>
 
@@ -1369,6 +1756,15 @@
 
         <!-- Inspector Action Buttons -->
         <div class="inspector-actions">
+          <button type="button" class="action-btn" id="btnCopyFeatureToFloor" style="background: rgba(124, 92, 255, 0.2); border-color: rgba(124, 92, 255, 0.5); color: #c084fc;" title="この図形を他の指定階（3F, 4F等）へ同一座標でピンポイントにコピー">
+            <i class="fa-solid fa-layer-group"></i> 📦 別フロアへコピー...
+          </button>
+          <button type="button" class="action-btn" id="btnMergeCorridors" style="background: rgba(148, 163, 184, 0.15); border-color: rgba(148, 163, 184, 0.4); color: #cbd5e1;" title="接続している廊下同士を1つの結合ポリゴンに統合">
+            <i class="fa-solid fa-link"></i> 🔗 接続廊下を1つに統合
+          </button>
+          <button type="button" class="action-btn" id="btnSubdivideSelectedFeature" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="この部屋/区画を均等な部屋に分割">
+            <i class="fa-solid fa-table-columns"></i> この区画を N等分に分割
+          </button>
           <button type="button" class="action-btn" id="btnDuplicateFeature">
             <i class="fa-solid fa-clone"></i> 図形を複製
           </button>
@@ -1459,6 +1855,115 @@
     <div class="modal-footer">
       <button type="button" class="action-btn" id="btnDiscardDraft">初期データをロード</button>
       <button type="button" class="action-btn btn-primary" id="btnRestoreDraft">下書きを復元する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floor Clone Wizard Modal -->
+<div class="modal-backdrop" id="cloneFloorModal">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span><i class="fa-solid fa-clone" style="color: #38bdf8; margin-right: 6px;"></i> 階層クローン (フロア一括複製ウィザード)</span>
+      <button type="button" class="tree-action-btn" id="btnCloseCloneModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>作成済みの階層の部屋割り・廊下・階段・トイレの配置を、他の階層へ一括コピー（クローン）します。</p>
+      
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="cloneSourceFloor">コピー元フロア (Source)</label>
+          <select id="cloneSourceFloor">
+            <option value="1">1F</option>
+            <option value="2">2F</option>
+            <option value="3">3F</option>
+            <option value="4">4F</option>
+            <option value="5">5F</option>
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label for="cloneTargetBuilding">対象建物 (Building)</label>
+          <select id="cloneTargetBuilding">
+            <option value="all">すべての建物</option>
+            <option value="student_bldg">生徒棟のみ</option>
+            <option value="admin">管理棟のみ</option>
+            <option value="health">保健棟のみ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>コピー先フロア (Destination)</label>
+        <div class="checkbox-pill-group" id="cloneTargetFloorsGroup">
+          <label class="checkbox-pill"><input type="checkbox" value="1"> 1F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="2" checked> 2F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="3" checked> 3F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="4" checked> 4F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="5" checked> 5F</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-pill">
+          <input type="checkbox" id="cloneAutoRename" checked>
+          <span>ID・部屋名を自動連番置換 (例: <code>room_101</code> → <code>room_201</code>, <code>1年1組</code> → <code>2年1組</code>)</span>
+        </label>
+      </div>
+
+      <div style="font-size: 11px; color: var(--accent-blue); padding: 8px; background: rgba(56, 189, 248, 0.1); border-radius: 6px;">
+        <i class="fa-solid fa-circle-info"></i> コピー先の既存要素は上書きされず追加されます。直後に Undo [Ctrl+Z] で取り消すことも可能です。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="action-btn" id="btnCancelClone">キャンセル</button>
+      <button type="button" class="action-btn btn-primary" id="btnExecuteClone">
+        <i class="fa-solid fa-copy"></i> クローンを実行
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Copy Single Feature to Floor Modal (特定図形の別階コピーモーダル) -->
+<div class="modal-backdrop" id="copyFeatureToFloorModal">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span><i class="fa-solid fa-layer-group" style="color: #c084fc; margin-right: 6px;"></i> 特定図形を別フロアへコピー</span>
+      <button type="button" class="tree-action-btn" id="btnCloseCopyFeatureModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>選択中の図形を、指定した別の階（複数選択可能）へ同一座標でピンポイントにコピーします。</p>
+      
+      <div style="padding: 10px 12px; background: rgba(0, 0, 0, 0.25); border-radius: 6px; font-size: 12px; margin-bottom: 12px; border: 1px solid var(--panel-border);">
+        <div>対象図形: <strong id="lblCopyFeatureTargetName" style="color: #38bdf8;">--</strong></div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">現在フロア: <span id="lblCopyFeatureCurrentFloor">--</span></div>
+      </div>
+
+      <div class="form-group">
+        <label>コピー先フロア (Destination)</label>
+        <div class="checkbox-pill-group" id="copyFeatureTargetFloorsGroup">
+          <label class="checkbox-pill"><input type="checkbox" value="1"> 1F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="2"> 2F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="3"> 3F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="4"> 4F</label>
+          <label class="checkbox-pill"><input type="checkbox" value="5"> 5F</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-pill">
+          <input type="checkbox" id="copyFeatureAutoRename" checked>
+          <span>ID・部屋名を自動連番置換 (例: <code>2F</code> → <code>3F</code>, <code>2年</code> → <code>3年</code>)</span>
+        </label>
+      </div>
+
+      <div style="font-size: 11px; color: var(--accent-blue); padding: 8px; background: rgba(56, 189, 248, 0.1); border-radius: 6px;">
+        <i class="fa-solid fa-circle-info"></i> コピー先に同一座標の要素が存在する場合は上書き更新され、重複登録を防ぎます。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="action-btn" id="btnCancelCopyFeature">キャンセル</button>
+      <button type="button" class="action-btn btn-primary" id="btnExecuteCopyFeature" style="background: #7c5cff; border-color: #5e35b1;">
+        <i class="fa-solid fa-copy"></i> 別フロアへコピー実行
+      </button>
     </div>
   </div>
 </div>
@@ -1604,6 +2109,519 @@ class GeometryEngine {
       parseFloat((sumLng / polygon.length).toFixed(6))
     ];
   }
+
+  /**
+   * 点がポリゴン内部にあるかを判定 (Ray-Casting PIP)
+   */
+  static isPointInPolygon(point, polygon) {
+    if (!point || !polygon || polygon.length < 3) return false;
+    const lat = point[0], lng = point[1];
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const yi = polygon[i][0], xi = polygon[i][1];
+      const yj = polygon[j][0], xj = polygon[j][1];
+      const intersect = ((yi > lat) !== (yj > lat))
+          && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  /**
+   * ポリゴンの符号付き面積・実効面積 (m²) を計算
+   */
+  static computePolygonArea(polygon) {
+    if (!polygon || polygon.length < 3) return 0;
+    const refLat = polygon[0][0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    let area = 0;
+    const n = polygon.length;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      const x1 = (polygon[i][1] - polygon[0][1]) * lng2m;
+      const y1 = (polygon[i][0] - polygon[0][0]) * lat2m;
+      const x2 = (polygon[j][1] - polygon[0][1]) * lng2m;
+      const y2 = (polygon[j][0] - polygon[0][0]) * lat2m;
+      area += (x1 * y2 - x2 * y1);
+    }
+    return Math.abs(area / 2);
+  }
+
+  /**
+   * 線分へのエッジ吸着 (Nearest Point on Edge Snapping)
+   */
+  static snapToEdge(point, edgeP1, edgeP2, toleranceMeters = 1.2) {
+    if (!point || !edgeP1 || !edgeP2) return null;
+    const refLat = point[0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const px = (point[1] - edgeP1[1]) * lng2m;
+    const py = (point[0] - edgeP1[0]) * lat2m;
+    const bx = (edgeP2[1] - edgeP1[1]) * lng2m;
+    const by = (edgeP2[0] - edgeP1[0]) * lat2m;
+
+    const bLenSq = bx * bx + by * by;
+    if (bLenSq < 1e-6) return null;
+
+    const t = Math.max(0, Math.min(1, (px * bx + py * by) / bLenSq));
+    const projX = t * bx;
+    const projY = t * by;
+
+    const distSq = (px - projX) * (px - projX) + (py - projY) * (py - projY);
+    if (distSq <= toleranceMeters * toleranceMeters) {
+      return [
+        parseFloat((edgeP1[0] + projY / lat2m).toFixed(6)),
+        parseFloat((edgeP1[1] + projX / lng2m).toFixed(6))
+      ];
+    }
+    return null;
+  }
+
+  /**
+   * 建物の主軸方位角（Base Angle / 水平寄りの最長壁の角度）を算出
+   * @param {Array<[number, number]>} polygon - 建物の外枠ポリゴン
+   * @returns {number} ラジアン単位の方位角 (-π ~ +π)
+   */
+  static computeBuildingBaseAngle(polygon) {
+    if (!polygon || polygon.length < 3) return 0;
+    const refLat = polygon[0][0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    let longestLen = 0;
+    let bestAngle = 0;
+
+    for (let i = 0; i < polygon.length; i++) {
+      const p1 = polygon[i];
+      const p2 = polygon[(i + 1) % polygon.length];
+      const dx = (p2[1] - p1[1]) * lng2m;
+      const dy = (p2[0] - p1[0]) * lat2m;
+      const len = Math.sqrt(dx * dx + dy * dy);
+
+      // 横長に近い辺（|dx| > |dy|）を優先し、最長辺を採用
+      if (Math.abs(dx) >= Math.abs(dy) * 0.8 && len > longestLen) {
+        longestLen = len;
+        // 常に東向き（-π/2 ~ π/2）に正規化
+        let ang = Math.atan2(dy, dx);
+        if (ang > Math.PI / 2) ang -= Math.PI;
+        if (ang < -Math.PI / 2) ang += Math.PI;
+        bestAngle = ang;
+      }
+    }
+    return bestAngle;
+  }
+
+  /**
+   * 校舎の主軸方位角（Base Angle）に拘束された直交スナップ座標を算出
+   */
+  static getOrientedOrthogonalLatLng(lastCoord, currentLatLng, map, baseAngle = 0) {
+    const p0 = map.latLngToContainerPoint(L.latLng(lastCoord[0], lastCoord[1]));
+    const p1 = map.latLngToContainerPoint(currentLatLng);
+
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const r = Math.hypot(dx, dy);
+    if (r < 3) return currentLatLng;
+
+    // Leafletのスクリーン座標系（Y軸が下向き）での角度
+    // 基準角 baseAngle（数学的: Y軸が上向き）をスクリーン系へ変換
+    const screenBaseAngle = -baseAngle;
+    const currentAngle = Math.atan2(dy, dx);
+
+    // 基準角からの相対角度
+    const relAngle = currentAngle - screenBaseAngle;
+    // 90度（π/2）単位で最も近い方位へスナップ
+    const snapRelAngle = Math.round(relAngle / (Math.PI / 2)) * (Math.PI / 2);
+    const finalAngle = screenBaseAngle + snapRelAngle;
+
+    const snappedPt = L.point(
+      p0.x + r * Math.cos(finalAngle),
+      p0.y + r * Math.sin(finalAngle)
+    );
+    return map.containerPointToLatLng(snappedPt);
+  }
+
+  /**
+   * 校舎の傾きに沿った直角長方形（4頂点）を始点と対角点から生成
+   */
+  static makeOrientedRectangle(p1LatLng, p2LatLng, baseAngle = 0) {
+    const refLat = p1LatLng[0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    // p1 を原点とするメートル座標
+    const p2x = (p2LatLng[1] - p1LatLng[1]) * lng2m;
+    const p2y = (p2LatLng[0] - p1LatLng[0]) * lat2m;
+
+    // 校舎の主軸座標系へ回転変換
+    const cosA = Math.cos(-baseAngle);
+    const sinA = Math.sin(-baseAngle);
+
+    const localX2 = p2x * cosA - p2y * sinA;
+    const localY2 = p2x * sinA + p2y * cosA;
+
+    // 校舎系での4頂点 (0,0), (localX2, 0), (localX2, localY2), (0, localY2)
+    const localCorners = [
+      [0, 0],
+      [localX2, 0],
+      [localX2, localY2],
+      [0, localY2]
+    ];
+
+    // メートル座標系へ逆回転・ワールド緯度経度へ変換
+    const invCos = Math.cos(baseAngle);
+    const invSin = Math.sin(baseAngle);
+
+    return localCorners.map(([lx, ly]) => {
+      const gx = lx * invCos - ly * invSin;
+      const gy = lx * invSin + ly * invCos;
+      return [
+        parseFloat((p1LatLng[0] + gy / lat2m).toFixed(6)),
+        parseFloat((p1LatLng[1] + gx / lng2m).toFixed(6))
+      ];
+    });
+  }
+
+  /**
+   * 校舎の傾きに沿って、指定された範囲を直線的に N等分した部屋ポリゴン群を生成
+   * @param {[number, number]} p1LatLng - 始点
+   * @param {[number, number]} p2LatLng - 対角点
+   * @param {number} baseAngle - 校舎主軸角度
+   * @param {number} count - 分割部屋数 (2 ~ 20)
+   * @returns {Array<Array<[number, number]>>} N個の長方形ポリゴン配列
+   */
+  static makeSubdividedRooms(p1LatLng, p2LatLng, baseAngle = 0, count = 3) {
+    if (count < 1) count = 1;
+    const refLat = p1LatLng[0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const p2x = (p2LatLng[1] - p1LatLng[1]) * lng2m;
+    const p2y = (p2LatLng[0] - p1LatLng[0]) * lat2m;
+
+    const cosA = Math.cos(-baseAngle);
+    const sinA = Math.sin(-baseAngle);
+
+    const localX2 = p2x * cosA - p2y * sinA;
+    const localY2 = p2x * sinA + p2y * cosA;
+
+    const invCos = Math.cos(baseAngle);
+    const invSin = Math.sin(baseAngle);
+
+    const toWorldLatLng = (lx, ly) => {
+      const gx = lx * invCos - ly * invSin;
+      const gy = lx * invSin + ly * invCos;
+      return [
+        parseFloat((p1LatLng[0] + gy / lat2m).toFixed(6)),
+        parseFloat((p1LatLng[1] + gx / lng2m).toFixed(6))
+      ];
+    };
+
+    const rooms = [];
+    const stepX = localX2 / count;
+
+    for (let i = 0; i < count; i++) {
+      const xLeft = i * stepX;
+      const xRight = (i + 1) * stepX;
+      const corners = [
+        toWorldLatLng(xLeft, 0),
+        toWorldLatLng(xRight, 0),
+        toWorldLatLng(xRight, localY2),
+        toWorldLatLng(xLeft, localY2)
+      ];
+      rooms.push(corners);
+    }
+    return rooms;
+  }
+
+  /**
+   * 既存のポリゴン（部屋・区画）の境界範囲の内側ぴったりを校舎主軸角度に沿ってN等分した部屋ポリゴン群を生成
+   * @param {Array<[number, number]>} polygon - 元ポリゴンの頂点配列
+   * @param {number} baseAngle - 校舎主軸角度
+   * @param {number} count - 分割数 (2〜20)
+   * @returns {Array<Array<[number, number]>>} N個の部屋ポリゴン配列
+   */
+  static subdividePolygon(polygon, baseAngle = 0, count = 3) {
+    if (!polygon || polygon.length < 3 || count < 1) return [];
+
+    const refLat = polygon[0][0];
+    const refLng = polygon[0][1];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const cosA = Math.cos(-baseAngle);
+    const sinA = Math.sin(-baseAngle);
+    const invCos = Math.cos(baseAngle);
+    const invSin = Math.sin(baseAngle);
+
+    // 各頂点をローカル校舎座標系へ投影
+    const localPts = polygon.map(([lat, lng]) => {
+      const gx = (lng - refLng) * lng2m;
+      const gy = (lat - refLat) * lat2m;
+      return [
+        gx * cosA - gy * sinA,
+        gx * sinA + gy * cosA
+      ];
+    });
+
+    const lxs = localPts.map(p => p[0]);
+    const lys = localPts.map(p => p[1]);
+    const minLx = Math.min(...lxs);
+    const maxLx = Math.max(...lxs);
+    const minLy = Math.min(...lys);
+    const maxLy = Math.max(...lys);
+
+    const totalWidth = maxLx - minLx;
+    const stepX = totalWidth / count;
+
+    const toWorldLatLng = (lx, ly) => {
+      const gx = lx * invCos - ly * invSin;
+      const gy = lx * invSin + ly * invCos;
+      return [
+        parseFloat((refLat + gy / lat2m).toFixed(6)),
+        parseFloat((refLng + gx / lng2m).toFixed(6))
+      ];
+    };
+
+    const rooms = [];
+    for (let i = 0; i < count; i++) {
+      const xLeft = minLx + i * stepX;
+      const xRight = minLx + (i + 1) * stepX;
+      const corners = [
+        toWorldLatLng(xLeft, minLy),
+        toWorldLatLng(xRight, minLy),
+        toWorldLatLng(xRight, maxLy),
+        toWorldLatLng(xLeft, maxLy)
+      ];
+      rooms.push(corners);
+    }
+    return rooms;
+  }
+
+  /**
+   * 2つ以上の隣接するポリゴンを結合し、共有境界線を除去した外周ポリゴン群を生成
+   * @param {Array<Array<[number, number]>>} polygons - ポリゴン頂点配列のリスト
+   * @param {number} toleranceMeters - 共有エッジの許容誤差 (メートル, デフォルト0.5m)
+   * @returns {Array<Array<[number, number]>>} 結合された外周ポリゴンのリスト
+   */
+  static mergeAdjacentPolygons(polygons, toleranceMeters = 0.5) {
+    if (!polygons || polygons.length === 0) return [];
+    const validPolys = polygons.filter(p => p && p.length >= 3);
+    if (validPolys.length <= 1) return validPolys;
+
+    const refLat = validPolys[0][0][0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const toXY = ([lat, lng]) => [
+      (lng - validPolys[0][0][1]) * lng2m,
+      (lat - validPolys[0][0][0]) * lat2m
+    ];
+    const toLatLng = ([x, y]) => [
+      parseFloat((validPolys[0][0][0] + y / lat2m).toFixed(6)),
+      parseFloat((validPolys[0][0][1] + x / lng2m).toFixed(6))
+    ];
+
+    // 全ポリゴンの有向エッジを抽出
+    let allEdges = [];
+    validPolys.forEach((poly, polyIdx) => {
+      const xy = poly.map(toXY);
+      for (let i = 0; i < xy.length; i++) {
+        const p1 = xy[i];
+        const p2 = xy[(i + 1) % xy.length];
+        allEdges.push({ p1, p2, polyIdx });
+      }
+    });
+
+    const distSq = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+    const tolSq = toleranceMeters * toleranceMeters;
+
+    const isOppositeEdge = (e1, e2) => {
+      // 逆向きで端点が一致（または非常に近接）しているか
+      return (distSq(e1.p1, e2.p2) <= tolSq && distSq(e1.p2, e2.p1) <= tolSq);
+    };
+
+    const sharedIndices = new Set();
+    for (let i = 0; i < allEdges.length; i++) {
+      for (let j = i + 1; j < allEdges.length; j++) {
+        if (allEdges[i].polyIdx !== allEdges[j].polyIdx && isOppositeEdge(allEdges[i], allEdges[j])) {
+          sharedIndices.add(i);
+          sharedIndices.add(j);
+        }
+      }
+    }
+
+    const outerEdges = allEdges.filter((_, idx) => !sharedIndices.has(idx));
+    if (outerEdges.length === 0) return validPolys;
+
+    // 外周エッジを端点で連結
+    const mergedPolygons = [];
+    const usedEdges = new Set();
+
+    for (let startIdx = 0; startIdx < outerEdges.length; startIdx++) {
+      if (usedEdges.has(startIdx)) continue;
+
+      const loop = [];
+      let currentIdx = startIdx;
+      let iterations = 0;
+      const maxIter = outerEdges.length * 2;
+
+      while (currentIdx !== -1 && !usedEdges.has(currentIdx) && iterations < maxIter) {
+        usedEdges.add(currentIdx);
+        const edge = outerEdges[currentIdx];
+        loop.push(edge.p1);
+
+        let nextIdx = -1;
+        let bestDist = tolSq * 4;
+
+        for (let j = 0; j < outerEdges.length; j++) {
+          if (!usedEdges.has(j)) {
+            const d = distSq(edge.p2, outerEdges[j].p1);
+            if (d <= bestDist) {
+              bestDist = d;
+              nextIdx = j;
+            }
+          }
+        }
+
+        currentIdx = nextIdx;
+        iterations++;
+      }
+
+      if (loop.length >= 3) {
+        // 重複・冗長頂点のクリーンアップ
+        const cleanedLoop = [];
+        for (let i = 0; i < loop.length; i++) {
+          const curr = loop[i];
+          const next = loop[(i + 1) % loop.length];
+          if (distSq(curr, next) > 0.04) {
+            cleanedLoop.push(curr);
+          }
+        }
+        if (cleanedLoop.length >= 3) {
+          mergedPolygons.push(cleanedLoop.map(toLatLng));
+        }
+      }
+    }
+
+    return mergedPolygons.length > 0 ? mergedPolygons : validPolys;
+  }
+
+  /**
+   * 直線による多角形ポリゴンのスライス分割 (Sutherland-Hodgman Polygon Splitting)
+   * @param {Array<[number, number]>} polygon - 元ポリゴンの頂点配列
+   * @param {[number, number]} lineP1 - 切断直線の第1点
+   * @param {[number, number]} lineP2 - 切断直線の第2点
+   * @returns {Array<Array<[number, number]>>|null} 分割された2つのポリゴン配列 [polyA, polyB]
+   */
+  static splitPolygonByLine(polygon, lineP1, lineP2) {
+    if (!polygon || polygon.length < 3 || !lineP1 || !lineP2) return null;
+
+    const refLat = polygon[0][0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    const toXY = ([lat, lng]) => [
+      (lng - polygon[0][1]) * lng2m,
+      (lat - polygon[0][0]) * lat2m
+    ];
+    const toLatLng = ([x, y]) => [
+      parseFloat((polygon[0][0] + y / lat2m).toFixed(6)),
+      parseFloat((polygon[0][1] + x / lng2m).toFixed(6))
+    ];
+
+    const polyXY = polygon.map(toXY);
+    const p1XY = toXY(lineP1);
+    const p2XY = toXY(lineP2);
+
+    const dx = p2XY[0] - p1XY[0];
+    const dy = p2XY[1] - p1XY[1];
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1e-4) return null;
+
+    // 直線方程式: A*x + B*y + C = 0 (単位法線ベクトル)
+    const A = -dy / len;
+    const B = dx / len;
+    const C = -(A * p1XY[0] + B * p1XY[1]);
+
+    const dist = (p) => A * p[0] + B * p[1] + C;
+    const eps = 1e-6;
+
+    // Sutherland-Hodgman Polygon Clipping for Both Sides
+    const clipPolygon = (poly, keepPositive) => {
+      const output = [];
+      const n = poly.length;
+      if (n === 0) return output;
+
+      let prev = poly[n - 1];
+      let prevDist = dist(prev);
+      if (!keepPositive) prevDist = -prevDist;
+
+      for (let i = 0; i < n; i++) {
+        const curr = poly[i];
+        let currDist = dist(curr);
+        if (!keepPositive) currDist = -currDist;
+
+        if (currDist >= -eps) {
+          if (prevDist < -eps) {
+            const t = Math.max(0, Math.min(1, Math.abs(prevDist) / (Math.abs(prevDist) + Math.abs(currDist))));
+            const ix = prev[0] + t * (curr[0] - prev[0]);
+            const iy = prev[1] + t * (curr[1] - prev[1]);
+            output.push([ix, iy]);
+          }
+          output.push(curr);
+        } else if (prevDist >= -eps) {
+          const t = Math.max(0, Math.min(1, Math.abs(prevDist) / (Math.abs(prevDist) + Math.abs(currDist))));
+          const ix = prev[0] + t * (curr[0] - prev[0]);
+          const iy = prev[1] + t * (curr[1] - prev[1]);
+          output.push([ix, iy]);
+        }
+        prev = curr;
+        prevDist = currDist;
+      }
+      return output;
+    };
+
+    const polyA_XY = clipPolygon(polyXY, true);
+    const polyB_XY = clipPolygon(polyXY, false);
+
+    const cleanPoly = (xyList) => {
+      const res = [];
+      for (let i = 0; i < xyList.length; i++) {
+        const curr = xyList[i];
+        const next = xyList[(i + 1) % xyList.length];
+        const d = Math.sqrt((curr[0] - next[0]) ** 2 + (curr[1] - next[1]) ** 2);
+        if (d > 0.05) res.push(curr);
+      }
+      return res;
+    };
+
+    const cleanA = cleanPoly(polyA_XY);
+    const cleanB = cleanPoly(polyB_XY);
+
+    if (cleanA.length < 3 || cleanB.length < 3) return null;
+
+    const polyA_LatLng = cleanA.map(toLatLng);
+    const polyB_LatLng = cleanB.map(toLatLng);
+
+    const areaA = GeometryEngine.computePolygonArea(polyA_LatLng);
+    const areaB = GeometryEngine.computePolygonArea(polyB_LatLng);
+
+    if (areaA < 0.2 || areaB < 0.2) return null;
+
+    return [polyA_LatLng, polyB_LatLng];
+  }
 }
 
 // =============================================================================
@@ -1668,12 +2686,33 @@ class HistoryManager {
 class MapStudioApp {
   constructor() {
     this.map = null;
+    this.editorMode = 'campus'; // 'campus' (キャンパス外郭・建物作成) | 'interior' (建物内部・フロア作成)
     this.currentFloor = 'All';
-    this.activeTool = 'select'; // 'select' | 'polygon' | 'path' | 'spot' | 'delete'
+    this.activeTool = 'select'; // 'select' | 'polygon' | 'slice' | 'path' | 'spot' | 'delete'
+    this.activePreset = 'building'; // default preset in campus mode
     this.isSnapEnabled = true;
     this.isOrthoEnabled = false;
     this.isSplineEnabled = true;
     this.isShiftKeyPressed = false;
+
+    // Building Focus / Hierarchical Scope State
+    this.focusedBuilding = null; // Currently scoped building entity
+    this.parentGuideLayerGroup = null;
+
+    // Slicer Tool State
+    this.sliceStartPoint = null;
+    this.slicePreviewLayer = null;
+
+    // Rectangle Tool State (Oriented Box with Building Alignment)
+    this.rectStartPoint = null;
+    this.rectPreviewLayer = null;
+
+    // Blueprint / Blueprint Overlay State
+    this.blueprintOverlay = null;
+    this.isBlueprintVisible = false;
+    this.blueprintOpacity = 0.5;
+    this.blueprintUrl = '../map_editor_v2/images/校舎全体図.jpg';
+    this.blueprintBounds = null;
 
     // Feature Data Store
     this.mapData = {
@@ -1684,11 +2723,11 @@ class MapStudioApp {
         updatedAt: new Date().toISOString(),
         center: [35.386167, 139.585500],
         defaultZoom: 18,
-        minZoom: 15,
+        minZoom: 13,
         maxZoom: 22,
         bounds: [
-          [35.381000, 139.578000],
-          [35.390000, 139.592000]
+          [35.365000, 139.555000],
+          [35.410000, 139.620000]
         ]
       },
       buildings: [],
@@ -1753,10 +2792,10 @@ class MapStudioApp {
     this.map = L.map('map', {
       center: config.center,
       zoom: config.defaultZoom,
-      minZoom: config.minZoom,
-      maxZoom: config.maxZoom,
-      maxBounds: config.bounds,
-      maxBoundsViscosity: 0.8,
+      minZoom: config.minZoom || 13,
+      maxZoom: config.maxZoom || 22,
+      maxBounds: config.bounds || [[35.365000, 139.555000], [35.410000, 139.620000]],
+      maxBoundsViscosity: 0.2,
       zoomSnap: 0.25,
       zoomDelta: 0.5,
       doubleClickZoom: false,
@@ -1773,6 +2812,7 @@ class MapStudioApp {
 
   initCustomPanes() {
     const panes = [
+      { name: 'parentGuidePane', z: 390 },
       { name: 'buildingPane', z: 400 },
       { name: 'indoorFloorPane', z: 420 },
       { name: 'overpassPane', z: 450, filter: 'drop-shadow(0px 3px 6px rgba(0,0,0,0.4))' },
@@ -1794,12 +2834,13 @@ class MapStudioApp {
       attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
       maxNativeZoom: 18,
       maxZoom: 22,
-      minZoom: 15,
+      minZoom: 13,
       errorTileUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="%23cfe3d8"/></svg>'
     }).addTo(this.map);
   }
 
   initLayerGroups() {
+    this.parentGuideLayerGroup = L.layerGroup().addTo(this.map);
     this.layerGroups.buildings = L.layerGroup().addTo(this.map);
     this.layerGroups.outdoor = L.layerGroup().addTo(this.map);
     this.layerGroups.spots = L.layerGroup().addTo(this.map);
@@ -1901,28 +2942,79 @@ class MapStudioApp {
     }, 800);
   }
 
+  syncStairsAcrossFloors() {
+    if (!this.mapData || !this.mapData.indoorFloors) return;
+
+    // 全フロアから登録済みの階段を収集（ユニーク化）
+    const allStairsMap = new Map();
+    for (let f = 1; f <= 5; f++) {
+      const fl = this.mapData.indoorFloors[String(f)];
+      if (fl && fl.stairs) {
+        fl.stairs.forEach(s => {
+          if (s && s.id && !allStairsMap.has(s.id)) {
+            allStairsMap.set(s.id, JSON.parse(JSON.stringify(s)));
+          }
+        });
+      }
+    }
+
+    if (allStairsMap.size === 0) return;
+
+    // 各フロア (1F〜5F) の stairs 配列に同期（階段の対象フロア範囲 floors / connectsFloors を尊重）
+    for (let f = 1; f <= 5; f++) {
+      const flStr = String(f);
+      if (!this.mapData.indoorFloors[flStr]) {
+        this.mapData.indoorFloors[flStr] = { rooms: [], corridors: [], stairs: [], toilets: [] };
+      }
+      if (!this.mapData.indoorFloors[flStr].stairs) {
+        this.mapData.indoorFloors[flStr].stairs = [];
+      }
+
+      // このフロアに対象外の階段があれば除外
+      this.mapData.indoorFloors[flStr].stairs = this.mapData.indoorFloors[flStr].stairs.filter(item => {
+        const master = allStairsMap.get(item.id);
+        if (!master) return true;
+        const validFloors = master.floors || master.connectsFloors || (master.id === 'stairs_066795' ? [1, 2, 3, 4, 5] : [1, 2, 3, 4]);
+        return validFloors.includes(f);
+      });
+
+      allStairsMap.forEach((masterStair, sId) => {
+        const validFloors = masterStair.floors || masterStair.connectsFloors || (sId === 'stairs_066795' ? [1, 2, 3, 4, 5] : [1, 2, 3, 4]);
+        if (!validFloors.includes(f)) {
+          return; // この階層には存在しない階段（例: 西側本館の階段は5Fには配置しない）
+        }
+
+        const existingIdx = this.mapData.indoorFloors[flStr].stairs.findIndex(item => item.id === sId);
+        if (existingIdx >= 0) {
+          // 座標とプロパティを最新マスターと同期
+          this.mapData.indoorFloors[flStr].stairs[existingIdx].polygon = JSON.parse(JSON.stringify(masterStair.polygon || masterStair.coordinates));
+          this.mapData.indoorFloors[flStr].stairs[existingIdx].coordinates = JSON.parse(JSON.stringify(masterStair.coordinates || masterStair.polygon));
+          this.mapData.indoorFloors[flStr].stairs[existingIdx].name = masterStair.name;
+          this.mapData.indoorFloors[flStr].stairs[existingIdx].floors = validFloors;
+          this.mapData.indoorFloors[flStr].stairs[existingIdx].connectsFloors = validFloors;
+        } else {
+          // 他フロアから新規同期追加
+          this.mapData.indoorFloors[flStr].stairs.push({
+            ...JSON.parse(JSON.stringify(masterStair)),
+            floor: f,
+            floors: validFloors,
+            connectsFloors: validFloors
+          });
+        }
+      });
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Geometry Rendering & Floor Layer Management
   // ---------------------------------------------------------------------------
   renderAll() {
+    this.deduplicateMapData();
+    this.syncStairsAcrossFloors();
     this.clearAllLayers();
 
-    // 1. Buildings
-    (this.mapData.buildings || []).forEach(b => {
-      const polygon = b.polygon || b.coordinates;
-      if (!polygon || polygon.length < 3) return;
-      const layer = L.polygon(polygon, {
-        pane: 'buildingPane',
-        fillColor: b.color || '#7c5cff',
-        fillOpacity: 0.7,
-        color: b.strokeColor || '#5e35b1',
-        weight: 2
-      });
-      layer.feature = { properties: { ...b, entityType: 'building' }, _entityRef: b };
-      layer._entityRef = b;
-      this.bindLayerEvents(layer);
-      this.layerGroups.buildings.addLayer(layer);
-    });
+    // 1. Buildings (Floor-Aware for 1F Piloti Exclusion & 5F Library)
+    this.renderBuildings();
 
     // 2. Outdoor Areas
     (this.mapData.outdoorAreas || []).forEach(a => {
@@ -1965,26 +3057,59 @@ class MapStudioApp {
       });
 
       // Corridors
-      (floorData.corridors || []).forEach(c => {
+      const allCorrs = floorData.corridors || [];
+      const normalCorrs = allCorrs.filter(c => !c.isOverpass);
+      const overpassCorrs = allCorrs.filter(c => c.isOverpass);
+
+      // A. Normal Corridors: Clean vector rendering without visual artifacts
+      normalCorrs.forEach(c => {
         const poly = c.polygon || c.coordinates;
         if (!poly || poly.length < 2) return;
         const isPoly = poly.length >= 3;
-        const pane = c.isOverpass ? 'overpassPane' : 'indoorFloorPane';
         const style = c.style || {};
 
         let layer;
         if (isPoly) {
           layer = L.polygon(poly, {
-            pane: pane,
-            fillColor: style.fillColor || (c.isOverpass ? '#a855f7' : '#94a3b8'),
-            fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : (c.isOverpass ? 0.8 : 0.4),
-            color: style.strokeColor || (c.isOverpass ? '#7e22ce' : '#64748b'),
+            pane: 'indoorFloorPane',
+            fillColor: style.fillColor || '#94a3b8',
+            fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : 0.45,
+            color: style.strokeColor || '#64748b',
+            weight: style.weight || 1.5
+          });
+        } else {
+          layer = L.polyline(poly, {
+            pane: 'indoorFloorPane',
+            color: style.strokeColor || '#94a3b8',
+            weight: style.weight || 4
+          });
+        }
+        layer.feature = { properties: { ...c, floor: f, entityType: 'corridor' }, _entityRef: c };
+        layer._entityRef = c;
+        this.bindLayerEvents(layer);
+        group.addLayer(layer);
+      });
+
+      // B. Overpass Corridors: Distinct overpass rendering
+      overpassCorrs.forEach(c => {
+        const poly = c.polygon || c.coordinates;
+        if (!poly || poly.length < 2) return;
+        const isPoly = poly.length >= 3;
+        const style = c.style || {};
+
+        let layer;
+        if (isPoly) {
+          layer = L.polygon(poly, {
+            pane: 'overpassPane',
+            fillColor: style.fillColor || '#a855f7',
+            fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : 0.8,
+            color: style.strokeColor || '#7e22ce',
             weight: style.weight || 2
           });
         } else {
           layer = L.polyline(poly, {
-            pane: pane,
-            color: style.strokeColor || '#94a3b8',
+            pane: 'overpassPane',
+            color: style.strokeColor || '#a855f7',
             weight: style.weight || 4
           });
         }
@@ -2080,6 +3205,27 @@ class MapStudioApp {
     }
   }
 
+  renderBuildings() {
+    this.layerGroups.buildings.clearLayers();
+    (this.mapData.buildings || []).forEach(b => {
+      const polygons = this.getBuildingFloorPolygons(b, this.currentFloor);
+      polygons.forEach(polygon => {
+        if (!polygon || polygon.length < 3) return;
+        const layer = L.polygon(polygon, {
+          pane: 'buildingPane',
+          fillColor: b.color || '#7c5cff',
+          fillOpacity: this.editorMode === 'interior' ? 0.2 : 0.7,
+          color: b.strokeColor || '#5e35b1',
+          weight: 2
+        });
+        layer.feature = { properties: { ...b, entityType: 'building' }, _entityRef: b };
+        layer._entityRef = b;
+        this.bindLayerEvents(layer);
+        this.layerGroups.buildings.addLayer(layer);
+      });
+    });
+  }
+
   setFloor(floor) {
     if (this.selectedFeature) {
       this.deselectFeature();
@@ -2113,7 +3259,251 @@ class MapStudioApp {
       this.map.addLayer(this.layerGroups.routes);
     }
 
+    this.renderBuildings();
+    this.renderParentGuideLayer();
     this.updateTreeList();
+  }
+
+  setEditorMode(mode, building = null) {
+    this.editorMode = mode;
+
+    const btnCampus = document.getElementById('btnModeCampus');
+    const btnInterior = document.getElementById('btnModeInterior');
+    const campusCard = document.getElementById('campusModeCard');
+    const interiorCard = document.getElementById('interiorModeCard');
+    const campusFloors = document.getElementById('campusFloorPills');
+    const interiorFloors = document.getElementById('interiorFloorPills');
+    const cloneBtnBox = document.getElementById('floorCloneBtnContainer');
+    const campusPresets = document.getElementById('campusPresetsGroup');
+    const interiorPresets = document.getElementById('interiorPresetsGroup');
+    const sliceBtn = document.getElementById('toolSlice');
+    const focusInd = document.getElementById('buildingFocusIndicator');
+
+    if (mode === 'campus') {
+      this.focusedBuilding = null;
+      if (btnCampus) btnCampus.classList.add('active');
+      if (btnInterior) {
+        btnInterior.classList.remove('active');
+        const hasAnyBuilding = (this.mapData.buildings || []).length > 0;
+        btnInterior.disabled = !hasAnyBuilding;
+      }
+
+      if (campusCard) campusCard.style.display = 'flex';
+      if (interiorCard) interiorCard.style.display = 'none';
+
+      if (campusFloors) campusFloors.style.display = 'grid';
+      if (interiorFloors) interiorFloors.style.display = 'none';
+      if (cloneBtnBox) cloneBtnBox.style.display = 'none';
+
+      if (campusPresets) campusPresets.style.display = 'grid';
+      if (interiorPresets) interiorPresets.style.display = 'none';
+
+      if (sliceBtn) sliceBtn.style.display = 'none';
+      if (focusInd) focusInd.style.display = 'none';
+
+      this.activePreset = 'building';
+      this.updatePresetButtonsUI('building');
+      this.setTool('select');
+      this.setFloor('All');
+      this.renderBuildings();
+      this.renderParentGuideLayer();
+      this.updateTreeList();
+      this.populateBuildingDropdown();
+      this.showToast('🏛️ キャンパス外郭・建物作成モードに切り替えました', 'info');
+    } else {
+      // Interior Mode
+      if (!building) {
+        if (this.selectedFeature && this.selectedFeature.entityType === 'building') {
+          building = this.selectedFeature;
+        } else if (this.mapData.buildings && this.mapData.buildings.length > 0) {
+          building = this.mapData.buildings[0];
+        }
+      }
+
+      if (!building) {
+        this.showToast('建物がまだありません。まず「🏢 建物ポリゴン」で建物の外枠を作成してください。', 'warning');
+        this.setEditorMode('campus');
+        return;
+      }
+
+      this.focusedBuilding = building;
+      if (btnCampus) btnCampus.classList.remove('active');
+      if (btnInterior) {
+        btnInterior.classList.add('active');
+        btnInterior.disabled = false;
+      }
+
+      if (campusCard) campusCard.style.display = 'none';
+      if (interiorCard) {
+        interiorCard.style.display = 'flex';
+        const lblDesc = document.getElementById('lblInteriorBuildingDesc');
+        if (lblDesc) lblDesc.textContent = building.name || building.id;
+      }
+
+      if (campusFloors) campusFloors.style.display = 'none';
+      if (interiorFloors) interiorFloors.style.display = 'grid';
+      if (cloneBtnBox) cloneBtnBox.style.display = 'block';
+
+      if (campusPresets) campusPresets.style.display = 'none';
+      if (interiorPresets) interiorPresets.style.display = 'grid';
+
+      if (sliceBtn) sliceBtn.style.display = 'flex';
+      if (focusInd) {
+        focusInd.style.display = 'flex';
+        const lblName = document.getElementById('lblFocusedBuildingName');
+        if (lblName) lblName.textContent = building.name || building.id;
+      }
+
+      this.activePreset = 'classroom';
+      this.updatePresetButtonsUI('classroom');
+      this.setTool('select');
+      this.setFloor('1');
+      this.renderBuildings();
+      this.renderParentGuideLayer();
+
+      const poly = building.polygon || building.coordinates;
+      if (poly && poly.length >= 3) {
+        const bounds = L.latLngBounds(poly.map(p => L.latLng(p[0], p[1])));
+        this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 20 });
+      }
+
+      this.updateTreeList();
+      this.populateBuildingDropdown();
+      this.showToast(`🏢 【${building.name || building.id}】の内部フロア作成モードに入りました`, 'info');
+    }
+  }
+
+  updatePresetButtonsUI(activePreset) {
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-preset') === activePreset);
+    });
+  }
+
+  populateBuildingDropdown() {
+    const select = document.getElementById('fieldBuildingId');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">(なし / 単独エリア)</option>';
+    (this.mapData.buildings || []).forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = `${b.name || b.id} (${b.id})`;
+      select.appendChild(opt);
+    });
+    if (currentVal) select.value = currentVal;
+  }
+
+  getBuildingFloorPolygons(building, floorStr) {
+    if (!building) return [];
+    const isStudentBldg = building.id === '生徒棟' || building.id === 'student_bldg' || (building.name && building.name.includes('生徒棟'));
+    if (!isStudentBldg) {
+      const p = building.polygon || building.coordinates;
+      return p && p.length >= 3 ? [p] : [];
+    }
+
+    // 生徒棟のフロア別形状
+    if (floorStr === '1') {
+      // 1F: ガクッとずれるところからオレンジピンまでの渡りピロティ部分を完全に消去！
+      // 1. 西側本館ブロック (もう一個ボコッと突き出た東端 [35.386222, 139.585911] まで含む)
+      const mainBldg = [
+        [35.386522, 139.585021],
+        [35.386520, 139.585153],
+        [35.386245, 139.585142],
+        [35.386230, 139.585545],
+        [35.386229, 139.585608],
+        [35.386226, 139.585734],
+        [35.386484, 139.585749],
+        [35.386478, 139.585877],
+        [35.386240, 139.585871],
+        [35.386243, 139.585794],
+        [35.386224, 139.585793],
+        [35.386222, 139.585911],
+        [35.386118, 139.585915],
+        [35.386144, 139.585004]
+      ];
+      // 2. 東側突き出る増築棟ブロック (オレンジピン [35.386229, 139.586080] 以降)
+      const eastBldg = [
+        [35.386229, 139.586080],
+        [35.386302, 139.586079],
+        [35.386305, 139.586211],
+        [35.386129, 139.586218],
+        [35.386125, 139.586080]
+      ];
+      return [mainBldg, eastBldg];
+    } else if (floorStr === '5') {
+      // 5F: 天空の図書館のみ
+      return [[
+        [35.386224, 139.585937],
+        [35.386229, 139.586080],
+        [35.386302, 139.586079],
+        [35.386305, 139.586211],
+        [35.386129, 139.586218],
+        [35.386123, 139.585940]
+      ]];
+    }
+
+    // 2F〜4F (および全体表示): 全体外枠
+    const p = building.polygon || building.coordinates;
+    return p && p.length >= 3 ? [p] : [];
+  }
+
+  renderParentGuideLayer() {
+    if (!this.parentGuideLayerGroup) return;
+    this.parentGuideLayerGroup.clearLayers();
+
+    if (this.editorMode !== 'interior') {
+      return;
+    }
+
+    const curFloor = this.currentFloor || '1';
+
+    // 1. If currently scoped to a specific building, render floor-specific outline cleanly
+    if (this.focusedBuilding) {
+      const polygons = this.getBuildingFloorPolygons(this.focusedBuilding, curFloor);
+      polygons.forEach(poly => {
+        if (poly && poly.length >= 3) {
+          const guide = L.polygon(poly, {
+            pane: 'parentGuidePane',
+            color: '#7c5cff',
+            weight: 4,
+            dashArray: '6, 6',
+            fillColor: '#7c5cff',
+            fillOpacity: 0.05,
+            interactive: false
+          });
+          this.parentGuideLayerGroup.addLayer(guide);
+        }
+      });
+      return;
+    }
+
+    // 2. If indoor floor is active in campus mode, render faint outlines of all buildings that contain indoor floors
+    if (['1', '2', '3', '4', '5'].includes(this.currentFloor)) {
+      (this.mapData.buildings || []).forEach(b => {
+        if (b.hasIndoor !== false) {
+          const poly = b.polygon || b.coordinates;
+          if (poly && poly.length >= 3) {
+            const guide = L.polygon(poly, {
+              pane: 'parentGuidePane',
+              color: '#94a3b8',
+              weight: 2,
+              dashArray: '4, 4',
+              fillOpacity: 0.02,
+              interactive: false
+            });
+            this.parentGuideLayerGroup.addLayer(guide);
+          }
+        }
+      });
+    }
+  }
+
+  enterBuildingFocus(building) {
+    this.setEditorMode('interior', building);
+  }
+
+  exitBuildingFocus() {
+    this.setEditorMode('campus');
   }
 
   setBuildingsOpacity(opacity) {
@@ -2152,14 +3542,52 @@ class MapStudioApp {
       });
     }
 
+    layer.on('mousemove', (e) => {
+      // 作図ツールアクティブ時はレイヤー上のマウス移動もマップ作図エンジンへ伝播
+      if (['polygon', 'rect', 'subdivide', 'path', 'spot', 'slice'].includes(this.activeTool)) {
+        this.onMapMouseMove(e);
+      }
+    });
+
     layer.on('click', (e) => {
+      // 1. 作図ツールがアクティブな場合は、建物や部屋の上であっても作図クリックとして処理
+      if (['polygon', 'rect', 'subdivide', 'path', 'spot'].includes(this.activeTool)) {
+        this.onMapClick(e);
+        L.DomEvent.stopPropagation(e);
+        return;
+      }
+
       L.DomEvent.stopPropagation(e);
+
+      // 2. 削除ツール
       if (this.activeTool === 'delete') {
         this.deleteFeature(layer.feature.properties);
-      } else if (this.activeTool === 'select') {
+        return;
+      }
+
+      // 3. スライスツール
+      if (this.activeTool === 'slice') {
+        this.selectFeature(layer);
+        this.handleSliceClick(e.latlng, layer);
+        return;
+      }
+
+      // 4. 通常の選択ツール
+      if (this.activeTool === 'select') {
         this.selectFeature(layer);
       }
     });
+  }
+
+  getBuildingBaseAngle() {
+    const bldg = this.focusedBuilding || (this.selectedFeature?.entityType === 'building' ? this.selectedFeature : null) || (this.mapData.buildings || []).find(b => b.id === '生徒棟') || (this.mapData.buildings || [])[0];
+    if (bldg) {
+      const poly = bldg.polygon || bldg.coordinates;
+      if (poly && poly.length >= 3) {
+        return GeometryEngine.computeBuildingBaseAngle(poly);
+      }
+    }
+    return 0;
   }
 
   onMapMouseMove(e) {
@@ -2171,18 +3599,20 @@ class MapStudioApp {
       `${rawLatLng.lat.toFixed(6)}, ${rawLatLng.lng.toFixed(6)}`;
 
     // 1. Orthogonal constraint if Shift pressed & drawing
-    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && this.drawingPoints.length > 0) {
-      const lastPt = this.drawingPoints[this.drawingPoints.length - 1];
-      finalLatLng = this.getOrthogonalLatLng(lastPt, rawLatLng);
+    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && (this.drawingPoints.length > 0 || this.rectStartPoint)) {
+      const anchorPt = this.rectStartPoint || this.drawingPoints[this.drawingPoints.length - 1];
+      finalLatLng = this.getOrthogonalLatLng(anchorPt, rawLatLng);
     }
 
-    // 2. Snapping (12px containerPoint)
+    // 2. Snapping (12px containerPoint + Edge Snapping)
     if (this.isSnapEnabled) {
       const snap = this.findNearestSnapVertex(finalLatLng);
       if (snap) {
         finalLatLng = snap.latlng;
-        this.showSnapIndicator(snap.latlng, snap.isClosing);
-        document.getElementById('statusSnapInfo').textContent = snap.isClosing ? 'Snap: 始点閉合 (16px)' : 'Snap: 頂点吸着 (12px)';
+        this.showSnapIndicator(snap.latlng, snap.isClosing, snap.isEdge);
+        document.getElementById('statusSnapInfo').textContent = snap.isClosing 
+          ? 'Snap: 始点閉合 (16px)' 
+          : (snap.isEdge ? 'Snap: エッジ・外枠吸着 (Magnet)' : 'Snap: 頂点吸着 (12px)');
       } else {
         this.hideSnapIndicator();
         document.getElementById('statusSnapInfo').textContent = 'Snap: 待機中';
@@ -2195,6 +3625,28 @@ class MapStudioApp {
     if (this.drawingPoints.length > 0 && (this.activeTool === 'polygon' || this.activeTool === 'path')) {
       this.updateDrawingPreview(finalLatLng);
     }
+
+    // 4. Update Rect tool preview
+    if (this.activeTool === 'rect' && this.rectStartPoint) {
+      this.updateRectPreview(finalLatLng);
+    }
+
+    // 5. Update Subdivide (N-Rooms) tool preview
+    if (this.activeTool === 'subdivide' && this.subdivideStartPoint) {
+      this.updateSubdividePreview(finalLatLng);
+    }
+
+    // 6. Update Slice tool preview line
+    if (this.activeTool === 'slice' && this.sliceStartPoint) {
+      this.updateSlicePreview(finalLatLng);
+    }
+
+    // 7. Realtime Angle & Dimension HUD Overlay
+    if (['polygon', 'path', 'rect', 'subdivide'].includes(this.activeTool) && (this.drawingPoints.length > 0 || this.rectStartPoint || this.subdivideStartPoint)) {
+      this.updateDrawingAngleHud(finalLatLng);
+    } else {
+      this.hideDrawingAngleHud();
+    }
   }
 
   onMapClick(e) {
@@ -2204,8 +3656,9 @@ class MapStudioApp {
     }
 
     let latlng = e.latlng;
-    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && this.drawingPoints.length > 0) {
-      latlng = this.getOrthogonalLatLng(this.drawingPoints[this.drawingPoints.length - 1], latlng);
+    if ((this.isOrthoEnabled || this.isShiftKeyPressed) && (this.drawingPoints.length > 0 || this.rectStartPoint || this.subdivideStartPoint)) {
+      const anchorPt = this.subdivideStartPoint || this.rectStartPoint || this.drawingPoints[this.drawingPoints.length - 1];
+      latlng = this.getOrthogonalLatLng(anchorPt, latlng);
     }
     if (this.isSnapEnabled) {
       const snap = this.findNearestSnapVertex(latlng);
@@ -2216,6 +3669,36 @@ class MapStudioApp {
       parseFloat(latlng.lat.toFixed(6)),
       parseFloat(latlng.lng.toFixed(6))
     ];
+
+    if (this.activeTool === 'subdivide') {
+      if (!this.subdivideStartPoint) {
+        this.subdivideStartPoint = coord;
+        const count = Math.max(2, parseInt(document.getElementById('numSubdivideCount')?.value || '3'));
+        this.showToast(`🪟 ${count}部屋一括作成の【対角点（2点目）】をクリックしてください`, 'info');
+        const banner = document.getElementById('drawingBannerText');
+        if (banner) banner.textContent = `${count}部屋一括作図中: 対角点をクリックして確定 (Escでキャンセル)`;
+      } else {
+        this.finishSubdivideDrawing(coord);
+      }
+      return;
+    }
+
+    if (this.activeTool === 'rect') {
+      if (!this.rectStartPoint) {
+        this.rectStartPoint = coord;
+        this.showToast('📐 長方形の【対角点（2点目）】をクリックしてください', 'info');
+        const banner = document.getElementById('drawingBannerText');
+        if (banner) banner.textContent = '長方形作図中: 対角点をクリックして確定 (Escでキャンセル)';
+      } else {
+        this.finishRectDrawing(coord);
+      }
+      return;
+    }
+
+    if (this.activeTool === 'slice') {
+      this.handleSliceClick(latlng);
+      return;
+    }
 
     if (this.activeTool === 'polygon') {
       // Check start-point closing (3+ vertices)
@@ -2238,6 +3721,269 @@ class MapStudioApp {
     }
   }
 
+  updateRectPreview(currentLatLng) {
+    if (this.rectPreviewLayer) {
+      this.map.removeLayer(this.rectPreviewLayer);
+      this.rectPreviewLayer = null;
+    }
+    if (!this.rectStartPoint) return;
+    const baseAngle = this.getBuildingBaseAngle();
+    const p1 = this.rectStartPoint;
+    const p2 = [parseFloat(currentLatLng.lat.toFixed(6)), parseFloat(currentLatLng.lng.toFixed(6))];
+    const rectCoords = GeometryEngine.makeOrientedRectangle(p1, p2, baseAngle);
+
+    this.rectPreviewLayer = L.polygon(rectCoords, {
+      pane: 'editorHandlePane',
+      color: '#38bdf8',
+      weight: 2,
+      fillColor: '#38bdf8',
+      fillOpacity: 0.35,
+      dashArray: '4, 4'
+    }).addTo(this.map);
+  }
+
+  finishRectDrawing(p2Coord) {
+    if (!this.rectStartPoint || !p2Coord) {
+      this.cancelDrawing();
+      return;
+    }
+    const baseAngle = this.getBuildingBaseAngle();
+    const rectCoords = GeometryEngine.makeOrientedRectangle(this.rectStartPoint, p2Coord, baseAngle);
+    this.drawingPoints = rectCoords;
+    this.finishPolygonDrawing();
+    this.cancelDrawing();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Subdivide (N-Rooms Grid) Engine
+  // ---------------------------------------------------------------------------
+  clearSubdividePreview() {
+    (this.subdividePreviewLayers || []).forEach(l => this.map.removeLayer(l));
+    this.subdividePreviewLayers = [];
+  }
+
+  updateSubdividePreview(currentLatLng) {
+    this.clearSubdividePreview();
+    if (!this.subdivideStartPoint) return;
+
+    const count = Math.max(2, parseInt(document.getElementById('numSubdivideCount')?.value || '3'));
+    const baseAngle = this.getBuildingBaseAngle();
+    const p1 = this.subdivideStartPoint;
+    const p2 = [parseFloat(currentLatLng.lat.toFixed(6)), parseFloat(currentLatLng.lng.toFixed(6))];
+    const rooms = GeometryEngine.makeSubdividedRooms(p1, p2, baseAngle, count);
+
+    rooms.forEach((coords, idx) => {
+      const polyLayer = L.polygon(coords, {
+        pane: 'editorHandlePane',
+        color: '#10b981',
+        weight: 2,
+        fillColor: '#10b981',
+        fillOpacity: 0.25,
+        dashArray: '4, 4'
+      }).addTo(this.map);
+
+      // Tooltip indicating room index
+      polyLayer.bindTooltip(`部屋 ${idx + 1}/${count}`, {
+        permanent: true,
+        direction: 'center',
+        className: 'custom-map-tooltip'
+      });
+
+      this.subdividePreviewLayers.push(polyLayer);
+    });
+  }
+
+  finishSubdivideDrawing(p2Coord) {
+    if (!this.subdivideStartPoint || !p2Coord) {
+      this.cancelDrawing();
+      return;
+    }
+
+    const count = Math.max(2, parseInt(document.getElementById('numSubdivideCount')?.value || '3'));
+    const baseAngle = this.getBuildingBaseAngle();
+    const p1 = this.subdivideStartPoint;
+    const roomsCoords = GeometryEngine.makeSubdividedRooms(p1, p2Coord, baseAngle, count);
+
+    const targetFloorStr = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+    const floorInt = parseInt(targetFloorStr);
+    const floorData = this.mapData.indoorFloors[targetFloorStr];
+
+    if (!floorData) {
+      this.showToast(`フロアデータが見つかりません (${targetFloorStr}F)`, 'error');
+      this.cancelDrawing();
+      return;
+    }
+
+    const bldgId = this.focusedBuilding ? this.focusedBuilding.id : '生徒棟';
+    const existingRoomsCount = (floorData.rooms || []).length;
+
+    roomsCoords.forEach((coords, idx) => {
+      const roomNum = existingRoomsCount + idx + 1;
+      const roomCode = floorInt === 5 
+        ? `room_${floorInt}f_${roomNum}` 
+        : `room_${floorInt}0${roomNum}`;
+      
+      const roomName = floorInt === 5 
+        ? `${floorInt}F 教室${roomNum}` 
+        : `${floorInt}年${roomNum}組`;
+
+      const newRoom = {
+        id: roomCode,
+        roomId: roomCode,
+        name: roomName,
+        floor: floorInt,
+        buildingId: bldgId,
+        polygon: coords,
+        pinCoord: GeometryEngine.computeCentroid(coords),
+        style: {
+          color: '#10b981',
+          weight: 2,
+          opacity: 0.8,
+          dashArray: ''
+        }
+      };
+
+      floorData.rooms.push(newRoom);
+    });
+
+    this.history.pushState(this.mapData, `${count}部屋一括作成 (${targetFloorStr}F)`);
+    this.renderAll();
+    this.triggerAutoSave();
+    this.showToast(`✨ ${count} 部屋を直線的に一括作成しました！`, 'success');
+    this.cancelDrawing();
+  }
+
+  handleSliceClick(latlng, layerRef = null) {
+    const pt = [parseFloat(latlng.lat.toFixed(6)), parseFloat(latlng.lng.toFixed(6))];
+
+    if (!this.sliceStartPoint) {
+      // Step 1: Set slice start point
+      this.sliceStartPoint = pt;
+      this.showToast('✂️ 切断線の【終点（2点目）】をクリックしてください', 'info');
+      const banner = document.getElementById('drawingBannerText');
+      if (banner) banner.textContent = 'スライスカッター: 終点をクリックしてポリゴンを2つに切断 (Escでキャンセル)';
+    } else {
+      // Step 2: Execute cut between p1 and p2
+      const p1 = this.sliceStartPoint;
+      const p2 = pt;
+
+      // Determine target polygon to split
+      let targetEntity = null;
+
+      if (this.selectedFeature && (this.selectedFeature.polygon || this.selectedFeature.coordinates)) {
+        targetEntity = this.selectedLayer?._entityRef || this.findMapDataEntity(this.selectedFeature);
+      }
+
+      if (!targetEntity) {
+        const midPt = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        const checkEntity = (entity) => {
+          const poly = entity.polygon || entity.coordinates;
+          if (poly && poly.length >= 3) {
+            if (GeometryEngine.isPointInPolygon(midPt, poly) || GeometryEngine.isPointInPolygon(p1, poly) || GeometryEngine.isPointInPolygon(p2, poly)) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const curFloorStr = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+        const fl = this.mapData.indoorFloors[curFloorStr] || {};
+        targetEntity = (fl.rooms || []).find(checkEntity) || (fl.corridors || []).find(checkEntity);
+
+        if (!targetEntity && this.focusedBuilding) {
+          if (checkEntity(this.focusedBuilding)) targetEntity = this.focusedBuilding;
+        }
+
+        if (!targetEntity) {
+          targetEntity = (this.mapData.buildings || []).find(checkEntity);
+        }
+      }
+
+      if (!targetEntity) {
+        this.showToast('切断対象のポリゴンが見つかりませんでした。ポリゴンを選択してからスライスしてください。', 'error');
+        this.cancelSlice();
+        return;
+      }
+
+      const targetPoly = targetEntity.polygon || targetEntity.coordinates;
+      const splitResult = GeometryEngine.splitPolygonByLine(targetPoly, p1, p2);
+
+      if (!splitResult) {
+        this.showToast('直線がポリゴンを横断していません。2点をポリゴンを貫通するように引いてください。', 'error');
+        this.cancelSlice();
+        return;
+      }
+
+      const [polyA, polyB] = splitResult;
+
+      // Update original entity with polyA
+      targetEntity.polygon = polyA;
+      targetEntity.coordinates = polyA;
+      if (targetEntity.pinCoord || targetEntity.latlng) {
+        targetEntity.pinCoord = GeometryEngine.computeCentroid(polyA);
+      }
+
+      // Create new clone entity with polyB
+      const newEntity = JSON.parse(JSON.stringify(targetEntity));
+      const suffix = Date.now().toString().slice(-4);
+      newEntity.id = `${targetEntity.id || 'room'}_split_${suffix}`;
+      if (newEntity.roomId) newEntity.roomId = newEntity.id;
+      newEntity.name = `${targetEntity.name || '区画'} (分割)`;
+      newEntity.polygon = polyB;
+      newEntity.coordinates = polyB;
+      newEntity.pinCoord = GeometryEngine.computeCentroid(polyB);
+
+      // Add to proper collection
+      const targetFloor = targetEntity.floor !== undefined ? String(targetEntity.floor) : (['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1');
+      if (targetEntity.entityType === 'building') {
+        this.mapData.buildings.push(newEntity);
+      } else if (targetEntity.entityType === 'corridor') {
+        this.mapData.indoorFloors[targetFloor].corridors.push(newEntity);
+      } else {
+        this.mapData.indoorFloors[targetFloor].rooms.push(newEntity);
+      }
+
+      this.history.pushState(this.mapData, `スライス分割: ${targetEntity.name}`);
+      this.renderAll();
+      this.triggerAutoSave();
+      this.cancelSlice();
+      this.selectFeatureById(newEntity.id);
+      this.showToast(`✂️ 【${targetEntity.name}】を2つの区画にスライス分割しました！`, 'success');
+    }
+  }
+
+  cancelSlice() {
+    this.sliceStartPoint = null;
+    if (this.slicePreviewLayer) {
+      this.map.removeLayer(this.slicePreviewLayer);
+      this.slicePreviewLayer = null;
+    }
+    if (this.activeTool === 'slice') {
+      const banner = document.getElementById('drawingBannerText');
+      if (banner) banner.textContent = 'ポリゴンスライス: 切断したいポリゴンを横断する2点をクリック (Escでキャンセル)';
+    }
+  }
+
+  updateSlicePreview(currentLatLng) {
+    if (this.slicePreviewLayer) {
+      this.map.removeLayer(this.slicePreviewLayer);
+      this.slicePreviewLayer = null;
+    }
+    if (!this.sliceStartPoint) return;
+
+    const lineCoords = [
+      this.sliceStartPoint,
+      [currentLatLng.lat, currentLatLng.lng]
+    ];
+
+    this.slicePreviewLayer = L.polyline(lineCoords, {
+      pane: 'editorHandlePane',
+      color: '#f43f5e',
+      weight: 3,
+      dashArray: '6, 6'
+    }).addTo(this.map);
+  }
+
   onMapDblClick(e) {
     L.DomEvent.stopPropagation(e);
     if (this.activeTool === 'polygon' && this.drawingPoints.length >= 3) {
@@ -2248,21 +3994,22 @@ class MapStudioApp {
   }
 
   // ---------------------------------------------------------------------------
-  // Snapping & Ortho Logic
+  // Snapping & Ortho Logic (Vertex + Edge Magnet Snapping)
   // ---------------------------------------------------------------------------
   findNearestSnapVertex(latlng) {
     const mousePt = this.map.latLngToContainerPoint(latlng);
-    const snapThreshold = 12; // 12px
-    const closeThreshold = 16; // 16px for polygon closure
+    const snapThreshold = 14; // 14px (強力な吸着)
+    const closeThreshold = 18; // 18px for polygon closure
 
-    // Check closure on start vertex
+    // 1. Check closure on start vertex
     if (this.activeTool === 'polygon' && this.drawingPoints.length >= 3) {
       const startPt = this.map.latLngToContainerPoint(L.latLng(this.drawingPoints[0][0], this.drawingPoints[0][1]));
       if (mousePt.distanceTo(startPt) <= closeThreshold) {
-        return { latlng: L.latLng(this.drawingPoints[0][0], this.drawingPoints[0][1]), isClosing: true };
+        return { latlng: L.latLng(this.drawingPoints[0][0], this.drawingPoints[0][1]), isClosing: true, isEdge: false };
       }
     }
 
+    // 2. Check 14px vertex snap (廊下・階段・建物・部屋の全頂点)
     let closest = null;
     let minDistance = snapThreshold;
 
@@ -2272,11 +4019,91 @@ class MapStudioApp {
       const d = mousePt.distanceTo(vPt);
       if (d < minDistance) {
         minDistance = d;
-        closest = { latlng: v, isClosing: false };
+        closest = { latlng: v, isClosing: false, isEdge: false };
       }
     }
 
-    return closest;
+    if (closest) return closest;
+
+    // 3. Check Edge Snapping (Parent building outline, corridors, stairs & rooms)
+    const targetEdges = this.getAllFeatureEdges();
+    const curPt = [latlng.lat, latlng.lng];
+    for (const [pA, pB] of targetEdges) {
+      const edgeSnap = GeometryEngine.snapToEdge(curPt, pA, pB, 2.0);
+      if (edgeSnap) {
+        return { latlng: L.latLng(edgeSnap[0], edgeSnap[1]), isClosing: false, isEdge: true };
+      }
+    }
+
+    return null;
+  }
+
+  getAllFeatureEdges() {
+    const edges = [];
+    const collectEdges = (arr) => {
+      (arr || []).forEach(item => {
+        const poly = item.polygon || item.coordinates;
+        if (Array.isArray(poly) && poly.length >= 3) {
+          for (let i = 0; i < poly.length; i++) {
+            edges.push([poly[i], poly[(i + 1) % poly.length]]);
+          }
+        }
+      });
+    };
+
+    if (this.focusedBuilding) {
+      const polys = this.getBuildingFloorPolygons(this.focusedBuilding, this.currentFloor);
+      polys.forEach(p => {
+        if (p && p.length >= 3) {
+          for (let i = 0; i < p.length; i++) {
+            edges.push([p[i], p[(i + 1) % p.length]]);
+          }
+        }
+      });
+    }
+
+    if (['1', '2', '3', '4', '5'].includes(this.currentFloor)) {
+      const fl = this.mapData.indoorFloors[this.currentFloor] || {};
+      collectEdges(fl.rooms);
+      collectEdges(fl.corridors);
+      collectEdges(fl.stairs);
+      collectEdges(fl.toilets);
+    } else {
+      (this.mapData.buildings || []).forEach(b => {
+        const polys = this.getBuildingFloorPolygons(b, 'All');
+        polys.forEach(p => {
+          if (p && p.length >= 3) {
+            for (let i = 0; i < p.length; i++) {
+              edges.push([p[i], p[(i + 1) % p.length]]);
+            }
+          }
+        });
+      });
+    }
+
+    return edges;
+  }
+
+  showSnapIndicator(latlng, isClosing = false, isEdge = false) {
+    this.snapIndicator.setLatLng(latlng);
+    let color = '#f97316';
+    let fill = '#fdba74';
+    let rad = 6;
+
+    if (isClosing) {
+      color = '#22c55e';
+      fill = '#86efac';
+      rad = 8;
+    } else if (isEdge) {
+      color = '#38bdf8';
+      fill = '#bae6fd';
+      rad = 5;
+    }
+
+    this.snapIndicator.setStyle({ color, fillColor: fill, radius: rad });
+    if (!this.map.hasLayer(this.snapIndicator)) {
+      this.snapIndicator.addTo(this.map);
+    }
   }
 
   getAllFeatureVertices() {
@@ -2286,7 +4113,11 @@ class MapStudioApp {
         const poly = item.polygon || item.coordinates || item.polyline;
         if (Array.isArray(poly)) {
           if (Array.isArray(poly[0])) {
-            poly.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+            poly.forEach(([lat, lng]) => {
+              if (typeof lat === 'number' && typeof lng === 'number') {
+                list.push(L.latLng(lat, lng));
+              }
+            });
           } else if (typeof poly[0] === 'number') {
             list.push(L.latLng(poly[0], poly[1]));
           }
@@ -2295,11 +4126,28 @@ class MapStudioApp {
       });
     };
 
-    collectFromList(this.mapData.buildings);
+    // 1. Buildings (Floor-specific outline included)
+    (this.mapData.buildings || []).forEach(b => {
+      const polys = this.getBuildingFloorPolygons(b, this.currentFloor);
+      polys.forEach(p => {
+        p.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+      });
+    });
+
+    // 2. Focused building outline
+    if (this.focusedBuilding) {
+      const polys = this.getBuildingFloorPolygons(this.focusedBuilding, this.currentFloor);
+      polys.forEach(p => {
+        p.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+      });
+    }
+
+    // 3. Outdoor, Spots, Routes
     collectFromList(this.mapData.outdoorAreas);
     collectFromList(this.mapData.spots);
     collectFromList(this.mapData.accessRoutes);
 
+    // 4. Indoor Floors (rooms, corridors, stairs, toilets)
     for (let f = 1; f <= 5; f++) {
       const fl = this.mapData.indoorFloors[String(f)] || {};
       collectFromList(fl.rooms);
@@ -2308,29 +4156,17 @@ class MapStudioApp {
       collectFromList(fl.toilets);
     }
 
-    // Add currently drawing vertices
+    // 5. Active drawing points
     this.drawingPoints.forEach(([lat, lng]) => list.push(L.latLng(lat, lng)));
+    if (this.rectStartPoint) list.push(L.latLng(this.rectStartPoint[0], this.rectStartPoint[1]));
+    if (this.subdivideStartPoint) list.push(L.latLng(this.subdivideStartPoint[0], this.subdivideStartPoint[1]));
 
     return list;
   }
 
   getOrthogonalLatLng(lastCoord, currentLatLng) {
-    const p0 = this.map.latLngToContainerPoint(L.latLng(lastCoord[0], lastCoord[1]));
-    const p1 = this.map.latLngToContainerPoint(currentLatLng);
-
-    const dx = p1.x - p0.x;
-    const dy = p1.y - p0.y;
-    const r = Math.hypot(dx, dy);
-    if (r < 2) return currentLatLng;
-
-    const angle = Math.atan2(dy, dx);
-    const snapAngle = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2);
-
-    const snappedPt = L.point(
-      p0.x + r * Math.cos(snapAngle),
-      p0.y + r * Math.sin(snapAngle)
-    );
-    return this.map.containerPointToLatLng(snappedPt);
+    const baseAngle = this.getBuildingBaseAngle();
+    return GeometryEngine.getOrientedOrthogonalLatLng(lastCoord, currentLatLng, this.map, baseAngle);
   }
 
   showSnapIndicator(latlng, isClosing = false) {
@@ -2349,6 +4185,268 @@ class MapStudioApp {
     if (this.map.hasLayer(this.snapIndicator)) {
       this.map.removeLayer(this.snapIndicator);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Realtime Angle & Dimension HUD Overlay + Visual Angle Sector Wedge
+  // ---------------------------------------------------------------------------
+  renderAngleSector(centerLatLng, angleStartRad, angleEndRad, isRightAngle, labelText) {
+    if (!this.angleSectorLayer) {
+      this.angleSectorLayer = L.polygon([], {
+        pane: 'editorHandlePane',
+        interactive: false
+      });
+      this.angleSectorMarker = L.circleMarker([0, 0], {
+        pane: 'editorHandlePane',
+        radius: 0.1,
+        opacity: 0,
+        fillOpacity: 0,
+        interactive: false
+      });
+    }
+
+    const refLat = centerLatLng[0];
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+
+    // 画面ズームに応じた適切な扇形半径 (ピクセル基準で約 32px 相当のメートル半径)
+    const zoom = this.map ? this.map.getZoom() : 19;
+    const metersPerPx = 40075016.686 * Math.cos((refLat * Math.PI) / 180) / Math.pow(2, zoom + 8);
+    const radiusMeters = Math.max(1.5, Math.min(7.0, metersPerPx * 34));
+
+    // 角度差を [-PI, PI] に正規化
+    let diff = angleEndRad - angleStartRad;
+    while (diff <= -Math.PI) diff += 2 * Math.PI;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+
+    if (Math.abs(diff) < 0.005) {
+      this.hideAngleSector();
+      return;
+    }
+
+    const N = 18;
+    const sectorPts = [centerLatLng];
+    for (let i = 0; i <= N; i++) {
+      const a = angleStartRad + (diff * i) / N;
+      const x = radiusMeters * Math.cos(a);
+      const y = radiusMeters * Math.sin(a);
+      sectorPts.push([
+        parseFloat((centerLatLng[0] + y / lat2m).toFixed(6)),
+        parseFloat((centerLatLng[1] + x / lng2m).toFixed(6))
+      ]);
+    }
+    sectorPts.push(centerLatLng);
+
+    // スタイル設定（直角時は鮮やかなエメラルドグリーン、通常時はスカイブルー）
+    const color = isRightAngle ? '#16a34a' : '#0284c7';
+    const fillColor = isRightAngle ? '#22c55e' : '#38bdf8';
+    const fillOpacity = isRightAngle ? 0.45 : 0.28;
+
+    this.angleSectorLayer.setLatLngs(sectorPts);
+    this.angleSectorLayer.setStyle({
+      color: color,
+      weight: isRightAngle ? 2.5 : 2,
+      fillColor: fillColor,
+      fillOpacity: fillOpacity,
+      dashArray: isRightAngle ? '' : '3, 3'
+    });
+
+    if (!this.map.hasLayer(this.angleSectorLayer)) {
+      this.angleSectorLayer.addTo(this.map);
+    }
+
+    // ラベルの配置（扇形の中央角度の外周）
+    const midAngle = angleStartRad + diff / 2;
+    const labelDist = radiusMeters * 1.35;
+    const labelLat = parseFloat((centerLatLng[0] + (labelDist * Math.sin(midAngle)) / lat2m).toFixed(6));
+    const labelLng = parseFloat((centerLatLng[1] + (labelDist * Math.cos(midAngle)) / lng2m).toFixed(6));
+
+    this.angleSectorMarker.setLatLng([labelLat, labelLng]);
+    const badgeClass = isRightAngle ? 'angle-sector-tooltip is-right-angle' : 'angle-sector-tooltip';
+    this.angleSectorMarker.unbindTooltip();
+    this.angleSectorMarker.bindTooltip(labelText, {
+      permanent: true,
+      direction: 'center',
+      className: badgeClass
+    });
+
+    if (!this.map.hasLayer(this.angleSectorMarker)) {
+      this.angleSectorMarker.addTo(this.map);
+    }
+  }
+
+  hideAngleSector() {
+    if (this.angleSectorLayer && this.map.hasLayer(this.angleSectorLayer)) {
+      this.map.removeLayer(this.angleSectorLayer);
+    }
+    if (this.angleSectorMarker && this.map.hasLayer(this.angleSectorMarker)) {
+      this.map.removeLayer(this.angleSectorMarker);
+    }
+  }
+
+  updateDrawingAngleHud(currentLatLng, vertexDragInfo = null) {
+    if (!this.drawingAngleHudMarker) {
+      this.drawingAngleHudMarker = L.circleMarker([currentLatLng.lat, currentLatLng.lng], {
+        pane: 'editorHandlePane',
+        radius: 0.1,
+        opacity: 0,
+        fillOpacity: 0,
+        interactive: false
+      }).addTo(this.map);
+
+      this.drawingAngleHudMarker.bindTooltip('', {
+        permanent: true,
+        direction: 'right',
+        offset: [16, -12],
+        className: 'drawing-hud-tooltip'
+      });
+    }
+
+    this.drawingAngleHudMarker.setLatLng(currentLatLng);
+
+    const refLat = currentLatLng.lat;
+    const cosLat = Math.cos((refLat * Math.PI) / 180.0);
+    const lat2m = 111132.954;
+    const lng2m = 111132.954 * cosLat;
+    const baseAngle = this.getBuildingBaseAngle(); // 校舎主軸角 (rad)
+
+    let htmlContent = '';
+
+    // A. 頂点ドラッグ編集中の扇形表示
+    if (vertexDragInfo && vertexDragInfo.prevPt && vertexDragInfo.nextPt) {
+      const curr = [currentLatLng.lat, currentLatLng.lng];
+      const p1 = vertexDragInfo.prevPt;
+      const p2 = vertexDragInfo.nextPt;
+
+      const v1x = (p1[1] - curr[1]) * lng2m;
+      const v1y = (p1[0] - curr[0]) * lat2m;
+      const v2x = (p2[1] - curr[1]) * lng2m;
+      const v2y = (p2[0] - curr[0]) * lat2m;
+
+      const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+      const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+      if (len1 > 0.01 && len2 > 0.01) {
+        const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
+        const clampedDot = Math.max(-1, Math.min(1, dot));
+        const innerDeg = (Math.acos(clampedDot) * 180) / Math.PI;
+        const isRightAngle = Math.abs(innerDeg - 90) <= 1.0;
+
+        const a1 = Math.atan2(v1y, v1x);
+        const a2 = Math.atan2(v2y, v2x);
+        const labelStr = isRightAngle ? '90.0° 📐 (直角)' : `${innerDeg.toFixed(1)}°`;
+
+        this.renderAngleSector(curr, a1, a2, isRightAngle, labelStr);
+
+        htmlContent = `
+          <div class="drawing-hud-badge">
+            <span class="hud-dist"><i class="fa-solid fa-arrows-left-right"></i> ${len1.toFixed(1)}m / ${len2.toFixed(1)}m</span>
+            <span class="hud-angle ${isRightAngle ? 'is-right-angle' : ''}"><i class="fa-solid fa-compass-drafting"></i> 内角: ${innerDeg.toFixed(1)}° ${isRightAngle ? '📐(直角)' : ''}</span>
+          </div>
+        `;
+      }
+    }
+    // B. 長方形ツール (rect) または N部屋ツール (subdivide) の対角点作図中
+    else if ((this.activeTool === 'rect' && this.rectStartPoint) || (this.activeTool === 'subdivide' && this.subdivideStartPoint)) {
+      const p1 = this.rectStartPoint || this.subdivideStartPoint;
+      const p2 = [currentLatLng.lat, currentLatLng.lng];
+
+      const p2x = (p2[1] - p1[1]) * lng2m;
+      const p2y = (p2[0] - p1[0]) * lat2m;
+      const cosA = Math.cos(-baseAngle);
+      const sinA = Math.sin(-baseAngle);
+      const localW = Math.abs(p2x * cosA - p2y * sinA);
+      const localH = Math.abs(p2x * sinA + p2y * cosA);
+
+      const signX = (p2x * cosA - p2y * sinA) >= 0 ? 1 : -1;
+      const signY = (p2x * sinA + p2y * cosA) >= 0 ? 1 : -1;
+      const a1 = baseAngle + (signX < 0 ? Math.PI : 0);
+      const a2 = baseAngle + (signY >= 0 ? Math.PI / 2 : -Math.PI / 2);
+
+      this.renderAngleSector(p1, a1, a2, true, '90.0° 📐 (直角)');
+
+      htmlContent = `
+        <div class="drawing-hud-badge">
+          <span class="hud-dist"><i class="fa-solid fa-ruler-combined"></i> ${localW.toFixed(1)}m × ${localH.toFixed(1)}m</span>
+          <span class="hud-angle is-right-angle"><i class="fa-solid fa-vector-square"></i> 90.0° (直角)</span>
+        </div>
+      `;
+    }
+    // C. ポリゴンツール (polygon) または パスツール (path) 作図中
+    else if (this.drawingPoints.length > 0 && (this.activeTool === 'polygon' || this.activeTool === 'path')) {
+      const lastPt = this.drawingPoints[this.drawingPoints.length - 1];
+      const currPt = [currentLatLng.lat, currentLatLng.lng];
+
+      // 直前点からの距離 (m)
+      const dx = (currPt[1] - lastPt[1]) * lng2m;
+      const dy = (currPt[0] - lastPt[0]) * lat2m;
+      const distM = Math.sqrt(dx * dx + dy * dy);
+
+      // 直前線分となす角度（扇形アーク生成）
+      let angleText = '';
+      let isRightAngle = false;
+
+      if (this.drawingPoints.length >= 2) {
+        const prevPt = this.drawingPoints[this.drawingPoints.length - 2];
+        const v1x = (prevPt[1] - lastPt[1]) * lng2m; // lastPt から prevPt へのベクトル (直前線分)
+        const v1y = (prevPt[0] - lastPt[0]) * lat2m;
+        const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+        const len2 = distM;
+
+        if (len1 > 0.01 && len2 > 0.01) {
+          const dot = (v1x * dx + v1y * dy) / (len1 * len2);
+          const clampedDot = Math.max(-1, Math.min(1, dot));
+          const innerDeg = (Math.acos(clampedDot) * 180) / Math.PI;
+
+          isRightAngle = Math.abs(innerDeg - 90) <= 1.0;
+          angleText = isRightAngle ? `90.0° 📐 (直角)` : `${innerDeg.toFixed(1)}°`;
+
+          const a1 = Math.atan2(v1y, v1x); // 直前の線の方向
+          const a2 = Math.atan2(dy, dx);   // 今引いている線の方向
+          const labelStr = isRightAngle ? '90.0° 📐 (直角)' : `${innerDeg.toFixed(1)}°`;
+
+          // 直前の線から今引いている線へ向けた扇形を描画！
+          this.renderAngleSector(lastPt, a1, a2, isRightAngle, labelStr);
+        }
+      } else {
+        // 第1線分の場合は校舎基準角度から今引いている線への扇形を描画
+        const segAngle = Math.atan2(dy, dx);
+        let diffDeg = Math.abs((segAngle - baseAngle) * 180 / Math.PI) % 90;
+        if (diffDeg > 45) diffDeg = 90 - diffDeg;
+        isRightAngle = (diffDeg <= 1.0);
+        angleText = isRightAngle ? `校舎平行/直角 📐` : `方位 ${(((segAngle * 180 / Math.PI) + 360) % 360).toFixed(0)}°`;
+
+        const labelStr = isRightAngle ? '校舎直角/平行 📐' : `${(((segAngle * 180 / Math.PI) + 360) % 360).toFixed(0)}°`;
+        this.renderAngleSector(lastPt, baseAngle, segAngle, isRightAngle, labelStr);
+      }
+
+      htmlContent = `
+        <div class="drawing-hud-badge">
+          <span class="hud-dist"><i class="fa-solid fa-ruler-horizontal"></i> ${distM.toFixed(1)}m</span>
+          ${angleText ? `<span class="hud-angle ${isRightAngle ? 'is-right-angle' : ''}"><i class="fa-solid fa-compass-drafting"></i> ${angleText}</span>` : ''}
+        </div>
+      `;
+    } else {
+      this.hideAngleSector();
+    }
+
+    if (htmlContent) {
+      this.drawingAngleHudMarker.setTooltipContent(htmlContent);
+      if (!this.map.hasLayer(this.drawingAngleHudMarker)) {
+        this.drawingAngleHudMarker.addTo(this.map);
+      }
+    } else {
+      this.hideDrawingAngleHud();
+      this.hideAngleSector();
+    }
+  }
+
+  hideDrawingAngleHud() {
+    if (this.drawingAngleHudMarker && this.map.hasLayer(this.drawingAngleHudMarker)) {
+      this.map.removeLayer(this.drawingAngleHudMarker);
+    }
+    this.hideAngleSector();
   }
 
   // ---------------------------------------------------------------------------
@@ -2394,17 +4492,66 @@ class MapStudioApp {
       return;
     }
 
-    const targetFloor = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : 1;
-    const preset = this.activePreset || 'classroom';
+    const preset = this.activePreset || (this.editorMode === 'campus' ? 'building' : 'classroom');
     const newId = `${preset}_${Date.now().toString().slice(-6)}`;
     const centroid = GeometryEngine.computeCentroid(this.drawingPoints);
+
+    if (this.editorMode === 'campus') {
+      if (preset === 'outdoor') {
+        const newOutdoor = {
+          id: newId,
+          name: '新規模外エリア',
+          type: 'ground',
+          color: '#8fd19e',
+          strokeColor: '#5fa66f',
+          polygon: [...this.drawingPoints],
+          coordinates: [...this.drawingPoints]
+        };
+        this.mapData.outdoorAreas.push(newOutdoor);
+        this.cancelDrawing();
+        this.renderAll();
+        this.history.pushState(this.mapData, `屋外作図: ${newOutdoor.name}`);
+        this.triggerAutoSave();
+        this.showToast(`🌳 屋外エリア [${newOutdoor.name}] を作成しました`, 'success');
+        this.selectFeatureById(newId);
+        return;
+      } else {
+        const bldgIndex = (this.mapData.buildings || []).length + 1;
+        const newBuilding = {
+          id: newId,
+          name: `校舎 ${bldgIndex}`,
+          category: 'main',
+          floors: [1, 2, 3, 4, 5],
+          hasIndoor: true,
+          color: '#7c5cff',
+          strokeColor: '#5e35b1',
+          polygon: [...this.drawingPoints],
+          coordinates: [...this.drawingPoints]
+        };
+        this.mapData.buildings.push(newBuilding);
+        this.cancelDrawing();
+        this.renderAll();
+        this.history.pushState(this.mapData, `建物作成: ${newBuilding.name}`);
+        this.triggerAutoSave();
+        this.populateBuildingDropdown();
+        const btnInt = document.getElementById('btnModeInterior');
+        if (btnInt) btnInt.disabled = false;
+        this.showToast(`🏢 建物 [${newBuilding.name}] を作成しました！「🚪 内部を編集」から教室をプロットできます`, 'success');
+        this.selectFeatureById(newId);
+        return;
+      }
+    }
+
+    // Interior Mode: Building Room / Corridor / Stairs / Toilet
+    const targetFloor = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : 1;
+    const assignedBuildingId = this.focusedBuilding ? (this.focusedBuilding.id || 'student_bldg') : 'student_bldg';
 
     let newFeature = {
       id: newId,
       name: `新規 ${this.getPresetLabel(preset)}`,
       category: preset,
       floor: targetFloor,
-      buildingId: 'student_bldg',
+      buildingId: assignedBuildingId,
       polygon: [...this.drawingPoints],
       coordinates: [...this.drawingPoints],
       pinCoord: centroid
@@ -2414,8 +4561,23 @@ class MapStudioApp {
       newFeature.gender = 'all';
       this.mapData.indoorFloors[String(targetFloor)].toilets.push(newFeature);
     } else if (preset === 'stairs') {
-      newFeature.connectsFloors = [targetFloor, targetFloor + 1];
-      this.mapData.indoorFloors[String(targetFloor)].stairs.push(newFeature);
+      newFeature.isAllFloors = true;
+      newFeature.connectsFloors = [1, 2, 3, 4, 5];
+      // 階段は全階共通: 全フロア (1F〜5F) の stairs 配列に同一座標で自動同期登録
+      for (let f = 1; f <= 5; f++) {
+        const flStr = String(f);
+        if (!this.mapData.indoorFloors[flStr]) {
+          this.mapData.indoorFloors[flStr] = { rooms: [], corridors: [], stairs: [], toilets: [] };
+        }
+        if (!this.mapData.indoorFloors[flStr].stairs) {
+          this.mapData.indoorFloors[flStr].stairs = [];
+        }
+        this.mapData.indoorFloors[flStr].stairs = this.mapData.indoorFloors[flStr].stairs.filter(s => s.id !== newId);
+        this.mapData.indoorFloors[flStr].stairs.push({
+          ...newFeature,
+          floor: f
+        });
+      }
     } else if (preset === 'corridor' || preset === 'overpass') {
       newFeature.isOverpass = (preset === 'overpass');
       this.mapData.indoorFloors[String(targetFloor)].corridors.push(newFeature);
@@ -2427,11 +4589,10 @@ class MapStudioApp {
 
     this.cancelDrawing();
     this.renderAll();
-    this.history.pushState(this.mapData, `ポリゴン作図: ${newFeature.name}`);
+    this.history.pushState(this.mapData, `部屋作図: ${newFeature.name}`);
     this.triggerAutoSave();
-    this.showToast(`図形 [${newFeature.name}] を作成しました`, 'success');
-
-    // Auto select created feature
+    const floorInfo = preset === 'stairs' ? '全階 1F〜5F に共通配置' : `${this.focusedBuilding?.name || assignedBuildingId} ${targetFloor}F`;
+    this.showToast(`図形 [${newFeature.name}] を作成しました (${floorInfo})`, 'success');
     this.selectFeatureById(newId);
   }
 
@@ -2466,12 +4627,16 @@ class MapStudioApp {
 
   createSpotFeature(coord) {
     const newId = `spot_${Date.now().toString().slice(-6)}`;
+    const isCampus = (this.editorMode === 'campus');
+    const assignedBuildingId = isCampus ? 'outdoor' : (this.focusedBuilding ? (this.focusedBuilding.id || 'student_bldg') : 'student_bldg');
+    const assignedFloor = isCampus ? undefined : (['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : 1);
+
     const newSpot = {
       id: newId,
-      name: '新規模擬店/スポット',
+      name: isCampus ? '新規模擬店/屋外スポット' : '新規模擬店/室内スポット',
       category: 'food',
-      floor: ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? parseInt(this.currentFloor) : undefined,
-      buildingId: 'courtyard',
+      floor: assignedFloor,
+      buildingId: assignedBuildingId,
       latlng: coord,
       coordinates: coord
     };
@@ -2480,17 +4645,26 @@ class MapStudioApp {
     this.renderAll();
     this.history.pushState(this.mapData, `スポット作成: ${newSpot.name}`);
     this.triggerAutoSave();
-    this.showToast(`スポット [${newSpot.name}] を配置しました`, 'success');
+    this.showToast(`📍 スポット [${newSpot.name}] を配置しました`, 'success');
     this.setTool('select');
     this.selectFeatureById(newId);
   }
 
   cancelDrawing() {
     this.drawingPoints = [];
+    this.rectStartPoint = null;
+    this.subdivideStartPoint = null;
     if (this.drawingPreviewLayer) {
       this.map.removeLayer(this.drawingPreviewLayer);
       this.drawingPreviewLayer = null;
     }
+    if (this.rectPreviewLayer) {
+      this.map.removeLayer(this.rectPreviewLayer);
+      this.rectPreviewLayer = null;
+    }
+    this.clearSubdividePreview();
+    this.cancelSlice();
+    this.hideDrawingAngleHud();
     document.getElementById('drawingBanner').style.display = 'none';
   }
 
@@ -2502,73 +4676,93 @@ class MapStudioApp {
     if (!layer || !layer.feature) return;
 
     const feature = layer.feature.properties;
-    const coords = feature.polygon || feature.coordinates || feature.polyline;
+    const coords = feature.polyline || feature.coordinates || feature.polygon;
     if (!coords || !Array.isArray(coords) || coords.length === 0) return;
 
     const isPolygon = !feature.polyline && feature.entityType !== 'route';
 
-    // 1. Vertex Drag Handles
+    const updateLayerGeometry = (pts) => {
+      if (!isPolygon && feature.smooth && pts.length >= 2) {
+        layer.setLatLngs(GeometryEngine.interpolateCatmullRom(pts, false, 16, 0.5));
+      } else {
+        layer.setLatLngs(pts);
+      }
+    };
+
+    // 1. Vertex Drag Handles (Leaflet Native Draggable Markers)
     coords.forEach((coord, idx) => {
       const latlng = L.latLng(coord[0], coord[1]);
-      const handle = L.circleMarker(latlng, {
+      const handle = L.marker(latlng, {
         pane: 'editorHandlePane',
-        radius: 6,
-        color: '#2563eb',
-        fillColor: '#60a5fa',
-        fillOpacity: 0.95,
-        weight: 2
+        draggable: true,
+        icon: L.divIcon({
+          className: 'vertex-drag-handle-marker',
+          html: `<div style="width: 14px; height: 14px; border-radius: 50%; background: #2563eb; border: 2.5px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.6); cursor: grab; transition: transform 0.1s;"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7]
+        })
       }).addTo(this.map);
 
-      // Drag logic
-      handle.on('mousedown', (e) => {
-        L.DomEvent.stopPropagation(e);
+      // Dragstart: Disable map dragging completely
+      handle.on('dragstart', (e) => {
         this.map.dragging.disable();
-
-        const onMouseMove = (ev) => {
-          let moveLatLng = ev.latlng;
-          if (this.isSnapEnabled) {
-            const snap = this.findNearestSnapVertex(moveLatLng);
-            if (snap) moveLatLng = snap.latlng;
-          }
-          handle.setLatLng(moveLatLng);
-          coords[idx] = [
-            parseFloat(moveLatLng.lat.toFixed(6)),
-            parseFloat(moveLatLng.lng.toFixed(6))
-          ];
-          layer.setLatLngs(coords);
-          const target = layer._entityRef || this.findMapDataEntity(feature);
-          if (target) {
-            if (target.polygon) target.polygon = coords;
-            if (target.coordinates) target.coordinates = coords;
-            if (target.polyline) target.polyline = coords;
-          }
-          this.updateCentroidDisplay();
-        };
-
-        const onMouseUp = () => {
-          this.map.off('mousemove', onMouseMove);
-          this.map.off('mouseup', onMouseUp);
-          this.map.dragging.enable();
-          this.attachVertexHandles(layer);
-          const target = layer._entityRef || this.findMapDataEntity(feature);
-          if (target) {
-            if (target.polygon) target.polygon = coords;
-            if (target.coordinates) target.coordinates = coords;
-            if (target.polyline) target.polyline = coords;
-          }
-          this.history.pushState(this.mapData, `頂点移動: ${feature.name || feature.id}`);
-          this.triggerAutoSave();
-        };
-
-        this.map.on('mousemove', onMouseMove);
-        this.map.on('mouseup', onMouseUp);
       });
 
-      // Right-click delete vertex
-      handle.on('contextmenu', (e) => {
-        L.DomEvent.stopPropagation(e);
-        L.DomEvent.preventDefault(e);
+      // Drag: Update coordinates and live line geometry
+      handle.on('drag', (e) => {
+        let moveLatLng = handle.getLatLng();
+        if (this.isSnapEnabled) {
+          const snap = this.findNearestSnapVertex(moveLatLng);
+          if (snap) {
+            moveLatLng = snap.latlng;
+            handle.setLatLng(moveLatLng);
+          }
+        }
+        coords[idx] = [
+          parseFloat(moveLatLng.lat.toFixed(6)),
+          parseFloat(moveLatLng.lng.toFixed(6))
+        ];
+        updateLayerGeometry(coords);
 
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          if (target.polygon) target.polygon = coords;
+          if (target.coordinates) target.coordinates = coords;
+          if (target.polyline) target.polyline = coords;
+        }
+        this.updateCentroidDisplay();
+      });
+
+      // Dragend: Re-enable map dragging and record state
+      handle.on('dragend', (e) => {
+        this.map.dragging.enable();
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          if (target.polygon) target.polygon = coords;
+          if (target.coordinates) target.coordinates = coords;
+          if (target.polyline) target.polyline = coords;
+        }
+        // 階段の場合は全フロアの同一IDの座標も同期
+        if (feature.entityType === 'stairs' || feature.category === 'stairs') {
+          for (let f = 1; f <= 5; f++) {
+            const fl = this.mapData.indoorFloors[String(f)];
+            if (fl && fl.stairs) {
+              fl.stairs.forEach(st => {
+                if (st.id === feature.id) {
+                  st.polygon = JSON.parse(JSON.stringify(coords));
+                  st.coordinates = JSON.parse(JSON.stringify(coords));
+                }
+              });
+            }
+          }
+        }
+        this.attachVertexHandles(layer);
+        this.history.pushState(this.mapData, `頂点移動: ${feature.name || feature.id}`);
+        this.triggerAutoSave();
+      });
+
+      // Delete vertex function
+      const deleteVertex = () => {
         const minPoints = isPolygon ? 3 : 2;
         if (coords.length <= minPoints) {
           this.showToast(`頂点を削除できません（最小 ${minPoints} 点必要です）`, 'error');
@@ -2576,17 +4770,48 @@ class MapStudioApp {
         }
 
         coords.splice(idx, 1);
-        layer.setLatLngs(coords);
+        updateLayerGeometry(coords);
         const target = layer._entityRef || this.findMapDataEntity(feature);
         if (target) {
           if (target.polygon) target.polygon = coords;
           if (target.coordinates) target.coordinates = coords;
           if (target.polyline) target.polyline = coords;
         }
+        if (feature.entityType === 'stairs' || feature.category === 'stairs') {
+          for (let f = 1; f <= 5; f++) {
+            const fl = this.mapData.indoorFloors[String(f)];
+            if (fl && fl.stairs) {
+              fl.stairs.forEach(st => {
+                if (st.id === feature.id) {
+                  st.polygon = JSON.parse(JSON.stringify(coords));
+                  st.coordinates = JSON.parse(JSON.stringify(coords));
+                }
+              });
+            }
+          }
+        }
         this.attachVertexHandles(layer);
         this.history.pushState(this.mapData, `頂点削除: ${feature.name || feature.id}`);
         this.triggerAutoSave();
-        this.showToast('頂点を削除しました', 'info');
+        this.showToast(`頂点 #${idx + 1} を削除しました`, 'info');
+      };
+
+      handle.bindTooltip(`頂点 #${idx + 1}<br><span style="font-size:10.5px; color:#cbd5e1;">ドラッグ: 移動<br>右クリック または Alt+クリック: 削除</span>`, {
+        direction: 'top',
+        className: 'custom-map-tooltip'
+      });
+
+      handle.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        if (e.originalEvent?.altKey || this.activeTool === 'delete') {
+          deleteVertex();
+        }
+      });
+
+      handle.on('contextmenu', (e) => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+        deleteVertex();
       });
 
       this.vertexHandles.push(handle);
@@ -2599,13 +4824,14 @@ class MapStudioApp {
       const p2 = coords[(i + 1) % coords.length];
       const midLatLng = L.latLng((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2);
 
-      const midHandle = L.circleMarker(midLatLng, {
+      const midHandle = L.marker(midLatLng, {
         pane: 'editorHandlePane',
-        radius: 4,
-        color: '#64748b',
-        fillColor: '#ffffff',
-        fillOpacity: 0.9,
-        weight: 1.5
+        icon: L.divIcon({
+          className: 'midpoint-insert-handle-marker',
+          html: `<div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; border: 1.5px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.5); cursor: pointer;"></div>`,
+          iconSize: [10, 10],
+          iconAnchor: [5, 5]
+        })
       }).addTo(this.map);
 
       midHandle.on('click', (e) => {
@@ -2615,7 +4841,7 @@ class MapStudioApp {
           parseFloat(midLatLng.lng.toFixed(6))
         ];
         coords.splice(i + 1, 0, newVertex);
-        layer.setLatLngs(coords);
+        updateLayerGeometry(coords);
         const target = layer._entityRef || this.findMapDataEntity(feature);
         if (target) {
           if (target.polygon) target.polygon = coords;
@@ -2703,6 +4929,8 @@ class MapStudioApp {
 
     document.getElementById('inspEmptyState').style.display = 'block';
     document.getElementById('inspForm').style.display = 'none';
+    const directBox = document.getElementById('inspEnterInteriorBox');
+    if (directBox) directBox.style.display = 'none';
     document.getElementById('inspBadge').textContent = '未選択';
     document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('selected'));
   }
@@ -2713,6 +4941,22 @@ class MapStudioApp {
 
     const entityType = feat.entityType || 'room';
     document.getElementById('inspBadge').textContent = `${entityType.toUpperCase()}`;
+
+    // Direct Enter Interior Button for Buildings
+    const directBox = document.getElementById('inspEnterInteriorBox');
+    if (directBox) {
+      if (entityType === 'building') {
+        directBox.style.display = 'block';
+        const directBtn = document.getElementById('btnEnterBuildingFocusDirect');
+        if (directBtn) {
+          directBtn.innerHTML = `<i class="fa-solid fa-door-open"></i> 【${feat.name || feat.id}】の内部フロア (1F〜5F) を編集する →`;
+        }
+        const btnInt = document.getElementById('btnModeInterior');
+        if (btnInt) btnInt.disabled = false;
+      } else {
+        directBox.style.display = 'none';
+      }
+    }
 
     // Base Fields
     document.getElementById('fieldId').value = feat.id || feat.roomId || '';
@@ -2746,7 +4990,7 @@ class MapStudioApp {
 
     if (entityType === 'building') {
       document.getElementById('fieldHasIndoor').checked = !!feat.hasIndoor;
-      const bldgFloors = feat.floors || [1];
+      const bldgFloors = feat.floors || [1, 2, 3, 4, 5];
       document.querySelectorAll('#bldgFloorsGroup input').forEach(cb => {
         cb.checked = bldgFloors.includes(parseInt(cb.value));
       });
@@ -2898,6 +5142,24 @@ class MapStudioApp {
         target.buildingTo = f.buildingTo;
       } else if (f.entityType === 'toilet') {
         target.gender = f.gender;
+      } else if (f.entityType === 'stairs' || f.category === 'stairs') {
+        // 階段のプロパティ（名称・スタイル等）を全フロアに同期
+        for (let flNum = 1; flNum <= 5; flNum++) {
+          const fl = this.mapData.indoorFloors[String(flNum)];
+          if (fl && fl.stairs) {
+            fl.stairs.forEach(st => {
+              if (st.id === f.id) {
+                st.name = f.name;
+                st.color = color;
+                st.strokeColor = strokeColor;
+                if (st.style) {
+                  st.style.fillColor = color;
+                  st.style.strokeColor = strokeColor;
+                }
+              }
+            });
+          }
+        }
       } else if (f.entityType === 'route') {
         target.timeMinutes = f.timeMinutes;
         target.distanceMeters = f.distanceMeters;
@@ -2922,6 +5184,14 @@ class MapStudioApp {
         fillOpacity: opacity,
         weight: weight
       });
+    }
+    if (f.entityType === 'route') {
+      const rawPts = f.polyline || f.coordinates || [];
+      if (f.smooth && rawPts.length >= 2) {
+        this.selectedLayer.setLatLngs(GeometryEngine.interpolateCatmullRom(rawPts, false, 16, 0.5));
+      } else {
+        this.selectedLayer.setLatLngs(rawPts);
+      }
     }
     if (this.selectedLayer.setTooltipContent) {
       this.selectedLayer.setTooltipContent(f.name);
@@ -2998,6 +5268,117 @@ class MapStudioApp {
   }
 
   // ---------------------------------------------------------------------------
+  // Single Feature Multi-Floor Copy Engine (特定図形ピンポイント別階コピー)
+  // ---------------------------------------------------------------------------
+  openCopyFeatureToFloorModal() {
+    if (!this.selectedFeature) {
+      this.showToast('別階へコピーしたい図形を選択してください', 'warning');
+      return;
+    }
+    const feat = this.selectedFeature;
+    const currentFloor = feat.floor !== undefined ? String(feat.floor) : (['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1');
+
+    document.getElementById('lblCopyFeatureTargetName').textContent = `${feat.name || feat.id} (${this.getPresetLabel(feat.category || feat.entityType)})`;
+    document.getElementById('lblCopyFeatureCurrentFloor').textContent = `${currentFloor}F`;
+
+    const group = document.getElementById('copyFeatureTargetFloorsGroup');
+    if (group) {
+      group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const fVal = cb.value;
+        cb.checked = (parseInt(fVal) === parseInt(currentFloor) + 1);
+        cb.disabled = (fVal === currentFloor);
+      });
+    }
+
+    const modal = document.getElementById('copyFeatureToFloorModal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  executeCopyFeatureToFloors() {
+    if (!this.selectedFeature) return;
+    const feat = this.selectedFeature;
+    const currentFloor = feat.floor !== undefined ? String(feat.floor) : (['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1');
+
+    const group = document.getElementById('copyFeatureTargetFloorsGroup');
+    const targetFloors = [];
+    group.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+      if (cb.value !== currentFloor) {
+        targetFloors.push(cb.value);
+      }
+    });
+
+    if (targetFloors.length === 0) {
+      this.showToast('コピー先フロアを1つ以上選択してください', 'error');
+      return;
+    }
+
+    const autoRename = document.getElementById('copyFeatureAutoRename').checked;
+    const srcFloorInt = parseInt(currentFloor);
+
+    targetFloors.forEach(targetFloor => {
+      const tFloorInt = parseInt(targetFloor);
+      if (!this.mapData.indoorFloors[String(targetFloor)]) {
+        this.mapData.indoorFloors[String(targetFloor)] = { rooms: [], corridors: [], stairs: [], toilets: [] };
+      }
+      const dest = this.mapData.indoorFloors[String(targetFloor)];
+
+      const cloned = JSON.parse(JSON.stringify(feat));
+      const oldId = cloned.id || cloned.roomId || '';
+      const oldName = cloned.name || '';
+
+      let newId = oldId;
+      let newName = oldName;
+
+      if (autoRename) {
+        newId = oldId.replace(new RegExp(`_?${srcFloorInt}f_?`, 'gi'), `_${tFloorInt}f_`)
+                     .replace(new RegExp(`_${srcFloorInt}0`, 'g'), `_${tFloorInt}0`)
+                     .replace(new RegExp(`^${srcFloorInt}0`, 'g'), `${tFloorInt}0`)
+                     .replace(new RegExp(`room_${srcFloorInt}`, 'g'), `room_${tFloorInt}`);
+        if (newId === oldId) {
+          newId = `${oldId}_${tFloorInt}f`;
+        }
+
+        newName = oldName.replace(new RegExp(`${srcFloorInt}年`, 'g'), `${tFloorInt}年`)
+                         .replace(new RegExp(`${srcFloorInt}F`, 'g'), `${tFloorInt}F`)
+                         .replace(new RegExp(`${srcFloorInt}階`, 'g'), `${tFloorInt}階`);
+      } else {
+        newId = `${oldId}_clone_${tFloorInt}f`;
+      }
+
+      cloned.id = newId;
+      if (cloned.roomId) cloned.roomId = newId;
+      cloned.name = newName;
+      cloned.floor = tFloorInt;
+
+      // コレクションの判定
+      const cat = (feat.entityType === 'toilet' || feat.category === 'toilet') ? 'toilets'
+                : (feat.entityType === 'stairs' || feat.category === 'stairs') ? 'stairs'
+                : (feat.entityType === 'corridor' || feat.category === 'corridor' || feat.isOverpass) ? 'corridors'
+                : 'rooms';
+
+      if (!dest[cat]) dest[cat] = [];
+
+      // 既存の同一座標オブジェクトの重複排除・上書き
+      const cCoords = JSON.stringify(cloned.polygon || cloned.coordinates);
+      const existingIdx = dest[cat].findIndex(x => JSON.stringify(x.polygon || x.coordinates) === cCoords);
+      if (existingIdx >= 0) {
+        dest[cat][existingIdx] = cloned;
+      } else {
+        dest[cat].push(cloned);
+      }
+    });
+
+    const modal = document.getElementById('copyFeatureToFloorModal');
+    if (modal) modal.style.display = 'none';
+
+    this.deduplicateMapData();
+    this.history.pushState(this.mapData, `図形別階コピー: ${feat.name || feat.id} → ${targetFloors.join(', ')}F`);
+    this.renderAll();
+    this.triggerAutoSave();
+    this.showToast(`✨ [${feat.name || feat.id}] を ${targetFloors.map(f => f + 'F').join(', ')} へコピーしました！`, 'success');
+  }
+
+  // ---------------------------------------------------------------------------
   // Tree View & Stats Management
   // ---------------------------------------------------------------------------
   updateTreeList() {
@@ -3005,82 +5386,146 @@ class MapStudioApp {
     listEl.innerHTML = '';
     const query = (document.getElementById('treeSearchInput').value || '').toLowerCase();
 
-    const items = [];
-    const collectItems = (arr, typeName, icon) => {
-      (arr || []).forEach(f => {
-        const id = f.id || f.roomId || '';
-        const name = f.name || '名称未設定';
-        if (query && !id.toLowerCase().includes(query) && !name.toLowerCase().includes(query)) {
-          return;
-        }
-        // Filter by active floor
-        if (['1', '2', '3', '4', '5'].includes(this.currentFloor)) {
-          if (f.floor !== undefined && String(f.floor) !== this.currentFloor && f.entityType !== 'building') {
-            return;
-          }
-        }
-        items.push({ feature: f, id, name, typeName, icon });
+    if (this.editorMode === 'campus') {
+      // 🏛️ Campus Mode: Buildings, Outdoor Areas, Routes, Spots
+      const buildings = this.mapData.buildings || [];
+      const outdoor = this.mapData.outdoorAreas || [];
+      const routes = this.mapData.accessRoutes || [];
+      const spots = this.mapData.spots || [];
+
+      if (buildings.length === 0 && outdoor.length === 0 && routes.length === 0 && spots.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state-card">
+            <i class="fa-solid fa-school"></i>
+            <strong>建物がまだ登録されていません</strong><br>
+            上部または左の「🏢 建物ポリゴン」をクリックして、校舎の外枠をプロットしましょう。
+          </div>
+        `;
+        return;
+      }
+
+      // Render Buildings
+      buildings.forEach(b => {
+        if (query && !b.id.toLowerCase().includes(query) && !(b.name || '').toLowerCase().includes(query)) return;
+        const row = document.createElement('div');
+        row.className = `tree-item ${this.selectedFeature && this.selectedFeature.id === b.id ? 'selected' : ''}`;
+
+        row.innerHTML = `
+          <div class="tree-item-icon"><i class="fa-solid fa-building" style="color: ${b.color || '#7c5cff'};"></i></div>
+          <div class="tree-item-title">${escapeHtml(b.name || b.id)}</div>
+          <div class="tree-item-badge">建物</div>
+          <div class="tree-item-actions">
+            <button type="button" class="tree-action-btn btn-enter-interior" style="background: rgba(124, 92, 255, 0.25); color: #fff; padding: 2px 6px; font-size: 10px; width: auto; height: 22px; border-radius: 4px; border: 1px solid rgba(124,92,255,0.4);" title="この建物の内部フロアを編集">
+              <i class="fa-solid fa-door-open"></i> 内部編集
+            </button>
+            <button type="button" class="tree-action-btn btn-focus" title="フォーカス">
+              <i class="fa-solid fa-crosshairs"></i>
+            </button>
+          </div>
+        `;
+
+        row.addEventListener('click', () => this.selectFeatureById(b.id));
+        row.querySelector('.btn-focus').addEventListener('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          this.selectFeatureById(b.id);
+        });
+        row.querySelector('.btn-enter-interior').addEventListener('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          this.setEditorMode('interior', b);
+        });
+        listEl.appendChild(row);
       });
-    };
 
-    collectItems(this.mapData.buildings, '建物', 'fa-building');
-    collectItems(this.mapData.outdoorAreas, '屋外', 'fa-tree');
-    collectItems(this.mapData.spots, 'スポット', 'fa-location-dot');
-    collectItems(this.mapData.accessRoutes, 'ルート', 'fa-route');
+      // Render Outdoor & Routes & Spots
+      const addOtherItems = (arr, typeName, icon) => {
+        (arr || []).forEach(item => {
+          if (query && !item.id.toLowerCase().includes(query) && !(item.name || '').toLowerCase().includes(query)) return;
+          const row = document.createElement('div');
+          row.className = `tree-item ${this.selectedFeature && this.selectedFeature.id === item.id ? 'selected' : ''}`;
+          row.innerHTML = `
+            <div class="tree-item-icon"><i class="fa-solid ${icon}"></i></div>
+            <div class="tree-item-title">${escapeHtml(item.name || item.id)}</div>
+            <div class="tree-item-badge">${escapeHtml(typeName)}</div>
+            <div class="tree-item-actions">
+              <button type="button" class="tree-action-btn btn-focus" title="フォーカス"><i class="fa-solid fa-crosshairs"></i></button>
+            </div>
+          `;
+          row.addEventListener('click', () => this.selectFeatureById(item.id));
+          row.querySelector('.btn-focus').addEventListener('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            this.selectFeatureById(item.id);
+          });
+          listEl.appendChild(row);
+        });
+      };
 
-    for (let f = 1; f <= 5; f++) {
-      const fl = this.mapData.indoorFloors[String(f)] || {};
-      collectItems(fl.rooms, `${f}F 部屋`, 'fa-chalkboard-user');
-      collectItems(fl.corridors, `${f}F 通路`, 'fa-arrows-left-right');
-      collectItems(fl.stairs, `${f}F 階段`, 'fa-stairs');
-      collectItems(fl.toilets, `${f}F トイレ`, 'fa-restroom');
+      addOtherItems(outdoor, '屋外', 'fa-tree');
+      addOtherItems(spots, 'スポット', 'fa-location-dot');
+      addOtherItems(routes, 'ルート', 'fa-route');
+
+    } else {
+      // 🏢 Interior Mode: Scoped to focusedBuilding and active floor
+      const bldg = this.focusedBuilding;
+      const floorStr = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+      const floorData = this.mapData.indoorFloors[floorStr] || {};
+
+      const bldgRooms = (floorData.rooms || []).filter(r => !r.buildingId || r.buildingId === bldg?.id);
+      const bldgCorridors = (floorData.corridors || []).filter(c => !c.buildingId || c.buildingId === bldg?.id);
+      const bldgStairs = (floorData.stairs || []).filter(s => !s.buildingId || s.buildingId === bldg?.id);
+      const bldgToilets = (floorData.toilets || []).filter(t => !t.buildingId || t.buildingId === bldg?.id);
+
+      const totalItems = bldgRooms.length + bldgCorridors.length + bldgStairs.length + bldgToilets.length;
+
+      // Header card in tree
+      const headerRow = document.createElement('div');
+      headerRow.style.cssText = 'padding: 8px 10px; margin-bottom: 8px; background: rgba(124, 92, 255, 0.15); border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: space-between;';
+      headerRow.innerHTML = `
+        <span><i class="fa-solid fa-building"></i> ${escapeHtml(bldg?.name || '建物')} &gt; ${floorStr}F</span>
+        <button type="button" class="action-btn" id="btnTreeBackToCampus" style="padding: 2px 6px; font-size: 10px; background: rgba(255,255,255,0.15);" title="キャンパス全体へ戻る">全体へ</button>
+      `;
+      listEl.appendChild(headerRow);
+      headerRow.querySelector('#btnTreeBackToCampus').addEventListener('click', () => this.setEditorMode('campus'));
+
+      if (totalItems === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state-card';
+        emptyDiv.innerHTML = `
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <strong>${floorStr}F の部屋がまだありません</strong><br>
+          「普通教室」で作図するか、「✂️ スライス」で建物の外枠を切り分けて教室を作成しましょう。
+        `;
+        listEl.appendChild(emptyDiv);
+        return;
+      }
+
+      const renderInteriorList = (arr, typeName, icon) => {
+        (arr || []).forEach(item => {
+          const id = item.id || item.roomId;
+          if (query && !id.toLowerCase().includes(query) && !(item.name || '').toLowerCase().includes(query)) return;
+          const row = document.createElement('div');
+          row.className = `tree-item ${this.selectedFeature && (this.selectedFeature.id === id || this.selectedFeature.roomId === id) ? 'selected' : ''}`;
+          row.innerHTML = `
+            <div class="tree-item-icon"><i class="fa-solid ${icon}"></i></div>
+            <div class="tree-item-title">${escapeHtml(item.name || id)}</div>
+            <div class="tree-item-badge">${escapeHtml(typeName)}</div>
+            <div class="tree-item-actions">
+              <button type="button" class="tree-action-btn btn-focus" title="フォーカス"><i class="fa-solid fa-crosshairs"></i></button>
+            </div>
+          `;
+          row.addEventListener('click', () => this.selectFeatureById(id));
+          row.querySelector('.btn-focus').addEventListener('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            this.selectFeatureById(id);
+          });
+          listEl.appendChild(row);
+        });
+      };
+
+      renderInteriorList(bldgRooms, '部屋', 'fa-chalkboard-user');
+      renderInteriorList(bldgCorridors, '通路', 'fa-arrows-left-right');
+      renderInteriorList(bldgStairs, '階段', 'fa-stairs');
+      renderInteriorList(bldgToilets, 'トイレ', 'fa-restroom');
     }
-
-    items.forEach(item => {
-      const row = document.createElement('div');
-      row.className = `tree-item ${this.selectedFeature && (this.selectedFeature.id === item.id || this.selectedFeature.roomId === item.id) ? 'selected' : ''}`;
-
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'tree-item-icon';
-      const iconI = document.createElement('i');
-      iconI.className = `fa-solid ${item.icon}`;
-      iconDiv.appendChild(iconI);
-
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'tree-item-title';
-      titleDiv.textContent = escapeHtml(item.name);
-
-      const badgeDiv = document.createElement('div');
-      badgeDiv.className = 'tree-item-badge';
-      badgeDiv.textContent = escapeHtml(item.typeName);
-
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'tree-item-actions';
-      const focusBtn = document.createElement('button');
-      focusBtn.type = 'button';
-      focusBtn.className = 'tree-action-btn btn-focus';
-      focusBtn.title = 'フォーカス';
-      const focusI = document.createElement('i');
-      focusI.className = 'fa-solid fa-crosshairs';
-      focusBtn.appendChild(focusI);
-      actionsDiv.appendChild(focusBtn);
-
-      row.appendChild(iconDiv);
-      row.appendChild(titleDiv);
-      row.appendChild(badgeDiv);
-      row.appendChild(actionsDiv);
-
-      row.addEventListener('click', (e) => {
-        this.selectFeatureById(item.id);
-      });
-
-      focusBtn.addEventListener('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        this.selectFeatureById(item.id);
-      });
-
-      listEl.appendChild(row);
-    });
   }
 
   highlightTreeItem(id) {
@@ -3123,7 +5568,10 @@ class MapStudioApp {
 
     const toolBtnMap = {
       select: 'toolSelect',
+      rect: 'toolRect',
+      subdivide: 'toolSubdivide',
       polygon: 'toolPolygon',
+      slice: 'toolSlice',
       path: 'toolPath',
       spot: 'toolSpot',
       delete: 'toolDelete'
@@ -3135,13 +5583,25 @@ class MapStudioApp {
     const banner = document.getElementById('drawingBanner');
     const bannerText = document.getElementById('drawingBannerText');
 
-    if (tool === 'polygon') {
+    if (tool === 'subdivide') {
+      const count = Math.max(2, parseInt(document.getElementById('numSubdivideCount')?.value || '3'));
       banner.style.display = 'flex';
-      bannerText.textContent = 'ポリゴン作図中: クリックで頂点追加 / ダブルクリックまたは始点クリックで確定 (Escでキャンセル)';
+      bannerText.textContent = `${count}部屋一括作図中 (校舎角度アライメント): 始点をクリックし、次に対角点をクリックして確定 (Escでキャンセル)`;
       this.deselectFeature();
+    } else if (tool === 'rect') {
+      banner.style.display = 'flex';
+      bannerText.textContent = '長方形作図中 (校舎角度アライメント): 始点をクリックし、次に対角点をクリックして確定 (Escでキャンセル)';
+      this.deselectFeature();
+    } else if (tool === 'polygon') {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'ポリゴン作図中: クリックで頂点追加 / Backspaceで直前の点取消 / 始点クリックまたはダブルクリックで確定 (Escでキャンセル)';
+      this.deselectFeature();
+    } else if (tool === 'slice') {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'ポリゴンスライス: 切断したいポリゴンを横断する2点をクリック (Escでキャンセル)';
     } else if (tool === 'path') {
       banner.style.display = 'flex';
-      bannerText.textContent = 'パス作図中: クリックで点追加 / ダブルクリックで確定 (Escでキャンセル)';
+      bannerText.textContent = 'パス作図中: クリックで点追加 / Backspaceで直前の点取消 / ダブルクリックで確定 (Escでキャンセル)';
       this.deselectFeature();
     } else if (tool === 'spot') {
       banner.style.display = 'flex';
@@ -3171,9 +5631,175 @@ class MapStudioApp {
   }
 
   // ---------------------------------------------------------------------------
+  // Blueprint / Image Overlay Controller
+  // ---------------------------------------------------------------------------
+  toggleBlueprint() {
+    this.isBlueprintVisible = !this.isBlueprintVisible;
+    const btn = document.getElementById('btnToggleBlueprint');
+    const badge = document.getElementById('blueprintStatusBadge');
+    const panel = document.getElementById('blueprintControlPanel');
+    if (btn) btn.classList.toggle('active', this.isBlueprintVisible);
+    if (badge) badge.textContent = this.isBlueprintVisible ? 'ON' : 'OFF';
+    if (panel) panel.style.display = this.isBlueprintVisible ? 'flex' : 'none';
+    this.updateBlueprintLayer();
+    this.showToast(`設計図下絵オーバーレイ: ${this.isBlueprintVisible ? 'ON' : 'OFF'}`, 'info');
+  }
+
+  updateBlueprintLayer() {
+    if (this.blueprintOverlay) {
+      this.map.removeLayer(this.blueprintOverlay);
+      this.blueprintOverlay = null;
+    }
+    if (!this.isBlueprintVisible) return;
+
+    if (!this.blueprintBounds) {
+      this.fitBlueprintToBuilding();
+      return;
+    }
+
+    this.blueprintOverlay = L.imageOverlay(this.blueprintUrl, this.blueprintBounds, {
+      opacity: this.blueprintOpacity,
+      interactive: false,
+      pane: 'parentGuidePane'
+    }).addTo(this.map);
+  }
+
+  fitBlueprintToBuilding() {
+    const bldg = this.focusedBuilding || (this.mapData.buildings || []).find(b => b.id === '生徒棟') || (this.mapData.buildings || [])[0];
+    if (bldg) {
+      const poly = bldg.polygon || bldg.coordinates;
+      if (poly && poly.length >= 3) {
+        const latLngs = poly.map(p => L.latLng(p[0], p[1]));
+        this.blueprintBounds = L.latLngBounds(latLngs);
+      }
+    }
+    if (!this.blueprintBounds) {
+      this.blueprintBounds = this.map.getBounds();
+    }
+    this.updateBlueprintLayer();
+    this.showToast('設計図下絵を生徒棟の領域にフィットさせました', 'success');
+  }
+
+  resetBlueprint() {
+    this.blueprintOpacity = 0.5;
+    document.getElementById('blueprintOpacityRange').value = 0.5;
+    document.getElementById('lblBlueprintOpacity').textContent = '50%';
+    this.fitBlueprintToBuilding();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Data Deduplication Engine (重複オブジェクト完全排除)
+  // ---------------------------------------------------------------------------
+  deduplicateMapData(data = this.mapData) {
+    if (!data || !data.indoorFloors) return data;
+
+    for (let f = 1; f <= 5; f++) {
+      const fl = data.indoorFloors[String(f)];
+      if (!fl) continue;
+
+      ['rooms', 'corridors', 'stairs', 'toilets'].forEach(cat => {
+        if (!Array.isArray(fl[cat])) return;
+        const unique = [];
+        const seenKeys = new Set();
+        fl[cat].forEach(item => {
+          const coords = item.polygon || item.coordinates || item.latlng;
+          const key = JSON.stringify(coords);
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            unique.push(item);
+          }
+        });
+        fl[cat] = unique;
+      });
+    }
+    return data;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Floor Clone Wizard (Multi-Floor Replication Engine)
+  // ---------------------------------------------------------------------------
+  executeFloorClone(sourceFloor, targetFloors, targetBuildingId = 'all', autoRename = true) {
+    if (!sourceFloor || !targetFloors || targetFloors.length === 0) return;
+    const sourceData = this.mapData.indoorFloors[String(sourceFloor)];
+    if (!sourceData) {
+      this.showToast(`コピー元フロア (${sourceFloor}F) のデータが見つかりません`, 'error');
+      return;
+    }
+
+    let totalCloned = 0;
+    const srcFloorInt = parseInt(sourceFloor);
+
+    targetFloors.forEach(targetFloor => {
+      if (String(targetFloor) === String(sourceFloor)) return;
+      const tFloorInt = parseInt(targetFloor);
+      const dest = this.mapData.indoorFloors[String(targetFloor)];
+      if (!dest) return;
+
+      const cloneItem = (item, cat) => {
+        if (targetBuildingId !== 'all' && item.buildingId && item.buildingId !== targetBuildingId) {
+          return null;
+        }
+        const cloned = JSON.parse(JSON.stringify(item));
+        const oldId = cloned.id || cloned.roomId || '';
+        const oldName = cloned.name || '';
+
+        let newId = oldId;
+        let newName = oldName;
+
+        if (autoRename) {
+          newId = oldId.replace(new RegExp(`_?${srcFloorInt}f_?`, 'gi'), `_${tFloorInt}f_`)
+                       .replace(new RegExp(`_${srcFloorInt}0`, 'g'), `_${tFloorInt}0`)
+                       .replace(new RegExp(`^${srcFloorInt}0`, 'g'), `${tFloorInt}0`)
+                       .replace(new RegExp(`room_${srcFloorInt}`, 'g'), `room_${tFloorInt}`);
+          if (newId === oldId) {
+            newId = `${oldId}_${tFloorInt}f`;
+          }
+
+          newName = oldName.replace(new RegExp(`${srcFloorInt}年`, 'g'), `${tFloorInt}年`)
+                           .replace(new RegExp(`${srcFloorInt}F`, 'g'), `${tFloorInt}F`)
+                           .replace(new RegExp(`${srcFloorInt}階`, 'g'), `${tFloorInt}階`);
+        } else {
+          newId = `${oldId}_clone_${tFloorInt}f`;
+        }
+
+        cloned.id = newId;
+        if (cloned.roomId) cloned.roomId = newId;
+        cloned.name = newName;
+        cloned.floor = tFloorInt;
+        return cloned;
+      };
+
+      ['rooms', 'corridors', 'toilets'].forEach(cat => {
+        const list = sourceData[cat] || [];
+        list.forEach(item => {
+          const c = cloneItem(item, cat);
+          if (c) {
+            const cCoords = JSON.stringify(c.polygon || c.coordinates);
+            const existingIdx = (dest[cat] || []).findIndex(x => JSON.stringify(x.polygon || x.coordinates) === cCoords);
+            if (existingIdx >= 0) {
+              dest[cat][existingIdx] = c;
+            } else {
+              dest[cat].push(c);
+            }
+            totalCloned++;
+          }
+        });
+      });
+    });
+
+    this.deduplicateMapData();
+    this.history.pushState(this.mapData, `階層クローン (${sourceFloor}F → ${targetFloors.join(', ')}F)`);
+    this.renderAll();
+    this.setFloor(String(targetFloors[0] || sourceFloor));
+    this.triggerAutoSave();
+    this.showToast(`✨ ${totalCloned} 件の部屋・通路を階層クローンしました！`, 'success');
+  }
+
+  // ---------------------------------------------------------------------------
   // JSON Export / Import / Clipboard
   // ---------------------------------------------------------------------------
   getCleanExportData() {
+    this.deduplicateMapData();
     this.mapData.metadata.updatedAt = new Date().toISOString();
     return JSON.parse(JSON.stringify(this.mapData));
   }
@@ -3282,12 +5908,112 @@ class MapStudioApp {
   // Global Event Bindings
   // ---------------------------------------------------------------------------
   initEventBindings() {
+    // Mode Switcher Tabs
+    const btnModeCampus = document.getElementById('btnModeCampus');
+    if (btnModeCampus) {
+      btnModeCampus.addEventListener('click', () => this.setEditorMode('campus'));
+    }
+    const btnModeInterior = document.getElementById('btnModeInterior');
+    if (btnModeInterior) {
+      btnModeInterior.addEventListener('click', () => {
+        const targetBldg = this.focusedBuilding || this.selectedFeature || (this.mapData.buildings || [])[0];
+        if (targetBldg) {
+          this.setEditorMode('interior', targetBldg);
+        } else {
+          this.showToast('建物がまだありません。まず「🏢 建物ポリゴン」で建物の外枠を作成してください。', 'warning');
+        }
+      });
+    }
+
+    // Direct Enter Interior Button from Inspector
+    const btnDirect = document.getElementById('btnEnterBuildingFocusDirect');
+    if (btnDirect) {
+      btnDirect.addEventListener('click', () => {
+        if (this.selectedFeature && this.selectedFeature.entityType === 'building') {
+          this.setEditorMode('interior', this.selectedFeature);
+        }
+      });
+    }
+
+    // Back to Campus from header
+    const btnExitFocus = document.getElementById('btnExitBuildingFocus');
+    if (btnExitFocus) {
+      btnExitFocus.addEventListener('click', () => this.setEditorMode('campus'));
+    }
+
     // Toolbar Tools
     document.getElementById('toolSelect').addEventListener('click', () => this.setTool('select'));
+    const toolRectBtn = document.getElementById('toolRect');
+    if (toolRectBtn) toolRectBtn.addEventListener('click', () => this.setTool('rect'));
     document.getElementById('toolPolygon').addEventListener('click', () => this.setTool('polygon'));
+    const sliceToolBtn = document.getElementById('toolSlice');
+    if (sliceToolBtn) sliceToolBtn.addEventListener('click', () => this.setTool('slice'));
     document.getElementById('toolPath').addEventListener('click', () => this.setTool('path'));
     document.getElementById('toolSpot').addEventListener('click', () => this.setTool('spot'));
     document.getElementById('toolDelete').addEventListener('click', () => this.setTool('delete'));
+
+    // Blueprint Overlay Widget Events
+    const btnToggleBp = document.getElementById('btnToggleBlueprint');
+    if (btnToggleBp) btnToggleBp.addEventListener('click', () => this.toggleBlueprint());
+    const btnCloseBp = document.getElementById('btnCloseBlueprintPanel');
+    if (btnCloseBp) btnCloseBp.addEventListener('click', () => this.toggleBlueprint());
+    const selBpImage = document.getElementById('blueprintImageSelect');
+    if (selBpImage) {
+      selBpImage.addEventListener('change', (e) => {
+        this.blueprintUrl = e.target.value;
+        this.updateBlueprintLayer();
+      });
+    }
+    const rangeBpOpacity = document.getElementById('blueprintOpacityRange');
+    if (rangeBpOpacity) {
+      rangeBpOpacity.addEventListener('input', (e) => {
+        this.blueprintOpacity = parseFloat(e.target.value);
+        document.getElementById('lblBlueprintOpacity').textContent = `${Math.round(this.blueprintOpacity * 100)}%`;
+        if (this.blueprintOverlay) this.blueprintOverlay.setOpacity(this.blueprintOpacity);
+      });
+    }
+    const btnFitBp = document.getElementById('btnFitBlueprintToBuilding');
+    if (btnFitBp) btnFitBp.addEventListener('click', () => this.fitBlueprintToBuilding());
+    const btnResetBp = document.getElementById('btnResetBlueprint');
+    if (btnResetBp) btnResetBp.addEventListener('click', () => this.resetBlueprint());
+
+    // Floor Clone Wizard Modal
+    const cloneModal = document.getElementById('cloneFloorModal');
+    const btnOpenClone = document.getElementById('btnOpenFloorCloneModal');
+    if (btnOpenClone && cloneModal) {
+      btnOpenClone.addEventListener('click', () => {
+        document.getElementById('cloneSourceFloor').value = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+        cloneModal.style.display = 'flex';
+      });
+    }
+    const btnCloseClone = document.getElementById('btnCloseCloneModal');
+    if (btnCloseClone && cloneModal) {
+      btnCloseClone.addEventListener('click', () => { cloneModal.style.display = 'none'; });
+    }
+    const btnCancelClone = document.getElementById('btnCancelClone');
+    if (btnCancelClone && cloneModal) {
+      btnCancelClone.addEventListener('click', () => { cloneModal.style.display = 'none'; });
+    }
+    const btnExecClone = document.getElementById('btnExecuteClone');
+    if (btnExecClone && cloneModal) {
+      btnExecClone.addEventListener('click', () => {
+        const srcFloor = document.getElementById('cloneSourceFloor').value;
+        const targetBldg = this.focusedBuilding ? this.focusedBuilding.id : document.getElementById('cloneTargetBuilding').value;
+        const autoRename = document.getElementById('cloneAutoRename').checked;
+        const targetFloors = [];
+        document.querySelectorAll('#cloneTargetFloorsGroup input:checked').forEach(cb => {
+          if (cb.value !== srcFloor) targetFloors.push(cb.value);
+        });
+
+        if (targetFloors.length === 0) {
+          alert('コピー先フロアを1つ以上選択してください（コピー元以外の階層）。');
+          return;
+        }
+
+        this.executeFloorClone(srcFloor, targetFloors, targetBldg, autoRename);
+        cloneModal.style.display = 'none';
+      });
+    }
 
     // Snapping / Ortho / Spline Toggles
     const btnSnap = document.getElementById('toggleSnap');
@@ -3295,7 +6021,7 @@ class MapStudioApp {
       this.isSnapEnabled = !this.isSnapEnabled;
       btnSnap.classList.toggle('active', this.isSnapEnabled);
       document.getElementById('snapStatusBadge').textContent = this.isSnapEnabled ? 'ON' : 'OFF';
-      this.showToast(`12px 頂点スナップ: ${this.isSnapEnabled ? 'ON' : 'OFF'}`, 'info');
+      this.showToast(`12px 頂点・エッジスナップ: ${this.isSnapEnabled ? 'ON' : 'OFF'}`, 'info');
     });
 
     const btnOrtho = document.getElementById('toggleOrtho');
@@ -3303,7 +6029,7 @@ class MapStudioApp {
       this.isOrthoEnabled = !this.isOrthoEnabled;
       btnOrtho.classList.toggle('active', this.isOrthoEnabled);
       document.getElementById('orthoStatusBadge').textContent = this.isOrthoEnabled ? 'ON' : 'OFF';
-      this.showToast(`直交90°拘束: ${this.isOrthoEnabled ? 'ON' : 'OFF'}`, 'info');
+      this.showToast(`校舎主軸直交90°拘束: ${this.isOrthoEnabled ? 'ON' : 'OFF'}`, 'info');
     });
 
     const btnSpline = document.getElementById('toggleSpline');
@@ -3334,7 +6060,7 @@ class MapStudioApp {
       importModal.style.display = 'none';
     });
     document.getElementById('btnResetDefaultData').addEventListener('click', () => {
-      if (confirm('初期JSONデータにリセットしますか？')) {
+      if (confirm('初期状態にリセットしますか？')) {
         localStorage.removeItem('nanryosai_editor_autosave');
         this.loadCampusMapData();
         importModal.style.display = 'none';
@@ -3378,24 +6104,32 @@ class MapStudioApp {
       restoreModal.style.display = 'none';
     });
 
-    // Floor Selector Pills
-    document.getElementById('floorPillsContainer').addEventListener('click', (e) => {
+    // Floor Selector Pills (Delegated)
+    const handleFloorPillClick = (e) => {
       const pill = e.target.closest('.floor-pill');
       if (pill) {
         const floor = pill.getAttribute('data-floor');
         this.setFloor(floor);
       }
-    });
+    };
+    const campusPills = document.getElementById('campusFloorPills');
+    if (campusPills) campusPills.addEventListener('click', handleFloorPillClick);
+    const interiorPills = document.getElementById('interiorFloorPills');
+    if (interiorPills) interiorPills.addEventListener('click', handleFloorPillClick);
 
     // Preset Buttons
     document.querySelectorAll('.preset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const preset = btn.getAttribute('data-preset');
         this.activePreset = preset;
+        this.updatePresetButtonsUI(preset);
+
         if (preset === 'spot') {
           this.setTool('spot');
         } else if (preset === 'route') {
           this.setTool('path');
+        } else if (preset === 'slice') {
+          this.setTool('slice');
         } else {
           this.setTool('polygon');
         }
@@ -3450,7 +6184,20 @@ class MapStudioApp {
       }
     });
 
-    // Feature Duplicate / Delete / Deselect Buttons
+    // Feature Copy to Floor / Duplicate / Delete / Deselect / Subdivide / Merge Buttons
+    const btnCopyFloor = document.getElementById('btnCopyFeatureToFloor');
+    if (btnCopyFloor) btnCopyFloor.addEventListener('click', () => this.openCopyFeatureToFloorModal());
+    const btnCloseCopyModal = document.getElementById('btnCloseCopyFeatureModal');
+    if (btnCloseCopyModal) btnCloseCopyModal.addEventListener('click', () => { document.getElementById('copyFeatureToFloorModal').style.display = 'none'; });
+    const btnCancelCopy = document.getElementById('btnCancelCopyFeature');
+    if (btnCancelCopy) btnCancelCopy.addEventListener('click', () => { document.getElementById('copyFeatureToFloorModal').style.display = 'none'; });
+    const btnExecCopy = document.getElementById('btnExecuteCopyFeature');
+    if (btnExecCopy) btnExecCopy.addEventListener('click', () => this.executeCopyFeatureToFloors());
+
+    const btnMerge = document.getElementById('btnMergeCorridors');
+    if (btnMerge) btnMerge.addEventListener('click', () => this.mergeConnectedCorridors());
+    const btnSubdivide = document.getElementById('btnSubdivideSelectedFeature');
+    if (btnSubdivide) btnSubdivide.addEventListener('click', () => this.subdivideSelectedFeature());
     document.getElementById('btnDuplicateFeature').addEventListener('click', () => this.duplicateFeature());
     document.getElementById('btnDeleteFeature').addEventListener('click', () => this.deleteFeature(this.selectedFeature));
     document.getElementById('btnDeselectFeature').addEventListener('click', () => this.deselectFeature());
@@ -3466,8 +6213,14 @@ class MapStudioApp {
         this.isShiftKeyPressed = true;
       } else if (e.key === 'v' || e.key === 'V') {
         this.setTool('select');
+      } else if (e.key === 'r' || e.key === 'R') {
+        this.setTool('rect');
+      } else if (e.key === 'g' || e.key === 'G') {
+        this.setTool('subdivide');
       } else if (e.key === 'p' || e.key === 'P') {
         this.setTool('polygon');
+      } else if (e.key === 'c' || e.key === 'C') {
+        this.setTool('slice');
       } else if (e.key === 'l' || e.key === 'L') {
         this.setTool('path');
       } else if (e.key === 'm' || e.key === 'M') {
@@ -3476,15 +6229,42 @@ class MapStudioApp {
         this.setTool('delete');
       } else if (e.key === 's' || e.key === 'S') {
         document.getElementById('toggleSnap').click();
+      } else if (e.key === 'b' || e.key === 'B') {
+        this.toggleBlueprint();
       } else if (e.key === 'Escape') {
         this.cancelDrawing();
         this.deselectFeature();
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (this.selectedFeature) this.deleteFeature(this.selectedFeature);
+        if (this.drawingPoints.length > 0) {
+          e.preventDefault();
+          this.drawingPoints.pop();
+          if (this.drawingPoints.length > 0) {
+            const lastPt = this.drawingPoints[this.drawingPoints.length - 1];
+            this.updateDrawingPreview(L.latLng(lastPt[0], lastPt[1]));
+          } else if (this.drawingPreviewLayer) {
+            this.map.removeLayer(this.drawingPreviewLayer);
+            this.drawingPreviewLayer = null;
+          }
+          this.showToast('直前の頂点を取り消しました', 'info');
+        } else if (this.selectedFeature) {
+          this.deleteFeature(this.selectedFeature);
+        }
       } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault();
-        if (e.shiftKey) this.redo();
-        else this.undo();
+        if (this.drawingPoints.length > 0 && !e.shiftKey) {
+          this.drawingPoints.pop();
+          if (this.drawingPoints.length > 0) {
+            const lastPt = this.drawingPoints[this.drawingPoints.length - 1];
+            this.updateDrawingPreview(L.latLng(lastPt[0], lastPt[1]));
+          } else if (this.drawingPreviewLayer) {
+            this.map.removeLayer(this.drawingPreviewLayer);
+            this.drawingPreviewLayer = null;
+          }
+          this.showToast('直前の頂点を取り消しました', 'info');
+        } else {
+          if (e.shiftKey) this.redo();
+          else this.undo();
+        }
       } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
         e.preventDefault();
         this.redo();
@@ -3500,6 +6280,135 @@ class MapStudioApp {
       }
     });
   }
+
+  subdivideSelectedFeature() {
+    if (!this.selectedFeature) {
+      this.showToast('分割したい部屋・区画を選択してください', 'warning');
+      return;
+    }
+    const poly = this.selectedFeature.polygon || this.selectedFeature.coordinates;
+    if (!poly || poly.length < 3) {
+      this.showToast('分割可能なポリゴンではありません', 'error');
+      return;
+    }
+
+    const defaultCount = parseInt(document.getElementById('numSubdivideCount')?.value || '3');
+    const inputStr = prompt(`この区画を直線的に何等分に分割しますか？ (2〜10部屋)`, String(defaultCount));
+    if (!inputStr) return;
+    const count = parseInt(inputStr);
+    if (isNaN(count) || count < 2 || count > 10) {
+      this.showToast('分割数は 2〜10 の整数を指定してください', 'error');
+      return;
+    }
+
+    const baseAngle = this.getBuildingBaseAngle();
+    const roomsCoords = GeometryEngine.subdividePolygon(poly, baseAngle, count);
+
+    if (!roomsCoords || roomsCoords.length === 0) {
+      this.showToast('等分割の計算に失敗しました', 'error');
+      return;
+    }
+
+    const targetFloorStr = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+    const floorInt = parseInt(targetFloorStr);
+    const floorData = this.mapData.indoorFloors[targetFloorStr];
+
+    if (!floorData) return;
+
+    const originalFeature = JSON.parse(JSON.stringify(this.selectedFeature));
+    const originalCategory = originalFeature.category || 'classroom';
+    const bldgId = this.focusedBuilding ? this.focusedBuilding.id : (originalFeature.buildingId || '生徒棟');
+    const existingRoomsCount = (floorData.rooms || []).length;
+
+    // 元の区画を削除
+    this.deleteFeature(this.selectedFeature, false);
+
+    roomsCoords.forEach((coords, idx) => {
+      const roomNum = existingRoomsCount + idx + 1;
+      const roomCode = floorInt === 5 
+        ? `room_${floorInt}f_${roomNum}_${Date.now().toString().slice(-4)}` 
+        : `room_${floorInt}0${roomNum}_${Date.now().toString().slice(-4)}`;
+      const roomName = floorInt === 5 
+        ? `${floorInt}F 教室${roomNum}` 
+        : `${floorInt}年${roomNum}組`;
+
+      const newRoom = {
+        id: roomCode,
+        roomId: roomCode,
+        name: roomName,
+        category: originalCategory,
+        floor: floorInt,
+        buildingId: bldgId,
+        polygon: coords,
+        coordinates: coords,
+        pinCoord: GeometryEngine.computeCentroid(coords),
+        style: originalFeature.style || {
+          fillColor: '#7c5cff',
+          strokeColor: '#5e35b1',
+          fillOpacity: 0.45,
+          weight: 2
+        }
+      };
+      floorData.rooms.push(newRoom);
+    });
+
+    this.history.pushState(this.mapData, `区画等分割: ${originalFeature.name || originalFeature.id} (${count}等分)`);
+    this.renderAll();
+    this.triggerAutoSave();
+    this.showToast(`✨ 区画の範囲内で正確に ${count} 等分しました！`, 'success');
+  }
+
+  mergeConnectedCorridors() {
+    const curFloorStr = ['1', '2', '3', '4', '5'].includes(this.currentFloor) ? this.currentFloor : '1';
+    const floorData = this.mapData.indoorFloors[curFloorStr];
+    if (!floorData || !floorData.corridors || floorData.corridors.length < 2) {
+      this.showToast('結合可能な複数の廊下がこのフロアにありません', 'warning');
+      return;
+    }
+
+    const normalCorrs = floorData.corridors.filter(c => !c.isOverpass);
+    if (normalCorrs.length < 2) {
+      this.showToast('結合可能な通常廊下が2つ以上ありません', 'warning');
+      return;
+    }
+
+    const polyList = normalCorrs.map(c => c.polygon || c.coordinates).filter(p => p && p.length >= 3);
+    const mergedPolygons = GeometryEngine.mergeAdjacentPolygons(polyList, 0.6);
+
+    if (mergedPolygons.length >= normalCorrs.length) {
+      this.showToast('接続している（接している）廊下が見つかりませんでした', 'info');
+      return;
+    }
+
+    // Keep overpass corridors intact
+    const overpassCorrs = floorData.corridors.filter(c => c.isOverpass);
+
+    // Build new merged corridor list
+    const newNormalCorrs = mergedPolygons.map((poly, idx) => {
+      const id = `corridor_${curFloorStr}f_${idx + 1}`;
+      return {
+        id: id,
+        name: `${curFloorStr}F 通路/廊下`,
+        category: 'corridor',
+        floor: parseInt(curFloorStr),
+        buildingId: this.focusedBuilding ? this.focusedBuilding.id : '生徒棟',
+        polygon: poly,
+        coordinates: poly,
+        pinCoord: GeometryEngine.computeCentroid(poly),
+        style: {
+          strokeColor: '#64748b',
+          weight: 2
+        }
+      };
+    });
+
+    floorData.corridors = [...newNormalCorrs, ...overpassCorrs];
+
+    this.history.pushState(this.mapData, `接続廊下の統合 (${curFloorStr}F)`);
+    this.renderAll();
+    this.triggerAutoSave();
+    this.showToast(`✨ ${normalCorrs.length} 個の廊下を ${newNormalCorrs.length} 個の一体型廊下に統合しました！`, 'success');
+  }
 }
 
 // Instantiate and launch on DOM load
@@ -3512,3 +6421,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
