@@ -1,0 +1,330 @@
+================================================================
+南陵祭2026 HTML - auth.js / 認証依存調査レポート
+作成日時: 2026-08-27T21:45:31.978Z
+================================================================
+
+■ 調査概要:
+リポジトリ内の全HTMLファイルにおける auth.js 読み込み、認証関連メソッド呼び出し、
+メールアドレス参照、ユーザー表示名/アバター参照、ロール判定の状況を網羅調査。
+
+----------------------------------------------------------------
+[ファイル] main\account.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L510: import { watchUser, logout, db, app, auth, getFavorites, toggleFavorite } from "./auth.js";
+    L530: import { deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    L674: watchUser(handleUserUpdate);
+    L694: if (emailEl) emailEl.textContent = user.email || "";
+
+----------------------------------------------------------------
+[ファイル] main\admin\map-editor.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): NO
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+
+----------------------------------------------------------------
+[ファイル] main\admin\superadmin.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L626: import { watchUser, db } from "../auth.js";
+    L657: watchUser((user) => {
+    L658: if (!user || user.email !== ALLOWED_EMAIL) {
+
+----------------------------------------------------------------
+[ファイル] main\admin\venue.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L147: import { app, db } from '../auth.js';
+
+----------------------------------------------------------------
+[ファイル] main\admin_sync.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L877: import { db, auth, app, login, logout, watchUser } from "./auth.js";
+    L1120: userDisplay.textContent = user.email;
+    L1121: if (user.email === "ynrcs1000@gmail.com") {
+    L1127: log(`Logged in as ${user.email}`);
+    L1139: await login();
+    L1153: watchUser(updateAuthUI);
+    L1336: updatedBy: currentUser.email,
+
+----------------------------------------------------------------
+[ファイル] main\banned.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L925: import { auth, watchUser } from "./auth.js";
+    L936: watchUser((user) => {
+    L940: window.startScenario(user.displayName || "ゲスト", user.email || "guest@example.com");
+
+----------------------------------------------------------------
+[ファイル] main\detail.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L715: import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
+    L825: watchUser(async (user) => {
+    L1167: ${p.role ? `<div style="font-size:0.75rem;color:var(--text-sub);margin-top:2px;">${p.role}</div>` : 
+
+----------------------------------------------------------------
+[ファイル] main\index.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): NO
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L2047: import { db } from './auth.js';
+
+----------------------------------------------------------------
+[ファイル] main\login.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L731: import { watchUser, login, logout, analytics, logEvent, functions } from "./auth.js";
+    L756: function isStudentEmail(email) {
+    L847: watchUser((user) => {
+    L854: if (isStudentEmail(user.email)) {
+    L859: document.getElementById("unauthorized-email").textContent = user.email;
+    L927: if (isStudentEmail(user.email)) {
+    L932: document.getElementById("unauthorized-email").textContent = user.email;
+    L937: document.getElementById("guest-welcome-email").textContent = user.email;
+    L956: const user = await login();
+    L967: // Other errors are handled by auth.js (alert)
+    ... 他 1 行
+
+----------------------------------------------------------------
+[ファイル] main\map.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): NO
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+
+----------------------------------------------------------------
+[ファイル] main\map3d.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): NO
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+
+----------------------------------------------------------------
+[ファイル] main\mobile-order-guide.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): NO
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L306: 本システムでは、従来のモノリシックなサーバー構成を廃し、<strong>JAMstack (JavaScript, APIs, Markup)</strong> アーキテクチャを採用している。フロント
+    L410: 認証プロセスは <span class="file-ref">main/auth.js</span> に集約され、Google Identity Platformを利用している。
+    L658: <div class="code-display" data-file="auth.js">
+    L661: email: user.email
+
+----------------------------------------------------------------
+[ファイル] main\projects-list.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L699: import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser, analytics, logEvent } from "./
+    L726: watchUser(async (user) => {
+
+----------------------------------------------------------------
+[ファイル] main\stage-list.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): NO
+  - 主な該当箇所:
+    L600: import { getFavorites, toggleFavorite, getCurrentUser, watchUser, analytics, logEvent } from "./auth
+    L616: watchUser(async (user) => {
+
+----------------------------------------------------------------
+[ファイル] pos\kitchen.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: YES
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L806: function isAuthorizedUser(user) {
+    L807: if (!user || !user.email) return false;
+    L808: return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+    L815: if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+
+----------------------------------------------------------------
+[ファイル] pos\mobile-order.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L9: v0.3.0: ログイン処理を auth.js login() に統一 (Phase B-2)
+    L10: v0.2.0: Firebase 初期化を auth.js に統一 (Phase A)
+    L1429: インスタンス(app, auth, db 等)は auth.js から import する(Single Source of Truth)。
+    L1454: /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
+    L1455: import { app, auth, db, storage, functions, messaging, watchUser, analytics, logEvent } from "../mai
+    L1498: watchUser(async (user) => {
+    L1501: const email = user.email || "";
+    L1637: email: currentUser.email,
+
+----------------------------------------------------------------
+[ファイル] pos\monitor.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L637: } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    L710: function isAuthorizedUser(user) {
+    L711: if (!user || !user.email) return false;
+    L712: return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+    L723: if (!user || !isAuthorizedUser(user) || cachedId !== STORE_ID) {
+
+----------------------------------------------------------------
+[ファイル] pos\portal.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L3391: } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    L3513: result.user.email,
+    L3589: function isAuthorizedUser(user) {
+    L3590: if (!user || !user.email) return false;
+    L3592: user.email.endsWith(ALLOWED_DOMAIN) ||
+    L3593: MASTER_ACCOUNTS.includes(user.email)
+    L3623: if (!isAuthorizedUser(user)) {
+    L3703: result.user.email,
+
+----------------------------------------------------------------
+[ファイル] pos\pos.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L813: } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    L914: function isAuthorizedUser(user) {
+    L915: if (!user || !user.email) return false;
+    L916: return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+    L924: if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+
+----------------------------------------------------------------
+[ファイル] pos\presenter.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: YES
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L720: function isAuthorizedUser(user) {
+    L721: if (!user || !user.email) return false;
+    L722: return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+    L729: if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+
+----------------------------------------------------------------
+[ファイル] pos\sok-to.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): YES
+  - 表示名/アバター参照 (displayName/photoURL): YES
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L345: import { db, functions, messaging, watchUser } from "../main/auth.js";
+    L516: watchUser(async (user) => {
+    L637: el.textContent = `${user.displayName || user.email} としてログイン中`;
+
+----------------------------------------------------------------
+[ファイル] pos\sok.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L1658: import { auth, db, functions, storage, watchUser } from "../main/auth.js";
+    L1716: watchUser(async (user) => {
+    L1727: if (claims.role !== "store_admin" || claims.storeId !== storeId) {
+
+----------------------------------------------------------------
+[ファイル] pos\status.html
+  - auth.js 読み込み: YES
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): YES
+  - 主な該当箇所:
+    L625: } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    L627: /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
+    L628: import { app, auth, db, login } from "../main/auth.js";
+    L639: alertDiv.role = "alert";
+    L680: login().catch((e) =>
+
+----------------------------------------------------------------
+[ファイル] pos\training\pos.html
+  - auth.js 読み込み: NO
+  - Firebase Auth 直接呼び出し: NO
+  - ログイン/認証監視メソッド (login, watchUser 等): YES
+  - メールアドレス参照 (.email): NO
+  - 表示名/アバター参照 (displayName/photoURL): NO
+  - ロール/権限判定 (role/isStudentEmail 等): NO

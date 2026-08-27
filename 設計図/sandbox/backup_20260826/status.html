@@ -1,0 +1,1035 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.2
+  Last Modified: 2026-05-06
+  Author: Nanryosai 2026 Project Team
+-->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>注文状況 | 南陵祭2026</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Main Style -->
+    <link rel="stylesheet" href="../main/style.css" />
+
+    <style>
+      /* =========================================
+         1. Variables & Base
+         ========================================= */
+      :root {
+        /* Colors */
+        --primary-color: #1a1a1a;   /* Deep Premium Black */
+        --accent-color: #e53935;    /* Vibrant Red */
+        --brand-color: #ff9800;     /* Warm Orange */
+        --bg-color: #f0f2f5;        /* Default Light */
+        --card-bg: #ffffff;
+        
+        /* Text */
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --font-main: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+        /* Status Colors — 設計憲法§1.1準拠 */
+        --status-cooking: #f59e0b;          /* Amber: 調理中 */
+        --status-ready-to-serve: #3b82f6;   /* Blue: 終準備中 */
+        --status-ready-for-pickup: #10b981; /* Emerald: 呼び出し中 */
+        --status-completed: #10b981;        /* Emerald: 完了 */
+        --status-cancelled: #ef4444;        /* Red: キャンセル */
+        --status-abandoned: #9ca3af;        /* Gray: 5分放置 */
+
+        /* Dimensions */
+        --radius-lg: 20px;
+        --radius-md: 16px;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        /* Animation Specific */
+        --stick-stroke: #374151;
+        --item-fill: #eff6ff;
+        
+        /* Progress Bar */
+        --progress-bg: #e5e7eb;
+        --step-circle-bg: #e5e7eb;
+        --step-text-active: #1a1a1a;
+      }
+
+      /* Dark Mode Overrides */
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
+        }
+      }
+
+      /* Explicit Dark Theme */
+      [data-theme="dark"] {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f1f5f9;
+          --text-sub: #94a3b8;
+          --primary-color: #334155;
+          --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          --stick-stroke: #f1f5f9;
+          --item-fill: #334155;
+          --progress-bg: #334155;
+          --step-circle-bg: #334155;
+          --step-text-active: #f1f5f9;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        font-family: var(--font-main);
+        color: var(--text-main);
+        min-height: 100dvh;
+        width: 100vw;
+        overflow-x: hidden; 
+        display: flex;
+        flex-direction: column;
+        /* Alignment handled by flex children and margins */
+        margin: 0;
+      }
+
+      /* =========================================
+         2. App Layout Container
+         ========================================= */
+      #app-container {
+        width: 100%;
+        max-width: 500px;
+        /* Matches mobile-order logic: fill available space */
+        flex: 1 0 auto; 
+        min-height: calc(100dvh - var(--header-height, 56px) - var(--bottom-nav-height, 80px));
+        height: auto;
+        margin: 0 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--bg-color);
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 0 40px var(--shadow-soft);
+        /* Ensure no transform scaling messes up position */
+        transform: none !important;
+      }
+
+      @media (max-width: 500px) {
+          #app-container {
+              max-width: 100%;
+              box-shadow: none;
+              border: none;
+          }
+      }
+
+      /* =========================================
+         3. Status Page Specific Styles
+         ========================================= */
+      .status-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0;
+        padding-bottom: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom) + 20px); 
+        text-align: center;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        background-color: var(--bg-color);
+      }
+
+      /* Main Header Message */
+      .status-header-message {
+        width: 100%;
+        padding: 24px 20px 10px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      /* Status Card */
+      .status-card {
+        background: var(--card-bg);
+        width: 90%;
+        border-radius: var(--radius-lg);
+        padding: 30px 20px;
+        box-shadow: var(--shadow-card);
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        color: var(--text-main);
+        transition: transform 0.3s;
+      }
+
+      /* Colored Top Border */
+      .status-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        border-radius: 20px 20px 0 0;
+        background: var(--border-color, #ccc); /* Fallback */
+      }
+      .status-card.cooking::before { background: var(--status-cooking); }
+      .status-card.prep::before { background: var(--status-ready-to-serve); }
+      .status-card.done::before { background: var(--status-completed); }
+      .status-card.cancelled::before { background: var(--status-cancelled); }
+      .status-card.abandoned::before { background: var(--status-abandoned); }
+
+      /* Side-by-Side Layout */
+      .status-main-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      .anim-col {
+        flex: 0 0 120px;
+        display: flex;
+        justify-content: center;
+      }
+      .num-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* SVG Styles */
+      .stick-svg { width: 110px; height: 110px; margin: 0; }
+      .stick-stroke { stroke: var(--stick-stroke); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .stick-head { fill: var(--stick-stroke); stroke: none; }
+      .item-stroke { stroke: #3b82f6; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .item-fill { fill: var(--item-fill); stroke: #3b82f6; stroke-width: 2px; }
+
+      /* Animations Keyframes */
+      @keyframes cookArm { from { transform: rotate(0deg); } to { transform: rotate(-15deg); } }
+      .arm-cooking { transform-origin: 50px 45px; animation: cookArm 0.6s ease-in-out infinite alternate; }
+      @keyframes cookFood { 0% { transform: translate(0, 0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(5px, -15px) rotate(10deg); opacity: 0; } }
+      .pan-content { opacity: 0; animation: cookFood 0.6s ease-in-out infinite; }
+      @keyframes packArm { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(20deg); } }
+      .arm-packing { transform-origin: 50px 45px; animation: packArm 1.5s ease-in-out infinite; }
+      @keyframes packItem { 0%, 20% { transform: translate(0, -20px); opacity: 0; } 40%, 60% { transform: translate(0, 0); opacity: 1; } 80%, 100% { transform: translate(0, 10px); opacity: 0; } }
+      .item-packing { animation: packItem 1.5s ease-in-out infinite; }
+      @keyframes wave { from { transform: rotate(-160deg); } to { transform: rotate(-130deg); } }
+      .arm-wave { transform-origin: 50px 45px; animation: wave 1s ease-in-out infinite alternate; }
+      @keyframes bagSway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+      .bag-hold { transform-origin: 70px 60px; animation: bagSway 2s ease-in-out infinite alternate; }
+      @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+      .stick-man-done { animation: bounce 2s ease-in-out infinite; transform-origin: bottom center; }
+      @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
+      
+      /* Order Number */
+      .big-number {
+        font-size: 3.5rem; 
+        margin-bottom: 0;
+        line-height: 1;
+        color: var(--text-main);
+        font-weight: 900;
+        letter-spacing: -2px;
+      }
+      .label-order-num {
+        margin-bottom: 5px;
+        text-align: center;
+        color: var(--text-sub);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      /* Title & Desc */
+      .status-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin: 10px 0 5px;
+        color: var(--text-main);
+      }
+      .status-desc {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        white-space: pre-wrap;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+
+      /* Improved Progress Stepper */
+      .progress-stepper {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin: 10px 0 20px;
+        position: relative;
+      }
+      /* Background Line (Grey) */
+      .progress-stepper::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 16.5%;
+        right: 16.5%;
+        height: 4px;
+        background: var(--progress-bg);
+        z-index: 0;
+        border-radius: 4px;
+      }
+      /* Active Filled Line */
+      .progress-stepper::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 16.5%;
+        width: 0%;
+        height: 4px;
+        background: var(--status-cooking);
+        z-index: 0;
+        border-radius: 4px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
+      }
+      .status-card.cooking .progress-stepper::after { width: 0%; background: var(--status-cooking); }
+      .status-card.prep .progress-stepper::after { width: 33.5%; background: var(--status-ready-to-serve); }
+      .status-card.calling .progress-stepper::after,
+      .status-card.done .progress-stepper::after { width: 67%; background: var(--status-completed); }
+
+      /* Glassmorphism Details */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+      }
+      .info-card.glass-card {
+        gap: 0px !important;
+        padding: 18px 20px !important;
+      }
+      [data-theme="dark"] .glass-card {
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .glass-card {
+          background: rgba(30, 41, 59, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+      }
+      .pulse-indicator {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #10b981;
+      }
+      .pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-dot 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+      }
+      @keyframes pulse-dot {
+        to { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      }
+      .step-item {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 33%;
+        opacity: 0.6;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .step-item.active { opacity: 1; transform: scale(1.05); }
+      .step-item.completed { opacity: 1; }
+
+      .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--step-circle-bg);
+        color: var(--text-sub);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        transition: all 0.3s;
+        border: 2px solid var(--bg-color); /* Cutout effect */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+      .step-label {
+        margin-top: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        transition: color 0.3s;
+      }
+      
+      /* Active & Completed States */
+      .step-item.active .step-circle { 
+        background: var(--text-main); 
+        color: var(--bg-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      }
+      .step-item.active .step-label { color: var(--text-main); }
+      
+      .step-item.completed .step-circle { 
+        background: var(--status-completed); 
+        color: white; 
+      }
+      
+      /* Dynamic Colors per status */
+      .status-card.cooking .step-item.active .step-circle { background: var(--status-cooking); color: white; }
+      .status-card.prep .step-item.active .step-circle { background: var(--status-ready-to-serve); color: white; }
+      .status-card.done .step-item.active .step-circle { background: var(--status-completed); color: white; }
+
+      /* Info & List Sections */
+      .info-section {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .info-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-bottom: 8px;
+        padding-left: 5px;
+      }
+      .info-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-md); /* Matching border radius */
+        padding: 16px 20px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-main);
+      }
+      
+      .item-list-container {
+        width: 90%;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .order-item-row {
+         display: flex; 
+         justify-content: space-between; 
+         align-items: flex-start;
+         margin-bottom: 12px;
+         border-bottom: 1px dashed var(--border-color, #eee);
+         padding-bottom: 12px;
+      }
+      .order-item-row:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+      }
+      .total-price-row {
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px solid var(--border-color, #eee);
+          display: flex;
+          justify-content: space-between;
+          font-weight: 800;
+          font-size: 1.1rem;
+          color: var(--text-main);
+      }
+
+      /* Dark Mode Specific Tweaks for inner elements */
+      [data-theme="dark"] .order-item-row { border-bottom-color: #334155; }
+      [data-theme="dark"] .total-price-row { border-top-color: #334155; }
+
+    </style>
+  </head>
+  <body data-status="waiting">
+    <!-- App Container -->
+    <div id="app-container">
+      
+      <!-- Sub Element that acts as the scrollable screen with themes -->
+      <div class="status-container">
+        
+        <div class="status-header-message">
+           ご注文ありがとうございます
+        </div>
+
+        <!-- Dynamic Status Card -->
+        <div id="status-card" class="status-card cooking">
+            
+            <!-- Row: Animation (Left) + Number (Right) -->
+            <div class="status-main-row">
+                <div class="anim-col" id="anim-container">
+                     <!-- Animation Injected Here -->
+                     <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div class="num-col">
+                    <div class="label-order-num">ご注文番号</div>
+                    <div id="display-number" class="big-number">----</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-stepper" id="progress-stepper">
+                <div class="step-item" id="step-cooking">
+                    <div class="step-circle"><i class="bi bi-fire"></i></div>
+                    <div class="step-label">調理中</div>
+                </div>
+                <div class="step-item" id="step-prep">
+                    <div class="step-circle"><i class="bi bi-box-seam"></i></div>
+                    <div class="step-label">準備中</div>
+                </div>
+                <div class="step-item" id="step-done">
+                    <div class="step-circle"><i class="bi bi-megaphone"></i></div>
+                    <div class="step-label">お呼出</div>
+                </div>
+            </div>
+
+            <div id="status-title" class="status-title">読み込み中...</div>
+            <div id="status-desc" class="status-desc">
+                注文情報を取得しています
+            </div>
+
+            <!-- カウントダウン表示エリア -->
+            <div id="countdown-container" style="display: none; margin-top: 15px; padding: 12px; background-color: #ffebee; color: #c62828; border-radius: 8px; font-weight: bold; border: 1px solid #ef5350; width: 100%;">
+                🚨 あと <span id="countdown-timer" style="font-size: 1.4rem;">05:00</span> で破棄されます
+                <div style="font-size: 0.75rem; font-weight: normal; margin-top: 4px;">期限を過ぎるとアカウントが利用停止(BAN)となります</div>
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="info-section mb-4">
+            <div class="info-label ms-1">注文詳細</div>
+            <div class="info-card flex-column align-items-stretch glass-card">
+                 <!-- Store Link -->
+                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                     <div>
+                         <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-bottom: 4px;">受け取り店舗</div>
+                         <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);" id="store-name-display">読込中...</div>
+                     </div>
+                     <button id="btn-store-link" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="display: none; border-width: 2px;">
+                         詳細 <i class="bi bi-chevron-right ms-1"></i>
+                     </button>
+                 </div>
+                 <!-- Order Date -->
+                 <div>
+                     <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-bottom: 4px;">注文日時</div>
+                     <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" id="order-date-display">----/--/-- --:--</div>
+                 </div>
+            </div>
+        </div>
+
+        <!-- Item List -->
+        <div class="item-list-container">
+             <div class="info-label">注文内容</div>
+             <div class="info-card" style="display: block; padding: 20px;">
+                 <div id="items-list"></div>
+                 <div class="total-price-row">
+                     <span>合計</span>
+                     <span id="total-price">¥0</span>
+                 </div>
+             </div>
+        </div>
+
+      </div>
+
+      </div>
+    
+    </div><!-- End App Container -->
+
+    <!-- Load External Data -->
+    <script src="../main/data/data.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Firestore モジュールから必要な関数のみ import
+      import {
+        doc,
+        onSnapshot,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+      // Auth モジュールから必要な関数のみ import
+      import {
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+      /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
+      import { app, auth, db, login } from "../main/auth.js";
+
+      // --- Logic ---
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+      const errorMsg = params.get("error");
+
+      if (errorMsg === "duplicate_order") {
+        document.addEventListener("DOMContentLoaded", () => {
+          const alertDiv = document.createElement("div");
+          alertDiv.className = "alert alert-warning alert-dismissible fade show";
+          alertDiv.role = "alert";
+          alertDiv.style.margin = "15px 15px 0 15px";
+          alertDiv.style.width = "calc(100% - 30px)";
+          alertDiv.style.boxShadow = "var(--shadow-card)";
+          alertDiv.style.borderRadius = "var(--radius-md)";
+          alertDiv.style.fontSize = "0.9rem";
+          alertDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>すでに進行中の注文があります</strong><br>
+            複数の同時注文はできません。
+            <button type="button" class="btn-close" aria-label="Close"></button>
+          `;
+          
+          const closeBtn = alertDiv.querySelector(".btn-close");
+          closeBtn.addEventListener("click", () => {
+            alertDiv.remove();
+          });
+
+          const container = document.querySelector(".status-container");
+          if(container) {
+             container.prepend(alertDiv);
+          }
+        });
+      }
+
+      if (!orderId) {
+        document.getElementById("status-title").textContent = "Order ID Missing";
+        document.getElementById("status-desc").textContent = "正しいURLでアクセスしてください";
+        document.querySelector(".spinner-border").style.display = "none";
+      } else {
+        // PERMISSION FIX: Wait for Auth
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            startListener();
+          } else {
+            // Not logged in.
+            document.getElementById("status-title").textContent = "認証が必要です";
+            document.getElementById("status-desc").innerHTML =
+              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-dark mt-3 rounded-pill px-4">ログインする</button>';
+            document.querySelector(".spinner-border").style.display = "none";
+
+            document.getElementById("btn-login-status").onclick = () => {
+              login().catch((e) =>
+                alert(e.message)
+              );
+            };
+          }
+        });
+      }
+
+      function startListener() {
+        console.log("Starting Firestore Listener for:", orderId);
+        onSnapshot(
+          doc(db, "orders", orderId),
+          (docSnap) => {
+            if (!docSnap.exists()) {
+              console.log("Doc does not exist");
+              document.getElementById("status-title").textContent = "Order Not Found";
+              return;
+            }
+            const data = docSnap.data();
+            console.log("Order Data Update:", data); 
+            updateUI(data);
+            fetchStoreName(data.storeId);
+            
+            updateUI(data);
+            fetchStoreName(data.storeId);
+          },
+          (error) => {
+            console.error("Snapshot Error:", error);
+            if (error.code === 'permission-denied') {
+                 document.getElementById("status-title").textContent = "アクセス権限がありません";
+                 document.getElementById("status-desc").textContent = "再読み込みをお試しください";
+            } else {
+                document.getElementById("status-title").textContent = "Error";
+                document.getElementById("status-desc").textContent = error.message;
+            }
+          }
+        );
+      }
+
+      let countdownInterval = null;
+
+      function stopCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const container = document.getElementById("countdown-container");
+        if (container) container.style.display = "none";
+      }
+
+      function startCountdown(readyForPickupAt) {
+        stopCountdown();
+        if (!readyForPickupAt) return;
+        
+        const container = document.getElementById("countdown-container");
+        const timerEl = document.getElementById("countdown-timer");
+        if (!container || !timerEl) return;
+        
+        // 5分 = 300000ミリ秒
+        const deadline = readyForPickupAt.toMillis() + 5 * 60 * 1000;
+        container.style.display = "block";
+        
+        const updateTimer = () => {
+          const now = Date.now();
+          const diff = deadline - now;
+          if (diff <= 0) {
+             timerEl.textContent = "00:00";
+             clearInterval(countdownInterval);
+             return;
+          }
+          const m = Math.floor(diff / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+          timerEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+        
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+      }
+
+      function updateUI(data) {
+        // 1. Order Number
+        // SOK假注文時は receiptNumber が null のためガード
+        const numEl = document.getElementById("display-number");
+        if (numEl) numEl.textContent = data.receiptNumber != null ? `${data.receiptNumber}` : "---";
+
+        // 1.5 Order Date
+        const dateEl = document.getElementById("order-date-display");
+        if (dateEl && data.createdAt) {
+          const date = data.createdAt.toDate();
+          const y = date.getFullYear();
+          const m = String(date.getMonth() + 1).padStart(2, '0');
+          const d = String(date.getDate()).padStart(2, '0');
+          const hr = String(date.getHours()).padStart(2, '0');
+          const min = String(date.getMinutes()).padStart(2, '0');
+          dateEl.textContent = `${y}/${m}/${d} ${hr}:${min}`;
+        }
+
+        // 2. Items List
+        const list = document.getElementById("items-list");
+        list.innerHTML = "";
+        if (data.items) {
+          data.items.forEach((item) => {
+            const row = document.createElement("div");
+            row.className = "order-item-row";
+            const itemPrice = item.price || 0; 
+            const itemQty = item.quantity || 0;
+            
+            // Generate customizations HTML
+            let optionsHtml = "";
+            if (item.customizations && Array.isArray(item.customizations) && item.customizations.length > 0) {
+               const modsHtmlStr = item.customizations.map(m => {
+                   const colorClass = m.mode === "NO" ? "text-danger border-danger" : "text-success border-success";
+                   const modeStr = m.mode === "NO" ? "抜き" : "追加";
+                   return `<span class="badge border ${colorClass} me-1 mt-1" style="background: var(--bg-color); font-size:0.7rem; font-weight:700;">${m.target} ${modeStr}</span>`;
+               }).join("");
+               optionsHtml = `<div class="d-flex flex-wrap">${modsHtmlStr}</div>`;
+            }
+
+            // Fallback for older options formats
+            if (!optionsHtml && item.options && Array.isArray(item.options) && item.options.length > 0) {
+               const optsHtmlStr = item.options.map(opt => `<span class="badge border border-primary text-primary me-1 mt-1" style="background: var(--bg-color); font-size:0.7rem;">${opt}</span>`).join("");
+               optionsHtml = `<div class="d-flex flex-wrap">${optsHtmlStr}</div>`;
+            } else if (!optionsHtml && item.optionText) {
+               optionsHtml = `<div class="d-flex flex-wrap"><span class="badge border border-primary text-primary mt-1" style="background: var(--bg-color); font-size:0.7rem;">${item.optionText}</span></div>`;
+            }
+
+            row.innerHTML = `
+                <div style="flex:1;">
+                    <div style="font-weight:700; color: var(--text-main); font-size: 1.05rem;">${item.name || "名称未設定"}</div>
+                    ${optionsHtml}
+                    <div style="font-size:0.85rem; color: var(--text-sub); margin-top: 6px; font-weight: 600;">数量: ${itemQty}</div>
+                </div>
+                <div style="font-weight:800; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center;">¥${itemPrice * itemQty}</div>
+            `;
+            list.appendChild(row);
+          });
+        }
+        document.getElementById("total-price").textContent = `¥${data.totalPrice}`;
+
+        // 3. Status Transformation logic — 設計憲法§1.1の7ステータス対応
+        const STATUS_CONFIG = {
+          "cooking":          { visualState: "cooking",   title: "ただいまお作りしています！",          desc: "モニターに番号が表示されたら\nお受け取りください" },
+          "ready_to_serve":   { visualState: "prep",      title: "まもなくお呼び出し",            desc: "商品を準備しています\nもう少々お待ちください" },
+          "ready_for_pickup": { visualState: "calling",   title: "商品完成！",                    desc: "大変お待たせいたしました！\nカウンターへお越しください！" },
+          "completed":        { visualState: "done",      title: "受渡完了",                    desc: "ご利用ありがとうございました！\n素敵な文化祭を！" },
+          "cancelled":        { visualState: "cancelled",  title: "キャンセルされました",              desc: "この注文はキャンセルされました。\n詳細は店舗スタッフにお尋ねください。" },
+          "abandoned":        { visualState: "abandoned",  title: "受け取り期限切れ",                desc: "5分以内に受け取りに来られなかったため\n商品は破棄されました" },
+        };
+
+        const status = data.status;
+
+        // SOK假注文 (status = null) の特別処理 — 設計憲法§5.2準拠
+        if (status === null) {
+          const animContainer = document.getElementById("anim-container");
+          const card = document.getElementById("status-card");
+          const titleEl = document.getElementById("status-title");
+          const descEl = document.getElementById("status-desc");
+          const stepper = document.getElementById("progress-stepper");
+          card.className = "status-card";
+          stepper.style.display = "none";
+          if (data.sokStatus === "expired") {
+            // QRの有効期限切れ
+            card.classList.add("cancelled");
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-cancelled);"><i class="bi bi-clock-fill"></i></div>`;
+            titleEl.textContent = "QRコードの有効期限が切れました";
+            descEl.textContent = "店舗のiPadで最初からやり直してください";
+          } else {
+            // pending / claimed — QRスキャン待機中
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--brand-color);"><i class="bi bi-qr-code-scan"></i></div>`;
+            titleEl.textContent = "注文を確定しています…";
+            descEl.textContent = "QRコードを読み取って、スマホで注文を確定してください";
+          }
+          return; // 通常のUI処理をスキップ
+        }
+
+        const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["cooking"]; // 未知は cooking 扱い
+        const visualState = cfg.visualState;
+
+        const animContainer = document.getElementById("anim-container");
+        const card = document.getElementById("status-card");
+        const titleEl = document.getElementById("status-title");
+        const descEl = document.getElementById("status-desc");
+
+        // Helper to set progress bar
+        const setProgress = (activeId) => {
+            const steps = ["step-cooking", "step-prep", "step-done"];
+            let foundActive = false;
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove("active", "completed");
+                if (id === activeId) {
+                    el.classList.add("active");
+                    foundActive = true;
+                } else if (!foundActive) {
+                    el.classList.add("completed");
+                }
+            });
+        };
+
+        // Reset card classes
+        card.className = "status-card";
+        const stepper = document.getElementById("progress-stepper");
+        stepper.style.display = "flex"; // Default show
+
+        // 共通テキスト居入
+        titleEl.textContent = cfg.title;
+        descEl.textContent = cfg.desc;
+
+        if (visualState === "cancelled") {
+            card.classList.add("cancelled");
+            stepper.style.display = "none";
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-cancelled);"><i class="bi bi-x-circle-fill"></i></div>`;
+
+        } else if (visualState === "abandoned") {
+            card.classList.add("abandoned");
+            stepper.style.display = "none";
+            animContainer.innerHTML = `<div style="font-size: 5rem; color: var(--status-abandoned);"><i class="bi bi-clock-fill"></i></div>`;
+
+        } else if (visualState === "cooking") {
+            card.classList.add("cooking");
+            setProgress("step-cooking");
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="30" r="8" class="stick-head"/>
+                    <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                    <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                    <path d="M50 45 L30 55" class="stick-stroke"/>
+                    <g class="arm-cooking">
+                        <path d="M50 45 L70 55" class="stick-stroke"/>
+                        <line x1="70" y1="55" x2="80" y2="55" class="stick-stroke"/>
+                        <path d="M80 55 A10 10 0 0 0 95 55 Z" class="stick-stroke" fill="#e5e7eb"/>
+                        <circle cx="87" cy="50" r="2" class="stick-head pan-content" fill="#ef4444"/>
+                        <rect x="85" y="48" width="4" height="4" class="stick-head pan-content" style="animation-delay: 0.1s" fill="#f59e0b"/>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "prep") {
+            card.classList.add("prep");
+            setProgress("step-prep");
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <line x1="60" y1="80" x2="100" y2="80" class="stick-stroke" style="stroke-width: 2; stroke: #9ca3af;"/>
+                    <circle cx="40" cy="30" r="8" class="stick-head"/>
+                    <line x1="40" y1="38" x2="40" y2="70" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="25" y2="95" class="stick-stroke"/>
+                    <line x1="40" y1="70" x2="55" y2="95" class="stick-stroke"/>
+                    <path d="M75 80 L75 65 L90 65 L90 80 Z" class="item-fill"/>
+                    <circle cx="82" cy="60" r="4" class="item-stroke item-packing" style="stroke: #ef4444; fill: #ef4444; border:none;"/>
+                    <g class="arm-packing">
+                        <path d="M40 45 L60 45 L75 55" class="stick-stroke" fill="none"/>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "calling") {
+            card.classList.add("done");
+            setProgress("step-done");
+            animContainer.innerHTML = `
+                <svg class="stick-svg" viewBox="0 0 100 100">
+                    <g class="stick-man-done">
+                        <circle cx="50" cy="30" r="8" class="stick-head"/>
+                        <line x1="50" y1="38" x2="50" y2="70" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="35" y2="95" class="stick-stroke"/>
+                        <line x1="50" y1="70" x2="65" y2="95" class="stick-stroke"/>
+                        <path d="M50 45 L70 60" class="stick-stroke"/>
+                        <g class="bag-hold">
+                            <path d="M70 60 L70 75 L85 75 L85 60 Z" class="item-fill"/>
+                            <path d="M70 60 Q77 50 85 60" class="item-stroke" style="fill:none; stroke-width:2;"/>
+                        </g>
+                        <g class="arm-wave">
+                            <path d="M50 45 L80 45" class="stick-stroke"/> 
+                        </g>
+                    </g>
+                    <g>
+                        <text x="20" y="30" font-size="20" fill="#fbbf24" style="animation: pulse 1s infinite;">✨</text>
+                        <text x="80" y="20" font-size="15" fill="#fbbf24" style="animation: pulse 1s infinite 0.5s;">✨</text>
+                    </g>
+                </svg>
+            `;
+
+        } else if (visualState === "done") {
+             card.classList.add("done");
+             setProgress("step-done");
+             animContainer.innerHTML = `
+                <div style="font-size: 5rem; color: var(--status-completed);">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+             `;
+        }
+
+        // カウントダウンの制御
+        if (visualState === "calling") {
+            startCountdown(data.readyForPickupAt);
+        } else {
+            stopCountdown();
+        }
+      }
+
+      async function fetchStoreName(storeId) {
+        if (!storeId) return;
+        
+        let orgName = "";
+        let storeName = "";
+        
+        // 1. まずローカルの projectData からデータを検索する
+        if (typeof projectData !== "undefined") {
+          const project = projectData.find(p => p.id === storeId);
+          if (project) {
+            orgName = project.groupName || "";
+            storeName = project.name || "";
+          }
+        }
+        
+        // 2. 次に Firestore からデータを取得して補完する
+        try {
+          const storeDoc = await getDoc(doc(db, "stores", storeId));
+          if (storeDoc.exists()) {
+             const data = storeDoc.data();
+             // ローカルデータに無い場合のみ Firestore の値を使用
+             if (!orgName) orgName = data.name || "";
+             if (!storeName) storeName = data.teamName || "";
+          }
+        } catch (e) {
+          console.error("fetchStoreName error:", e);
+        }
+        
+        const el = document.getElementById("store-name-display");
+        if (el) {
+          if (orgName && storeName && orgName !== storeName) {
+             el.innerHTML = `<span style="font-size: 0.85rem; color: var(--text-sub); margin-right: 8px; font-weight: 700;">${orgName}</span>${storeName}`;
+          } else {
+             el.textContent = storeName || orgName || "名称未設定";
+          }
+        }
+
+        const btn = document.getElementById("btn-store-link");
+        if (btn) {
+          btn.style.display = "inline-block";
+          btn.onclick = () => {
+            window.location.href = `../main/detail.html?id=${storeId}`;
+          };
+        }
+      }
+
+    </script>
+    
+    <!-- App Layout Scripts -->
+    <script>
+       // Helper to check if authorized (optional specific checks)
+
+       
+       // App Shell Config
+       window.CURRENT_PAGE = 'order'; // Highlight order tab instead of home
+    </script>
+    <script type="module" src="../main/app-shell.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1153 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
+    <title>プレゼンターモニター | 南陵祭2026</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* --- ベース設定 --- */
+      body {
+        font-family: "Noto Sans JP", "Roboto", sans-serif;
+        background-color: #000000;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 15px;
+        transition: zoom 0.2s ease;
+      }
+
+      /* --- ヘッダー --- */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 12px 20px 12px 80px; /* 左上のOSネイティブUI(×ボタン等)の被り防止 */
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #333;
+        border-radius: 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #fff;
+        font-weight: 900;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .user-info {
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      .btn-header {
+        background-color: #333;
+        color: #fff;
+        border: 1px solid #555;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+        transition: background 0.2s;
+        user-select: none;
+      }
+      .btn-header:hover {
+        background-color: #444;
+      }
+
+      .zoom-controls {
+        display: flex;
+        gap: 5px;
+        margin-right: 15px;
+      }
+      .btn-zoom {
+        font-size: 1.2rem;
+        width: 40px;
+        padding: 5px 0;
+        text-align: center;
+        background-color: #444;
+      }
+
+      /* --- ローダー --- */
+      #global-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 99999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      }
+      #global-loader.active {
+        display: flex;
+      }
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .loading-text {
+        font-size: 1.5em;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
+      /* --- グリッドレイアウト --- */
+      .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+      }
+
+      /* --- 注文カードデザイン --- */
+      .order-card {
+        background-color: #ffffff;
+        color: #111;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+        border: 1px solid #444;
+        min-height: 300px;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card-body {
+        padding: 12px 15px;
+        flex-grow: 1;
+      }
+
+      /* ヘッダー周り */
+      .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+      }
+      .order-id {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #000;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .header-right-col {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+      .order-timer {
+        font-family: "Roboto", monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #333;
+        line-height: 1;
+      }
+      .timer-alert {
+        color: #d32f2f;
+        animation: flash 2s infinite;
+      }
+      @keyframes flash {
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* ★ここが追加箇所：ソースバッジ (POS/Mobile) */
+      .source-badge {
+        font-size: 0.75rem;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-top: 4px;
+      }
+      .badge-pos {
+        background-color: #e3f2fd;
+        color: #1565c0; /* Blue */
+        border: 1px solid #bbdefb;
+      }
+      .badge-mobile {
+        background-color: #fce4ec;
+        color: #c2185b; /* Pink */
+        border: 1px solid #f8bbd0;
+      }
+
+      /* メニューボタン */
+      .menu-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #888;
+        padding: 0;
+        line-height: 0.5;
+        margin-bottom: 5px;
+      }
+      .menu-btn:hover {
+        color: #000;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 40px;
+        right: 10px;
+        background-color: #333;
+        color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 100;
+        width: 180px;
+      }
+      .dropdown-menu.show {
+        display: block;
+      }
+      .dropdown-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #444;
+        font-size: 0.95rem;
+        font-weight: bold;
+      }
+      .dropdown-item:hover {
+        background-color: #444;
+      }
+      .text-danger {
+        color: #ff5252;
+      }
+      .text-warn {
+        color: #ffb74d;
+      }
+
+      /* 商品リスト */
+      .item-row {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #ddd;
+      }
+      .item-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .item-main {
+        display: flex;
+        align-items: baseline;
+      }
+      .item-qty {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #000;
+        width: 35px;
+        text-align: right;
+        margin-right: 12px;
+      }
+      .item-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.2;
+      }
+
+      .item-customizations {
+        margin-top: 8px;
+        padding-left: 50px;
+      }
+      .customization-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .cust-badge {
+        font-size: 0.9rem;
+        font-weight: 900;
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-right: 10px;
+        min-width: 40px;
+        text-align: center;
+      }
+      .cust-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333;
+      }
+
+      /* 全画面表示時の余白・黒帯対策 */
+      :fullscreen, :-webkit-full-screen {
+        width: 100% !important;
+        height: 100% !important;
+        background-color: #111 !important;
+        margin: 0 !important;
+        padding: 20px !important;
+      }
+      ::backdrop {
+        background-color: #111 !important;
+      }
+
+      .bg-red {
+        background-color: #d32f2f;
+      }
+      .bg-green {
+        background-color: #2e7d32;
+      }
+      .bg-gray {
+        background-color: #757575;
+      }
+      .text-alert {
+        color: #d32f2f;
+        font-weight: 900;
+      }
+
+      /* フッターエリア */
+      .card-footer {
+        padding: 0;
+        margin-top: auto;
+      }
+      .btn-action {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.3rem;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        color: white;
+      }
+
+      /* フェーズ1 */
+      .btn-call {
+        background-color: #1565c0;
+        border-radius: 0 0 6px 6px;
+      }
+      .btn-call:hover {
+        background-color: #0d47a1;
+      }
+
+      /* フェーズ2: 支払いボタン */
+      .payment-actions {
+        display: flex;
+      }
+      .btn-full {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.1rem;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        color: white;
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+      }
+      .btn-qr {
+        background-color: #ef6c00;
+      }
+      .btn-qr:hover {
+        background-color: #e65100;
+      }
+
+      /* フェーズ2: モニター待機 */
+      .status-monitor-wait {
+        background-color: #fff9c4;
+        color: #f57f17;
+        padding: 15px;
+        text-align: center;
+        font-weight: 900;
+        font-size: 1.1rem;
+        border-top: 1px solid #ddd;
+        border-radius: 0 0 6px 6px;
+        animation: blink 2s infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      /* エラー */
+      #error-message {
+        display: none;
+        background: #b71c1c;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+
+      /* --- ローディング用 --- */
+      .spinner {
+        display: inline-block;
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .btn-loading {
+        background-color: #555 !important;
+        color: #ccc !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+      }
+
+      /* --- 店舗ログインモーダル --- */
+      #store-login-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #eee;
+        z-index: 15000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .store-login-card {
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 400px;
+        width: 90%;
+      }
+      .store-login-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.2em;
+        margin: 20px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .store-login-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.2em;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+
+      /* --- Error Overlay --- */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+  <body>
+    <!-- Error Overlay -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666">(Error: StoreID is missing)</span>
+      </div>
+    </div>
+    <div id="error-message"></div>
+
+    <!-- 店舗ログインモーダル -->
+    <div id="store-login-modal">
+      <div class="store-login-card">
+        <h2>店舗認証</h2>
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <div class="store-password-wrapper" style="position: relative; margin: 20px 0;">
+          <input
+            type="password"
+            id="store-password-input"
+            class="store-login-input"
+            placeholder="パスワード"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            style="margin: 0; padding-right: 40px;"
+          />
+          <button type="button" id="toggle-store-pass" class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0; color: #666;"
+            >👁️</button>
+        </div>
+        <button class="store-login-btn" id="store-login-btn">認証する</button>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
+      </div>
+    </div>
+
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:inherit;">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+
+    <!-- Initial Loader -->
+    <div id="global-loader" class="active">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="spinner"></div>
+        <div class="loading-text">読み込み中...</div>
+        <div id="loader-fallback" style="display:none; margin-top:24px; text-align:center; color:#ccc; font-size:0.95rem; line-height:1.5;">
+          <p>読み込みに時間がかかっています。<br>電波状況を確認するか、ポータルへ戻ってください。</p>
+          <a href="portal.html" style="display:inline-block; margin-top:16px; padding:12px 24px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:8px; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.3);">ポータルへ戻る</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      let initialLoaderTimer = setTimeout(() => {
+        const fallback = document.getElementById("loader-fallback");
+        if (fallback) fallback.style.display = "block";
+      }, 8000);
+    </script>
+
+    <!-- メインコンテンツ -->
+    <div id="main-content" style="display: none">
+      <header>
+        <div>
+          <h1>プレゼンター</h1>
+          <span style="font-size: 0.8rem; color: #888"
+            >店舗ID: <span id="display-store-id">--</span></span
+          >
+        </div>
+        <div class="header-right">
+          <div class="zoom-controls">
+            <button class="btn-header btn-zoom" onclick="adjustZoom(-0.1)">
+              -
+            </button>
+            <button class="btn-header btn-zoom" onclick="adjustZoom(0.1)">
+              +
+            </button>
+            <button class="btn-header btn-zoom" onclick="toggleFullScreen()" style="width: auto; padding: 5px 10px; font-size: 0.9rem;">
+              全画面
+            </button>
+          </div>
+          <button class="btn-header" onclick="logout()">ログアウト</button>
+        </div>
+      </header>
+
+      <div id="orders-container" class="orders-grid"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+
+    <script>
+      // --- Firebase Config ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do", // ダミーです
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
+        messagingSenderId: "360316480856",
+        appId: "1:360316480856:web:1234567890abcdef",
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const analytics = firebase.analytics();
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+      const provider = new firebase.auth.GoogleAuthProvider();
+
+      // POSアラート監視 (動的インポート)
+      import("./pos-alert.js").then((module) => {
+        db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
+          if (snap.exists) module.renderPosAlert(snap.data());
+        });
+      }).catch(err => console.error("Failed to load pos-alert module", err));
+
+      let unsubscribe = null;
+      const urlParams = new URLSearchParams(window.location.search);
+      const storeId = urlParams.get("storeId");
+
+      const ordersContainer = document.getElementById("orders-container");
+      const errorMsgEl = document.getElementById("error-message");
+
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function playPingSound() {
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + 0.5,
+        );
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      }
+
+      let currentZoom = 1.0;
+      function adjustZoom(delta) {
+        currentZoom = Math.round((currentZoom + delta) * 10) / 10;
+        if (currentZoom < 0.5) currentZoom = 0.5;
+        if (currentZoom > 2.0) currentZoom = 2.0;
+        document.body.style.zoom = currentZoom;
+      }
+
+      function toggleFullScreen() {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) return;
+
+        const doc = window.document;
+        const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+          if (requestFullScreen) requestFullScreen.call(docEl);
+        } else {
+          if (cancelFullScreen) cancelFullScreen.call(doc);
+        }
+      }
+
+      function showError(html) {
+        errorMsgEl.innerHTML = html;
+        errorMsgEl.style.display = "block";
+      }
+
+      // --- Auth Guard ---
+      const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+      const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+      function isAuthorizedUser(user) {
+        if (!user || !user.email) return false;
+        return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+      }
+
+      auth.onAuthStateChanged((user) => {
+        const LS_KEY = "nanryosai_store_id";
+        const cachedId = localStorage.getItem(LS_KEY);
+
+        if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+          const currentUrl = encodeURIComponent(window.location.href);
+          const storeParam = storeId ? `&s=${storeId}` : '';
+          window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+        } else {
+          if (initialLoaderTimer) {
+            clearTimeout(initialLoaderTimer);
+            initialLoaderTimer = null;
+          }
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
+          document.getElementById("global-loader").classList.remove("active");
+          document.getElementById("main-content").style.display = "block";
+          // User Name display removed for privacy
+          document.getElementById("display-store-id").textContent = storeId;
+          startOrderListener();
+          startTimerLoop();
+        }
+      });
+      function logout() {
+        if (confirm("ログアウトしますか？"))
+          auth.signOut().then(() => location.reload());
+      }
+
+      // --- Firestore Listener ---
+      function startOrderListener() {
+        let isInitialLoad = true;
+
+        unsubscribe = db
+          .collection("orders")
+          .where("storeId", "==", storeId)
+          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "abandoned"])
+          .orderBy("createdAt", "asc")
+          .onSnapshot(
+            (snapshot) => {
+              snapshot.docChanges().forEach((change) => {
+                const data = change.doc.data();
+                if (change.type === "added") {
+                  removeCard(change.doc.id);
+                  renderCardSorted(change.doc);
+                  if (!isInitialLoad && data.status === "ready_to_serve") {
+                    playPingSound();
+                  }
+                }
+                if (change.type === "modified") {
+                  removeCard(change.doc.id);
+                  renderCardSorted(change.doc);
+                }
+                if (change.type === "removed") {
+                  removeCard(change.doc.id);
+                }
+              });
+              isInitialLoad = false;
+            },
+            (error) => {
+              console.error("Firestore Error:", error);
+              if (error.code === "failed-precondition") {
+                showError(
+                  `インデックスが必要です。<a href="#" onclick="alert('コンソールを確認してください')">詳細</a>`,
+                );
+              } else if (error.code === "permission-denied") {
+                showError("アクセス権限がありません。");
+              }
+            },
+          );
+      }
+
+      function renderCardSorted(doc) {
+        const data = doc.data();
+
+        // スタッフがすでに「確認済」として消去したBAN注文は描画しない
+        if (data.status === "abandoned") {
+          if (localStorage.getItem("dismissed_" + doc.id) === "true") return;
+
+          // 別端末で開いた時用に、破棄から5分以上経過したものは自動非表示にする
+          if (data.updatedAt) {
+            const diffMin = (Date.now() - data.updatedAt.toDate().getTime()) / 60000;
+            if (diffMin > 5) return;
+          }
+        }
+
+        const createdDate = data.createdAt
+          ? data.createdAt.toDate()
+          : new Date();
+        const createdTimeMs = createdDate.getTime();
+
+        const cardEl = createCardElement(doc, createdDate);
+
+        const children = ordersContainer.children;
+        let inserted = false;
+        for (let i = 0; i < children.length; i++) {
+          const childTime = parseInt(children[i].dataset.createdAt);
+          if (createdTimeMs < childTime) {
+            ordersContainer.insertBefore(cardEl, children[i]);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) {
+          ordersContainer.appendChild(cardEl);
+        }
+        updateSingleTimer(cardEl, Date.now());
+      }
+
+      function createCardElement(doc, createdDate) {
+        const data = doc.data();
+        const orderId = doc.id;
+        const displayId = data.receiptNumber
+          ? `${data.receiptNumber}`
+          : `${orderId.slice(-4).toUpperCase()}`;
+
+        // ★ ソース判定ロジック (受付番号範囲で判定)
+        let sourceLabel = "POS";
+        let sourceClass = "badge-pos";
+
+        if (data.orderChannel === "mobile") {
+          sourceLabel = "Mobile";
+          sourceClass = "badge-mobile";
+        } else if (data.orderChannel === "sok") {
+          sourceLabel = "SOK";
+          sourceClass = "badge-mobile";
+        }
+
+        let itemsHtml = buildItemsHtml(data.items);
+        let footerHtml = "";
+
+        // フッター分岐
+        if (data.status === "ready_to_serve") {
+          footerHtml = `
+                <button class="btn-action btn-call" onclick="callForPickup('${orderId}')">
+                    呼び出し (準備完了)
+                </button>
+            `;
+        } else if (data.status === "ready_for_pickup") {
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full btn-qr" onclick="completeOrder('${orderId}')">受渡完了 (AirPay端末確認)</button>
+                </div>
+            `;
+        } else if (data.status === "abandoned") {
+          footerHtml = `
+                <div class="payment-actions">
+                    <button class="btn-full" style="background-color: #d32f2f; color: white;" onclick="dismissAbandoned('${orderId}')">確認・破棄する (表示から消去)</button>
+                </div>
+            `;
+        }
+
+        const totalPrice = data.totalPrice ? `¥${data.totalPrice.toLocaleString()}` : "¥---";
+
+        const div = document.createElement("div");
+        div.className = "order-card";
+        div.id = `card-${orderId}`;
+        div.dataset.createdAt = createdDate.getTime();
+        div.dataset.status = data.status;
+        div.dataset.orderChannel = data.orderChannel || "unknown";
+        div.dataset.readyAt = data.readyForPickupAt ? data.readyForPickupAt.toDate().getTime() : "";
+        div.dataset.updatedAt = data.updatedAt ? data.updatedAt.toDate().getTime() : "";
+
+        // BANアラート用HTML
+        let abandonedAlertHtml = "";
+        if (data.status === "abandoned") {
+            abandonedAlertHtml = `
+                <div style="background-color: #ffebee; color: #c62828; padding: 12px; text-align: center; font-weight: 900; border-bottom: 2px solid #ef5350; border-radius: 6px 6px 0 0;">
+                    🚨 この注文は破棄されました (BAN)
+                </div>
+            `;
+            div.style.borderColor = "#c62828";
+            div.style.borderWidth = "2px";
+        }
+
+        div.innerHTML = `
+            ${abandonedAlertHtml}
+            <div class="card-body">
+                <div class="card-header-row">
+                    <span class="order-id">${displayId}</span>
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;">
+                        <div id="ban-timer-${orderId}" style="text-align: right; line-height: 1.2;"></div>
+                    </div>
+                    <div class="header-right-col">
+                        <div style="position:relative; text-align:right;">
+                            <button class="menu-btn" onclick="toggleMenu('${orderId}', event)">⋮</button>
+                            <div id="menu-${orderId}" class="dropdown-menu">
+                                <div class="dropdown-item text-warn" onclick="forceComplete('${orderId}')">緊急完了 (手動)</div>
+                                <div class="dropdown-item text-danger" onclick="cancelOrder('${orderId}')">提供不可・キャンセル</div>
+                            </div>
+                        </div>
+                        <span class="order-timer" id="timer-${orderId}">00:00</span>
+                        <!-- ★ここにバッジを表示 -->
+                        <span class="source-badge ${sourceClass}">${sourceLabel}</span>
+                    </div>
+                </div>
+                <div>${itemsHtml}</div>
+                <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; font-size: 1.2rem; font-weight: 900; color: #111;">
+                    合計: <span style="color: #d32f2f;">${totalPrice}</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                ${footerHtml}
+            </div>
+        `;
+        return div;
+      }
+
+      function buildItemsHtml(items) {
+        if (!items || !Array.isArray(items)) return "";
+
+        return items
+          .map((item) => {
+            let customizationHtml = "";
+            if (item.customizations && item.customizations.length > 0) {
+              const rows = item.customizations
+                .map((c) => {
+                  let mode = "",
+                    target = c;
+                  if (typeof c === "object") {
+                    mode = c.mode || "";
+                    target = c.target || c.name || "";
+                  }
+
+                  let badgeClass = "bg-gray";
+                  let textClass = "cust-text";
+                  let displayMode = mode || "OPT";
+
+                  if (mode === "ADD") {
+                    badgeClass = "bg-green";
+                  } else if (mode === "NO" || mode === "REMOVE") {
+                    badgeClass = "bg-red";
+                    displayMode = "NO";
+                    textClass += " text-alert";
+                  }
+
+                  return `<div class="customization-row">
+                            <span class="cust-badge ${badgeClass}">${displayMode}</span>
+                            <span class="${textClass}">${target}</span>
+                          </div>`;
+                })
+                .join("");
+              customizationHtml = `<div class="item-customizations">${rows}</div>`;
+            }
+            return `
+                <div class="item-row">
+                    <div class="item-main">
+                        <div class="item-qty">${item.quantity}</div>
+                        <div class="item-name">${item.name}</div>
+                    </div>
+                    ${customizationHtml}
+                </div>`;
+          })
+          .join("");
+      }
+
+      function removeCard(id) {
+        const el = document.getElementById(`card-${id}`);
+        if (el) el.remove();
+      }
+
+      function startTimerLoop() {
+        setInterval(() => {
+          const now = Date.now();
+          document
+            .querySelectorAll(".order-card")
+            .forEach((c) => updateSingleTimer(c, now));
+        }, 1000);
+      }
+
+      function updateSingleTimer(cardEl, now) {
+        // メインのタイマー（注文からの経過時間）はBAN後も表示を維持する
+        const createdAt = parseInt(cardEl.dataset.createdAt);
+        if (createdAt) {
+            const diffSeconds = Math.max(0, Math.floor((now - createdAt) / 1000));
+            const mm = String(Math.floor(diffSeconds / 60)).padStart(2, "0");
+            const ss = String(diffSeconds % 60).padStart(2, "0");
+            const timerSpan = cardEl.querySelector(".order-timer");
+            if (timerSpan) {
+              timerSpan.textContent = `${mm}:${ss}`;
+              if (diffSeconds > 900) timerSpan.classList.add("timer-alert");
+              else timerSpan.classList.remove("timer-alert");
+            }
+        }
+
+        const banSpan = cardEl.querySelector(`#ban-timer-${cardEl.id.replace('card-', '')}`);
+        if (!banSpan) return;
+
+        // モバイルオーダー以外はBANタイマーを表示しない
+        if (cardEl.dataset.orderChannel !== "mobile") {
+            banSpan.innerHTML = "";
+            return;
+        }
+
+        if (cardEl.dataset.status === "abandoned") {
+            // BANからは何分経過したかを表示
+            const abandonedAt = parseInt(cardEl.dataset.updatedAt);
+            if (abandonedAt) {
+                const diffSeconds = Math.max(0, Math.floor((now - abandonedAt) / 1000));
+                const rm = String(Math.floor(diffSeconds / 60)).padStart(2, '0');
+                const rs = String(diffSeconds % 60).padStart(2, '0');
+                banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANから</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+            } else {
+                banSpan.innerHTML = `<span style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">破棄済</span>`;
+            }
+            return;
+        }
+
+        // BANタイマーの更新
+        if (cardEl.dataset.status === "ready_for_pickup") {
+            const readyAt = parseInt(cardEl.dataset.readyAt);
+            if (readyAt) {
+                const deadline = readyAt + 5 * 60 * 1000;
+                const remainDiff = Math.max(0, Math.floor((deadline - now) / 1000));
+                if (banSpan) {
+                    if (remainDiff <= 0) {
+                        banSpan.innerHTML = `<span style="font-size: 1rem; font-weight: 900; color: #d32f2f;">BAN実行中...</span>`;
+                    } else {
+                        const rm = String(Math.floor(remainDiff / 60)).padStart(2, '0');
+                        const rs = String(remainDiff % 60).padStart(2, '0');
+                        banSpan.innerHTML = `<div style="font-size: 0.8rem; font-weight: 800; color: #d32f2f;">BANまで</div><div style="font-size: 1.2rem; font-weight: 900; color: #d32f2f;">${rm}:${rs}</div>`;
+                    }
+                }
+            }
+        } else {
+            if (banSpan) banSpan.innerHTML = "";
+        }
+      }
+
+      function setLoading(orderId, text) {
+        const menu = document.getElementById(`menu-${orderId}`);
+        if(menu) menu.classList.remove('show');
+        
+        const card = document.getElementById(`card-${orderId}`);
+        if (!card) return;
+        const mainBtn = card.querySelector('.card-footer button');
+        if (mainBtn) {
+          mainBtn.disabled = true;
+          mainBtn.classList.add('btn-loading');
+          mainBtn.innerHTML = `<div class="spinner"></div>${text || "処理中..."}`;
+        }
+      }
+
+      window.dismissAbandoned = function(orderId) {
+        // バックエンド（関数）は動かさず、ローカルの画面上からのみ非表示にする
+        localStorage.setItem("dismissed_" + orderId, "true");
+        removeCard(orderId);
+      };
+
+      window.callForPickup = function (orderId) {
+        setLoading(orderId, "呼出処理中...");
+        const callFn = firebase.app().functions("asia-northeast1").httpsCallable("callForPickup");
+        callFn({ orderId }).catch(e => {
+          alert("呼出失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
+      };
+
+      window.completeOrder = function (orderId) {
+        setLoading(orderId, "完了処理中...");
+        const completeFn = firebase.app().functions("asia-northeast1").httpsCallable("completeOrder");
+        completeFn({ orderId }).catch(e => {
+          alert("完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
+      };
+
+      window.forceComplete = function (orderId) {
+        if (!confirm("【緊急完了】\n強制的に完了済みに変更します。")) return;
+        setLoading(orderId, "緊急完了処理中...");
+        const adminUpdate = firebase.app().functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
+        adminUpdate({ orderId, newStatus: "completed" }).catch(e => {
+          alert("緊急完了失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
+      };
+
+      window.cancelOrder = function (orderId) {
+        const reason = prompt("【キャンセル】\n提供不可としてキャンセルしますか？\n理由を入力してください:");
+        if (reason === null) return; // promptでキャンセルを押した場合は終了
+        if (reason.trim() === "") {
+          alert("キャンセル理由は必須です。理由を入力してください。");
+          return;
+        }
+        setLoading(orderId, "キャンセル処理中...");
+        const cancelFn = firebase.app().functions("asia-northeast1").httpsCallable("cancelOrder");
+        cancelFn({ orderId, reason }).catch(e => {
+          alert("キャンセル失敗: " + e.message + "\n画面を再読み込みします。");
+          location.reload();
+        });
+      };
+
+      window.toggleMenu = function (orderId, event) {
+        event.stopPropagation();
+        document.querySelectorAll(".dropdown-menu").forEach((el) => {
+          if (el.id !== `menu-${orderId}`) el.classList.remove("show");
+        });
+        const menu = document.getElementById(`menu-${orderId}`);
+        if (menu) menu.classList.toggle("show");
+      };
+
+      window.onclick = function (event) {
+        if (!event.target.matches(".menu-btn")) {
+          document
+            .querySelectorAll(".dropdown-menu")
+            .forEach((el) => el.classList.remove("show"));
+        }
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('store-password-input').addEventListener('input', function(e) {
+          this.value = this.value.replace(/[０-９A-Za-z]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+          }).replace(/[^0-9A-Za-z]/g, '');
+        });
+
+        document.getElementById('toggle-store-pass').addEventListener('click', function() {
+          const input = document.getElementById('store-password-input');
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = '🙈';
+          } else {
+            input.type = 'password';
+            this.textContent = '👁️';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

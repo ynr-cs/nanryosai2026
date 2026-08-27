@@ -1,0 +1,1869 @@
+<!--
+  Nanryosai 2026
+  Version: 0.2.86
+  Last Modified: 2026-02-24
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Master Data Admin | 南陵祭'26</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-surface: #0f1117;
+        --bg-card: #1a1d27;
+        --bg-card-alt: #222633;
+        --bg-elevated: #2a2e3d;
+        --border-subtle: rgba(255, 255, 255, 0.06);
+        --border-medium: rgba(255, 255, 255, 0.1);
+        --text-primary: #f0f2f5;
+        --text-secondary: #9ca3af;
+        --text-muted: #6b7280;
+        --accent-purple: #8b5cf6;
+        --accent-purple-glow: rgba(139, 92, 246, 0.3);
+        --accent-green: #22c55e;
+        --accent-green-dim: rgba(34, 197, 94, 0.15);
+        --accent-amber: #f59e0b;
+        --accent-amber-dim: rgba(245, 158, 11, 0.15);
+        --accent-red: #ef4444;
+        --accent-red-dim: rgba(239, 68, 68, 0.15);
+        --accent-blue: #3b82f6;
+        --accent-blue-dim: rgba(59, 130, 246, 0.15);
+        --accent-cyan: #06b6d4;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --radius-xl: 18px;
+        --shadow-card:
+          0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg-surface);
+        color: var(--text-primary);
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      /* Layout */
+      .admin-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      /* Header */
+      .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-card);
+      }
+      .admin-header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .admin-header-left .logo-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, var(--accent-purple), #a78bfa);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: 0 0 20px var(--accent-purple-glow);
+      }
+      .admin-header-left h1 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+      .admin-header-left h1 span {
+        color: var(--accent-purple);
+      }
+      .header-badge {
+        font-size: 0.65rem;
+        font-weight: 600;
+        background: var(--accent-purple-glow);
+        color: var(--accent-purple);
+        padding: 2px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .admin-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      #user-display {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 9px 18px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+      .btn-sm {
+        padding: 6px 14px;
+        font-size: 0.75rem;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-medium);
+      }
+      .btn-ghost:hover {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+      }
+      .btn-primary {
+        background: var(--accent-blue);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+      .btn-success {
+        background: var(--accent-green);
+        color: white;
+      }
+      .btn-success:hover {
+        background: #16a34a;
+      }
+      .btn-warning {
+        background: var(--accent-amber);
+        color: #1a1d27;
+      }
+      .btn-warning:hover {
+        background: #d97706;
+      }
+      .btn-danger {
+        background: transparent;
+        color: var(--accent-red);
+        border: 1px solid var(--accent-red);
+      }
+      .btn-danger:hover {
+        background: var(--accent-red-dim);
+      }
+      .btn-info {
+        background: var(--accent-cyan);
+        color: white;
+      }
+      .btn-accent {
+        background: linear-gradient(135deg, var(--accent-purple), #a78bfa);
+        color: white;
+        border: none;
+        box-shadow: 0 0 20px var(--accent-purple-glow);
+        font-size: 0.85rem;
+        padding: 11px 22px;
+      }
+      .btn-accent:hover {
+        box-shadow:
+          0 0 30px var(--accent-purple-glow),
+          0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Action Bar (replaces toolbar) */
+      .action-bar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .action-group {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        box-shadow: var(--shadow-card);
+      }
+      .action-group-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 10px;
+      }
+      .action-group-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .action-divider {
+        width: 1px;
+        height: 28px;
+        background: var(--border-medium);
+        margin: 0 6px;
+      }
+
+      /* Status Pill */
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .status-pill.test {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+      }
+      .status-pill.live {
+        background: var(--accent-green-dim);
+        color: var(--accent-green);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+      }
+      .status-pill .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+      }
+      .status-pill.test .dot {
+        background: var(--accent-amber);
+      }
+      .status-pill.live .dot {
+        background: var(--accent-green);
+      }
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* Toggle Switch */
+      .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .toggle-switch input {
+        display: none;
+      }
+      .toggle-track {
+        width: 40px;
+        height: 22px;
+        background: var(--bg-elevated);
+        border-radius: 11px;
+        position: relative;
+        transition: background 0.3s;
+        border: 1px solid var(--border-medium);
+      }
+      .toggle-track::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        transition: all 0.3s;
+      }
+      .toggle-switch input:checked + .toggle-track {
+        background: var(--accent-amber-dim);
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+      .toggle-switch input:checked + .toggle-track::after {
+        transform: translateX(18px);
+        background: var(--accent-amber);
+      }
+      .toggle-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      /* Table Styles */
+      .data-table-wrapper {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        max-height: 65vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-card);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 11px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-subtle);
+        font-size: 0.82rem;
+      }
+      th {
+        background: var(--bg-card-alt);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      tr:hover {
+        background: rgba(139, 92, 246, 0.04);
+      }
+      td input,
+      td textarea,
+      td select {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-sm);
+        font-size: 0.82rem;
+        font-family: "Inter", sans-serif;
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        transition: border-color 0.2s;
+      }
+      td input:focus,
+      td textarea:focus,
+      td select:focus {
+        outline: none;
+        border-color: var(--accent-purple);
+        box-shadow: 0 0 0 3px var(--accent-purple-glow);
+      }
+      td select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 28px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 40px;
+      }
+
+      /* JSON Output (collapsible) */
+      .json-output-area {
+        margin-top: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+      }
+      .json-output-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+      }
+      .json-output-header:hover {
+        background: var(--bg-card-alt);
+      }
+      .json-output-header h3 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .json-output-header i {
+        color: var(--text-muted);
+        transition: transform 0.3s;
+      }
+      .json-output-body {
+        padding: 0 20px 20px;
+        display: none;
+      }
+      .json-output-body.open {
+        display: block;
+      }
+      .json-textarea {
+        width: 100%;
+        height: 250px;
+        background: var(--bg-surface);
+        color: #a5f3a3;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+        font-size: 0.78rem;
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-md);
+        padding: 14px;
+        resize: vertical;
+      }
+
+      /* Log Console */
+      .log-area {
+        margin-top: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 14px 18px;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+        font-size: 0.72rem;
+        color: var(--accent-green);
+        max-height: 140px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-card);
+        line-height: 1.8;
+      }
+      .log-area div {
+        opacity: 0.7;
+      }
+      .log-area div:last-child {
+        opacity: 1;
+      }
+
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: var(--bg-card);
+        border: 1px solid var(--border-medium);
+        padding: 28px;
+        border-radius: var(--radius-xl);
+        width: 90%;
+        max-width: 640px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        color: var(--text-primary);
+      }
+      .modal-content h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+      .modal.active {
+        display: flex;
+      }
+
+      /* Action Buttons in Table */
+      .row-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .row-actions .btn {
+        padding: 5px 10px;
+        font-size: 0.72rem;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="admin-header-left">
+          <div class="logo-icon">🛠️</div>
+          <div>
+            <h1>Master Data <span>Admin</span></h1>
+          </div>
+          <span class="header-badge">Internal</span>
+        </div>
+        <div class="admin-header-right" id="auth-container">
+          <span id="user-display">未ログイン</span>
+          <button id="btn-login" class="btn btn-ghost btn-sm">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+          <button
+            id="btn-logout"
+            class="btn btn-danger btn-sm"
+            style="display: none"
+          >
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <!-- Left: Primary Actions -->
+        <div class="action-group">
+          <div class="action-group-label">操作</div>
+          <div class="action-group-row">
+            <button class="btn btn-accent" onclick="saveAllWithSync()">
+              <i class="fas fa-bolt"></i> 一括保存 & 同期
+            </button>
+
+            <div class="action-divider"></div>
+
+            <button class="btn btn-success btn-sm" onclick="addNewStore()">
+              <i class="fas fa-plus"></i> 新規店舗
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="generateJSON()">
+              <i class="fas fa-code"></i> data.js 生成
+            </button>
+
+            <div class="action-divider"></div>
+
+            <button class="btn btn-ghost btn-sm" id="btn-import-prod">
+              <i class="fas fa-download"></i> 本番読込
+            </button>
+            <button class="btn btn-ghost btn-sm" id="btn-import">
+              <i class="fas fa-cloud-download-alt"></i> モード読込
+            </button>
+
+            <div class="action-divider"></div>
+
+            <button class="btn btn-primary btn-sm" id="btn-sync-stores">
+              <!--
+                NOTE(重要): Firestore stores.name は「団体名」、stores.teamName は「店名(企画名)」として運用している。
+                直感と逆なので、変更する場合は mobile-order / status / portal / docs を同時に修正すること。
+              -->
+              <i class="fas fa-cloud-upload-alt"></i> 店舗同期
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-sync-items">
+              <i class="fas fa-utensils"></i> メニュー同期
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="syncAllPasswords()">
+              <i class="fas fa-key"></i> PW一括
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Mode Toggle -->
+        <div
+          class="action-group"
+          style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 160px;
+          "
+        >
+          <div class="action-group-label">モード</div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="test-mode-check" checked />
+            <span class="toggle-track"></span>
+            <span class="toggle-label">テスト</span>
+          </label>
+          <span
+            id="mode-status"
+            class="status-pill test"
+            style="margin-top: 8px"
+          >
+            <span class="dot"></span> Test Mode
+          </span>
+        </div>
+      </div>
+
+      <!-- Sync Status -->
+      <div
+        class="sync-status-wrapper"
+        style="
+          margin-bottom: 20px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-lg);
+          padding: 16px 20px;
+          box-shadow: var(--shadow-card);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+          "
+        >
+          <i
+            class="fas fa-cloud"
+            style="
+              font-size: 1.6rem;
+              color: var(--accent-blue);
+              margin-bottom: 6px;
+            "
+          ></i>
+          <span style="font-weight: 700; font-size: 0.8rem">Firebase</span>
+          <span
+            id="label-fb-ver"
+            style="
+              font-size: 0.7rem;
+              color: var(--text-muted);
+              font-family: monospace;
+            "
+            >...</span
+          >
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <div
+            id="line-fb-admin"
+            style="
+              height: 4px;
+              width: 60px;
+              background: var(--text-muted);
+              border-radius: 2px;
+              transition: background 0.3s;
+              margin-bottom: 2px;
+            "
+          ></div>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+          "
+        >
+          <i
+            class="fas fa-desktop"
+            style="
+              font-size: 1.6rem;
+              color: var(--accent-purple);
+              margin-bottom: 6px;
+            "
+          ></i>
+          <span style="font-weight: 700; font-size: 0.8rem">Admin GUI</span>
+          <span
+            id="label-admin-mod"
+            style="
+              font-size: 0.7rem;
+              color: var(--text-muted);
+              font-family: monospace;
+            "
+            >...</span
+          >
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <div
+            id="line-admin-data"
+            style="
+              height: 4px;
+              width: 60px;
+              background: var(--text-muted);
+              border-radius: 2px;
+              transition: background 0.3s;
+              margin-bottom: 2px;
+            "
+          ></div>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+          "
+        >
+          <i
+            class="fas fa-file-code"
+            style="
+              font-size: 1.6rem;
+              color: var(--accent-green);
+              margin-bottom: 6px;
+            "
+          ></i>
+          <span style="font-weight: 700; font-size: 0.8rem">data.js</span>
+          <span
+            id="label-data-ver"
+            style="
+              font-size: 0.7rem;
+              color: var(--text-muted);
+              font-family: monospace;
+            "
+            >...</span
+          >
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="data-table-wrapper">
+        <table id="projects-table">
+          <thead>
+            <tr>
+              <th width="70">ID</th>
+              <th width="80">Login ID</th>
+              <th width="100">クラス</th>
+              <th width="140">企画名</th>
+              <th width="90">場所</th>
+              <th width="50">階</th>
+              <th width="80">カテゴリ</th>
+              <th width="80">Mobile Order</th>
+              <th width="90">種類</th>
+              <th width="80">メニュー</th>
+              <th width="160">キャッチコピー</th>
+              <th width="100">操作</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- JS Injected -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- JSON Output (Collapsible) -->
+      <div class="json-output-area">
+        <div class="json-output-header" onclick="toggleJsonOutput()">
+          <h3><i class="fas fa-terminal"></i>&nbsp; data.js 出力コード</h3>
+          <i class="fas fa-chevron-down" id="json-toggle-icon"></i>
+        </div>
+        <div class="json-output-body" id="json-output-body">
+          <p
+            style="
+              font-size: 0.78rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            下のテキストを全選択してコピーし、<code>main/data/data.js</code>
+            を全置換してください。
+          </p>
+          <textarea id="json-result" class="json-textarea" readonly></textarea>
+        </div>
+      </div>
+
+      <!-- Log Console -->
+      <div class="log-area" id="log-console">
+        <div>System Ready.</div>
+      </div>
+    </div>
+
+    <script>
+      function toggleJsonOutput() {
+        const body = document.getElementById("json-output-body");
+        const icon = document.getElementById("json-toggle-icon");
+        body.classList.toggle("open");
+        icon.style.transform = body.classList.contains("open")
+          ? "rotate(180deg)"
+          : "";
+      }
+      // Update mode status pill based on toggle
+      document.addEventListener("DOMContentLoaded", () => {
+        const check = document.getElementById("test-mode-check");
+        const pill = document.getElementById("mode-status");
+        if (check) {
+          check.addEventListener("change", () => {
+            if (check.checked) {
+              pill.className = "status-pill test";
+              pill.innerHTML = '<span class="dot"></span> Test Mode';
+            } else {
+              pill.className = "status-pill live";
+              pill.innerHTML = '<span class="dot"></span> Production';
+            }
+          });
+        }
+      });
+    </script>
+
+    <!-- Menu Editor Modal -->
+    <div id="menu-modal" class="modal">
+      <div class="modal-content">
+        <h3>メニュー編集: <span id="modal-title"></span></h3>
+        <div id="menu-editor-container"></div>
+        <div style="margin-top: 20px; text-align: right">
+          <button class="btn btn-primary" onclick="saveMenuChanges()">
+            保存して閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load Global Data Script -->
+    <script src="data/data.js"></script>
+
+    <!-- Main Logic -->
+    <script type="module">
+      import { db, auth, app, login, logout, watchUser } from "./auth.js";
+      import {
+        doc,
+        setDoc,
+        getDoc,
+        collection,
+        writeBatch,
+        deleteDoc,
+        getDocs,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getStorage,
+        ref,
+        uploadBytes,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+      // Initialize Functions logic with specific region
+      const functions = getFunctions(app, "asia-northeast1");
+      const storage = getStorage(app);
+
+      // Global State
+      if (typeof projectData === "undefined") {
+        alert("Error: data.js failed to load. projectData is undefined.");
+      }
+
+      window.localData = JSON.parse(JSON.stringify(projectData));
+      let currentUser = null;
+      let currentEditId = null;
+
+      // Logging
+      function log(msg) {
+        const el = document.getElementById("log-console");
+        const div = document.createElement("div");
+        const time = new Date().toLocaleTimeString();
+        div.textContent = `[${time}] ${msg}`;
+        el.appendChild(div);
+        el.scrollTop = el.scrollHeight;
+      }
+
+      // --- Sync Status Logic ---
+      window.isGuiModified = false;
+      let currentFirebaseVersion = "unknown";
+
+      async function fetchFirebaseVersion() {
+        try {
+          const docRef = doc(db, "_metadata", "master_sync");
+          const snap = await getDoc(docRef);
+          if (snap.exists()) {
+            currentFirebaseVersion = snap.data().version || "unknown";
+          }
+          updateSyncStatusUI();
+        } catch (e) {
+          console.error("Failed to fetch Firebase version:", e);
+        }
+      }
+
+      window.markGuiModified = () => {
+        window.isGuiModified = true;
+        updateSyncStatusUI();
+      };
+
+      function updateSyncStatusUI() {
+        const localVer =
+          typeof dataVersion !== "undefined" ? dataVersion : "unknown";
+
+        // --- バージョン比較に10秒の許容範囲を設ける ---
+        const isVersionMatch = (v1, v2) => {
+          if (v1 === "unknown" || v2 === "unknown") return false;
+          return Math.abs(parseInt(v1) - parseInt(v2)) <= 10000;
+        };
+
+        const synced = isVersionMatch(currentFirebaseVersion, localVer);
+
+        // Update Labels (If synced within tolerance, show exact same version string!)
+        let displayFbVer = currentFirebaseVersion;
+        let displayLocalVer = localVer;
+
+        if (synced) {
+          // 10秒以内のズレなら不安を煽らないよう、両方ともローカル(最新)のものに表示を合わせる
+          displayFbVer = localVer;
+        }
+
+        document.getElementById("label-fb-ver").textContent =
+          displayFbVer === "unknown" ? "Unknown" : "v" + displayFbVer.slice(-6);
+        document.getElementById("label-data-ver").textContent =
+          displayLocalVer === "unknown"
+            ? "Unknown"
+            : "v" + displayLocalVer.slice(-6);
+
+        const labelAdmin = document.getElementById("label-admin-mod");
+        if (window.isGuiModified) {
+          labelAdmin.textContent = "Unsaved";
+          labelAdmin.style.color = "var(--accent-amber)";
+        } else {
+          labelAdmin.textContent = "Clean";
+          labelAdmin.style.color = "var(--accent-green)";
+        }
+
+        const lineFbAdmin = document.getElementById("line-fb-admin");
+        const lineAdminData = document.getElementById("line-admin-data");
+
+        // Firebase <-> Admin: Green if versions match AND no unsaved changes.
+        if (
+          currentFirebaseVersion !== "unknown" &&
+          localVer !== "unknown" &&
+          synced
+        ) {
+          lineFbAdmin.style.background = window.isGuiModified
+            ? "var(--accent-amber)"
+            : "var(--accent-green)";
+          lineFbAdmin.style.boxShadow = window.isGuiModified
+            ? "none"
+            : "0 0 8px var(--accent-green)";
+        } else {
+          lineFbAdmin.style.background = "var(--accent-red)";
+          lineFbAdmin.style.boxShadow = "none";
+        }
+
+        // Admin <-> data.js: Green if no unsaved changes.
+        lineAdminData.style.background = window.isGuiModified
+          ? "var(--accent-red)"
+          : "var(--accent-green)";
+        lineAdminData.style.boxShadow = window.isGuiModified
+          ? "none"
+          : "0 0 8px var(--accent-green)";
+      }
+
+      // Initial fetch
+      fetchFirebaseVersion();
+      updateSyncStatusUI();
+
+      // --- Helper for Test Mode ---
+      function getCollectionName(baseName) {
+        const isTest = document.getElementById("test-mode-check").checked;
+        return isTest ? baseName + "_test" : baseName;
+      }
+
+      // Password Setting Logic (Attached to window for HTML access)
+      window.setStorePassword = async function (index) {
+        const project = window.localData[index];
+        const storeId = project.id;
+
+        if (!storeId) {
+          alert("IDが設定されていません。");
+          return;
+        }
+
+        const password = prompt(
+          `「${
+            project.groupName || storeId
+          }」のパスワードを設定します。\n新しいパスワードを入力してください:`,
+          storeId,
+        );
+
+        if (password === null) return;
+
+        if (!password) {
+          alert("パスワードを入力してください。");
+          return;
+        }
+
+        if (
+          !confirm(
+            `店舗ID: ${storeId}\nパスワード: ${password}\n\nこの内容で設定しますか？`,
+          )
+        )
+          return;
+
+        try {
+          const createStoreSecret = httpsCallable(
+            functions,
+            "createStoreSecret",
+          );
+          const result = await createStoreSecret({
+            storeId: storeId,
+            plainPassword: password,
+          });
+
+          alert(`成功: ${result.data.message}`);
+        } catch (error) {
+          console.error("Set Password Error:", error);
+          alert(`エラーが発生しました:\n${error.message}`);
+        }
+      };
+
+      // Batch Password Sync Logic (Attached to window)
+      window.syncAllPasswords = async function () {
+        if (
+          !confirm(
+            "【危険】表示されている全ての店舗のパスワードを、それぞれの「店舗ID」と同じ値に一括リセットします。\n\n本当に実行しますか？",
+          )
+        ) {
+          return;
+        }
+
+        const secrets = [];
+        window.localData.forEach((project) => {
+          if (project.id) {
+            secrets.push({
+              storeId: project.id,
+              plainPassword: project.id, // Default password is ID
+            });
+          }
+        });
+
+        if (secrets.length === 0) {
+          alert("対象データがありません。");
+          return;
+        }
+
+        log(`Starting batch password update for ${secrets.length} stores...`);
+
+        try {
+          const batchUpdateStoreSecrets = httpsCallable(
+            functions,
+            "batchUpdateStoreSecrets",
+          );
+          const result = await batchUpdateStoreSecrets({ secrets: secrets });
+
+          log(`✅ Success: ${result.data.message}`);
+          alert(`完了しました: ${result.data.message}`);
+        } catch (error) {
+          console.error("Batch Update Error:", error);
+          log(`❌ Error: ${error.message}`);
+          alert(`エラーが発生しました:\n${error.message}`);
+        }
+      };
+
+      // --- Auth Logic ---
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
+      const userDisplay = document.getElementById("user-display");
+
+      function updateAuthUI(user) {
+        currentUser = user;
+        if (user) {
+          userDisplay.textContent = user.email;
+          if (user.email === "ynrcs1000@gmail.com") {
+            userDisplay.innerHTML +=
+              ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>';
+          }
+          btnLogin.style.display = "none";
+          btnLogout.style.display = "inline-block";
+          log(`Logged in as ${user.email}`);
+        } else {
+          userDisplay.textContent = "未ログイン";
+          btnLogin.style.display = "inline-block";
+          btnLogout.style.display = "none";
+          log("Logged out.");
+        }
+      }
+
+      if (btnLogin)
+        btnLogin.onclick = async () => {
+          try {
+            await login();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      if (btnLogout)
+        btnLogout.onclick = async () => {
+          try {
+            await logout();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+
+      watchUser(updateAuthUI);
+
+      // --- UI Rendering ---
+      function renderTable() {
+        const tbody = document.getElementById("table-body");
+        tbody.innerHTML = "";
+
+        window.localData.forEach((project, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td><input type="text" value="${
+                      project.id
+                    }" onchange="updateRow(${index}, 'id', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.loginId || ""
+                    }" placeholder="loginId" onchange="updateRow(${index}, 'loginId', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.groupName || ""
+                    }" onchange="updateRow(${index}, 'groupName', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.name || ""
+                    }" onchange="updateRow(${index}, 'name', this.value)"></td>
+                    <td><input type="text" value="${
+                      project.place || ""
+                    }" onchange="updateRow(${index}, 'place', this.value)"></td>
+                    <td><input type="number" value="${
+                      project.floor || 1
+                    }" style="width:50px" onchange="updateRow(${index}, 'floor', parseInt(this.value))"></td>
+                    <td><input type="text" value="${
+                      project.category || ""
+                    }" style="width:70px" onchange="updateRow(${index}, 'category', this.value)"></td>
+                    <td style="text-align:center;"><input type="checkbox" ${
+                      project.useMobileOrder ? "checked" : ""
+                    } onchange="updateRow(${index}, 'useMobileOrder', this.checked)"></td>
+                    <td>
+                        <select onchange="updateRow(${index}, 'contentType', this.value)">
+                            <option value="menu" ${
+                              project.contentType === "menu" ? "selected" : ""
+                            }>Menu (販売)</option>
+                            <option value="gallery" ${
+                              project.contentType === "gallery"
+                                ? "selected"
+                                : ""
+                            }>Gallery (展示)</option>
+                        </select>
+                    </td>
+                    <td>
+                        ${
+                          project.contentType === "menu"
+                            ? `<button class="btn btn-sm" style="font-size:0.8rem; padding:4px 8px; background:#6c757d; color:white;" onclick="openMenuEditor(${index})">編集 (${
+                                project.menu ? project.menu.length : 0
+                              })</button>`
+                            : '<span style="color:#ccc">-</span>'
+                        }
+                    </td>
+                    <td><input type="text" value="${
+                      project.catchphrase || ""
+                    }" onchange="updateRow(${index}, 'catchphrase', this.value)"></td>
+                    <td>
+                        <button class="btn btn-warning" style="padding:4px 8px; font-size:0.8rem; margin-right:4px;" onclick="setStorePassword(${index})" title="パスワード設定"><i class="fas fa-key"></i></button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteRow(${index})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      window.updateRow = (index, field, value) => {
+        window.localData[index][field] = value;
+        window.markGuiModified();
+      };
+      window.deleteRow = (index) => {
+        if (confirm("削除しますか？")) {
+          window.localData.splice(index, 1);
+          window.markGuiModified();
+          renderTable();
+        }
+      };
+
+      // Add New Store Logic
+      window.addNewStore = () => {
+        const newStore = {
+          id: "", // User must input
+          loginId: "",
+          groupName: "新規団体",
+          name: "",
+          place: "",
+          floor: 1,
+          category: "food",
+          useMobileOrder: false,
+          contentType: "menu",
+          menu: [],
+          catchphrase: "",
+        };
+        window.localData.push(newStore);
+        window.markGuiModified();
+        renderTable();
+
+        // Scroll to bottom
+        setTimeout(() => {
+          const tableWrapper = document.querySelector(".data-table-wrapper");
+          tableWrapper.scrollTop = tableWrapper.scrollHeight;
+          log("🆕 New store added. Please fill in the ID.");
+        }, 100);
+      };
+
+      window.generateJSON = () => {
+        const jsonData = JSON.stringify(window.localData, null, 4);
+        const newVersion = Date.now().toString();
+        const fullFileContent = `// =======================================================
+// ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase/Admin) ★★★
+// =======================================================
+
+console.log("data.js loading...");
+
+// バージョン情報 (admin_syncで同期状態を確認するために使用)
+const dataVersion = "${newVersion}";
+
+// 企画の名簿データ
+const projectData = ${jsonData};
+
+// ステージデータ (空でも定義が必要)
+const stageData = [
+  // 必要に応じてここに追加
+];
+
+console.log("data.js loaded: projectData count =", projectData.length);
+`;
+        document.getElementById("json-result").value = fullFileContent;
+        log(
+          "Full data.js content generated. Please copy and replace data.js content.",
+        );
+      };
+
+      // --- Admin Server Link (Auto Save) ---
+      window.saveAllWithSync = async () => {
+        if (!currentUser)
+          return alert("Firebaseへの同期にはログインが必要です。");
+        if (
+          !confirm(
+            "【実行確認】\n1. ローカルの data.js を上書き保存します\n2. Firestore のデータを一括更新します\n\nよろしいですか？",
+          )
+        )
+          return;
+
+        log("🚀 Starting Full Sync (Local + Firebase)...");
+        document.body.style.cursor = "wait";
+
+        // ★ 全工程で同一のバージョン番号を使用する
+        const syncVersion = Date.now().toString();
+
+        try {
+          // 1. Save to data.js via Admin Server (バージョンも渡す)
+          log("Step 1: Saving to data.js via local server...");
+          const saveRes = await fetch("/api/save-data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectData: window.localData,
+              version: syncVersion,
+            }),
+          });
+
+          if (!saveRes.ok) {
+            const err = await saveRes.json();
+            throw new Error(`Local save failed: ${err.error}`);
+          }
+          log("✅ Step 1: data.js saved successfully.");
+
+          // 2. Sync Stores
+          log("Step 2: Syncing Stores to Firestore...");
+          await syncStores();
+
+          // 3. Sync Items
+          log("Step 3: Syncing Items to Firestore...");
+          await syncItems();
+
+          // 4. Update Firebase Metadata Version (同じ syncVersion を使用)
+          log("Step 4: Updating master_sync version metadata...");
+          await setDoc(
+            doc(db, "_metadata", "master_sync"),
+            {
+              version: syncVersion,
+              updatedBy: currentUser.email,
+              updatedAt: new Date(),
+            },
+            { merge: true },
+          );
+
+          // 5. Update Local State (Hack for seamless UI update without reload)
+          window.isGuiModified = false;
+          // Dynamically setting dataVersion var is tricky because it's global let vs const,
+          // Since data.js actually has it as const, we can't overwrite it easily if it's strictly const.
+          // Wait, we can just reload the page to see the neat green lines everywhere.
+
+          log("✨ SUCCESS: All data synchronized successfully.");
+          alert(
+            "保存と同期が完了しました！\n\n・data.js が更新されました\n・Firestore が更新されました\n※画面をリロードしてステータスを確認してください。",
+          );
+          window.location.reload();
+        } catch (e) {
+          console.error("Full Sync Error:", e);
+          log(`❌ FAILED: ${e.message}`);
+          alert(`エラーが発生しました:\n${e.message}`);
+        } finally {
+          document.body.style.cursor = "default";
+        }
+      };
+
+      // --- Helper: Compress Image ---
+      function compressImage(file) {
+        return new Promise((resolve, reject) => {
+          const maxWidth = 1200;
+          const quality = 0.8;
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+              let width = img.width;
+              let height = img.height;
+              if (width > maxWidth) {
+                height = Math.round(height * (maxWidth / width));
+                width = maxWidth;
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) return reject(new Error("Canvas to Blob failed"));
+                  resolve(blob);
+                },
+                "image/webp",
+                quality,
+              );
+            };
+            img.onerror = (err) => reject(err);
+          };
+          reader.onerror = (err) => reject(err);
+        });
+      }
+
+      // --- Menu Editor ---
+      window.openMenuEditor = (index) => {
+        currentEditId = index;
+        const project = window.localData[index];
+        document.getElementById("modal-title").textContent = project.groupName;
+
+        const container = document.getElementById("menu-editor-container");
+        container.innerHTML = "";
+
+        if (!project.menu) project.menu = [];
+
+        project.menu.forEach((item, mIndex) => {
+          const div = document.createElement("div");
+          div.className = "menu-item-card";
+          div.style.cssText =
+            "margin-bottom:15px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);";
+
+          // Prepare toppings HTML
+          const toppingsHtml = (item.allowedToppings || [])
+            .map(
+              (t, tIdx) => `
+              <div style="display:flex; gap:5px; margin-bottom:4px;">
+                  <input type="text" value="${t}" class="topping-input-${mIndex}" style="flex:1; padding:4px 8px; font-size:0.85rem; border:1px solid #ccc; border-radius:4px;">
+                  <button type="button" onclick="removeTopping(${mIndex}, ${tIdx})" style="background:#dc3545; color:white; border:none; border-radius:4px; padding:0 8px; cursor:pointer; font-size:0.8rem;">×</button>
+              </div>
+          `,
+            )
+            .join("");
+
+          div.innerHTML = `
+              <!-- Row 1: Name & Price -->
+              <div style="display:flex; gap:10px; margin-bottom:10px;">
+                  <input type="text" placeholder="商品名" value="${item.name || ""}" id="menu-name-${mIndex}" style="flex:2; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                  <input type="text" placeholder="価格" value="${(item.price || "").toString().replace("円", "")}" id="menu-price-${mIndex}" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
+              </div>
+              
+              <!-- Row 2: Image Section -->
+              <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; background:#f8f9fa; padding:8px; border-radius:6px;">
+                  <div id="preview-box-${mIndex}" style="width:50px; height:50px; background:#e0e0e0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; border-radius:4px;">
+                      ${
+                        item.imageUrl
+                          ? `<img src="${item.imageUrl}" style="width:100%; height:100%; object-fit:cover;">`
+                          : '<i class="fas fa-image" style="color:#999;"></i>'
+                      }
+                  </div>
+                  <div style="flex:1;">
+                      ${
+                        item.imageUrl
+                          ? `<span style="color:#28a745; font-size:0.85rem;">✓ 設定済 <code style="background:#e9ecef; padding:1px 4px; border-radius:3px; font-size:0.75rem;">.${(item.imageUrl.match(/\.(\w+)(\?|$)/) || [])[1] || "img"}</code></span>`
+                          : '<span style="color:#999; font-size:0.85rem;">画像なし</span>'
+                      }
+                  </div>
+                  <label class="btn btn-sm" style="background:#17a2b8; color:white; margin:0; font-size:0.8rem; cursor:pointer; padding:5px 10px; border-radius:4px;">
+                      <i class="fas fa-upload"></i> ${item.imageUrl ? "変更" : "追加"}
+                      <input type="file" id="menu-file-${mIndex}" style="display:none;" accept="image/*" onchange="uploadMenuImage(${mIndex}, this)">
+                  </label>
+                  ${
+                    item.imageUrl
+                      ? `<button class="btn btn-sm" style="background:#dc3545; color:white; margin:0; font-size:0.8rem; padding:5px 10px; border-radius:4px;" onclick="deleteMenuImage(${mIndex})"><i class="fas fa-trash"></i></button>`
+                      : ""
+                  }
+              </div>
+
+              <!-- Row 3: Toppings Section -->
+              <div style="margin-bottom:10px; background:#f8f9fa; padding:8px; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                      <span style="font-size:0.85rem; font-weight:bold; color:#555;"><i class="fas fa-plus-circle"></i> トッピング (${(item.allowedToppings || []).length})</span>
+                      <button type="button" onclick="addTopping(${mIndex})" style="background:#28a745; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.75rem;">+ 追加</button>
+                  </div>
+                  <div id="toppings-container-${mIndex}">
+                      ${toppingsHtml || '<span style="color:#999; font-size:0.8rem;">なし</span>'}
+                  </div>
+              </div>
+
+              <!-- Row 4: Options & Delete -->
+              <div style="display:flex; gap:10px; align-items:center; border-top:1px solid #eee; padding-top:10px;">
+                  <label style="font-size:0.85rem; display:flex; align-items:center; gap:4px;"><input type="checkbox" ${item.isRecommended ? "checked" : ""} id="menu-rec-${mIndex}"> おすすめ</label>
+                  <button onclick="removeMenuItem(${mIndex})" class="btn btn-sm" style="margin-left:auto; background:#f8f9fa; color:#dc3545; border:1px solid #dc3545; padding:4px 10px; border-radius:4px; font-size:0.8rem;"><i class="fas fa-trash"></i> 削除</button>
+              </div>
+          `;
+          container.appendChild(div);
+        });
+
+        const addBtn = document.createElement("button");
+        addBtn.className = "btn btn-sm btn-success";
+        addBtn.innerHTML = "+ 商品追加";
+        addBtn.onclick = () => {
+          project.menu.push({ name: "新規商品", price: "0" });
+          window.openMenuEditor(index); // Re-render
+        };
+        container.appendChild(addBtn);
+
+        document.getElementById("menu-modal").classList.add("active");
+      };
+
+      window.removeMenuItem = (mIndex) => {
+        if (!confirm("この商品を削除しますか？")) return;
+        window.localData[currentEditId].menu.splice(mIndex, 1);
+        window.markGuiModified();
+        window.openMenuEditor(currentEditId);
+      };
+
+      window.uploadMenuImage = async (mIndex, input) => {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Visual Feedback
+        const previewBox = document.getElementById(`preview-box-${mIndex}`);
+        previewBox.innerHTML = '<span style="font-size:10px;">Comp...</span>';
+
+        try {
+          // 1. Compress
+          const compressedBlob = await compressImage(file);
+
+          // 2. Upload
+          const storeId = window.localData[currentEditId].id;
+          if (!storeId) {
+            alert("先に店舗IDを設定してください");
+            window.openMenuEditor(currentEditId);
+            return;
+          }
+
+          previewBox.innerHTML = '<span style="font-size:10px;">Up...</span>';
+
+          const fileName = `${Date.now()}_menu.webp`;
+          const storageRef = ref(storage, `products/${storeId}/${fileName}`);
+          await uploadBytes(storageRef, compressedBlob, {
+            contentType: "image/webp",
+          });
+          const url = await getDownloadURL(storageRef);
+
+          // 3. Update Data
+          window.localData[currentEditId].menu[mIndex].imageUrl = url;
+          window.markGuiModified();
+
+          // 4. Refresh Editor
+          window.openMenuEditor(currentEditId);
+        } catch (e) {
+          console.error(e);
+          alert("アップロード失敗: " + e.message);
+          window.openMenuEditor(currentEditId);
+        }
+      };
+
+      window.deleteMenuImage = (mIndex) => {
+        if (
+          !confirm(
+            "画像をリストから削除しますか？\n(Storageの実ファイルは削除されませんが、リンクは解除されます)",
+          )
+        )
+          return;
+        window.localData[currentEditId].menu[mIndex].imageUrl = null;
+        delete window.localData[currentEditId].menu[mIndex].image; // Cleanup old prop if present
+        window.markGuiModified();
+        window.openMenuEditor(currentEditId);
+      };
+
+      // --- Topping Management ---
+      window.addTopping = (mIndex) => {
+        const item = window.localData[currentEditId].menu[mIndex];
+        if (!item.allowedToppings) item.allowedToppings = [];
+        item.allowedToppings.push("新規トッピング");
+        window.markGuiModified();
+        window.openMenuEditor(currentEditId);
+      };
+
+      window.removeTopping = (mIndex, tIdx) => {
+        const item = window.localData[currentEditId].menu[mIndex];
+        if (item.allowedToppings && item.allowedToppings[tIdx] !== undefined) {
+          item.allowedToppings.splice(tIdx, 1);
+          window.markGuiModified();
+          window.openMenuEditor(currentEditId);
+        }
+      };
+
+      window.saveMenuChanges = () => {
+        const project = window.localData[currentEditId];
+        const cards = document.querySelectorAll(
+          "#menu-editor-container > div.menu-item-card",
+        );
+
+        cards.forEach((div, idx) => {
+          let itemObj = project.menu[idx];
+          if (!itemObj) return;
+
+          const nameInput = document.getElementById(`menu-name-${idx}`);
+          if (nameInput) {
+            const priceInput = document.getElementById(`menu-price-${idx}`);
+            const recInput = document.getElementById(`menu-rec-${idx}`);
+
+            itemObj.name = nameInput.value;
+            itemObj.price = priceInput.value + "円";
+            itemObj.isRecommended = recInput.checked;
+
+            // Collect toppings from inputs
+            const toppingInputs = div.querySelectorAll(`.topping-input-${idx}`);
+            itemObj.allowedToppings = Array.from(toppingInputs)
+              .map((input) => input.value.trim())
+              .filter((v) => v);
+          }
+        });
+
+        document.getElementById("menu-modal").classList.remove("active");
+        window.markGuiModified();
+        renderTable();
+        log(`Menu updated for ${project.groupName}`);
+      };
+
+      // --- Firestore Sync Logic ---
+
+      async function importFromProduction() {
+        await importGeneric("stores", "items", "本番環境(stores/items)");
+      }
+
+      async function importFromFirestore() {
+        const storesCol = getCollectionName("stores");
+        const itemsCol = getCollectionName("items");
+        await importGeneric(storesCol, itemsCol, `現在のモード(${storesCol})`);
+      }
+
+      async function importGeneric(storesCol, itemsCol, sourceLabel) {
+        if (
+          !confirm(
+            `${sourceLabel} からデータをこれを読み込み、現在の編集内容とマージしますか？`,
+          )
+        )
+          return;
+        log(`Starting Merge from ${sourceLabel}...`);
+
+        document.body.style.cursor = "wait";
+
+        try {
+          // 1. Fetch Stores
+          const storesSnap = await getDocs(collection(db, storesCol));
+          const storesMap = {};
+          log(`Fetched ${storesSnap.size} docs from ${storesCol}`);
+
+          storesSnap.forEach((doc) => {
+            storesMap[doc.id] = { id: doc.id, ...doc.data() };
+            // Debug: Log basic info
+            if (document.getElementById("test-mode-check").checked) {
+              console.log("Store Doc:", doc.id, doc.data());
+            }
+          });
+
+          // 2. Fetch Items
+          const itemsSnap = await getDocs(collection(db, itemsCol));
+          log(`Fetched ${itemsSnap.size} docs from ${itemsCol}`);
+
+          const itemsMap = {}; // storeId -> [items]
+          itemsSnap.forEach((doc) => {
+            const item = doc.data();
+            const sId = (item.storeId || "") + ""; // Ensure string key
+            if (!itemsMap[sId]) itemsMap[sId] = [];
+            itemsMap[sId].push(item);
+          });
+
+          // 3. Build Project Data (Merge)
+          const currentDataMap = new Map(
+            window.localData.map((p) => [p.id, p]),
+          );
+          const mergedData = [];
+
+          // Process Firestore stores
+          for (const storeId in storesMap) {
+            const s = storesMap[storeId];
+            const existing = currentDataMap.get(s.id) || {};
+            const storeItems = itemsMap[storeId] || []; // storeId is key from storesMap (doc.id)
+
+            log(`Store [${s.id}] found. Items: ${storeItems.length}`);
+
+            const menuList = storeItems.map((i) => {
+              const { storeId, ...rest } = i;
+              return {
+                ...rest,
+                price: typeof i.price === "number" ? i.price + "円" : i.price,
+              };
+            });
+
+            mergedData.push({
+              id: s.id,
+              loginId: s.loginId || existing.loginId || "",
+              groupName: s.name || existing.groupName || "",
+              name: s.teamName || existing.name || "",
+              place: s.place || existing.place || "",
+              floor: s.floor || existing.floor || 1,
+              description: s.description || existing.description || "",
+              catchphrase: existing.catchphrase || "",
+              tags: existing.tags || [],
+              contentType:
+                menuList.length > 0
+                  ? "menu"
+                  : existing.contentType || "gallery",
+              menu: menuList,
+              gallery: existing.gallery || [],
+            });
+          }
+
+          if (mergedData.length === 0) {
+            log(`⚠️ No stores found in ${storesCol}.`);
+            alert(`${storesCol} にデータが見つかりませんでした`);
+          } else {
+            window.localData = mergedData;
+            window.markGuiModified();
+            renderTable();
+            window.generateJSON();
+            log(`✅ Merged ${mergedData.length} projects from ${storesCol}.`);
+            alert(
+              `読み込み完了！(${storesCol})\n${mergedData.length}件のデータをマージしました。`,
+            );
+          }
+        } catch (e) {
+          console.error(e);
+          log(`❌ Error: ${e.message}`);
+          alert("エラー発生: " + e.message);
+        } finally {
+          document.body.style.cursor = "default";
+        }
+      }
+
+      async function syncStores() {
+        if (!currentUser) return alert("ログインしてください");
+
+        const storesCol = getCollectionName("stores");
+        if (
+          !confirm(
+            `Firestoreの「${storesCol}」コレクションを更新しますか？\n(テストモード: ${
+              document.getElementById("test-mode-check").checked
+            })`,
+          )
+        )
+          return;
+
+        log(`Starting Stores Sync to ${storesCol}...`);
+        let count = 0;
+
+        try {
+          // 既存ドキュメントの存在を確認するため、一度全件取得する
+          const existingSnap = await getDocs(collection(db, storesCol));
+          const existingIds = new Set();
+          existingSnap.forEach((doc) => {
+            existingIds.add(doc.id);
+          });
+
+          const batch = writeBatch(db);
+
+          window.localData.forEach((p) => {
+            if (!p.id) return;
+            // Only sync mobile order enabled groups to Firestore
+            if (p.useMobileOrder !== true) return;
+
+            const storeRef = doc(db, storesCol, p.id);
+
+            const storeData = {
+              name: p.groupName, // data.js: groupName -> DB: name
+              teamName: p.name, // data.js: name -> DB: teamName
+              description: p.description || "",
+              loginId: p.loginId || "", // Include loginId if user wants to sync it
+            };
+
+            // 新規店舗（Firestoreにまだドキュメントが存在しない）の場合のみ、デフォルトで準備中(suspended)に設定
+            if (!existingIds.has(p.id)) {
+              storeData.operationStatus = "suspended";
+              log(`🆕 新規店舗 [${p.id}] を検出しました。operationStatus: "suspended" で初期化します。`);
+            }
+
+            batch.set(storeRef, storeData, { merge: true });
+            count++;
+          });
+
+          await batch.commit();
+          log(`✅ Success: ${count} stores synced to ${storesCol}.`);
+          alert(`${storesCol} への同期が完了しました`);
+        } catch (e) {
+          console.error(e);
+          if (e.code === "permission-denied") {
+            log("❌ Permission Denied. Are you logged in as Super Admin?");
+            alert("保存に失敗しました。スーパー管理者権限が必要です。");
+          } else {
+            log(`❌ Error: ${e.message}`);
+            alert("エラーが発生しました: " + e.message);
+          }
+        }
+      }
+
+      async function syncItems() {
+        if (!currentUser) return alert("ログインしてください");
+
+        const itemsCol = getCollectionName("items");
+
+        if (!confirm(`Firestoreの「${itemsCol}」コレクションを更新しますか？`))
+          return;
+
+        log(`Starting Items Sync to ${itemsCol}...`);
+
+        try {
+          for (const p of window.localData) {
+            if (p.useMobileOrder !== true || !p.menu || p.menu.length === 0)
+              continue;
+            if (!p.id) continue;
+
+            log(`Processing ${p.groupName}...`);
+
+            // 1. Delete existing items for this store
+            const q = query(
+              collection(db, itemsCol),
+              where("storeId", "==", p.id),
+            );
+            const snapshot = await getDocs(q);
+
+            const deleteBatch = writeBatch(db);
+            snapshot.forEach((doc) => {
+              deleteBatch.delete(doc.ref);
+            });
+            await deleteBatch.commit();
+
+            // 2. Add new items
+            const addBatch = writeBatch(db);
+            p.menu.forEach((item) => {
+              const newRef = doc(collection(db, itemsCol));
+
+              const priceStr = item.price + "";
+              const priceVal = parseInt(priceStr.replace(/[^\d]/g, "")) || 0;
+
+              const payload = {
+                ...item,
+                storeId: p.id,
+                price: priceVal,
+                isRecommended: !!item.isRecommended,
+                isAvailable:
+                  item.isAvailable !== undefined ? item.isAvailable : true,
+                allowedToppings: item.allowedToppings || [],
+              };
+
+              addBatch.set(newRef, payload);
+            });
+            await addBatch.commit();
+            log(`  -> Synced ${p.menu.length} items to ${itemsCol}.`);
+          }
+
+          log(`✅ All items synced successfully to ${itemsCol}.`);
+          alert(`${itemsCol} への同期が完了しました`);
+        } catch (e) {
+          console.error(e);
+          if (e.code === "permission-denied") {
+            log("❌ Permission Denied. Are you logged in as Super Admin?");
+            alert("保存に失敗しました。スーパー管理者権限が必要です。");
+          } else {
+            log(`❌ Error: ${e.message}`);
+            alert("エラーが発生しました: " + e.message);
+          }
+        }
+      }
+
+      document
+        .getElementById("btn-import-prod")
+        .addEventListener("click", importFromProduction);
+      document
+        .getElementById("btn-import")
+        .addEventListener("click", importFromFirestore);
+      document
+        .getElementById("btn-sync-stores")
+        .addEventListener("click", syncStores);
+      document
+        .getElementById("btn-sync-items")
+        .addEventListener("click", syncItems);
+
+      renderTable();
+    </script>
+  </body>
+</html>

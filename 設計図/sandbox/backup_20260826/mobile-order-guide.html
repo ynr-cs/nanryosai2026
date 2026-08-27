@@ -1,0 +1,958 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>南陵祭オーダーシステム 技術仕様書 (Technical Whitepaper) | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts for Monospace and Headlines -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           Academic / Technical Paper Styling
+           ========================================= */
+        :root {
+            --paper-bg: #f8f9fa;
+            --paper-text: #2c3e50;
+            --paper-accent: #2980b9;
+            --code-bg: #1e1e1e;
+            --border-light: #e0e0e0;
+        }
+
+        [data-theme="dark"] {
+            --paper-bg: #0f172a;
+            --paper-text: #e2e8f0;
+            --paper-accent: #38bdf8;
+            --code-bg: #020617;
+            --border-light: #334155;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            line-height: 1.8;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            color: var(--text-main);
+            overflow-y: auto !important; /* Force natural scroll */
+            height: auto !important;
+        }
+
+        /* Abstract / Hero Section */
+        .paper-header {
+            padding: 80px 24px 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .doc-meta {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .doc-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--text-sub) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-abstract {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            max-width: 700px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin-top: 30px;
+        }
+
+
+
+        /* Main Content */
+        .paper-body {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 24px 120px;
+        }
+
+        .chapter {
+            margin-bottom: 100px;
+        }
+
+        .chapter-number {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .chapter-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .subsection {
+            margin-bottom: 50px;
+        }
+
+        .subsection-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        p {
+            margin-bottom: 24px;
+            font-size: 1.05rem;
+            color: var(--text-sub);
+            text-align: justify;
+        }
+
+        /* File Reference Badge */
+        .file-ref {
+            display: inine-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.05); /* Light mode fallback */
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        [data-theme="dark"] .file-ref {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Diagrams & Visuals */
+        .arch-diagram {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .diagram-node {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            border-radius: 12px;
+            transition: transform 0.3s;
+        }
+        .diagram-node:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+        
+        .node-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+        
+        .node-tech {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .node-label {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* Code Blocks */
+        .code-display {
+            background: var(--code-bg);
+            color: #d4d4d4;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            border: 1px solid #333;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .code-display::before {
+            content: attr(data-file);
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #333;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            border-bottom-left-radius: 8px;
+        }
+
+        .kw { color: #569cd6; } /* Keyword */
+        .str { color: #ce9178; } /* String */
+        .fn { color: #dcdcaa; } /* Function */
+        .com { color: #6a9955; } /* Comment */
+        .type { color: #4ec9b0; } /* Type */
+
+        /* Back Button */
+        .nav-header {
+            position: sticky;
+            top: 0;
+            padding: 15px 24px;
+            background: rgba(var(--bg-rgb), 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .doc-title { font-size: 2rem; }
+            .chapter-title { font-size: 1.6rem; }
+            .diagram-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <a href="index.html" class="back-link" data-track="click_guide_back">
+            <i class="bi bi-arrow-left"></i>
+            <span>アプリに戻る</span>
+        </a>
+    </div>
+
+    <header class="paper-header">
+        <span class="doc-meta">文書ID: YNR-2026-SYS-01 | 版数: 2.1.0</span>
+        <h1 class="doc-title">南陵祭2026<br>モバイルオーダーシステム<br>技術仕様書 (Whitepaper)</h1>
+        <div class="doc-abstract">
+            <p>
+                本ドキュメントは、南陵祭2026におけるモバイルオーダーシステムのアーキテクチャ、セキュリティ設計、およびUXエンジニアリングの詳細を記述したものである。JAMstack構成による高可用性、Deny-by-Defaultポリシーに基づく堅牢なセキュリティ、そして「App Shell」モデルによるネイティブアプリ並みの体験がいかにして実現されているかを論じる。
+            </p>
+        </div>
+    </header>
+
+
+
+    <main class="paper-body">
+        
+        <!-- CHAPTER 1 -->
+        <section id="arch" class="chapter">
+            <span class="chapter-number">第1章</span>
+            <h2 class="chapter-title">現代的なWebアーキテクチャ</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-layers-fill"></i> JAMstack構成</h3>
+                <p>
+                    本システムでは、従来のモノリシックなサーバー構成を廃し、<strong>JAMstack (JavaScript, APIs, Markup)</strong> アーキテクチャを採用している。フロントエンドは <span class="file-ref">main/</span> 配下の静的アセットとして事前ビルドされ、Microsoft社の提供する信頼性の高いCDN（GitHub Pages）を通じて配信される。一方で動的なロジックは全て <span class="file-ref">auth.js</span> および <span class="file-ref">app-shell.js</span> を介して、Google Cloud上のマネージドサービス（Firebase）と通信を行う。
+                </p>
+                <p>
+                    この分離により、アクセス集中時のサーバーダウンリスクを回避し、かつ攻撃対象領域（Attack Surface）を極小化することに成功している。
+                </p>
+
+                <div class="arch-diagram">
+                    <div class="diagram-grid">
+                        <div class="diagram-node">
+                            <span class="node-tech">CDN / ホスティング</span>
+                            <div class="node-icon"><i class="bi bi-github"></i></div>
+                            <div class="node-label">GitHub Pages</div>
+                            <small class="text-muted">静的アセット配信</small>
+                        </div>
+                        <div class="diagram-node">
+                            <span class="node-tech">クライアント (実行環境)</span>
+                            <div class="node-icon"><i class="bi bi-phone"></i></div>
+                            <div class="node-label">ブラウザ / PWA</div>
+                            <small class="text-muted">JavaScript実行</small>
+                        </div>
+                        <div class="diagram-node">
+                            <span class="node-tech">サーバーレスバックエンド</span>
+                            <div class="node-icon" style="color:#FFA000"><i class="bi bi-fire"></i></div>
+                            <div class="node-label">Firebase</div>
+                            <small class="text-muted">認証 & データベース</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-box-seam-fill"></i> App Shellモデル</h3>
+                <p>
+                    ユーザー体験の中核を担うのが <span class="file-ref">main/app-shell.js</span> である。これはSPA (Single Page Application) の設計思想を取り入れ、ページ遷移時に共通のヘッダーやナビゲーションを再生成せず、コンテンツ領域のみを書き換える（あるいはオーバーレイする）挙動を制御する。
+                </p>
+                <p>
+                    特にログイン状態に基づく「Smart Navigation」機能は、ユーザーが現在アクティブな注文を持っているかを動的に判定し、適切な画面へ誘導する。
+                </p>
+                
+                <div class="code-display" data-file="main/app-shell.js">
+<span class="com">// Smart Navigation Logic for Order Tab</span>
+<span class="kw">const</span> snip_orderBtn = document.querySelector(<span class="str">'.nav-item[data-page="order"]'</span>);
+snip_orderBtn.addEventListener(<span class="str">'click'</span>, <span class="kw">async</span> (e) => {
+    <span class="com">// ... (省略) ...</span>
+    <span class="kw">const</span> q = query(
+       collection(db, <span class="str">"orders"</span>),
+       where(<span class="str">"userId"</span>, <span class="str">"=="</span>, user.uid),
+       <span class="com">// アクティブな注文があるかチェック</span>
+       limit(5)
+    );
+    <span class="com">// 該当があれば status.html へ強制リダイレクト</span>
+    <span class="kw">if</span> (activeOrder) {
+       window.location.href = <span class="str">`status.html?orderId=${activeOrder}`</span>;
+    }
+});
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAPTER 2 -->
+        <section id="security" class="chapter">
+            <span class="chapter-number">第2章</span>
+            <h2 class="chapter-title">ゼロトラストセキュリティ</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-shield-lock-fill"></i> デフォルト拒否ポリシー</h3>
+                <p>
+                    すべてのデータベースアクセスは、記述されたルールによって明示的に許可されない限り拒否される。これは「設定ミスがあっても情報は漏れない」というフェイルセーフな設計思想である。
+                    特に、注文データの作成権限においては、<span class="file-ref">mobile-order.html</span> などのクライアントサイドコードからの直接書き込みを<strong>完全に禁止</strong>している。
+                </p>
+                
+                <div class="code-display" data-file="firestore.rules">
+match /orders/{orderId} {
+  <span class="com">// Do not allow client-side creation to prevent tampering.</span>
+  <span class="com">// Orders must be created via trusted Cloud Functions.</span>
+  <span class="kw">allow</span> create: <span class="kw">if</span> <span class="kw">false</span>;
+
+  <span class="com">// Users can only read their own orders.</span>
+  <span class="kw">allow</span> read: <span class="kw">if</span> request.auth.uid == resource.data.userId;
+}
+                </div>
+                <p>
+                    これにより、仮に悪意あるユーザーがブラウザの開発者ツール等を用いて価格や在庫データを改ざんして送信しようとしても、データベース層で物理的に遮断される。
+                </p>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-robot"></i> アンチボット対策 (App Check)</h3>
+                <p>
+                    自動化されたプログラム（Bot）による買い占めやDoS攻撃を防ぐため、<strong>Firebase App Check (reCAPTCHA Enterprise)</strong> を導入している。
+                    正規のアプリ（ブラウザ）からのリクエストのみが認証トークンを受け取ることができ、トークンを持たない不正なAPI呼び出しはサーバー側で棄却される。
+                </p>
+                <div class="code-display" data-file="mobile-order.html">
+<span class="com">// Initialize App Check with reCAPTCHA Enterprise</span>
+<span class="kw">const</span> appCheck = initializeAppCheck(app, {
+  provider: <span class="kw">new</span> ReCaptchaEnterpriseProvider(<span class="str">"6LdVI..."</span>),
+  isTokenAutoRefreshEnabled: <span class="kw">true</span>,
+});
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-person-badge-fill"></i> 認証レイヤー</h3>
+                <p>
+                    認証プロセスは <span class="file-ref">main/auth.js</span> に集約され、Google Identity Platformを利用している。
+                    学校側のサーバーでパスワードハッシュ等の機密情報を一切保持しないため、パスワード漏洩のリスクは原理的にゼロである。
+                    また、ログイン時にはアプリ内ブラウザ（Line, Instagram等）を検知し、Googleログインが正常に動作しないリスクがある場合は、外部ブラウザへの切り替えを促す警告UIを動的に表示する安全設計となっている。
+                </p>
+            </div>
+        </section>
+
+        <!-- CHAPTER 3 -->
+        <section id="data" class="chapter">
+            <span class="chapter-number">第3章</span>
+            <h2 class="chapter-title">トランザクションの整合性</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-hdd-network-fill"></i> サーバーサイドの一貫性</h3>
+                <p>
+                    在庫管理における「二重販売（Double Spending）」を防ぐため、注文処理は信頼されたサーバー環境（Cloud Functions）でのみ実行される。
+                    クライアントは「注文の予約リクエスト」を投げるだけであり、実際の在庫引き落としと注文確定はサーバー上のACIDトランザクション内で行われる。
+                </p>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-cart-check-fill"></i> バッチ処理によるカート同期</h3>
+                <p>
+                    ユーザーがカートに入れた商品は、`finalizeOrder()` 実行時にFirestoreのバッチ書き込み (`writeBatch`) を使用して一括で一時保存領域 (`users/{uid}/cart`) へ同期される。
+                    このアトミックな操作により、通信断による「一部の商品だけが注文される」といった不整合を防いでいる。
+                </p>
+                <div class="code-display" data-file="mobile-order.html">
+<span class="kw">const</span> batch = writeBatch(db);
+cart.forEach((c) => {
+  <span class="com">// カート内全アイテムを一括でバッチに追加</span>
+  batch.set(doc(cartRef), { productId: c.productId, ... });
+});
+<span class="com">// アトミックコミット（全成功か全失敗か）</span>
+<span class="kw">await</span> batch.commit();
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-hourglass-split"></i> データの短命化ライフサイクル</h3>
+                <p>
+                    本システムは「文化祭期間」という限定されたコンテキストでのみ動作することを前提に設計されている。
+                    収集された個人情報（メールアドレス等）および購買履歴データには、保存期間のTTL (Time To Live) ポリシーが適用されることが想定されており、イベント終了後のデータパージ（完全消去）プロセスが技術的に保証されている。
+                </p>
+            </div>
+        </section>
+
+        <!-- CHAPTER 4 -->
+        <section id="ux" class="chapter">
+            <span class="chapter-number">第4章</span>
+            <h2 class="chapter-title">UXエンジニアリング</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-palette-fill"></i> 適応型デザインシステム</h3>
+                <p>
+                    <span class="file-ref">style.css</span> に定義されたCSS Variablesを活用し、OSのカラー設定（ライト/ダークモード）にピクセルパーフェクトに追従する。
+                    単なる色の反転ではなく、シャドウの深度（<code>--shadow-soft</code>）や背景の透過率まで調整することで、昼夜を問わず最適な視認性を提供する。
+                </p>
+                <div class="code-display" data-file="style.css">
+<span class="str">:root</span> {
+    <span class="kw">--shadow-soft</span>: 0 10px 30px rgba(0, 0, 0, 0.08); <span class="com">/* Light */</span>
+}
+
+<span class="str">@media (prefers-color-scheme: dark)</span> {
+    <span class="str">:root:not([data-theme="light"])</span> {
+        <span class="kw">--shadow-soft</span>: 0 10px 30px rgba(0, 0, 0, 0.5); <span class="com">/* Dark: Deep shadow */</span>
+    }
+}
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-lightning-charge-fill"></i> インテリジェント・キャッシュ戦略</h3>
+                <p>
+                    高解像度のメニュー画像を多数表示するため、<span class="file-ref">pos/mobile-order.html</span> では多層的な最適化を行っている。
+                    単純な遅延読み込み (Intersection Observer) に加え、一度取得した画像URLを <code>sessionStorage</code> にキャッシュするロジックを実装している。
+                    これにより、ユーザーが一度見た画像を再表示する際の通信コストをゼロにし、ネイティブアプリ並みのレスポンス速度を実現している。
+                </p>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-phone-landscape-fill"></i> デバイスシミュレーション</h3>
+                <p>
+                    PCやタブレット等の大画面デバイスでアクセスされた場合、システムは自動的に「スマートフォンモード」に切り替わる。
+                    `adjustScale()` 関数がウィンドウサイズを計算し、コンテンツ全体をアスペクト比を維持したままスケーリング（縮小・拡大）表示する。
+                    これにより、どのデバイスからアクセスしても、開発者が意図した通りの「アプリ体験」をピクセルパーフェクトに提供する。
+                </p>
+                <div class="code-display" data-file="mobile-order.html">
+<span class="kw">function</span> adjustScale() {
+  <span class="com">// Calculate scale factor to simulate phone screen</span>
+  <span class="kw">const</span> scale = Math.min(1, availableHeight / baseHeight);
+  app.style.transform = <span class="str">`scale(${scale})`</span>;
+}
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAPTER 5 -->
+        <section id="ops" class="chapter">
+            <span class="chapter-number">第5章</span>
+            <h2 class="chapter-title">運用と信頼性</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-life-preserver"></i> フィードバックループ</h3>
+                <p>
+                    システムには不具合報告フォームへの導線が組み込まれており、ユーザーからのフィードバックを即座に開発チーム (CSC) が受け取る体制が整っている。
+                    また、アプリ内ブラウザでの動作不良など、プラットフォーム固有の問題に対しても、ユーザーに対処法（外部ブラウザでの起動）を動的に案内するフェイルセーフなUI設計がなされている。
+                </p>
+            </div>
+            
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-bug-fill"></i> 品質保証 (QA)</h3>
+                <p>
+                    開発段階において、iOS (Safari) および Android (Chrome) の実機検証に加え、PC開発環境でも `adjustScale()` によるモバイルエミュレーションを行い、クロスデバイスでの動作を一貫させている。
+                </p>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- CHAPTER 6 -->
+        <section id="pwa" class="chapter">
+            <span class="chapter-number">第6章</span>
+            <h2 class="chapter-title">リアルタイム・コミュニケーション</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-broadcast-pin"></i> サービスワーカーによる常時接続</h3>
+                <p>
+                    本システムは <strong>Progressive Web App (PWA)</strong> として動作し、<span class="file-ref">firebase-messaging-sw.js</span> というサービスワーカーがブラウザのバックグラウンドで独立して稼働する。
+                    これにより、ユーザーがアプリを閉じていたり、端末をスリープさせている状態でも、調理完了の通知（Push Notification）をリアルタイムに受信することが可能である。
+                </p>
+                <div class="code-display" data-file="firebase-messaging-sw.js">
+<span class="com">// Background Service Worker Logic</span>
+messaging.onBackgroundMessage((payload) =&gt; {
+  <span class="kw">const</span> { title, body } = payload.notification;
+  <span class="kw">self</span>.registration.showNotification(title, {
+    body: body,
+    icon: <span class="str">'/images/icon.png'</span>,
+    tag: <span class="str">'order-update'</span> <span class="com">// Prevent notification spam</span>
+  });
+});
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-cloud-check-fill"></i> FCM (Firebase Cloud Messaging)</h3>
+                <p>
+                    サーバーからの通知配信には Google の FCM インフラストラクチャを採用している。
+                    数千台規模のデバイスに対しても遅延なくメッセージを到達させるスケーラビリティを有しており、混雑時の「呼び出し漏れ」を物理層レベルで防止している。
+                </p>
+            </div>
+        </section>
+
+        <!-- CHAPTER 7 -->
+        <section id="ix" class="chapter">
+            <span class="chapter-number">第7章</span>
+            <h2 class="chapter-title">インタラクション・デザイン</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-magic"></i> マイクロインタラクション</h3>
+                <p>
+                    ユーザーの操作に対するフィードバックは、視覚的な「心地よさ」を追求して設計されている。
+                    <span class="file-ref">mobile-order.html</span> では <code>animate__animated</code> (Animate.css) を動的に制御し、例えば「カートに追加」ボタンを押した瞬間にバッジが跳ねるような、物理的な反動（Haptic）を模したアニメーションを実装している。
+                    これにより、タッチパネルという無機質なインターフェースに有機的な応答性を付与している。
+                </p>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- CHAPTER 8 -->
+        <section id="schema" class="chapter">
+            <span class="chapter-number">第8章</span>
+            <h2 class="chapter-title">データモデリングとスキーマ定義</h2>
+            
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-database-fill-gear"></i> ユーザープロファイル (User Collection)</h3>
+                <p>
+                    ユーザー情報は `users/{uid}` ドキュメントとして管理される。
+                    ここには個人識別情報 (PII) は最小限に留められ、認証プロバイダ (Google) から取得した基本情報と、アプリの設定状態のみが永続化される。
+                </p>
+                <pre class="code-block" style="background: #1a1a1a; color: #a9b7c6; padding: 15px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto;">
+// Path: /users/{userId}
+{
+  "displayName": "Taro Suzuki",  // Googleアカウント表示名
+  "email": "taro@example.com",   // メールアドレス (連絡用)
+  "photoURL": "https://...",     // アイコン画像URL
+  "lastLogin": Timestamp,        // 最終ログイン日時 (Audit用)
+  "fcmToken": "cSDks2...",       // 通知用デバイストークン
+  "notificationEnabled": true,   // 通知許可フラグ
+  "deviceType": "ios_or_mac",    // 端末種別 (UX最適化用)
+  "permissionStatus": "granted"  // ブラウザ通知権限ステータス
+}</pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-basket2-fill"></i> 一時カート領域 (Cart Subcollection)</h3>
+                <p>
+                    「買い物カゴ」の状態は `users/{uid}/cart/{itemId}` サブコレクションに保存される。
+                    これはデバイス間の同期（スマホで入れてPCで見る等）を可能にするため、Local StorageではなくFirestore上に実体を持つ設計となっている。
+                    注文確定後は `writeBatch` トランザクションによって即座に消去される「揮発性」の高いデータである。
+                </p>
+                <pre class="code-block" style="background: #1a1a1a; color: #a9b7c6; padding: 15px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto;">
+// Path: /users/{userId}/cart/{autoId}
+{
+  "productId": "item_001",       // 商品ID参照
+  "name": "焼きそば",             // 名称（Snapshot）
+  "price": 500,                  // 単価（Snapshot）
+  "quantity": 2,                 // 数量
+  "customizations": [            // オプション配列
+    { "target": "マヨネーズ", "mode": "NO" }
+  ],
+  "updatedAt": Timestamp         // 更新日時
+}</pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-receipt-cutoff"></i> 注文トランザクション (Order Collection)</h3>
+                <p>
+                    確定した注文はルートレベルの `orders` コレクションに不変 (Immutable) なレコードとして書き込まれる。
+                    ステータス遷移（調理中→完了→受取済）のみが更新可能であり、注文内容の改ざんはセキュリティルールにより厳格に禁止されている。
+                </p>
+                <pre class="code-block" style="background: #1a1a1a; color: #a9b7c6; padding: 15px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto;">
+// Path: /orders/{orderId}
+{
+  "userId": "UserUID123...",     // 購入者参照
+  "storeId": "store_A",          // 店舗ID
+  "status": "COOKING",           // 状態遷移 (PENDING/COOKING/READY/COMPLETED/CANCELED)
+  "totalAmount": 1000,           // 合計金額
+  "items": [                     // 注文商品リスト (非正規化)
+    { "id": "item_001", "qty": 2, ... }
+  ],
+  "createdAt": Timestamp,        // 注文時刻
+  "completedAt": null            // 受取時刻
+}</pre>
+            </div>
+        </section>
+
+        <!-- CHAPTER 9 -->
+        <section id="persistence" class="chapter">
+            <span class="chapter-number">第9章</span>
+            <h2 class="chapter-title">永続化プロトコル</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-arrow-repeat"></i> マージ書き込み戦略</h3>
+                <p>
+                    ユーザープロファイルの更新には、Firestoreの `setDoc` メソッドに対し <code>{ merge: true }</code> オプションを常に指定している。
+                    これにより、既存のフィールド（例: `createdAt` や `preferences`）を誤って上書き消去することなく、差分（例: `lastLogin`）のみを安全に更新する「追記型」のアプローチを採用している。
+                </p>
+                <div class="code-display" data-file="auth.js">
+<span class="kw">await</span> setDoc(doc(db, <span class="str">"users"</span>, uid), {
+  lastLogin: serverTimestamp(),
+  email: user.email
+}, { merge: <span class="kw">true</span> }); <span class="com">// Safe Merge Strategy</span>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-memory"></i> セッション・キャッシュ・レイヤー</h3>
+                <p>
+                    永続性は必ずしもサーバーサイドだけのものではない。クライアントサイド（ブラウザ）においては、`sessionStorage` を「L1キャッシュ」として利用している。
+                    特に画像データ（Blob/URL）の取得結果をセッション期間中のみ保持することで、Firestore StorageへのRead回数を削減し、コスト最適化とともにユーザーへの表示速度を極限まで高めている。
+                    このキャッシュはタブを閉じると同時にOSメモリから破棄されるため、端末のストレージを圧迫しない。
+                </p>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- CHAPTER 10 -->
+        <section id="state-machine" class="chapter">
+            <span class="chapter-number">第10章</span>
+            <h2 class="chapter-title">クライアントサイド・ステートマシン</h2>
+            <p>
+                注文状態の監視は `pos/status.html` における単方向データフローによって厳密に管理される。
+                Firestore の `onSnapshot` リスナーがサーバー側の状態変更を検知し、以下のステートマシンに従ってUIを遷移させる。
+                この処理はポーリング（定期問い合わせ）ではなく、WebSocket (Long-polling fallback) によるリアルタイムプッシュで行われる。
+            </p>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm" style="font-size: 0.85rem; color: var(--text-main);">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Status Key</th>
+                            <th>Visual State</th>
+                            <th>Description</th>
+                            <th>Trigger Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>PENDING</code></td>
+                            <td>(None)</td>
+                            <td>サーバーでのACIDトランザクション処理中。クライアント待機状態。</td>
+                            <td>Cloud Functions</td>
+                        </tr>
+                        <tr>
+                            <td><code>COOKING</code></td>
+                            <td><span class="badge bg-danger">調理中</span></td>
+                            <td>注文が確定し、厨房での調理プロセスが開始された状態。</td>
+                            <td>Kitchen App</td>
+                        </tr>
+                        <tr>
+                            <td><code>READY_TO_SERVE</code></td>
+                            <td><span class="badge bg-primary">準備中</span></td>
+                            <td>調理完了。パッキングまたは配膳待ちの状態。</td>
+                            <td>Kitchen App</td>
+                        </tr>
+                        <tr>
+                            <td><code>READY_FOR_PICKUP</code></td>
+                            <td><span class="badge bg-success">お呼出</span></td>
+                            <td>受渡口への呼び出し中。モニターに番号が表示される。</td>
+                            <td>Presenter App</td>
+                        </tr>
+                        <tr>
+                            <td><code>COMPLETED</code></td>
+                            <td><span class="badge bg-secondary">完了</span></td>
+                            <td>商品の引き渡し完了。トランザクション終了。</td>
+                            <td>POS App</td>
+                        </tr>
+                        <tr>
+                            <td><code>CANCELLED</code></td>
+                            <td><span class="badge bg-danger">取消</span></td>
+                            <td>在庫不足または運営判断による強制キャンセル。</td>
+                            <td>Admin Console</td>
+                        </tr>
+                        <tr>
+                            <td><code>ABANDONED</code></td>
+                            <td><span class="badge bg-secondary">破棄</span></td>
+                            <td>受取期限超過による廃棄処分（返金なし）。</td>
+                            <td>System Timer</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CHAPTER 11 -->
+        <section id="api-ref" class="chapter">
+            <span class="chapter-number">第11章</span>
+            <h2 class="chapter-title">内部APIリファレンス</h2>
+            <p>本システムで使用される主要な内部関数の仕様定義である。これらは `window` オブジェクトに公開されず、ES Modules のスコープ内に隠蔽されている。</p>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Core Functions</h3>
+                <dl style="font-family: 'Fira Code', monospace; font-size: 0.9rem;">
+                    <dt style="color: var(--accent-color);">finalizeOrder() : Promise&lt;void&gt;</dt>
+                    <dd style="margin-left: 20px; margin-bottom: 15px;">
+                        カート内のアイテム (`cart` global array) を検証し、`writeBatch` を構築してFirestoreにコミットする。
+                        成功後、Cloud Function `createOnlineOrder` をトリガーし、戻り値として `orderId` を受け取る。
+                        <br><strong>Throws:</strong> AuthError, StockError, NetworkError
+                    </dd>
+
+                    <dt style="color: var(--accent-color);">updateUserProfile(data: Object) : Promise&lt;void&gt;</dt>
+                    <dd style="margin-left: 20px; margin-bottom: 15px;">
+                        現在の `currentUser.uid` に紐づくドキュメントを更新する。`merge: true` 戦略を採用。
+                        <br><strong>Params:</strong>
+                        <ul>
+                            <li><code>deviceType</code>: 'ios_or_mac' | 'android' | 'other'</li>
+                            <li><code>fcmToken</code>: String (Nullable)</li>
+                        </ul>
+                    </dd>
+                    
+                    <dt style="color: var(--accent-color);">adjustScale() : void</dt>
+                    <dd style="margin-left: 20px; margin-bottom: 15px;">
+                        `window.resize` イベントにバインド。ビューポートの高さを計算し、PCブラウザ上でのスマホシミュレーション（Transform Scale）を実行する。
+                        Magic Number `840px` を基準高としている。
+                    </dd>
+                </dl>
+            </div>
+        </section>
+
+        <!-- CHAPTER 12 -->
+        <section id="troubleshooting" class="chapter">
+            <span class="chapter-number">第12章</span>
+            <h2 class="chapter-title">異常系プロセスとトラブルシューティング</h2>
+            
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-exclamation-octagon-fill"></i> エラーコード体系</h3>
+                <p>システムが送出する主なエラーコードとそのハンドリング指針。</p>
+                <ul class="list-group list-group-flush" style="font-size: 0.9rem; background: transparent;">
+                    <li class="list-group-item" style="background: transparent; color: var(--text-main); border-color: var(--border-color);">
+                        <strong>auth/popup-blocked</strong>: ポップアップブロック検知。<br>
+                        <span class="text-danger">Action:</span> `alert()` で解除方法をユーザーに提示。
+                    </li>
+                    <li class="list-group-item" style="background: transparent; color: var(--text-main); border-color: var(--border-color);">
+                        <strong>permission-denied</strong>: Firestoreセキュリティルール違反。<br>
+                        <span class="text-danger">Action:</span> 認証トークンの期限切れ、またはアカウントBANの可能性。再ログインを促す。
+                    </li>
+                    <li class="list-group-item" style="background: transparent; color: var(--text-main); border-color: var(--border-color);">
+                        <strong>unavailable</strong>: ネットワーク切断 (Offline)。<br>
+                        <span class="text-danger">Action:</span> Firebase SDK の自動再接続待ち。UIには「接続中...」を表示。
+                    </li>
+                    <li class="list-group-item" style="background: transparent; color: var(--text-main); border-color: var(--border-color);">
+                        <strong>stock-shortage (Custom)</strong>: 在庫不足エラー。<br>
+                        <span class="text-danger">Action:</span> 注文直前の最終チェックで発生。カート画面に戻し、該当商品をハイライト削除。
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- CHAPTER 13 -->
+        <section id="glossary" class="chapter">
+            <span class="chapter-number">第13章</span>
+            <h2 class="chapter-title">技術用語集</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" style="font-size: 0.9rem; color: var(--text-main);">
+                    <tbody>
+                        <tr>
+                            <td style="width: 30%;"><strong>ACID特性</strong></td>
+                            <td>Atomicity（原子性）、Consistency（一貫性）、Isolation（独立性）、Durability（永続性）の頭文字。データベース・トランザクションにおける信頼性の指標。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>App Shell</strong></td>
+                            <td>PWAにおける設計パターンのひとつ。UIの「外枠（シェル）」をキャッシュし、コンテンツのみを動的に読み込むことで、ネイティブアプリのような即応性を実現する。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cold Start</strong></td>
+                            <td>サーバーレス関数（Cloud Functions）がしばらく実行されていない状態から、最初のリクエストを受けてコンテナを起動する際に発生する遅延のこと。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Deny-by-Default</strong></td>
+                            <td>セキュリティ設計思想のひとつ。「明示的に許可されたもの以外はすべて拒否する」というホワイトリスト方式。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Idempotency</strong></td>
+                            <td>冪等性（べきとうせい）。ある操作を1回行っても複数回行っても結果が同じになる性質。ネットワーク再送時の重複注文防止などに不可欠。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>JAMstack</strong></td>
+                            <td>JavaScript, APIs, Markup の頭文字。サーバーサイドレンダリングに依存せず、静的ファイルとAPI呼び出しで構成されるWebアーキテクチャ。</td>
+                        </tr>
+                         <tr>
+                            <td><strong>Lazy Loading</strong></td>
+                            <td>遅延読み込み。画像などのリソースを、画面内に表示される直前までロードしないことで、初期表示速度を向上させる技術。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OIDC</strong></td>
+                            <td>OpenID Connect。OAuth 2.0をベースとした認証プロトコル。本システムではGoogleアカウント連携に使用。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- CHAPTER 14 -->
+        <section id="float-logic" class="chapter">
+            <span class="chapter-number">第14章</span>
+            <h2 class="chapter-title">数値表現とフロート化 (IEEE 754)</h2>
+            <div class="subsection">
+                <h3 class="subsection-title"><i class="bi bi-calculator"></i> 浮動小数点数と通貨演算</h3>
+                <p>
+                    JavaScript (ECMAScript) における数値は、すべて <strong>IEEE 754 倍精度浮動小数点数 (Double Precision Floating Point)</strong> として扱われる。
+                    これは科学技術計算には適しているが、厳密性が求められる「通貨演算（金額計算）」においては、<code>0.1 + 0.2 !== 0.3</code> といった丸め誤差問題を引き起こすリスクがある。
+                </p>
+                <div class="code-display" data-file="pos/cart-logic.js">
+<span class="com">// Anti-Pattern (Risk of floating point error)</span>
+<span class="kw">let</span> total = 0.1 * 100; <span class="com">// Might act unexpectedly in some engines</span>
+
+<span class="com">// Best Practice: Integer Arithmetic</span>
+<span class="com">// We treat all JPY values as strict Integers.</span>
+<span class="kw">const</span> price = 500; <span class="com">// Integer</span>
+<span class="kw">const</span> taxRate = 1.10;
+<span class="kw">const</span> total = Math.floor(price * taxRate); <span class="com">// Explicit floor layering</span>
+                </div>
+                <p>
+                    本システムでは、整合性を保つために以下のルールを徹底している。
+                </p>
+                <ul style="list-style: disc; margin-left: 20px; color: var(--text-sub); margin-top: 10px;">
+                    <li>データベース (Firestore) 上の金額フィールドはすべて <code>Integer</code> 型で定義する。</li>
+                    <li>フロントエンドでの計算時も、除算が発生する箇所では即座に <code>Math.floor()</code> または <code>Math.round()</code> による整数化（フロート解除）を行う。</li>
+                    <li>小数の保持が必要な場合（例: 平均評価点）のみ、プレゼンテーション層でのみフロートとして扱い、計算ロジックには含めない。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="epilogue" class="chapter" style="margin-top: 80px; text-align: center;">
+            <i class="bi bi-code-slash" style="font-size: 3rem; color: var(--border-color); display: block; margin-bottom: 20px;"></i>
+            <h2 class="chapter-title" style="border-bottom: none; font-size: 1.5rem; margin-bottom: 20px;">開発後記</h2>
+            <p style="text-align: center; max-width: 600px; margin: 0 auto; color: var(--text-sub);">
+                本システムは、南陵祭実行委員会開発チームによって設計・開発されました。
+                「高校生の文化祭」という枠組みであっても、技術的な妥協を一切許さず、商用サービスに匹敵する（あるいは凌駕する）品質を目指しました。
+                サーバーレスアーキテクチャの採用、徹底的な型安全性の追求、そしてミリ秒単位のUX改善。
+                これら全ての情熱は、来場される皆様の「快適な体験」のために注がれています。
+            </p>
+        </section>
+
+        <!-- APPENDIX -->
+        <section id="appendix" class="chapter" style="margin-bottom: 50px;">
+            <span class="chapter-number">付録</span>
+            <h2 class="chapter-title">技術スタック要約</h2>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered" style="color: var(--text-main); border-color: var(--border-color);">
+                    <thead style="background: var(--card-bg);">
+                        <tr>
+                            <th scope="col">Layer</th>
+                            <th scope="col">Technology / Service</th>
+                            <th scope="col">Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2"><strong>Frontend</strong></td>
+                            <td>HTML5 / CSS3 (Variables)</td>
+                            <td>Semantic Structure & Adaptive UI</td>
+                        </tr>
+                        <tr>
+                            <td>Vanilla JS (ES Modules)</td>
+                            <td>Core Logic (No Framework Overhead)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3"><strong>Backend</strong></td>
+                            <td>Firebase Auth</td>
+                            <td>Identity Platform (OIDC)</td>
+                        </tr>
+                        <tr>
+                            <td>Cloud Firestore</td>
+                            <td>NoSQL Database (Deny-by-Default)</td>
+                        </tr>
+                        <tr>
+                            <td>Cloud Functions</td>
+                            <td>Server-Side Logic (ACID Transactions)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Infra</strong></td>
+                            <td>GitHub Pages + CDN</td>
+                            <td>Global Content Delivery</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer class="paper-header" style="border-top: 1px solid var(--border-color); border-bottom: none; margin-top: 50px;">
+            <p class="text-muted" style="font-size: 0.9rem;">
+                <strong>ドキュメント終了</strong><br>
+                運営・管理: 神奈川県立横浜南陵高等学校 コンピュータ科学部
+            </p>
+        </footer>
+
+    </main>
+
+    <script type="module" src="app-shell.js"></script>
+</body>
+</html>

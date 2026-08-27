@@ -1,0 +1,889 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
+    <title>お客様モニター | 南陵祭2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&family=Noto+Sans+JP:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================
+         Monitor Display - Outdoor iPad 10" Design
+         Light Theme / High Contrast / Large Typography
+         ============================================ */
+
+      /* --- CSS Variables --- */
+      :root {
+        --bg: #ffffff;
+        --surface: #f5f5f5;
+        --surface-alt: #eeeeee;
+        --text: #1a1a1a;
+        --text-muted: #666;
+        --ready-color: #00c853;
+        --ready-bg: #00c853;
+        --preparing-color: #e65100;
+        --preparing-bg: #fff3e0;
+        --au-orange: #ed6c00;
+        --border: #ddd;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --font: "Inter", "Noto Sans JP", sans-serif;
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        height: 100vh;
+        height: 100dvh;
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* 全画面表示時の余白・黒帯対策 */
+      :fullscreen, :-webkit-full-screen {
+        width: 100% !important;
+        height: 100% !important;
+        background-color: var(--bg) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      ::backdrop {
+        background-color: var(--bg) !important;
+      }
+
+      /* --- View Management --- */
+      .view {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        background: var(--bg);
+      }
+      .view.active {
+        opacity: 1;
+        visibility: visible;
+        z-index: 10;
+      }
+
+      /* --- Common Buttons --- */
+      .btn {
+        border: none;
+        border-radius: var(--radius);
+        padding: 20px 28px;
+        font-size: 1.5rem;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: var(--font);
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .btn-primary {
+        background: var(--ready-color);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: var(--surface-alt);
+        color: var(--text);
+        border: 2px solid var(--border);
+      }
+      .btn-google {
+        background: #fff;
+        color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border: 2px solid #ccc;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      /* =============================================
+         View 0: Loader
+         ============================================= */
+      #view-loader {
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+      }
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .loading-text {
+        font-size: 1.5em;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
+      /* =============================================
+         View 1: IDLE (Main Monitor)
+         ============================================= */
+      #view-idle {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+      }
+
+      .monitor-split {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* --- Panel Layout --- */
+      .panel-column {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .col-ready {
+        flex: 2;
+        border-right: 3px solid var(--border);
+      }
+      .col-preparing {
+        flex: 1;
+        background: var(--surface-alt);
+      }
+
+      /* --- Panel Headers --- */
+      .panel-header {
+        padding: 16px 20px;
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+        letter-spacing: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-shrink: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .panel-header .header-icon {
+        font-size: 1.6rem;
+      }
+      .header-ready {
+        background: linear-gradient(135deg, #1b5e20, #2e7d32);
+        box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+      }
+      .header-preparing {
+        background: linear-gradient(135deg, #4a3800, #6d5200);
+        box-shadow: 0 4px 12px rgba(255, 171, 0, 0.2);
+      }
+
+      /* --- Panel Content --- */
+      .panel-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        position: relative;
+      }
+      /* Hide scrollbar */
+      .panel-content::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* --- Ready Grid (Left Panel) --- */
+      .ready-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 16px;
+        justify-content: center;
+      }
+      .item-ready {
+        flex: 1 0 200px;
+        max-width: 320px;
+        height: 130px;
+        background: linear-gradient(145deg, #00c853, #00e676);
+        color: #fff;
+        font-size: 5.5rem;
+        font-weight: 900;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 200, 83, 0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        letter-spacing: 4px;
+      }
+
+      /* --- Preparing List (Right Panel) --- */
+      .preparing-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .item-preparing {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--preparing-color);
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #ccc;
+        padding: 8px 0;
+        letter-spacing: 3px;
+      }
+
+      /* --- Monitor Footer (CTA) --- */
+      .monitor-footer {
+        background: var(--surface-alt);
+        border-top: 2px solid var(--border);
+        padding: 14px 20px;
+        text-align: center;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        animation: pulse-footer 2.5s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+      @keyframes pulse-footer {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+          color: var(--text);
+        }
+      }
+
+      /* --- Employee Menu --- */
+      .menu-btn {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 2000;
+        background: rgba(240, 240, 240, 0.8);
+        color: #666;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.3;
+        transition: opacity 0.3s;
+      }
+      .menu-btn:hover,
+      .menu-btn:active {
+        opacity: 1;
+      }
+
+      .side-menu {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 300px;
+        height: 100%;
+        background: #fff;
+        color: var(--text);
+        z-index: 2001;
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
+        transition: right 0.3s ease;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .side-menu.open {
+        right: 0;
+      }
+      .menu-header {
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .menu-close {
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: #666;
+      }
+      .menu-item {
+        margin-bottom: 8px;
+        color: #555;
+        font-size: 0.95rem;
+      }
+      .zoom-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 16px 0;
+      }
+      .btn-zoom {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        background: #f0f0f0;
+        color: #333;
+        cursor: pointer;
+      }
+      .btn-zoom:active {
+        background: #ddd;
+      }
+      .logout-btn {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+
+
+      /* =============================================
+         Animations
+         ============================================= */
+      @keyframes popIn {
+        from {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* =============================================
+         Utility Classes
+         ============================================= */
+      .hidden {
+        display: none !important;
+      }
+
+      /* =============================================
+         Store Login Modal
+         ============================================= */
+      #store-login-modal {
+        position: fixed;
+        inset: 0;
+        background: #f0f0f0;
+        z-index: 15000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .store-login-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 90%;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .store-login-input {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.3em;
+        margin: 20px 0;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+      }
+      .store-login-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.2em;
+        background: var(--ready-bg);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+
+
+      /* =============================================
+         Error Overlay (No Store ID)
+         ============================================= */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error Overlay (Strict Mode) -->
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
+
+    <!-- 店舗ログインモーダル -->
+    <div id="store-login-modal">
+      <div class="store-login-card">
+        <h2>店舗認証</h2>
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <div class="store-password-wrapper" style="position: relative; margin: 20px 0;">
+          <input
+            type="password"
+            id="store-password-input"
+            class="store-login-input"
+            placeholder="パスワード"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            style="margin: 0; padding-right: 40px;"
+          />
+          <button type="button" id="toggle-store-pass" class="password-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0; color: #666;"
+            >👁️</button>
+        </div>
+        <button class="store-login-btn" id="store-login-btn">認証する</button>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
+      </div>
+    </div>
+
+
+
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:var(--font);">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+
+    <!-- View 0: Initial Loader -->
+    <div id="view-loader" class="view active">
+      <div class="spinner"></div>
+      <div class="loading-text">読み込み中...</div>
+    </div>
+
+    <!-- View 1: IDLE (Monitor Mode) -->
+    <div id="view-idle" class="view">
+      <!-- Employee Menu Trigger -->
+      <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
+
+      <!-- Employee Side Menu -->
+      <div id="side-menu" class="side-menu">
+        <div class="menu-header">
+          <span>従業員メニュー</span>
+          <span class="menu-close" onclick="app.toggleMenu()">×</span>
+        </div>
+        <div class="menu-item">
+          Store ID: <span id="menu-store-id" style="font-weight: bold">--</span>
+        </div>
+
+        <div class="zoom-controls">
+          <button class="btn-zoom" onclick="app.adjustZoom(-0.1)">-</button>
+          <button class="btn-zoom" onclick="app.adjustZoom(0.1)">+</button>
+          <button class="btn-zoom" onclick="app.toggleFullScreen()" style="width: auto; padding: 5px 10px; font-size: 0.9rem;">全画面</button>
+        </div>
+
+        <button
+          onclick="app.logout()"
+          class="logout-btn"
+          style="width: 100%; margin-top: auto"
+        >
+          ログアウト
+        </button>
+      </div>
+
+      <div class="monitor-split">
+        <!-- Ready Column (Left, Wide) -->
+        <div class="panel-column col-ready">
+          <div class="panel-header header-ready">
+            <span class="header-icon">🔔</span> お呼出中 / Ready
+          </div>
+          <div class="panel-content">
+            <div id="grid-ready" class="ready-grid"></div>
+          </div>
+        </div>
+
+        <!-- Preparing Column (Right, Narrow) -->
+        <div class="panel-column col-preparing">
+          <div class="panel-header header-preparing">
+            <span class="header-icon">⏳</span> 準備中 / Preparing
+          </div>
+          <div class="panel-content">
+            <div id="list-preparing" class="preparing-list"></div>
+          </div>
+        </div>
+      </div>
+
+
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        getAnalytics,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        onSnapshot,
+        getDocs,
+        doc,
+        updateDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+
+      // Firebase設定
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      // URLパラメータ取得 (storeId)
+      const urlParams = new URLSearchParams(window.location.search);
+      const STORE_ID = urlParams.get("storeId");
+
+      class KioskApp {
+        constructor() {
+          this.app = initializeApp(firebaseConfig);
+          this.analytics = getAnalytics(this.app);
+          // App Check Initialization
+          this.appCheck = initializeAppCheck(this.app, {
+            provider: new ReCaptchaV3Provider(
+              "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
+            ),
+            isTokenAutoRefreshEnabled: true,
+          });
+
+          this.db = getFirestore(this.app);
+
+          this.auth = getAuth(this.app);
+          this.functions = getFunctions(this.app, "asia-northeast1");
+
+          this.currentInput = "";
+          this.currentOrder = null;
+          this.timerId = null;
+          this.unsubOrderListener = null;
+          this.currentZoom = 1.0;
+          this.views = {
+            loader: document.getElementById("view-loader"),
+            idle: document.getElementById("view-idle"),
+          };
+
+          document.getElementById("menu-store-id").innerText = STORE_ID;
+
+          this.processingPayment = false;
+          this.init();
+        }
+
+        init() {
+          this.setupAuthListeners();
+          this.setupUIListeners();
+        }
+
+        setupAuthListeners() {
+          const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+          const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+          function isAuthorizedUser(user) {
+            if (!user || !user.email) return false;
+            return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+          }
+
+          onAuthStateChanged(this.auth, (user) => {
+            if (!STORE_ID) {
+              this.showParamError();
+              return;
+            }
+            const LS_KEY = "nanryosai_store_id";
+            const cachedId = localStorage.getItem(LS_KEY);
+
+            if (!user || !isAuthorizedUser(user) || cachedId !== STORE_ID) {
+              const currentUrl = encodeURIComponent(window.location.href);
+              const storeParam = STORE_ID ? `&s=${STORE_ID}` : '';
+              window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+            } else {
+              this.startApp();
+              this.transitionTo("idle");
+            }
+          });
+        }
+
+        setupUIListeners() {
+          // UI listeners for kiosk removed in Phase 2 as the monitor is now read-only.
+        }
+
+
+
+        logout() {
+          signOut(this.auth).catch((error) => {
+            console.error("Sign out error", error);
+          });
+        }
+
+        toggleMenu() {
+          const menu = document.getElementById("side-menu");
+          menu.classList.toggle("open");
+        }
+
+        adjustZoom(delta) {
+          this.currentZoom = Math.round((this.currentZoom + delta) * 10) / 10;
+          if (this.currentZoom < 0.5) this.currentZoom = 0.5;
+          if (this.currentZoom > 2.0) this.currentZoom = 2.0;
+          document.body.style.zoom = this.currentZoom;
+        }
+
+        toggleFullScreen() {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          if (isStandalone) return;
+
+          const doc = window.document;
+          const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
+          const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+          const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+          if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+            if (requestFullScreen) requestFullScreen.call(docEl);
+          } else {
+            if (cancelFullScreen) cancelFullScreen.call(doc);
+          }
+        }
+
+        showParamError() {
+          document.getElementById("error-overlay").style.display = "flex";
+          this.stopApp();
+          // Hide other views to be sure
+          Object.values(this.views).forEach((el) =>
+            el.classList.remove("active"),
+          );
+        }
+
+        startApp() {
+          if (this.unsubReady || this.unsubPreparing) return;
+          this.subscribeReadyOrders();
+          this.subscribePreparingOrders();
+        }
+
+        subscribeReadyOrders() {
+          const qReady = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "==", "ready_for_pickup")
+          );
+
+          this.unsubReady = onSnapshot(qReady, (snapshot) => {
+            const container = document.getElementById("grid-ready");
+            if (container) {
+              const docs = [];
+              snapshot.forEach((d) => docs.push(d.data()));
+              // 新しいもの（createdAtが大きい）が下に来るように昇順ソート
+              docs.sort(
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+              );
+
+              container.innerHTML = "";
+              docs.forEach((data) => {
+                const div = document.createElement("div");
+                div.className = "item-ready";
+                div.innerText = data.receiptNumber;
+                container.appendChild(div);
+              });
+            }
+          });
+        }
+
+        subscribePreparingOrders() {
+          const qPreparing = query(
+            collection(this.db, "orders"),
+            where("storeId", "==", STORE_ID),
+            where("status", "in", [
+              "cooking",
+              "ready_to_serve",
+            ])
+          );
+
+          this.unsubPreparing = onSnapshot(qPreparing, (snapshot) => {
+            const container = document.getElementById("list-preparing");
+            if (container) {
+              const docs = [];
+              snapshot.forEach((d) => docs.push(d.data()));
+              docs.sort(
+                (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+              );
+
+              container.innerHTML = "";
+              docs.forEach((data) => {
+                const div = document.createElement("div");
+                div.className = "item-preparing";
+                div.innerText = data.receiptNumber;
+                container.appendChild(div);
+              });
+            }
+          });
+        }
+
+        stopApp() {
+          if (this.unsubReady) {
+            this.unsubReady();
+            this.unsubReady = null;
+          }
+          if (this.unsubPreparing) {
+            this.unsubPreparing();
+            this.unsubPreparing = null;
+          }
+        }
+
+        transitionTo(stateName) {
+          Object.values(this.views).forEach((el) => {
+            if (el) el.classList.remove("active");
+          });
+          if (this.views[stateName]) {
+            this.views[stateName].classList.add("active");
+          }
+        }
+      }
+
+      window.app = new KioskApp();
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('store-password-input').addEventListener('input', function(e) {
+          this.value = this.value.replace(/[０-９A-Za-z]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+          }).replace(/[^0-9A-Za-z]/g, '');
+        });
+
+        document.getElementById('toggle-store-pass').addEventListener('click', function() {
+          const input = document.getElementById('store-password-input');
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = '🙈';
+          } else {
+            input.type = 'password';
+            this.textContent = '👁️';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

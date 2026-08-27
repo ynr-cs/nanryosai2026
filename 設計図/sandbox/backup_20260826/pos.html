@@ -1,0 +1,1370 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
+    <title>POS | 南陵祭2026</title>
+    <style>
+      :root {
+        --bg-color: #333;
+        --panel-bg: #f4f4f4;
+        --selected-bg: #0d47a1;
+        --text-color: #333;
+        --shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        height: 100vh;
+        height: 100dvh;
+        background-color: var(--bg-color);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* 全画面表示時の余白・黒帯対策 */
+      :fullscreen, :-webkit-full-screen {
+        width: 100% !important;
+        height: 100% !important;
+        background-color: var(--bg-color) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      ::backdrop {
+        background-color: var(--bg-color) !important;
+      }
+
+      /* --- Error Overlay --- */
+      #error-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        z-index: 100000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+      }
+      .error-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+      }
+      .error-msg {
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+
+      /* --- ローダー --- */
+      #global-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 99999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      }
+      #global-loader.active {
+        display: flex;
+      }
+
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-text {
+        font-size: 1.5em;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
+      /* --- トップバー --- */
+      .top-bar {
+        min-height: 44px;
+        background: #1a1a1a;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: max(16px, env(safe-area-inset-top)) 40px 8px 100px; /* OSステータスバー・時刻・バッテリー・×ボタンとの被り防止 */
+        font-size: 0.95em;
+        font-family: monospace;
+        flex-shrink: 0;
+      }
+      .timer-display {
+        color: #00e676;
+        font-weight: bold;
+      }
+
+      /* --- アプリメイン画面 --- */
+      #app-container {
+        display: none;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* 左側：注文リスト */
+      .order-panel {
+        height: 100%;
+        overflow: hidden;
+        width: 32%;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        border-right: 4px solid #444;
+      }
+      .list-header {
+        background: #333;
+        color: #fff;
+        padding: 10px;
+        font-weight: bold;
+        text-align: center;
+        letter-spacing: 1px;
+      }
+      .order-list {
+        min-height: 0;
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        background: #fff;
+      }
+      .order-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        font-size: 1.1em;
+        color: #333;
+      }
+      .order-item.selected {
+        background-color: var(--selected-bg);
+        color: white;
+      }
+      .item-row {
+        display: flex;
+        align-items: baseline;
+      }
+      .item-qty {
+        font-weight: 900;
+        font-size: 1.3em;
+        width: 40px;
+        text-align: right;
+        margin-right: 15px;
+      }
+      .item-name {
+        font-weight: bold;
+        flex: 1;
+      }
+      .item-price {
+        font-size: 0.9em;
+        font-weight: normal;
+        margin-left: 10px;
+      }
+      .order-item.selected .item-qty {
+        color: #ffeb3b;
+      }
+      .item-mods {
+        padding-left: 55px;
+        font-size: 0.85em;
+        margin-top: 2px;
+        display: flex;
+        flex-direction: column;
+      }
+      .mod-line {
+        font-weight: bold;
+      }
+      .mod-no {
+        color: #d32f2f;
+      }
+      .mod-add {
+        color: #2e7d32;
+      }
+      .order-item.selected .mod-no {
+        color: #ff8a80;
+      }
+      .order-item.selected .mod-add {
+        color: #b9f6ca;
+      }
+      .total-area {
+        background: #222;
+        color: #0f0;
+        padding: 15px;
+        font-size: 2.2em;
+        text-align: right;
+        font-family: "Courier New", monospace;
+        font-weight: bold;
+      }
+
+      /* 右側：操作パネル */
+      .control-panel {
+        height: 100%;
+        overflow: hidden;
+        width: 68%;
+        background: var(--panel-bg);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .modifier-row {
+        display: flex;
+        gap: 8px;
+      }
+      .mode-btn {
+        flex: 0 0 80px;
+        height: 60px;
+        border: 1px solid #777;
+        border-radius: 4px;
+        background: linear-gradient(#fff, #eee);
+        font-weight: bold;
+        font-size: 1.2em;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+      }
+      .mode-btn[data-mode="NO"].active {
+        background: #d32f2f;
+        color: white;
+        border-color: #b71c1c;
+      }
+      .mode-btn[data-mode="ADD"].active {
+        background: #2e7d32;
+        color: white;
+        border-color: #1b5e20;
+      }
+
+      .ingredient-container {
+        flex: 1;
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        background: #e0e0e0;
+        border: 1px solid #999;
+        border-radius: 4px;
+        padding: 4px;
+        align-items: center;
+      }
+      .ing-btn {
+        min-width: 80px;
+        height: 100%;
+        border: 1px solid #888;
+        border-radius: 4px;
+        background: white;
+        font-weight: bold;
+        font-size: 0.9em;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        white-space: pre-wrap;
+        line-height: 1.1;
+      }
+      .ing-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .no-toppings-msg {
+        width: 100%;
+        text-align: center;
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .quantity-control-row {
+        display: flex;
+        gap: 10px;
+        height: 60px;
+        align-items: center;
+        background: #ddd;
+        border-radius: 6px;
+        padding: 5px;
+      }
+      .qty-btn {
+        height: 100%;
+        flex: 1;
+        font-size: 1.8em;
+        font-weight: bold;
+        border: 1px solid #888;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        background: linear-gradient(#fff, #f0f0f0);
+      }
+      .qty-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .qty-btn.minus {
+        color: #d32f2f;
+      }
+      .qty-btn.plus {
+        color: #2e7d32;
+      }
+      .qty-display-area {
+        flex: 0 0 80px;
+        text-align: center;
+        font-size: 2em;
+        font-weight: bold;
+        color: #333;
+        background: white;
+        height: 100%;
+        line-height: 50px;
+        border-radius: 4px;
+        border: 1px solid #bbb;
+      }
+      .delete-btn {
+        flex: 0 0 120px;
+        height: 100%;
+        background: #d32f2f;
+        color: white;
+        font-size: 1.1em;
+        font-weight: bold;
+        border: 1px solid #b71c1c;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        margin-left: 10px;
+      }
+      .delete-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+
+      .product-grid {
+        min-height: 0;
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        grid-auto-rows: 90px;
+        gap: 8px;
+        overflow-y: auto;
+        align-content: start;
+        padding-right: 4px;
+      }
+      .prod-btn {
+        background: white;
+        border: 1px solid #999;
+        border-radius: 6px;
+        padding: 5px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s;
+      }
+      .prod-btn:active {
+        transform: scale(0.96);
+        background: #eee;
+      }
+      .prod-name {
+        font-weight: bold;
+        line-height: 1.2;
+        font-size: 0.95em;
+      }
+      .prod-price {
+        font-size: 0.85em;
+        margin-top: 5px;
+        color: #555;
+        font-weight: bold;
+      }
+
+      .prod-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: #999;
+      }
+      .prod-btn[data-type="burger"]::before {
+        background: #ff9800;
+      }
+      .prod-btn[data-type="drink"]::before {
+        background: #2196f3;
+      }
+      .prod-btn[data-type="side"]::before {
+        background: #4caf50;
+      }
+
+      /* MOD: 売り切れ商品のスタイル */
+      .prod-btn.disabled {
+        background: #e0e0e0;
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+      }
+      .prod-btn.disabled .prod-name {
+        color: #888;
+      }
+      .prod-btn.disabled::after {
+        content: "SOLD OUT";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-15deg);
+        color: #d32f2f;
+        font-weight: 900;
+        font-size: 1.2em;
+        border: 3px solid #d32f2f;
+        padding: 2px 5px;
+        background: rgba(255, 255, 255, 0.8);
+        pointer-events: none;
+      }
+
+      .footer-actions {
+        height: 70px;
+        display: flex;
+        gap: 10px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+      }
+      .action-btn {
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2em;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+      }
+      .btn-clear {
+        background: #555;
+        width: 120px;
+      }
+      .btn-checkout {
+        flex: 1;
+        background: #2e7d32;
+        font-size: 1.5em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* --- モーダル (共通) --- */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal-box {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        text-align: center;
+        min-width: 450px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      }
+      .receipt-num {
+        font-size: 5em;
+        font-weight: bold;
+        color: #333;
+        margin: 20px 0;
+      }
+      .close-btn {
+        padding: 10px 30px;
+        font-size: 1.2em;
+        cursor: pointer;
+        border-radius: 6px;
+        border: 1px solid #aaa;
+        background: #eee;
+      }
+      .confirm-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .confirm-total {
+        font-size: 3em;
+        font-weight: bold;
+        color: #2e7d32;
+        margin: 20px 0;
+        font-family: "Courier New", monospace;
+      }
+      .confirm-text {
+        font-size: 1.2em;
+        color: #555;
+        margin-bottom: 30px;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
+      .modal-btn {
+        padding: 15px 40px;
+        font-size: 1.2em;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .modal-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .modal-btn.cancel {
+        background: #999;
+        color: white;
+      }
+      .modal-btn.confirm-checkout {
+        background: #2e7d32;
+        color: white;
+      }
+      .modal-btn.confirm-clear {
+        background: #d32f2f;
+        color: white;
+      }
+
+      /* --- 店舗ログインモーダル --- */
+      #store-login-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #eee;
+        z-index: 15000; /* エラー画面より上、ローダーより下 */
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .store-login-card {
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 400px;
+        width: 90%;
+      }
+      .store-login-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.2em;
+        margin: 20px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .store-login-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.2em;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="global-loader" class="active">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loader-text">読み込み中...</div>
+        <div id="loader-fallback" style="display:none; margin-top:24px; text-align:center; color:#ccc; font-size:0.95rem; line-height:1.5;">
+          <p>読み込みに時間がかかっています。<br>電波状況を確認するか、ポータルへ戻ってください。</p>
+          <a href="portal.html" style="display:inline-block; margin-top:16px; padding:12px 24px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:8px; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.3);">ポータルへ戻る</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      let initialLoaderTimer = setTimeout(() => {
+        const fallback = document.getElementById("loader-fallback");
+        if (fallback) fallback.style.display = "block";
+      }, 8000);
+    </script>
+
+    <div id="error-overlay">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">StoreID が指定されていません</div>
+      <div class="error-msg">
+        不正なURLです。<br />
+        正しいポータル画面からアクセスしてください<br />
+        <span style="font-size: 0.8em; color: #666"
+          >(Error: StoreID is missing)</span
+        >
+      </div>
+    </div>
+
+    <!-- ドメインエラーオーバーレイ -->
+    <div id="domain-error-overlay" style="display:none; position:fixed; inset:0; background:#0f1117; z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; color:white; font-family:inherit;">
+      <div style="font-size:3.5rem; margin-bottom:20px;">🔒</div>
+      <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:12px; color:#fff;">在校生専用システム</h2>
+      <p style="color:#9ca3af; line-height:1.8; margin-bottom:8px; font-size:0.95rem;">
+        このシステムへのアクセスは、<br>
+        南陵高校が配布するGoogleアカウント<br>
+        <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
+        に限定されています。
+      </p>
+      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
+      <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
+      <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
+    </div>
+
+    <!-- login-screen was removed to prevent flickering -->
+
+    <div class="top-bar">
+      <div id="clock-display">00:00:00</div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <button onclick="toggleFullScreen()" style="background:none; border:1px solid #666; color:#fff; border-radius:4px; padding:2px 8px; font-size:0.8rem; cursor:pointer;">全画面</button>
+        <div>
+          経過時間: <span id="timer-display" class="timer-display">00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="app-container">
+      <div class="order-panel">
+        <div class="list-header">注文リスト</div>
+        <ul id="order-list" class="order-list"></ul>
+        <div class="total-area" id="total-price">¥0</div>
+      </div>
+
+      <div class="control-panel">
+        <div class="modifier-row">
+          <button class="mode-btn" data-mode="NO" onclick="setMode('NO')">
+            No<br /><small>抜き</small>
+          </button>
+          <button class="mode-btn" data-mode="ADD" onclick="setMode('ADD')">
+            Add<br /><small>追加</small>
+          </button>
+          <div id="ingredient-container" class="ingredient-container">
+            <div class="no-toppings-msg">商品を選択してください</div>
+          </div>
+        </div>
+
+        <div class="quantity-control-row">
+          <button class="qty-btn minus" onclick="changeQuantity(-1)">－</button>
+          <div class="qty-display-area" id="current-qty-display">-</div>
+          <button class="qty-btn plus" onclick="changeQuantity(1)">＋</button>
+          <button class="delete-btn" onclick="deleteSelected()">削除</button>
+        </div>
+
+        <div id="product-grid" class="product-grid"></div>
+
+        <div class="footer-actions">
+          <button class="action-btn btn-clear" onclick="openClearModal()">
+            全消去
+          </button>
+          <button class="action-btn btn-checkout" onclick="openCheckoutModal()">
+            お会計
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="checkout-confirm-modal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="confirm-title">お会計確認</div>
+        <div class="confirm-total" id="modal-total-price">¥0</div>
+        <div class="confirm-text">この内容で会計を確定しますか？</div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="closeAllModals()">
+            キャンセル
+          </button>
+          <button
+            class="modal-btn confirm-checkout"
+            onclick="processCheckout()"
+          >
+            確定する
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="clear-confirm-modal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="confirm-title" style="color: #d32f2f">警告</div>
+        <div class="confirm-text">
+          カートの中身を全て削除します。<br />よろしいですか？
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="closeAllModals()">
+            キャンセル
+          </button>
+          <button class="modal-btn confirm-clear" onclick="processClearCart()">
+            削除する
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+      <div class="modal-box">
+        <h2>注文を受け付けました</h2>
+        <div class="receipt-num" id="receipt-display">---</div>
+        <button class="close-btn" onclick="closeAllModals()">次の注文へ</button>
+      </div>
+    </div>
+
+    <!-- 店舗ログインモーダル -->
+    <div id="store-login-modal">
+      <div class="store-login-card">
+        <h2>店舗認証</h2>
+        <p>セキュリティのため<br />店舗パスワードを入力してください</p>
+        <p
+          id="target-store-id-display"
+          style="font-weight: bold; color: #555"
+        ></p>
+        <div style="position: relative; width: 100%; margin: 20px 0;">
+          <input
+            type="password"
+            id="store-password-input"
+            class="store-login-input"
+            placeholder="パスワード"
+            style="margin: 0; padding-right: 40px;"
+          />
+          <button
+            type="button"
+            id="toggle-store-pass"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 0;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+          </button>
+        </div>
+        <button class="store-login-btn" id="store-login-btn">認証する</button>
+        <p id="store-login-error" style="color: red; margin-top: 15px"></p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import {
+        getAnalytics,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+      import {
+        initializeAppCheck,
+        ReCaptchaV3Provider,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+      // MOD: onSnapshot をインポート
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        addDoc,
+        serverTimestamp,
+        onSnapshot,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getFunctions,
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { renderPosAlert } from "./pos-alert.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
+        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
+        projectId: "nanryosai-2026-a4091",
+        storageBucket: "nanryosai-2026-a4091.appspot.com",
+        messagingSenderId: "93228414556",
+        appId: "1:93228414556:web:f64f90c13849fae9049899",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+
+      // App Check の初期化
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const functions = getFunctions(app, "asia-northeast1");
+
+      // State
+      let products = [];
+      let cart = [];
+      let selectedUniqueId = null;
+      let currentMode = null;
+      let orderStartTime = null;
+      let timerInterval = null;
+      let isProcessing = false;
+      let storeId = null;
+
+      // MOD: リアルタイムリスナー解除用
+      let unsubscribeProducts = null;
+
+      // Elements
+      const orderListEl = document.getElementById("order-list");
+      const totalEl = document.getElementById("total-price");
+      const modalTotalEl = document.getElementById("modal-total-price");
+      const productGrid = document.getElementById("product-grid");
+      const ingredientContainer = document.getElementById(
+        "ingredient-container",
+      );
+      const modeBtns = document.querySelectorAll(".mode-btn");
+      const qtyDisplay = document.getElementById("current-qty-display");
+      const clockDisplay = document.getElementById("clock-display");
+      const timerDisplay = document.getElementById("timer-display");
+      const loader = document.getElementById("global-loader");
+      const loaderText = document.getElementById("loader-text");
+
+      // Modals
+      const checkoutModal = document.getElementById("checkout-confirm-modal");
+      const clearModal = document.getElementById("clear-confirm-modal");
+      const successModal = document.getElementById("success-modal");
+
+      const urlParams = new URLSearchParams(window.location.search);
+      storeId = urlParams.get("storeId");
+
+        // Loader
+        function showLoader(text = "処理中...") {
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
+          loaderText.innerText = text;
+          loader.classList.add("active");
+          isProcessing = true;
+        }
+        function hideLoader() {
+          if (initialLoaderTimer) {
+            clearTimeout(initialLoaderTimer);
+            initialLoaderTimer = null;
+          }
+          const fallback = document.getElementById("loader-fallback");
+          if (fallback) fallback.style.display = "none";
+          loader.classList.remove("active");
+          isProcessing = false;
+        }
+
+      // ドメインチェックヘルパー
+      const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+      const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
+
+      function isAuthorizedUser(user) {
+        if (!user || !user.email) return false;
+        return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+      }
+
+      // Auth Guard
+      onAuthStateChanged(auth, async (user) => {
+        const LS_KEY = "nanryosai_store_id";
+        const cachedId = localStorage.getItem(LS_KEY);
+
+        if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+          // 未認証 または ドメイン不正 または 店舗ID不一致 -> ポータルへリダイレクト
+          const currentUrl = encodeURIComponent(window.location.href);
+          const storeParam = storeId ? `&s=${storeId}` : '';
+          window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
+        } else {
+          // 認証済み
+          hideLoader();
+          document.getElementById("app-container").style.display = "flex";
+
+          // POSアラートのインポートと監視
+          const { renderPosAlert } = await import("./pos-alert.js");
+          onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+            if (snap.exists()) renderPosAlert(snap.data());
+          });
+
+          subscribeToProducts();
+          startClock();
+        }
+      });
+
+      // Clock
+      function startClock() {
+        setInterval(() => {
+          const now = new Date();
+          clockDisplay.textContent = now.toLocaleTimeString();
+        }, 1000);
+      }
+      
+      function toggleFullScreen() {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) return; // PWA(ホーム画面追加)時は全画面APIを呼ばない
+
+        const doc = window.document;
+        const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+          if (requestFullScreen) requestFullScreen.call(docEl);
+        } else {
+          if (cancelFullScreen) cancelFullScreen.call(doc);
+        }
+      }
+      window.toggleFullScreen = toggleFullScreen;
+      function startOrderTimer() {
+        if (orderStartTime) return;
+        orderStartTime = Date.now();
+        timerDisplay.textContent = "00:00";
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          const diff = Math.max(0, Math.floor((Date.now() - orderStartTime) / 1000));
+          const mm = String(Math.floor(diff / 60)).padStart(2, "0");
+          const ss = String(diff % 60).padStart(2, "0");
+          timerDisplay.textContent = `${mm}:${ss}`;
+        }, 1000);
+      }
+      function resetOrderTimer() {
+        clearInterval(timerInterval);
+        orderStartTime = null;
+        timerDisplay.textContent = "00:00";
+      }
+
+      // MOD: リアルタイムデータ取得
+      function subscribeToProducts() {
+        showLoader("商品データを\n同期しています");
+
+        // isAvailableのフィルタを外し、この店舗の全商品を取得する
+        const q = query(
+          collection(db, "items"),
+          where("storeId", "==", storeId),
+        );
+
+        // onSnapshotで監視
+        unsubscribeProducts = onSnapshot(
+          q,
+          (snapshot) => {
+            products = [];
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              products.push({
+                id: doc.id,
+                name: data.name,
+                price: Number(data.price),
+                allowedToppings: data.allowedToppings || [],
+                isAvailable: data.isAvailable, // 追加: 可否ステータス
+              });
+            });
+
+            renderProductGrid();
+            hideLoader();
+          },
+          (error) => {
+            console.error("Error getting products:", error);
+            productGrid.innerHTML = `<p style="color:red">同期エラー: ${error.message}</p>`;
+            hideLoader();
+          },
+        );
+      }
+
+      function renderProductGrid() {
+        productGrid.innerHTML = "";
+        if (products.length === 0) {
+          productGrid.innerHTML = "<p>商品がありません</p>";
+          return;
+        }
+
+        products.forEach((p) => {
+          const btn = document.createElement("div");
+          btn.className = "prod-btn";
+
+          // 売り切れ商品の制御
+          if (!p.isAvailable) {
+            btn.classList.add("disabled");
+            btn.onclick = (e) => e.preventDefault(); // クリック無効
+          } else {
+            btn.onclick = () => addToCart(p);
+          }
+
+          let type = "other";
+          if (p.name.match(/バーガー|マック|牛|サンド/)) type = "burger";
+          else if (p.name.match(/ドリンク|コーラ|茶|水/)) type = "drink";
+          else if (p.name.match(/ポテト|ナゲット/)) type = "side";
+          btn.setAttribute("data-type", type);
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "prod-name";
+          nameSpan.textContent = p.name;
+
+          const priceSpan = document.createElement("span");
+          priceSpan.className = "prod-price";
+          priceSpan.textContent = `¥${p.price}`;
+
+          btn.appendChild(nameSpan);
+          btn.appendChild(priceSpan);
+          productGrid.appendChild(btn);
+        });
+      }
+
+      // Cart Logic
+      window.addToCart = (product) => {
+        if (isProcessing) return;
+        // ガード: 売り切れ商品は追加させない
+        if (!product.isAvailable) return;
+
+        if (cart.length === 0) startOrderTimer();
+
+        const existingItem = cart.find(
+          (item) =>
+            item.productId === product.id && item.customizations.length === 0,
+        );
+        if (existingItem) {
+          existingItem.quantity++;
+          selectItem(existingItem.uniqueId);
+        } else {
+          const newItem = {
+            uniqueId: Date.now() + Math.random(),
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            customizations: [],
+            allowedToppings: product.allowedToppings,
+          };
+          cart.push(newItem);
+          selectItem(newItem.uniqueId);
+        }
+        renderCart();
+      };
+
+      function selectItem(uniqueId) {
+        selectedUniqueId = uniqueId;
+        currentMode = null;
+        renderCart();
+        updateModeButtons();
+        renderDynamicToppingButtons();
+        updateQtyDisplay();
+      }
+
+      function updateQtyDisplay() {
+        if (!selectedUniqueId) {
+          qtyDisplay.innerText = "-";
+          return;
+        }
+        const item = cart.find((i) => i.uniqueId === selectedUniqueId);
+        qtyDisplay.innerText = item ? item.quantity : "-";
+      }
+
+      window.changeQuantity = (delta) => {
+        if (!selectedUniqueId) return;
+        const idx = cart.findIndex((i) => i.uniqueId === selectedUniqueId);
+        if (idx === -1) return;
+        const item = cart[idx];
+        const newQty = item.quantity + delta;
+
+        if (newQty < 1) {
+          cart.splice(idx, 1);
+          selectedUniqueId = null;
+        } else {
+          item.quantity = newQty;
+        }
+        updateQtyDisplay();
+        renderCart();
+        renderDynamicToppingButtons();
+      };
+
+      window.deleteSelected = () => {
+        if (!selectedUniqueId) return;
+        const idx = cart.findIndex((i) => i.uniqueId === selectedUniqueId);
+        if (idx === -1) return;
+        cart.splice(idx, 1);
+        selectedUniqueId = null;
+        renderCart();
+        renderDynamicToppingButtons();
+        updateQtyDisplay();
+      };
+
+      function renderDynamicToppingButtons() {
+        ingredientContainer.innerHTML = "";
+        if (!selectedUniqueId) {
+          ingredientContainer.innerHTML =
+            '<div class="no-toppings-msg">商品を選択してください</div>';
+          return;
+        }
+        const item = cart.find((i) => i.uniqueId === selectedUniqueId);
+        if (!item || !item.allowedToppings.length) {
+          ingredientContainer.innerHTML =
+            '<div class="no-toppings-msg">トッピング不可</div>';
+          return;
+        }
+        item.allowedToppings.forEach((toppingName) => {
+          const btn = document.createElement("button");
+          btn.className = "ing-btn";
+          btn.innerText = toppingName;
+          btn.onclick = () => applyIngredient(toppingName);
+          ingredientContainer.appendChild(btn);
+        });
+      }
+
+      window.setMode = (mode) => {
+        if (!selectedUniqueId) return;
+        currentMode = currentMode === mode ? null : mode;
+        updateModeButtons();
+      };
+
+      window.applyIngredient = (ingName) => {
+        if (!selectedUniqueId) return;
+        if (!currentMode) {
+          alert("先にモード(No, Add)を選択してください");
+          return;
+        }
+        let idx = cart.findIndex((i) => i.uniqueId === selectedUniqueId);
+        if (idx === -1) return;
+        let item = cart[idx];
+
+        if (item.quantity > 1) {
+          item.quantity--;
+          const newItem = {
+            ...item,
+            uniqueId: Date.now() + Math.random(),
+            quantity: 1,
+            customizations: [...item.customizations],
+          };
+          cart.push(newItem);
+          item = newItem;
+          selectedUniqueId = newItem.uniqueId;
+        }
+
+        const newMod = { mode: currentMode, target: ingName };
+        const exIdx = item.customizations.findIndex(
+          (c) => c.target === ingName,
+        );
+        if (exIdx > -1) item.customizations[exIdx] = newMod;
+        else item.customizations.push(newMod);
+
+        currentMode = null;
+        renderCart();
+        updateModeButtons();
+        updateQtyDisplay();
+      };
+
+      function renderCart() {
+        orderListEl.innerHTML = "";
+        let total = 0;
+        cart.forEach((item) => {
+          total += item.price * item.quantity;
+          const li = document.createElement("li");
+          li.className = `order-item ${
+            item.uniqueId === selectedUniqueId ? "selected" : ""
+          }`;
+          li.onclick = () => selectItem(item.uniqueId);
+
+          const rowDiv = document.createElement("div");
+          rowDiv.className = "item-row";
+
+          const qtySpan = document.createElement("span");
+          qtySpan.className = "item-qty";
+          qtySpan.textContent = item.quantity;
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "item-name";
+          nameSpan.textContent = item.name;
+
+          const priceSpan = document.createElement("span");
+          priceSpan.className = "item-price";
+          priceSpan.textContent = `¥${item.price}`;
+
+          rowDiv.appendChild(qtySpan);
+          rowDiv.appendChild(nameSpan);
+          rowDiv.appendChild(priceSpan);
+
+          const modsDiv = document.createElement("div");
+          modsDiv.className = "item-mods";
+          item.customizations.forEach((c) => {
+            const modSpan = document.createElement("span");
+            modSpan.className = `mod-line ${
+              c.mode === "NO" ? "mod-no" : "mod-add"
+            }`;
+            modSpan.textContent = `${c.mode} ${c.target}`;
+            modsDiv.appendChild(modSpan);
+          });
+
+          li.appendChild(rowDiv);
+          li.appendChild(modsDiv);
+          orderListEl.appendChild(li);
+        });
+        totalEl.innerText = `¥${total.toLocaleString()}`;
+      }
+
+      function updateModeButtons() {
+        modeBtns.forEach((btn) => {
+          if (btn.dataset.mode === currentMode) btn.classList.add("active");
+          else btn.classList.remove("active");
+        });
+      }
+
+      // Modals
+      window.closeAllModals = () => {
+        if (isProcessing) return;
+        checkoutModal.classList.remove("active");
+        clearModal.classList.remove("active");
+        successModal.classList.remove("active");
+      };
+
+      window.openCheckoutModal = () => {
+        if (cart.length === 0) return;
+        modalTotalEl.innerText = totalEl.innerText;
+        checkoutModal.classList.add("active");
+      };
+
+      window.processCheckout = async () => {
+        if (isProcessing) return;
+        showLoader("注文を送信中...");
+
+        try {
+          // Use Secure Cloud Function
+          const createOrder = httpsCallable(functions, "createOrder");
+
+          // Only send essential data: Product IDs, Quantities, Customizations
+          // Price will be calculated on server.
+          const itemsPayload = cart.map((i) => ({
+            itemId: i.productId,
+            quantity: i.quantity,
+            customizations: i.customizations,
+          }));
+
+          const result = await createOrder({
+            orderChannel: "pos",
+            storeId: storeId,
+            items: itemsPayload,
+          });
+
+          if (!result.data.success) {
+            throw new Error(
+              "Server Error: " + (result.data.error || "Unknown"),
+            );
+          }
+
+          const receiptNumber = result.data.receiptNumber;
+
+          closeAllModals();
+          document.getElementById("receipt-display").innerText =
+            `No. ${receiptNumber}`;
+          successModal.classList.add("active");
+
+          cart = [];
+          selectedUniqueId = null;
+          renderCart();
+          renderDynamicToppingButtons();
+          updateQtyDisplay();
+          resetOrderTimer();
+        } catch (e) {
+          console.error("Error:", e);
+          alert("注文エラーが発生しました。\\n" + e.message);
+          closeAllModals();
+        } finally {
+          hideLoader();
+        }
+      };
+
+      window.openClearModal = () => {
+        if (cart.length === 0) return;
+        clearModal.classList.add("active");
+      };
+
+      window.processClearCart = () => {
+        cart = [];
+        selectedUniqueId = null;
+        currentMode = null;
+        renderCart();
+        renderDynamicToppingButtons();
+        updateModeButtons();
+        updateQtyDisplay();
+        resetOrderTimer();
+        closeAllModals();
+      };
+
+      // --- パスワード入力の半角英数字変換と表示トグル ---
+      document.addEventListener("DOMContentLoaded", () => {
+        const storePass = document.getElementById("store-password-input");
+        const toggleBtn = document.getElementById("toggle-store-pass");
+
+        if (storePass) {
+          storePass.addEventListener("input", function(e) {
+            let val = e.target.value;
+            // 全角英数字を半角に変換
+            val = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+              return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            });
+            // 半角英数字以外を削除
+            val = val.replace(/[^a-zA-Z0-9]/g, "");
+            e.target.value = val;
+          });
+        }
+
+        if (toggleBtn && storePass) {
+          toggleBtn.addEventListener("click", () => {
+            const isPassword = storePass.type === "password";
+            storePass.type = isPassword ? "text" : "password";
+            toggleBtn.innerHTML = isPassword
+              ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>'
+              : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

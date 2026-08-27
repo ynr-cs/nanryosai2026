@@ -1,0 +1,869 @@
+<!--
+  Nanryosai 2026
+  pos/sok-to.html — セルフオーダーキオスク（来場者スマホ側）
+  Version: 0.2.0
+  Last Modified: 2026-07-22
+  Author: Nanryosai 2026 Project Team
+
+  設計憲法§5.2 Phase 2 準拠
+  v0.2.0: UIモック mock-0.2.0 のデザイン・体験を本番実装化
+    - オンボーディング: タップで進めるフルスクリーン・ウォークスルー（初回のみ / sessionStorage 管理）
+    - 上部4ステップ進行バー: ①内容確認 → ②ログイン → ③規約同意 → ④完了
+    - ログイン導線を「login.html 往復リダイレクト型」に変更
+      （ページ内ポップアップログインは廃止。ポップアップに必要なユーザージェスチャーは
+        login.html?mode=sok 側の「Googleでログイン」タップとして温存）
+    - 戻ってきたら watchUser がログイン検知 → claimSokOrder 自動実行 → Step3 から再開
+  v0.1.0: 初版（1画面アコーディオン型 + インラインポップアップログイン）
+
+  ■ フロー
+  1. iPad(sok.html) の QR を読み sok-to.html?orderId=XXX を開く
+  2. 注文データを Firestore から取得して表示（未ログインでも pending なら読める）
+  3. 初回のみウォークスルー表示
+  4. Step1「この内容でOK」タップ
+     → location.href = ../main/login.html?mode=sok&redirect=encodeURIComponent(./sok-to.html?orderId=XXX)
+  5. login.html で Google ログイン後、redirect で戻る
+  6. watchUser がログイン検知 → 自動 claimSokOrder → Step3（規約同意）から再開
+  7. 規約同意（+ Android のみ通知許可）→ confirmSokOrder → 受付番号 → status.html へ
+
+  ■ 認証ポリシー
+  SOK は物理的に店舗の目の前でしか注文できないため、どの Google アカウントでもログイン OK。
+  在校生ドメイン等のチェックは一切行わない。
+
+  ■ CSS について
+  この段階では SOK 専用スタイルとして本ファイル内に持たせる。
+  （次段階で login.html?mode=sok と共通化する予定。SOK-THEME セクション参照）
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- FOUC 対策 -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) { html:not([data-theme="light"]) { background-color: #0f172a; } }
+      html[data-theme="dark"]  { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const t = localStorage.getItem("app-theme") || "auto";
+        if (t === "dark")  document.documentElement.setAttribute("data-theme", "dark");
+        if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>注文の確定 | 南陵祭2026</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <!-- Local Dev Config -->
+    <script src="../config.local.js"></script>
+
+    <link rel="stylesheet" href="./sok.css" />
+  </head>
+  <body data-sok="true">
+
+    <!-- Global Loader -->
+    <div id="loader">
+      <div class="spinner"></div>
+      <p class="loader-text" id="loader-text">注文情報を確認しています...</p>
+    </div>
+
+    <!-- ============================================
+         オンボーディング・ウォークスルー
+         （タップで進めるフルスクリーン型・初回のみ）
+         ============================================ -->
+    <div id="walkthrough" role="dialog" aria-modal="true" aria-label="注文手順の案内">
+      <header class="sok-app-header">
+        <a href="#" class="app-logo">南陵祭'26</a>
+      </header>
+      
+      <div style="text-align: right; padding: 12px 20px 0;">
+        <button class="wt-skip" id="wt-skip" style="border: none; background: transparent; color: var(--text-sub); font-weight: 700; font-size: 0.85rem; cursor: pointer;">スキップ <i class="bi bi-chevron-right"></i></button>
+      </div>
+
+      <div class="wt-viewport">
+        <div class="wt-track" id="wt-track">
+          <!-- Slide 1: ようこそ -->
+          <div class="wt-slide current">
+            <div class="wt-illust"><i class="bi bi-qr-code-scan"></i></div>
+            <h2 class="wt-title">読み取り成功！<br>このスマホで注文を確定します</h2>
+            <p class="wt-desc">iPadで選んだ商品が、このスマホに引き継がれました。<br>あとは<strong>3ステップ・約1分</strong>で完了します。</p>
+          </div>
+          <!-- Slide 2: 内容確認 -->
+          <div class="wt-slide">
+            <div class="wt-illust"><i class="bi bi-card-checklist"></i></div>
+            <div class="wt-step-chip">STEP 1</div>
+            <h2 class="wt-title">注文内容を確認</h2>
+            <p class="wt-desc">iPadで選んだ<strong>商品と金額</strong>に間違いがないか、まず確認します。</p>
+          </div>
+          <!-- Slide 3: ログイン -->
+          <div class="wt-slide">
+            <div class="wt-illust"><i class="bi bi-google"></i></div>
+            <div class="wt-step-chip">STEP 2</div>
+            <h2 class="wt-title">Googleでログイン</h2>
+            <p class="wt-desc">お呼び出しのために使います。<br><strong>どのGoogleアカウントでもOK</strong>です。<br>ログイン後は自動でこの画面に戻ります。</p>
+          </div>
+          <!-- Slide 4: 規約同意 -->
+          <div class="wt-slide">
+            <div class="wt-illust"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="wt-step-chip">STEP 3</div>
+            <h2 class="wt-title">規約に同意</h2>
+            <p class="wt-desc">注意事項（キャンセル不可など）に同意して進みます。</p>
+          </div>
+          <!-- Slide 5: 注文確定 -->
+          <div class="wt-slide">
+            <div class="wt-illust"><i class="bi bi-megaphone-fill"></i></div>
+            <div class="wt-step-chip">STEP 4</div>
+            <h2 class="wt-title">注文確定 → 受付番号</h2>
+            <p class="wt-desc">最後に注文を確定すると<strong>受付番号</strong>が発行されます。<br>モニターに表示されたらカウンターへ！</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wt-bottom">
+        <div class="wt-dots" id="wt-dots">
+          <div class="wt-dot on"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+        </div>
+        <button class="wt-next" id="wt-next">
+          <span id="wt-next-label">次へ</span> <i class="bi bi-arrow-right" id="wt-next-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 完了オーバーレイ（Step 4） -->
+    <div id="complete-overlay">
+      <div class="complete-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div style="font-size: 1.15rem; font-weight: 900; margin-top: 16px;">注文が確定しました！</div>
+      <div class="complete-receipt-label">受付番号</div>
+      <div class="complete-receipt" id="complete-number">No. ----</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; max-width: 280px; margin: 0 auto;">
+        モニターに番号が表示されたら<br>カウンターへお越しください
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 24px;">
+        <span class="spinner" style="display:inline-block; width:14px; height:14px; border-width:2px; vertical-align:-2px; margin-right:6px;"></span>
+        注文状況の画面へ移動します...
+      </div>
+    </div>
+
+    <!-- エラー / 情報表示（復帰導線つき） -->
+    <div id="info-area" style="display:none;"></div>
+
+    <!-- ============================================
+         App 本体
+         ============================================ -->
+    <div id="app" style="display:none;">
+      <!-- 共通ヘッダー -->
+      <header class="sok-app-header">
+        <a href="#" class="app-logo">南陵祭'26</a>
+      </header>
+
+      <!-- ステップ進行バー（常時表示・login.html?mode=sok 側でも同一描画） -->
+      <nav id="stepper" aria-label="注文手順の進行状況">
+        <div class="stepper-item" data-step="1">
+          <div class="stepper-circle"><span class="num">1</span></div>
+          <div class="stepper-label">内容確認</div>
+        </div>
+        <div class="stepper-bar" data-bar="1"></div>
+        <div class="stepper-item" data-step="2">
+          <div class="stepper-circle"><span class="num">2</span></div>
+          <div class="stepper-label">ログイン</div>
+        </div>
+        <div class="stepper-bar" data-bar="2"></div>
+        <div class="stepper-item" data-step="3">
+          <div class="stepper-circle"><span class="num">3</span></div>
+          <div class="stepper-label">規約同意</div>
+        </div>
+        <div class="stepper-bar" data-bar="3"></div>
+        <div class="stepper-item" data-step="4">
+          <div class="stepper-circle"><span class="num">4</span></div>
+          <div class="stepper-label">注文確定</div>
+        </div>
+      </nav>
+
+      <!-- パネル群 -->
+      <main id="panels">
+
+        <!-- ===== STEP 1: 内容確認（ログイン前・先行表示） ===== -->
+        <section class="panel" id="panel-1">
+          <div class="step-card">
+            <div class="step-card-header">
+              <div class="step-num">1</div>
+              <div class="step-title">この注文で間違いありませんか？</div>
+            </div>
+            
+            <!-- 店舗名表示 -->
+            <div id="store-name-disp" style="text-align: center; font-weight: bold; margin-bottom: 12px; color: var(--text-sub); font-size: 0.95rem;">
+              店舗名を読み込み中...
+            </div>
+
+            <!-- 注文内容の先行表示（ログイン前でも見える＝安心感） -->
+            <div class="order-items-list" data-order-list></div>
+            <div class="order-total-row">
+              <span class="order-total-label">合計金額</span>
+              <span class="order-total-value" data-order-total>¥0</span>
+            </div>
+
+
+
+            <!--
+              往復リダイレクト型ログイン導線:
+              「この内容でOK」タップで ../main/login.html?mode=sok へ遷移。
+              login.html 側の「Googleでログイン」タップがポップアップ認証の
+              ユーザージェスチャーになる（遷移直後の自動ポップアップはブロック率が高いため不採用）。
+            -->
+            <button class="btn-main pulsing" id="btn-confirm-items">
+              <i class="bi bi-check2-circle"></i> この内容でOK・次へ
+            </button>
+            <button class="btn-sub" id="btn-show-onboarding">
+              <i class="bi bi-question-circle"></i> 注文の流れをもう一度見る
+            </button>
+            <div style="font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-top: 16px;">
+              注文をやめる場合は、そのままこのページを閉じてください。<br>時間が経つと自動的に無効になります。
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== STEP 2: ログイン =====
+             ステップ2の実画面は別ページ（../main/login.html?mode=sok）。
+             本ページと同一のヘッダー＋ステップバーを login.html 側が描画するため、
+             来場者には「同じ画面の次のステップ」にしか見えない。
+             よって sok-to.html にはステップ2のパネルは存在しない。 -->
+
+        <!-- ===== STEP 3: 規約同意 (ログイン往復後に再開) ===== -->
+        <section class="panel" id="panel-3">
+          <div class="step-card">
+            <div class="step-card-header">
+              <div class="step-num">3</div>
+              <div class="step-title">規約に同意</div>
+            </div>
+
+            <!-- ログイン済みバッジ（login.html から戻ってきた状態） -->
+            <div class="logged-in-badge">
+              <i class="bi bi-person-check-fill"></i>
+              <span data-user-name></span>
+            </div>
+
+            <!-- 通知許可エリア（Android のみ・任意） -->
+            <div id="notify-area" style="display:none;">
+              <div class="notify-wrap">
+                <div class="notify-icon"><i class="bi bi-bell-fill"></i></div>
+                <div class="notify-text">
+                  商品完成時にプッシュ通知でお知らせします（任意）。
+                  通知がなくてもモニターの受付番号でご案内します。
+                </div>
+              </div>
+              <button class="btn-notify" id="btn-notify">
+                <i class="bi bi-bell me-1"></i> 通知を許可する
+              </button>
+              <button class="btn-sub" id="btn-notify-skip" style="margin-top:4px;">
+                スキップ
+              </button>
+            </div>
+
+            <!-- 規約チェック（BAN明記・一般客にも適用） -->
+            <label class="terms-check-wrap" for="check-terms">
+              <input type="checkbox" id="check-terms" />
+              <div class="terms-text">
+                利用規約および注意事項に同意します。<br>
+                <strong>確定後のキャンセル・変更はできません。</strong><br>
+                「呼出し中」の通知から<strong>5分以内</strong>にカウンターへお越しください。<br>
+                <strong>5分以内にお受け取りがない場合、商品を廃棄し利用制限（BAN）となります。</strong>
+              </div>
+            </label>
+
+            <button class="btn-main" id="btn-next-step" disabled>
+              続ける <i class="bi bi-arrow-right"></i>
+            </button>
+            <button class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
+              <i class="bi bi-x-circle"></i> 注文をやめる
+            </button>
+          </div>
+        </section>
+
+        <!-- ===== STEP 4: 注文確定 ===== -->
+        <section class="panel" id="panel-4">
+          <div class="step-card">
+            <div class="step-card-header">
+              <div class="step-num">4</div>
+              <div class="step-title">注文を確定しますか？</div>
+            </div>
+
+            <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 24px; text-align: center; line-height: 1.6;">
+              以上の内容で注文を確定します。<br>
+              確定後すぐに調理が開始されます。
+            </div>
+
+            <button class="btn-main pulsing" id="btn-confirm">
+              <i class="bi bi-bag-check-fill"></i> 注文を確定する
+            </button>
+            
+            <button class="btn-sub mt-2" id="btn-back-to-step3">
+              戻る
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Firebase & Logic -->
+    <script type="module">
+      import {
+        doc,
+        getDoc,
+        setDoc,
+        serverTimestamp,
+        collection,
+        query,
+        where,
+        limit,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import {
+        getToken,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+      // login（ポップアップ）は login.html 側に任せるため import しない
+      import { db, functions, messaging, watchUser } from "../main/auth.js";
+
+      const VAPID_KEY = "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+
+      // ===========================================================
+      // 1. State
+      // ===========================================================
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId   = urlParams.get("orderId");
+
+      let currentUser  = null;
+      let orderData    = null;
+      let claimed      = false;   // claim 二重実行防止
+      let claiming     = false;
+      let authResolved = false;   // watchUser 初回コールバック処理済みフラグ
+
+      const $ = (sel) => document.querySelector(sel);
+      const loader     = $("#loader");
+      const loaderText = $("#loader-text");
+      const appEl      = $("#app");
+      const infoArea   = $("#info-area");
+
+      // sessionStorage:
+      //   sok-onboarded … ウォークスルー既読（login.html 往復から戻ったら再表示しない）
+      const ONBOARDED_KEY = "sok-onboarded";
+
+      // ===========================================================
+      // 2. Helpers
+      // ===========================================================
+      function escapeHtml(str) {
+        return String(str ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      /**
+       * エラー・お知らせ画面（全画面）
+       * @param {string}  icon      Bootstrap Icons の <i> タグ HTML
+       * @param {string}  iconColor アイコン色
+       * @param {string}  title     タイトル
+       * @param {string}  desc      説明文（\n 改行可）
+       * @param {object}  opts
+       *   - ipadGuide {boolean} 「iPadでやり直し」復帰導線を表示（既定: true）
+       *   - reload    {boolean} 「再読み込み」ボタンを表示（既定: false）
+       */
+      function showInfo(icon, iconColor, title, desc, opts = {}) {
+        const { ipadGuide = true, reload = false } = opts;
+        loader.style.display    = "none";
+        appEl.style.display     = "none";
+        infoArea.style.display  = "block";
+
+        const guideHtml = ipadGuide ? `
+          <div class="return-guide">
+            <div class="guide-icon"><i class="bi bi-tablet-landscape"></i></div>
+            <div class="guide-text">
+              お手数ですが、<strong>店舗のiPadに戻って、もう一度注文</strong>してください。<br>
+              このページを操作し直しても復旧できません。
+            </div>
+          </div>` : "";
+
+        const reloadHtml = reload ? `
+          <button class="btn-reload" id="btn-reload">
+            <i class="bi bi-arrow-clockwise"></i> 再読み込み
+          </button>` : "";
+
+        infoArea.innerHTML = `
+          <div class="info-card">
+            <div class="info-icon" style="color:${iconColor};">${icon}</div>
+            <div class="info-title">${escapeHtml(title)}</div>
+            <div class="info-desc">${escapeHtml(desc)}</div>
+            ${guideHtml}
+            ${reloadHtml}
+          </div>
+        `;
+        if (reload) {
+          $("#btn-reload").addEventListener("click", () => location.reload());
+        }
+      }
+
+      // ===========================================================
+      // 3. ステップ進行バー / パネル制御
+      // ===========================================================
+      function setStep(current) {
+        document.querySelectorAll(".stepper-item").forEach((item) => {
+          const n = Number(item.dataset.step);
+          item.classList.toggle("done",    n < current);
+          item.classList.toggle("current", n === current);
+        });
+        document.querySelectorAll(".stepper-bar").forEach((bar) => {
+          bar.classList.toggle("filled", Number(bar.dataset.bar) < current);
+        });
+      }
+
+      function showPanel(n) {
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        const panel = $(`#panel-${n}`);
+        if (panel) {
+          panel.classList.add("active");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        setStep(n);
+      }
+
+      function revealApp() {
+        appEl.style.display = "flex";
+        loader.classList.add("fade-out");
+      }
+
+      // ===========================================================
+      // 4. 起動: orderId チェック → 注文取得 → watchUser 分岐
+      // ===========================================================
+      if (!orderId) {
+        showInfo('<i class="bi bi-link-45deg"></i>', "#ef4444",
+          "URLが不正です",
+          "正しいQRコードから読み取ってください。");
+      } else {
+        init();
+      }
+
+      async function init() {
+        try {
+          // 注文データ取得（未ログインでも pending なら読める）
+          const orderSnap = await getDoc(doc(db, "orders", orderId));
+          if (!orderSnap.exists()) {
+            showInfo('<i class="bi bi-search"></i>', "#94a3b8",
+              "注文が見つかりません",
+              "QRコードの有効期限が切れているか、存在しない注文です。");
+            return;
+          }
+
+          orderData = orderSnap.data();
+
+          // sokStatus チェック
+          if (orderData.sokStatus !== "pending") {
+            if (orderData.sokStatus === "expired") {
+              showInfo(
+                '<i class="bi bi-clock-fill"></i>',
+                "#f59e0b",
+                "QRコードの有効期限が切れました",
+                "時間内に確定されなかったため、この注文は無効になりました。"
+              );
+            } else if (orderData.sokStatus === "cancelled") {
+              showInfo(
+                '<i class="bi bi-x-circle-fill"></i>',
+                "#ef4444",
+                "この注文はキャンセルされました",
+                "すでにキャンセル処理が完了しています。"
+              );
+            } else {
+              showInfo(
+                '<i class="bi bi-x-circle-fill"></i>',
+                "#ef4444",
+                "このQRはすでに使用されています",
+                "別の方が先にこのQRコードを使用しました。"
+              );
+            }
+            return;
+          }
+
+          // 店舗名の取得（storeId は絶対に表示しない。取得まで「読み込み中...」）
+          loadStoreName();
+
+          // 注文内容レンダリング（フル + サマリ）
+          renderOrder();
+
+          // 認証チェック
+          const isReturned = urlParams.get("returned") === "1";
+
+          watchUser(async (user) => {
+            currentUser = user;
+            if (authResolved) return; // 初回コールバックのみで画面を確定
+            authResolved = true;
+
+            if (user) {
+              updateUserBadge(user);
+
+              // ─── 二重オーダー防止ガード ───
+              try {
+                const activeOrderQuery = query(
+                  collection(db, "orders"),
+                  where("userId", "==", user.uid),
+                  where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"]),
+                  limit(1)
+                );
+                const activeSnap = await getDocs(activeOrderQuery);
+                if (!activeSnap.empty) {
+                  const existingOrderId = activeSnap.docs[0].id;
+                  window.location.replace(`../pos/status.html?orderId=${existingOrderId}&error=duplicate_order`);
+                  return;
+                }
+              } catch (err) {
+                console.error("Failed to check active orders", err);
+              }
+              // ───────────────────────────
+
+              if (isReturned) {
+                // 往復リダイレクトから戻った場合
+                sessionStorage.setItem(ONBOARDED_KEY, "1"); // 再表示防止を確定
+                loaderText.textContent = "ログイン状態を確認しています...";
+                await doClaim(); // 成功時に revealApp + Step3
+              } else {
+                // 初回読み込みで既にログイン済みだった場合（ウォークスルー・内容確認から）
+                revealApp();
+                showPanel(1);
+                if (sessionStorage.getItem(ONBOARDED_KEY) !== "1") {
+                  openWalkthrough();
+                }
+              }
+            } else {
+              // 未ログイン: Step1 から。初回のみウォークスルー
+              revealApp();
+              showPanel(1);
+              if (sessionStorage.getItem(ONBOARDED_KEY) !== "1") {
+                openWalkthrough();
+              }
+            }
+          });
+
+        } catch (e) {
+          showInfo('<i class="bi bi-wifi-off"></i>', "#ef4444",
+            "読み込みエラー",
+            e.message || "通信状態をご確認のうえ、再読み込みしてください。",
+            { ipadGuide: false, reload: true });
+        }
+      }
+
+      // 店舗名取得（非同期・失敗しても storeId は出さない）
+      async function loadStoreName() {
+        const disp = $("#store-name-disp");
+        try {
+          const storeSnap = await getDoc(doc(db, "stores", orderData.storeId));
+          if (storeSnap.exists() && storeSnap.data().name) {
+            disp.textContent = storeSnap.data().name;
+            return;
+          }
+        } catch (_) {}
+        disp.textContent = "南陵祭2026"; // フォールバック（内部IDは見せない）
+      }
+
+      // ===========================================================
+      // 5. 注文内容レンダリング
+      // ===========================================================
+      function renderOrder() {
+        const items = orderData.items || [];
+
+        // フル表示（Step1）
+        document.querySelectorAll("[data-order-list]").forEach((list) => {
+          list.innerHTML = "";
+          items.forEach((item) => {
+            const modsHtml = (item.customizations || []).map((m) =>
+              `<span class="order-mod-badge ${m.mode === "NO" ? "no" : "add"}">${escapeHtml(m.target)} ${m.mode === "NO" ? "抜き" : "追加"}</span>`
+            ).join("");
+            const row = document.createElement("div");
+            row.className = "order-item-row";
+            row.innerHTML = `
+              <div style="flex:1;">
+                <div class="order-item-name">${escapeHtml(item.name || "商品")}</div>
+                <div style="font-size:0.82rem; color:var(--text-sub); margin-top:2px;">
+                  ¥${Number(item.price) || 0} × ${Number(item.quantity) || 0}
+                </div>
+                <div class="order-item-mods">${modsHtml}</div>
+              </div>
+              <div class="order-item-price">¥${(Number(item.price) || 0) * (Number(item.quantity) || 0)}</div>
+            `;
+            list.appendChild(row);
+          });
+        });
+        document.querySelectorAll("[data-order-total]").forEach((el) => {
+          el.textContent = `¥${orderData.totalPrice || 0}`;
+        });
+
+        // コンパクトサマリ（Step3: 確認済みなので控えめに再掲）
+        document.querySelectorAll("[data-order-summary]").forEach((box) => {
+          box.innerHTML = items.map((item) => `
+            <div class="order-summary-row">
+              <span class="name">${escapeHtml(item.name || "商品")} × ${Number(item.quantity) || 0}</span>
+              <span>¥${(Number(item.price) || 0) * (Number(item.quantity) || 0)}</span>
+            </div>
+          `).join("") + `
+            <div class="order-summary-total">
+              <span>合計</span>
+              <span class="val">¥${orderData.totalPrice || 0}</span>
+            </div>
+          `;
+        });
+      }
+
+      function updateUserBadge(user) {
+        document.querySelectorAll("[data-user-name]").forEach((el) => {
+          el.textContent = `${user.displayName || user.email} としてログイン中`;
+        });
+      }
+
+      // ===========================================================
+      // 6. オンボーディング・ウォークスルー（タップで進める型）
+      // ===========================================================
+      const WT_COUNT = 5;
+      let wtIndex = 0;
+
+      function wtRender() {
+        $("#wt-track").style.transform = `translateX(-${wtIndex * 100}%)`;
+        document.querySelectorAll(".wt-slide").forEach((s, i) => {
+          s.classList.toggle("current", i === wtIndex);
+        });
+        document.querySelectorAll(".wt-dot").forEach((d, i) => {
+          d.classList.toggle("on", i === wtIndex);
+        });
+        const last = wtIndex === WT_COUNT - 1;
+        $("#wt-next-label").textContent = last ? "注文内容を確認する" : "次へ";
+        $("#wt-next-icon").className = last ? "bi bi-check-lg" : "bi bi-arrow-right";
+        $("#wt-skip").style.visibility = last ? "hidden" : "visible";
+      }
+
+      function openWalkthrough() {
+        wtIndex = 0;
+        wtRender();
+        const wt = $("#walkthrough");
+        wt.classList.remove("closing");
+        wt.classList.add("active");
+      }
+
+      function closeWalkthrough() {
+        const wt = $("#walkthrough");
+        wt.classList.add("closing");
+        setTimeout(() => wt.classList.remove("active", "closing"), 380);
+        sessionStorage.setItem(ONBOARDED_KEY, "1");
+      }
+
+      $("#wt-next").addEventListener("click", () => {
+        if (wtIndex < WT_COUNT - 1) {
+          wtIndex += 1;
+          wtRender();
+        } else {
+          closeWalkthrough();
+        }
+      });
+      $("#wt-skip").addEventListener("click", closeWalkthrough);
+      // スライド面のタップでも進める
+      $("#wt-track").addEventListener("click", () => {
+        if (wtIndex < WT_COUNT - 1) { wtIndex += 1; wtRender(); }
+      });
+      $("#btn-show-onboarding").addEventListener("click", openWalkthrough);
+
+      // ===========================================================
+      // 7. Step1: 内容確認のOK → login.html へリダイレクト
+      //
+      // ・このタップは「内容確認のOK」の意味を持つため無駄にならない。
+      // ・login.html?mode=sok は本ページと同一のヘッダー＋ステップバーを
+      //   描画するため、遷移したことを意識させない（シームレス偽装）。
+      // ・自動ポップアップは行わない: ページロード直後の signInWithPopup は
+      //   ユーザージェスチャー起点でないためブロック率が極めて高い。
+      //   ジェスチャーは login.html 側の「Googleでログイン」タップとして温存。
+      // ===========================================================
+      $("#btn-confirm-items").addEventListener("click", async () => {
+        // 遷移前にウォークスルー既読を確定（戻ってきた時に再表示しないため）
+        sessionStorage.setItem(ONBOARDED_KEY, "1");
+        
+        if (currentUser) {
+          // すでにログインしているなら、リダイレクトせずにそのまま doClaim()
+          loader.classList.remove("fade-out");
+          loaderText.textContent = "処理中...";
+          await doClaim();
+        } else {
+          // 未ログインなら login.html へ
+          const redirect = encodeURIComponent(`../pos/sok-to.html?orderId=${orderId}&returned=1`);
+          location.href = `../main/login.html?mode=sok&redirect=${redirect}`;
+        }
+      });
+
+      // ===========================================================
+      // 8. claim（注文とUIDの自動紐付け・排他制御込み）
+      //    login.html から戻り watchUser がログイン検知したら自動実行。
+      // ===========================================================
+      async function doClaim() {
+        if (claimed || claiming) return;
+        claiming = true;
+        try {
+          const claimFn = httpsCallable(functions, "claimSokOrder");
+          await claimFn({ orderId });
+          claimed = true;
+
+          // Step3（規約同意）から再開
+          revealApp();
+          showPanel(3);
+          setupNotifyArea();
+
+        } catch (e) {
+          if (e.code === "functions/failed-precondition" || e.code === "failed-precondition") {
+            // 他人が先にQRを読んだ等。ログインし直しても解決しないため
+            // リトライ導線は出さず「iPadでやり直し」に寄せる。
+            showInfo('<i class="bi bi-x-circle-fill"></i>', "#ef4444",
+              "このQRはすでに使用されています",
+              "もう一度iPadで注文してください。");
+          } else if (e.code === "functions/permission-denied" || e.code === "permission-denied") {
+            // 利用制限（BAN）→ 専用ページへ
+            location.replace("../main/banned.html");
+          } else {
+            showInfo('<i class="bi bi-wifi-off"></i>', "#ef4444",
+              "エラーが発生しました",
+              e.message || "通信状態をご確認ください。",
+              { reload: true });
+          }
+        } finally {
+          claiming = false;
+        }
+      }
+
+      // ===========================================================
+      // 9. 通知許可（FCM・Android のみ・任意）
+      // ===========================================================
+      function setupNotifyArea() {
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid && messaging &&
+            "Notification" in window && Notification.permission === "default") {
+          $("#notify-area").style.display = "block";
+        }
+      }
+
+      $("#btn-notify").addEventListener("click", async () => {
+        try {
+          const perm = await Notification.requestPermission();
+          if (perm === "granted") {
+            await saveFcmToken();
+          }
+        } catch (_) {}
+        $("#notify-area").style.display = "none";
+      });
+
+      $("#btn-notify-skip").addEventListener("click", () => {
+        $("#notify-area").style.display = "none";
+      });
+
+      async function saveFcmToken() {
+        if (!currentUser || !messaging) return;
+        try {
+          const swReg = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+          if (token) {
+            await setDoc(doc(db, "users", currentUser.uid), {
+              fcmToken: token,
+              notificationEnabled: true,
+              lastLogin: serverTimestamp(),
+            }, { merge: true });
+          }
+        } catch (e) {
+          console.warn("FCM token save failed:", e);
+        }
+      }
+
+      // ===========================================================
+      // 10. 規約チェック → Step4へ → 確定
+      // ===========================================================
+      $("#check-terms").addEventListener("change", (e) => {
+        const btn = $("#btn-next-step");
+        btn.disabled = !e.target.checked;
+        btn.classList.toggle("pulsing", e.target.checked);
+      });
+
+      $("#btn-next-step").addEventListener("click", () => {
+        showPanel(4);
+      });
+
+      $("#btn-back-to-step3").addEventListener("click", () => {
+        showPanel(3);
+      });
+
+      $("#btn-confirm").addEventListener("click", async () => {
+        const btn = $("#btn-confirm");
+        btn.disabled = true;
+        btn.classList.remove("pulsing");
+        btn.innerHTML = `<span class="spinner" style="width:20px;height:20px;border-width:3px;"></span> 処理中...`;
+
+        try {
+          const confirmFn = httpsCallable(functions, "confirmSokOrder");
+          const result    = await confirmFn({ orderId });
+          const receipt   = result.data.receiptNumber;
+
+          // Step4（完了）+ 完了オーバーレイ
+          setStep(4);
+          $("#complete-number").textContent = `No. ${receipt}`;
+          $("#complete-overlay").classList.add("active");
+
+          // 2.5秒後に status.html へ遷移
+          setTimeout(() => {
+            window.location.replace(`./status.html?orderId=${orderId}`);
+          }, 2500);
+
+        } catch (e) {
+          btn.disabled  = false;
+          btn.classList.add("pulsing");
+          btn.innerHTML = `<i class="bi bi-bag-check-fill"></i> 注文を確定する`;
+          alert(`注文確定に失敗しました:\n${e.message}`);
+        }
+      });
+
+      // ===========================================================
+      // 11. キャンセル処理
+      // ===========================================================
+      async function handleCancelOrder() {
+        if (!currentUser) { window.location.replace("../main/index.html"); return; }
+        if (!confirm("注文をやめてホーム画面に戻りますか？")) return;
+        
+        loader.classList.remove("fade-out");
+        loaderText.textContent = "キャンセル処理中...";
+        
+        try {
+          // ログイン状態に関わらず Functions を呼び出す（未ログインなら pending 状態のみキャンセル可能）
+          const cancelFn = httpsCallable(functions, "cancelSokOrder");
+          await cancelFn({ orderId });
+        } catch (e) {
+          console.warn("Cancel failed:", e);
+        }
+        
+        window.location.replace("../main/index.html");
+      }
+
+      document.querySelectorAll(".btn-cancel-order").forEach(btn => {
+        btn.addEventListener("click", handleCancelOrder);
+      });
+    </script>
+  </body>
+</html>

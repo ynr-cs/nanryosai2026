@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Super Admin | 南陵祭2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <style>
+      :root {
+        --bg-color: #111827;
+        --card-bg: #1f2937;
+        --text-main: #f9fafb;
+        --text-sub: #9ca3af;
+        --accent: #3b82f6;
+        --border: #374151;
+        --danger: #ef4444;
+        --danger-dark: #b91c1c;
+        --danger-glow: rgba(239, 68, 68, 0.3);
+        --success: #22c55e;
+        --warning: #f59e0b;
+      }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: "Inter", "Noto Sans JP", sans-serif;
+        padding: 20px 16px 40px;
+        display: none;
+      }
+      .admin-container {
+        max-width: 820px;
+        margin: 0 auto;
+      }
+
+      /* ===== ローディング ===== */
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      /* ===== カード共通 ===== */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        color: var(--text-main);
+      }
+      .card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* ===== 状態サマリー ===== */
+      .status-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        margin-bottom: 4px;
+      }
+      @media (max-width: 480px) {
+        .status-summary { grid-template-columns: minmax(0, 1fr); }
+      }
+      .status-chip {
+        background: #111827;
+        border-radius: 8px;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .status-chip-label {
+        font-size: 0.7rem;
+        color: var(--text-sub);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .status-chip-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .status-dot.on { background: var(--danger); box-shadow: 0 0 6px var(--danger); animation: pulse-dot 1.5s infinite; }
+      .status-dot.off { background: var(--success); }
+      .status-chip-msg {
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+      .updated-at {
+        font-size: 0.72rem;
+        color: #4b5563;
+        text-align: right;
+        margin-top: 4px;
+      }
+
+      /* ===== 緊急停止ゾーン ===== */
+      .emergency-zone {
+        background: linear-gradient(135deg, #1a0000, #2d0a0a);
+        border: 1px solid var(--danger);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .emergency-zone::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 10px,
+          rgba(239, 68, 68, 0.03) 10px,
+          rgba(239, 68, 68, 0.03) 20px
+        );
+        pointer-events: none;
+      }
+      .emergency-zone-title {
+        color: var(--danger);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .emergency-zone-desc {
+        font-size: 0.82rem;
+        color: #fca5a5;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+      .emergency-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 480px) {
+        .emergency-buttons { grid-template-columns: 1fr; }
+      }
+      .btn-emergency {
+        background: var(--danger);
+        border: none;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.9rem;
+        padding: 14px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px var(--danger-glow);
+      }
+      .btn-emergency:hover:not(:disabled) {
+        background: var(--danger-dark);
+        box-shadow: 0 4px 28px rgba(239,68,68,0.5);
+        transform: translateY(-1px);
+      }
+      .btn-emergency:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      .btn-emergency:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-release {
+        background: #1a2e1a;
+        border: 1px solid var(--success);
+        color: var(--success);
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 14px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-release:hover:not(:disabled) {
+        background: #22c55e1a;
+        box-shadow: 0 4px 20px rgba(34, 197, 94, 0.2);
+        transform: translateY(-1px);
+      }
+      .btn-release:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* ===== 確認モーダル ===== */
+      .confirm-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      .confirm-modal-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .confirm-modal {
+        background: #1f2937;
+        border: 1px solid var(--danger);
+        border-radius: 16px;
+        padding: 28px 24px;
+        max-width: 440px;
+        width: 100%;
+        transform: scale(0.95);
+        transition: transform 0.2s;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px var(--danger-glow);
+      }
+      .confirm-modal-overlay.show .confirm-modal {
+        transform: scale(1);
+      }
+      .confirm-modal-icon {
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .confirm-modal-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--danger);
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .confirm-modal-desc {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        text-align: center;
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+      .confirm-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ===== フォーム共通 ===== */
+      .form-label {
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: var(--text-sub);
+        margin-bottom: 6px;
+        display: block;
+      }
+      .form-control, .form-select {
+        background-color: #374151;
+        border: 1px solid #4b5563;
+        color: #f9fafb;
+        border-radius: 8px;
+      }
+      .form-control:focus, .form-select:focus {
+        background-color: #374151;
+        border-color: var(--accent);
+        color: #f9fafb;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+      }
+      .form-check-input:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
+      }
+      .section-card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* ===== プリセットボタン ===== */
+      .preset-label {
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        margin-bottom: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .preset-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .btn-preset {
+        background: #374151;
+        border: 1px solid #4b5563;
+        color: var(--text-main);
+        font-size: 0.75rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.12s;
+        white-space: nowrap;
+      }
+      .btn-preset:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      /* ===== 保存ボタン ===== */
+      .btn-save-main {
+        width: 100%;
+        padding: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border-radius: 10px;
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn-save-main:hover:not(:disabled) {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+      }
+      .btn-save-main:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* ===== アニメーション ===== */
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      @keyframes blink-border {
+        0%, 100% { border-color: var(--danger); }
+        50% { border-color: rgba(239,68,68,0.3); }
+      }
+      .emergency-zone.active-alert {
+        animation: blink-border 2s infinite;
+      }
+
+      /* ===== トースト通知 ===== */
+      .toast-container-custom {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .toast-custom {
+        background: #1f2937;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-main);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 360px;
+        animation: slideUp 0.25s ease;
+      }
+      .toast-custom.success { border-color: var(--success); }
+      .toast-custom.error { border-color: var(--danger); }
+      .toast-custom.warning { border-color: var(--warning); }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ローディング -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="confirm-modal-overlay" id="confirm-modal-overlay">
+      <div class="confirm-modal">
+        <div class="confirm-modal-icon" id="confirm-modal-icon">⚠️</div>
+        <div class="confirm-modal-title" id="confirm-modal-title">確認</div>
+        <div class="confirm-modal-desc" id="confirm-modal-desc"></div>
+        <div class="confirm-modal-actions">
+          <button class="btn btn-secondary" id="confirm-modal-cancel">キャンセル</button>
+          <button class="btn btn-danger fw-bold" id="confirm-modal-ok">実行する</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- トースト -->
+    <div class="toast-container-custom" id="toast-container"></div>
+
+    <div class="admin-container" id="admin-content">
+      <!-- ヘッダー -->
+      <div class="mb-4">
+        <h2 class="fw-bold mb-1">
+          <i class="bi bi-shield-lock-fill text-danger me-2"></i>Super Admin
+        </h2>
+        <p style="color: var(--text-sub); font-size: 0.85rem; margin: 0;">
+          南陵祭2026 全システムの緊急制御・アラート一括管理
+        </p>
+      </div>
+
+      <!-- ===== 現在の状態サマリー ===== -->
+      <div class="card">
+        <div class="card-title">
+          <i class="bi bi-activity"></i>現在のシステム状態
+          <span style="margin-left: auto; font-size: 0.7rem; font-weight: 400; color: #4b5563;" id="realtime-badge">
+            <i class="bi bi-circle-fill" style="color: #22c55e; font-size: 0.5rem;"></i> リアルタイム
+          </span>
+        </div>
+        <div class="status-summary">
+          <!-- Main アラート -->
+          <div class="status-chip">
+            <div class="status-chip-label"><i class="bi bi-globe2 me-1"></i>Main (来場者)</div>
+            <div class="status-chip-value" id="summary-main-status">
+              <span class="status-dot off" id="summary-main-dot"></span>
+              <span id="summary-main-text">読み込み中...</span>
+            </div>
+            <div class="status-chip-msg" id="summary-main-msg">—</div>
+          </div>
+          <!-- POS アラート -->
+          <div class="status-chip">
+            <div class="status-chip-label"><i class="bi bi-shop me-1"></i>POS (店舗スタッフ)</div>
+            <div class="status-chip-value" id="summary-pos-status">
+              <span class="status-dot off" id="summary-pos-dot"></span>
+              <span id="summary-pos-text">読み込み中...</span>
+            </div>
+            <div class="status-chip-msg" id="summary-pos-msg">—</div>
+          </div>
+        </div>
+        <div class="updated-at" id="summary-updated">最終更新: —</div>
+      </div>
+
+      <!-- ===== 緊急停止ゾーン ===== -->
+      <div class="emergency-zone" id="emergency-zone">
+        <div class="emergency-zone-title">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          緊急コントロールパネル
+        </div>
+        <div class="emergency-zone-desc">
+          全注文受付を即時停止します。Main・POS 両方にエラーアラートが表示され、来場者の注文操作がブロックされます。<br>
+          また全店舗の営業ステータスを「準備中（停止）」に強制変更します。
+        </div>
+        <div class="emergency-buttons">
+          <button class="btn-emergency" id="btn-emergency-stop">
+            <i class="bi bi-stop-circle-fill"></i>
+            全注文受付を停止する
+          </button>
+          <button class="btn-release" id="btn-emergency-release">
+            <i class="bi bi-check-circle-fill"></i>
+            アラートを全解除する
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== Main 側アラート設定 ===== -->
+      <div class="card">
+        <div class="section-card-title">
+          <i class="bi bi-globe2 text-primary"></i>
+          Main アラート設定 <span style="font-size:0.72rem; font-weight:400; color:var(--text-sub);">(来場者向け)</span>
+        </div>
+
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="main-active" />
+          <label class="form-check-label" for="main-active" style="font-size:0.9rem;">アラートを表示する</label>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">種別 (Color)</label>
+          <select class="form-select form-select-sm" id="main-type">
+            <option value="error">🔴 Error (Red)</option>
+            <option value="warning">🟡 Warning (Yellow)</option>
+            <option value="info">🔵 Info (Blue)</option>
+          </select>
+        </div>
+
+        <div class="mb-1">
+          <label class="form-label">メッセージ内容</label>
+          <div class="preset-label">プリセット</div>
+          <div class="preset-buttons" id="main-presets">
+            <button class="btn-preset" data-target="main-message" data-text="ただいまシステムに障害が発生しています。注文受付を一時停止しております。復旧まで今しばらくお待ちください。">🔴 システム障害・停止中</button>
+            <button class="btn-preset" data-target="main-message" data-text="現在メンテナンス作業中のため、一部のサービスがご利用いただけません。ご不便をおかけし申し訳ございません。">🔧 メンテナンス中</button>
+            <button class="btn-preset" data-target="main-message" data-text="サービスが復旧しました。ご不便をおかけして大変申し訳ありませんでした。">✅ 復旧のお知らせ</button>
+            <button class="btn-preset" data-target="main-message" data-text="ただいまシステムが不安定な状態です。ご注文の際はご注意ください。">⚠️ 不安定・注意喚起</button>
+          </div>
+          <textarea class="form-control" id="main-message" rows="3" placeholder="来場者向けのメッセージを入力..."></textarea>
+        </div>
+      </div>
+
+      <!-- ===== POS 側アラート設定 ===== -->
+      <div class="card">
+        <div class="section-card-title">
+          <i class="bi bi-shop text-warning"></i>
+          POS アラート設定 <span style="font-size:0.72rem; font-weight:400; color:var(--text-sub);">(店舗スタッフ向け)</span>
+        </div>
+
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="pos-active" />
+          <label class="form-check-label" for="pos-active" style="font-size:0.9rem;">アラートを表示する</label>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">種別 (Color)</label>
+          <select class="form-select form-select-sm" id="pos-type">
+            <option value="error">🔴 Error (Red)</option>
+            <option value="warning">🟡 Warning (Yellow)</option>
+            <option value="info">🔵 Info (Blue)</option>
+          </select>
+        </div>
+
+        <div class="mb-1">
+          <label class="form-label">メッセージ内容</label>
+          <div class="preset-label">プリセット</div>
+          <div class="preset-buttons" id="pos-presets">
+            <button class="btn-preset" data-target="pos-message" data-text="緊急: システム障害により注文受付を停止しました。以降の注文は紙で受け付けてください。詳細はコンピュータ科学部までお問い合わせください">🔴 緊急停止・紙運用へ</button>
+            <button class="btn-preset" data-target="pos-message" data-text="現在メンテナンス中です。しばらくそのままお待ちください。">🔧 メンテナンス待機</button>
+            <button class="btn-preset" data-target="pos-message" data-text="システムが復旧しました。通常通り注文を受け付けてください。">✅ 復旧・通常営業へ</button>
+            <button class="btn-preset" data-target="pos-message" data-text="全スタッフへ: 本日の注意事項についてポータルをご確認ください。">📢 スタッフへの周知</button>
+          </div>
+          <textarea class="form-control" id="pos-message" rows="3" placeholder="店舗スタッフ向けのメッセージを入力..."></textarea>
+        </div>
+      </div>
+
+      <!-- ===== BANシステム管理 (ペナルティ) ===== -->
+      <div class="card" style="border-color: var(--danger);">
+        <div class="section-card-title text-danger">
+          <i class="bi bi-slash-circle me-2"></i>
+          BANシステム管理 (ペナルティ機構)
+          <span id="summary-penalty-status" class="ms-auto"></span>
+        </div>
+
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="penalty-enabled" />
+          <label class="form-check-label text-danger fw-bold" for="penalty-enabled" style="font-size:0.95rem;">
+            ペナルティ自動執行 (1分ごとのパトロール) を有効にする
+          </label>
+          <div style="font-size: 0.75rem; color: var(--text-sub); margin-top: 4px;">
+            ONにすると、商品受け取りを放置（5分超過）したユーザーを検知し、自動的に利用停止（BAN）にします。<br>
+            ※テストやメンテナンスの際はOFFにしてください。
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h6 class="fw-bold mb-2" style="font-size:0.85rem;"><i class="bi bi-person-x-fill me-1"></i>現在BANされているユーザー一覧</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-sm align-middle" style="font-size: 0.8rem; border-color: var(--border);">
+              <thead>
+                <tr>
+                  <th style="width: 20%;">執行日時</th>
+                  <th style="width: 35%;">ユーザー情報</th>
+                  <th style="width: 30%;">理由 / 該当注文</th>
+                  <th style="width: 15%; text-align: right;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="banned-users-list">
+                <tr><td colspan="4" class="text-center text-muted py-3">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 保存ボタン -->
+      <button class="btn-save-main" id="btn-save">
+        <i class="bi bi-cloud-arrow-up-fill me-2"></i>アラート設定を保存
+      </button>
+    </div>
+
+    <script type="module">
+      import { watchUser, db } from "../auth.js";
+      import {
+        doc,
+        getDoc,
+        setDoc,
+        onSnapshot,
+        collection,
+        getDocs,
+        writeBatch,
+        deleteField,
+        deleteDoc,
+        query,
+        orderBy,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+
+      const ALLOWED_EMAIL = "ynrcs1000@gmail.com";
+      const METADATA_DOC = doc(db, "_metadata", "system_alerts");
+      const STORES_COL = collection(db, "stores");
+      const BANNED_USERS_COL = collection(db, "banned_users");
+      const fns = getFunctions(getApp(), "asia-northeast1");
+
+      // Elements
+      const loadingOverlay = document.getElementById("loading-overlay");
+      const btnSave = document.getElementById("btn-save");
+      const btnEmergencyStop = document.getElementById("btn-emergency-stop");
+      const btnEmergencyRelease = document.getElementById("btn-emergency-release");
+      const emergencyZone = document.getElementById("emergency-zone");
+
+      // ===== Auth Guard =====
+      watchUser((user) => {
+        if (!user || user.email !== ALLOWED_EMAIL) {
+          window.location.replace("../index.html");
+          return;
+        }
+        document.body.style.display = "block";
+        loadData();
+        startRealtimeWatch();
+        startBannedUsersWatch();
+      });
+
+      // ===== データ読み込み =====
+      async function loadData() {
+        try {
+          const snap = await getDoc(METADATA_DOC);
+          if (snap.exists()) {
+            applyDataToForm(snap.data());
+          }
+        } catch (err) {
+          console.error("データの読み込みに失敗しました", err);
+          showToast("データの読み込みに失敗しました", "error");
+        } finally {
+          loadingOverlay.style.display = "none";
+        }
+      }
+
+      function applyDataToForm(data) {
+        document.getElementById("main-active").checked = !!data.mainAlertActive;
+        document.getElementById("main-type").value = data.mainAlertType || "error";
+        document.getElementById("main-message").value = data.mainAlertMessage || "";
+        document.getElementById("pos-active").checked = !!data.posAlertActive;
+        document.getElementById("pos-type").value = data.posAlertType || "error";
+        document.getElementById("pos-message").value = data.posAlertMessage || "";
+        
+        const penaltyEnabled = !!data.penaltyEnabled;
+        document.getElementById("penalty-enabled").checked = penaltyEnabled;
+        document.getElementById("summary-penalty-status").innerHTML = penaltyEnabled 
+          ? `<span class="badge bg-danger">🔴 自動BAN 有効</span>` 
+          : `<span class="badge bg-secondary">⚪ 自動BAN 無効</span>`;
+      }
+
+      // ===== リアルタイム状態サマリー =====
+      function startRealtimeWatch() {
+        onSnapshot(METADATA_DOC, (snap) => {
+          const data = snap.exists() ? snap.data() : {};
+
+          // Main
+          const mainOn = !!data.mainAlertActive;
+          document.getElementById("summary-main-dot").className = `status-dot ${mainOn ? "on" : "off"}`;
+          document.getElementById("summary-main-text").textContent = mainOn
+            ? `🔴 アラート表示中 (${data.mainAlertType || "error"})`
+            : "✅ 正常";
+          document.getElementById("summary-main-msg").textContent =
+            mainOn && data.mainAlertMessage ? data.mainAlertMessage.slice(0, 60) + (data.mainAlertMessage.length > 60 ? "…" : "") : "—";
+
+          // POS
+          const posOn = !!data.posAlertActive;
+          document.getElementById("summary-pos-dot").className = `status-dot ${posOn ? "on" : "off"}`;
+          document.getElementById("summary-pos-text").textContent = posOn
+            ? `🔴 アラート表示中 (${data.posAlertType || "error"})`
+            : "✅ 正常";
+          document.getElementById("summary-pos-msg").textContent =
+            posOn && data.posAlertMessage ? data.posAlertMessage.slice(0, 60) + (data.posAlertMessage.length > 60 ? "…" : "") : "—";
+
+          // 緊急ゾーンの強調
+          if (mainOn || posOn) {
+            emergencyZone.classList.add("active-alert");
+          } else {
+            emergencyZone.classList.remove("active-alert");
+          }
+
+          // 最終更新時刻
+          if (data.updatedAt) {
+            const d = new Date(data.updatedAt);
+            document.getElementById("summary-updated").textContent =
+              `最終更新: ${d.toLocaleDateString("ja-JP")} ${d.toLocaleTimeString("ja-JP")}`;
+          }
+        });
+      }
+
+      // ===== 通常保存 =====
+      btnSave.addEventListener("click", async () => {
+        setButtonLoading(btnSave, true, "保存中...");
+        const data = {
+          mainAlertActive: document.getElementById("main-active").checked,
+          mainAlertType: document.getElementById("main-type").value,
+          mainAlertMessage: document.getElementById("main-message").value,
+          posAlertActive: document.getElementById("pos-active").checked,
+          posAlertType: document.getElementById("pos-type").value,
+          posAlertMessage: document.getElementById("pos-message").value,
+          penaltyEnabled: document.getElementById("penalty-enabled").checked,
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          await setDoc(METADATA_DOC, data, { merge: true });
+          showToast("✅ アラート設定を保存しました", "success");
+        } catch (err) {
+          console.error("保存エラー:", err);
+          showToast("❌ 保存に失敗しました: " + err.message, "error");
+        } finally {
+          setButtonLoading(btnSave, false);
+        }
+      });
+
+      // ===== 緊急停止 =====
+      btnEmergencyStop.addEventListener("click", () => {
+        showConfirmModal({
+          icon: "🚨",
+          title: "全注文受付を停止しますか？",
+          desc: "Main・POS 両方にエラーアラートが即座に表示されます。\nさらに、全店舗の営業ステータスを「準備中（停止）」に強制変更します。\n\nこの操作は取り消せません（手動で解除する必要があります）。",
+          onOk: async () => {
+            setButtonLoading(btnEmergencyStop, true, "実行中...");
+            try {
+              await executeEmergencyStop();
+              showToast("🚨 緊急停止を実行しました", "error");
+            } catch (err) {
+              console.error("緊急停止エラー:", err);
+              showToast("❌ 緊急停止に失敗しました: " + err.message, "error");
+            } finally {
+              setButtonLoading(btnEmergencyStop, false);
+            }
+          },
+        });
+      });
+
+      async function executeEmergencyStop() {
+        const batch = writeBatch(db);
+
+        // 1. system_alerts を緊急停止状態に更新
+        const alertData = {
+          mainAlertActive: true,
+          mainAlertType: "error",
+          mainAlertMessage: "ただいまシステムに障害が発生しています。注文受付を一時停止しております。復旧まで今しばらくお待ちください。",
+          posAlertActive: true,
+          posAlertType: "error",
+          posAlertMessage: "緊急: システム障害により注文受付を停止しました。以降の注文は紙で受け付けてください。詳細はコンピュータ科学部までお問い合わせください",
+          updatedAt: new Date().toISOString(),
+          emergencyStopAt: new Date().toISOString(),
+        };
+        batch.set(METADATA_DOC, alertData, { merge: true });
+
+        // 2. 全店舗の operationStatus を "suspended" に変更
+        const storesSnap = await getDocs(STORES_COL);
+        storesSnap.forEach((storeDoc) => {
+          batch.update(storeDoc.ref, {
+            operationStatus: "suspended",
+            isEmergencyStopped: true,
+            isAutoSuspended: false,
+            emergencySuspendedAt: deleteField(), // 旧フィールドを明示的に削除
+          });
+        });
+
+        await batch.commit();
+
+        // フォームにも反映
+        applyDataToForm(alertData);
+      }
+
+      // ===== 全解除 =====
+      btnEmergencyRelease.addEventListener("click", () => {
+        showConfirmModal({
+          icon: "✅",
+          title: "アラートを全解除しますか？",
+          desc: "Main・POS 両方のアラート表示をオフにします。\n\n※ 店舗の営業ステータスは変更しません。各店舗はポータルから手動で「営業開始」してください。",
+          onOk: async () => {
+            setButtonLoading(btnEmergencyRelease, true, "解除中...");
+            try {
+              // 1. system_alerts のアラートフラグをオフ
+              const releaseData = {
+                mainAlertActive: false,
+                posAlertActive: false,
+                updatedAt: new Date().toISOString(),
+              };
+              await setDoc(METADATA_DOC, releaseData, { merge: true });
+
+              // 2. 全店舗の緊急停止フラグをクリア（operationStatus ・ isAutoSuspended は変更しない）
+              const relSnapForRelease = await getDocs(STORES_COL);
+              if (!relSnapForRelease.empty) {
+                const releaseBatch = writeBatch(db);
+                relSnapForRelease.forEach((storeDoc) => {
+                  releaseBatch.update(storeDoc.ref, {
+                    isEmergencyStopped: deleteField(),
+                    // isAutoSuspended は削除しない
+                    // 緊急停止と無関係に自動停止中の店舗の復帰制御を壊さないため
+                  });
+                });
+                await releaseBatch.commit();
+              }
+
+              // フォームにも反映
+              document.getElementById("main-active").checked = false;
+              document.getElementById("pos-active").checked = false;
+              showToast("✅ アラートを解除しました。各店舗から営業開始を行ってください。", "success");
+            } catch (err) {
+              console.error("解除エラー:", err);
+              showToast("❌ 解除に失敗しました: " + err.message, "error");
+            } finally {
+              setButtonLoading(btnEmergencyRelease, false);
+            }
+          },
+        });
+      });
+
+      // ===== プリセットボタン =====
+      document.querySelectorAll(".btn-preset").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.dataset.target;
+          const text = btn.dataset.text;
+          document.getElementById(targetId).value = text;
+          // 種別を error に自動設定（緊急系プリセットに対応）
+          if (text.includes("⚠️") || text.includes("🔴")) {
+            const typeId = targetId.replace("-message", "-type");
+            document.getElementById(typeId).value = "error";
+          }
+          // アニメーション
+          btn.style.background = "var(--accent)";
+          btn.style.borderColor = "var(--accent)";
+          btn.style.color = "#fff";
+          setTimeout(() => {
+            btn.style.background = "";
+            btn.style.borderColor = "";
+            btn.style.color = "";
+          }, 800);
+        });
+      });
+
+      // ===== BANユーザーリスト管理 =====
+      async function fillMissingBanInfo(uid, orderId, storeId, rowEl) {
+        // メアド/名前のフォールバック取得
+        try {
+          const userSnap = await getDoc(doc(db, "users", uid));
+          if (userSnap.exists()) {
+            const uData = userSnap.data();
+            const emailEl = rowEl.querySelector(`.user-email-${uid}`);
+            const nameEl = rowEl.querySelector(`.user-name-${uid}`);
+            if (emailEl) emailEl.textContent = uData.email || "メアド不明";
+            if (nameEl) nameEl.textContent = uData.displayName || "名前不明";
+          } else {
+            const nameEl = rowEl.querySelector(`.user-name-${uid}`);
+            if (nameEl) nameEl.textContent = "退会済みユーザー";
+          }
+        } catch (e) {
+          console.error("Failed to fetch user fallback info:", e);
+        }
+
+        // オーダー番号のフォールバック取得
+        if (orderId && orderId !== "-") {
+          try {
+            const orderSnap = await getDoc(doc(db, "orders", orderId));
+            if (orderSnap.exists()) {
+              const oData = orderSnap.data();
+              const ordEl = rowEl.querySelector(`.order-num-${uid}`);
+              if (ordEl && oData.receiptNumber) {
+                ordEl.innerHTML = `
+                  <span class="badge bg-warning text-dark me-1">No.${oData.receiptNumber}</span>
+                  <span class="badge bg-secondary" style="font-size:0.7rem;">店舗ID: ${storeId}</span>
+                `;
+              }
+            }
+          } catch (e) {
+            console.error("Failed to fetch order fallback info:", e);
+          }
+        }
+      }
+
+      function startBannedUsersWatch() {
+        const q = query(BANNED_USERS_COL, orderBy("bannedAt", "desc"));
+        onSnapshot(q, (snap) => {
+          const tbody = document.getElementById("banned-users-list");
+          if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">現在BANされているユーザーはいません</td></tr>`;
+            return;
+          }
+
+          let html = "";
+          const fetchList = [];
+
+          snap.forEach((docSnap) => {
+            const data = docSnap.data();
+            const uid = docSnap.id;
+            const bannedAt = data.bannedAt ? data.bannedAt.toDate().toLocaleString("ja-JP") : "日時不明";
+            const reason = data.reason || "理由不明";
+            const orderId = data.orderId || "-";
+            const storeId = data.storeId || "-";
+
+            const email = data.userEmail || "";
+            const displayName = data.userDisplayName || "";
+            const receiptNumber = data.receiptNumber ? `No.${data.receiptNumber}` : "";
+
+            const hasEmail = !!email;
+            const hasReceipt = !!receiptNumber;
+
+            html += `
+              <tr id="row-${uid}">
+                <td>${bannedAt}</td>
+                <td>
+                  <div class="fw-bold user-name-${uid}">${displayName || (hasEmail ? "" : "読み込み中...")}</div>
+                  <div class="user-email-${uid}" style="font-size: 0.78rem; color: var(--text-sub);">${email || (hasEmail ? "" : "読み込み中...")}</div>
+                </td>
+                <td>
+                  <div class="mb-1">${reason}</div>
+                  <div class="order-num-${uid}">
+                    ${receiptNumber ? `<span class="badge bg-warning text-dark me-1">${receiptNumber}</span>` : ""}
+                    <span class="badge bg-secondary" style="font-size:0.7rem;">店舗ID: ${storeId}</span>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-success btn-unban" data-uid="${uid}">
+                    <i class="bi bi-unlock-fill me-1"></i>解除
+                  </button>
+                </td>
+              </tr>
+            `;
+
+            if (!hasEmail || (!hasReceipt && orderId !== "-")) {
+              fetchList.push({ uid, orderId, storeId });
+            }
+          });
+
+          tbody.innerHTML = html;
+
+          // 非同期で不足情報を補完
+          fetchList.forEach(({ uid, orderId, storeId }) => {
+            const rowEl = document.getElementById(`row-${uid}`);
+            if (rowEl) {
+              fillMissingBanInfo(uid, orderId, storeId, rowEl);
+            }
+          });
+
+          // 解除ボタンのイベント設定
+          tbody.querySelectorAll(".btn-unban").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const uid = btn.dataset.uid;
+              showConfirmModal({
+                icon: "🔓",
+                title: "BAN解除の確認",
+                desc: `ユーザー UID: ${uid}\n\nこのユーザーのBANを解除しますか？\n（解除後、このユーザーは再び注文が可能になります）`,
+                onOk: async () => {
+                  try {
+                    const unbanFn = httpsCallable(fns, "unbanUser");
+                    await unbanFn({ uid });
+                    showToast("✅ BANを解除しました", "success");
+                  } catch (err) {
+                    console.error("BAN解除エラー:", err);
+                    showToast("❌ 解除に失敗しました: " + err.message, "error");
+                  }
+                }
+              });
+            });
+          });
+        });
+      }
+
+      // ===== UI ヘルパー =====
+
+      // ボタンのローディング制御
+      function setButtonLoading(btn, isLoading, loadingText = "処理中...") {
+        if (isLoading) {
+          btn._originalHTML = btn.innerHTML;
+          btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+          btn.disabled = true;
+        } else {
+          btn.innerHTML = btn._originalHTML || btn.innerHTML;
+          btn.disabled = false;
+        }
+      }
+
+      // 確認モーダル
+      let _confirmCallback = null;
+      function showConfirmModal({ icon, title, desc, onOk }) {
+        document.getElementById("confirm-modal-icon").textContent = icon;
+        document.getElementById("confirm-modal-title").textContent = title;
+        document.getElementById("confirm-modal-desc").textContent = desc;
+        _confirmCallback = onOk;
+        document.getElementById("confirm-modal-overlay").classList.add("show");
+      }
+      document.getElementById("confirm-modal-cancel").addEventListener("click", () => {
+        document.getElementById("confirm-modal-overlay").classList.remove("show");
+        _confirmCallback = null;
+      });
+      document.getElementById("confirm-modal-ok").addEventListener("click", async () => {
+        document.getElementById("confirm-modal-overlay").classList.remove("show");
+        if (_confirmCallback) {
+          await _confirmCallback();
+          _confirmCallback = null;
+        }
+      });
+      document.getElementById("confirm-modal-overlay").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) {
+          e.currentTarget.classList.remove("show");
+          _confirmCallback = null;
+        }
+      });
+
+      // トースト通知
+      function showToast(message, type = "success") {
+        const container = document.getElementById("toast-container");
+        const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", warning: "bi-exclamation-triangle-fill" };
+        const toast = document.createElement("div");
+        toast.className = `toast-custom ${type}`;
+        toast.innerHTML = `<i class="bi ${icons[type] || icons.success}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transition = "opacity 0.3s";
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+    </script>
+  </body>
+</html>

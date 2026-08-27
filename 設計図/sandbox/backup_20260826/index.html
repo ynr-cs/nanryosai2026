@@ -1,0 +1,2155 @@
+<!--
+  Nanryosai 2026
+  Version: 0.1.0
+  Last Modified: 2026-02-05
+  Author: Nanryosai 2026 Project Team
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホーム | 南陵祭'26</title>
+    <!-- Core Style (Shell) -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Page Specific Style -->
+    <style>
+        /* 
+           Countdown Enhanced Styles 
+        */
+        .sp-only { display: none; }
+        @media (max-width: 768px) { .sp-only { display: inline; } }
+
+        /* Phase Container Switching */
+        .countdown-phase {
+            display: none; /* Hide all by default */
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .countdown-phase.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* URGENT MODE (< 24h) */
+        .countdown-urgent .time-value {
+            color: #ff0055;
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        .countdown-urgent .countdown-label {
+            color: #ff0055;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            5% { transform: scale(1.1); }
+            10% { transform: scale(1); }
+            15% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        /* HAPPENING NOW MODE */
+        .status-badge-large {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff0080, #7928ca);
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            padding: 20px 60px;
+            border-radius: 100px;
+            box-shadow: 0 10px 40px rgba(255, 0, 128, 0.5);
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            animation: pulse-glow 2s infinite;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .status-badge-sub {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: block;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 128, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 128, 0); }
+        }
+
+        /* --- Imported Stage List CSS --- */
+.filter-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 20px;
+        margin: 0 20px 20px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        animation: fadeInUp 0.8s ease-out 0.2s backwards;
+      }
+
+      .day-selector {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .day-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-sub);
+        padding: 10px 24px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+
+      .day-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      .day-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+      }
+
+      /* Gantt Chart */
+      .gantt-chart-container {
+        display: flex;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+
+      .gantt-sidebar {
+        flex-shrink: 0;
+        width: 120px;
+        background: var(--card-bg);
+        border-right: 2px solid var(--primary-color);
+        box-shadow: 4px 0 15px rgba(0,0,0,0.08);
+        z-index: 30;
+        position: relative;
+      }
+
+      .gantt-content {
+        flex: 1;
+        overflow-x: auto;
+        position: relative;
+      }
+
+      .gantt-chart {
+        display: grid;
+        position: relative;
+      }
+
+      .gantt-place-header,
+      .gantt-time-header {
+        height: 50px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .gantt-place,
+      .gantt-time-cell {
+        height: 70px;
+        box-sizing: border-box;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .gantt-place {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 1.05rem; /* 少し大きくして見やすくする */
+      }
+
+      .gantt-time-cell {
+        border-right: 1px solid var(--border-color);
+      }
+
+      .gantt-time-header {
+        position: sticky;
+        top: 0;
+        background: var(--card-bg);
+        z-index: 9;
+      }
+      
+      .gantt-time-header:last-child,
+      .gantt-time-cell:last-child {
+        border-right: none;
+      }
+
+      .gantt-events {
+        grid-column-start: 1;
+        position: relative;
+      }
+
+      .gantt-event-bar {
+        position: absolute;
+        background: var(--primary-gradient);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .gantt-event-bar:hover {
+        filter: brightness(1.1);
+        transform: scale(1.02);
+        z-index: 20;
+      }
+
+      .event-group-name {
+        font-weight: 700;
+        display: block;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+      }
+
+      .event-perf-name {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        display: block;
+      }
+
+      #current-time-indicator {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #ff3b30;
+        z-index: 30;
+        box-shadow: 0 0 10px #ff3b30;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+
+      #current-time-indicator.visible {
+        opacity: 1;
+      }
+
+      #current-time-indicator .time-label {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff3b30;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      /* List View */
+      .timeline-list-container {
+        max-width: 900px;
+        margin: 0 auto 80px;
+        padding: 0 20px;
+      }
+
+      .timeline-controls {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 0 10px 16px;
+      }
+
+      .toggle-switch-label {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        gap: 12px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--item-fill);
+        transition: 0.4s;
+        border-radius: 34px;
+        border: 1px solid var(--border-color);
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 3px;
+        background-color: var(--text-sub);
+        transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background: var(--primary-gradient);
+        border-color: transparent;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+        background-color: white;
+      }
+
+      .list-event-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .list-event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .list-event-card.highlight {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+      }
+
+      .list-time {
+        font-size: 1.2rem;
+        font-weight: 800;
+        min-width: 130px;
+        color: var(--primary-color);
+      }
+
+      .list-details {
+        flex-grow: 1;
+      }
+
+      .list-name {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+
+      .list-perf-name {
+        font-size: 0.9rem;
+        color: var(--text-main);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .list-desc {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        margin-top: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .list-place {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        margin-top: 8px;
+        background: var(--item-fill);
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .list-link-button {
+        background: var(--item-fill);
+        color: var(--text-main);
+        padding: 8px 16px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .list-link-button:hover {
+        background: var(--border-color);
+      }
+
+      .fade-up {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+          transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .fade-up.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 768px) {
+        .list-event-card {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 16px;
+        }
+
+        .list-time {
+          font-size: 1.1rem;
+          min-width: auto;
+        }
+
+        .list-details {
+          width: 100%;
+        }
+
+        .list-link-button {
+          align-self: stretch;
+          text-align: center;
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+        /* ENDED MODE */
+        .status-badge-ended {
+            font-size: 2rem; /* Adjusted for Japanese text length */
+            font-weight: 900;
+            color: var(--text-sub);
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .status-badge-large {
+                font-size: 1.8rem;
+                padding: 15px 40px;
+            }
+            .status-badge-ended {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* --- Real-time Info Section --- */
+        .realtime-container {
+            padding: 0 16px 32px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-badge-pulse {
+            background: #ff0055;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* PC: 3カラム / タブレット: 3カラム / スマホ: 3カラム(コンパクト) */
+        .venue-grid {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .venue-grid { gap: 6px; }
+        }
+
+        .venue-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 10px;
+            color: var(--text-main);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            flex: 1; /* 通常時はすべて同じ幅 (1:1:1) */
+            min-width: 0; /* Flex要素が縮小できるようにする */
+            white-space: nowrap; /* 縮んだ際にテキストが折り返してレイアウトが崩れるのを防ぐ */
+            transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+        }
+        .venue-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+        }
+        .venue-card:active {
+            transform: scale(0.98);
+        }
+        @media (max-width: 768px) {
+            .venue-card {
+                padding: 10px 6px;
+                border-radius: 8px;
+            }
+        }
+
+        /* --- Expanded State --- */
+        .venue-card.expanded {
+            flex: 2.5; /* 拡大時は他のカードを押しつぶす */
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+            border-color: rgba(106, 17, 203, 0.3);
+        }
+        @media (min-width: 769px) {
+            .venue-card.expanded {
+                flex: 2;
+            }
+        }
+        
+        /* 何かが拡大されている時の、拡大されていないカード */
+        .venue-grid.has-expanded .venue-card:not(.expanded) {
+            opacity: 0.5;
+        }
+        .venue-grid.has-expanded .venue-card:not(.expanded) * {
+            text-overflow: clip; /* 縮んだ際に「...」が出ないように */
+        }
+        
+        /* Expanded時のテキスト拡大（ドアップ感） */
+        .venue-card.expanded .venue-group-name {
+            font-size: 1.2rem;
+            white-space: normal;
+        }
+        @media (max-width: 768px) {
+            .venue-card.expanded .venue-group-name { font-size: 1.1rem; }
+        }
+        .venue-card.expanded .venue-time {
+            font-size: 1rem;
+        }
+        .venue-card.expanded .venue-next-title {
+            font-size: 0.9rem;
+            white-space: normal;
+        }
+        .venue-card.expanded .venue-header {
+            font-size: 0.8rem;
+        }
+
+        /* Top Accent Line */
+        .venue-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--primary-gradient);
+            opacity: 0.7;
+        }
+
+        .venue-header {
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .venue-header { font-size: 0.65rem; margin-bottom: 4px; }
+        }
+        .venue-header h3 { margin: 0; }
+
+        .venue-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--text-main);
+            background: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            align-self: flex-start;
+        }
+        .venue-status-indicator .dot {
+            width: 5px; height: 5px; border-radius: 50%; background: #4ade80;
+        }
+        .venue-status-indicator.live .dot { background: #ff0055; animation: pulse-glow 2s infinite; }
+        .venue-status-indicator.soon .dot { background: #8b5cf6; }
+        .venue-status-indicator.ended .dot { background: var(--text-sub); opacity: 0.5; }
+        .venue-status-indicator.preparing .dot { background: #fbbf24; }
+
+        /* Compact Link Block for Group Info */
+        .venue-link-block {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            background: rgba(106, 17, 203, 0.04);
+            border: 1px solid rgba(106, 17, 203, 0.1);
+            border-radius: 6px;
+            padding: 6px;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            gap: 4px;
+        }
+        [data-theme="dark"] .venue-link-block {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.05);
+        }
+        .venue-link-block:hover {
+            background: rgba(106, 17, 203, 0.08);
+            border-color: rgba(106, 17, 203, 0.2);
+            text-decoration: none;
+        }
+        .venue-link-block:active {
+            transform: scale(0.98);
+        }
+        .venue-next-block:hover {
+            background: rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+        }
+        .venue-next-block:active {
+            transform: scale(0.98);
+        }
+        
+        .venue-info {
+            flex: 1;
+            min-width: 0; /* for truncation */
+        }
+
+        .venue-group-name {
+            font-size: 0.8rem;
+            font-weight: 900;
+            line-height: 1.2;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 480px) {
+            .venue-group-name { font-size: 0.75rem; }
+        }
+
+        .venue-time {
+            font-size: 0.6rem;
+            color: var(--text-sub);
+            margin-top: 1px;
+            font-weight: 600;
+        }
+
+        .venue-event-name {
+            font-size: 0.6rem;
+            color: var(--text-main);
+            opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+            line-height: 1.1;
+        }
+
+        .venue-arrow {
+            font-size: 0.7rem;
+            color: var(--primary-color);
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .venue-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0 -10px 8px;
+        }
+        @media (max-width: 768px) {
+            .venue-divider { margin: 0 -6px 6px; }
+        }
+
+        .venue-next-label {
+            font-size: 0.6rem;
+            font-weight: 900;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 2px;
+        }
+        
+        /* NEXT section formatting */
+        .venue-next-block {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            padding: 4px 0;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+        .venue-next-block:active { opacity: 0.7; }
+        
+        .venue-next-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Event Tooltip Modal */
+        .event-tooltip {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            width: max-content;
+            max-width: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(10px) translateX(-50%);
+        }
+        .event-tooltip.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) translateX(-50%);
+        }
+        .event-tooltip::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: var(--arrow-left, 50%);
+            margin-left: -6px;
+            width: 12px;
+            height: 12px;
+            background: var(--glass-bg);
+            border-left: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-border);
+            transform: rotate(45deg);
+        }
+        .event-tooltip-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .event-tooltip-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            padding-right: 16px;
+        }
+        .event-tooltip-group {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .event-tooltip-desc {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+        .event-tooltip-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+        .event-tooltip-meta i {
+            color: var(--primary-color);
+        }
+        .event-tooltip-link {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            background: var(--primary-gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+        }
+        /* Inline Spinner for Venue Status Loading */
+        .inline-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Header is injected here by JS -->
+
+    <main>
+        <section class="hero-container">
+            <!-- Decorative Background Elements -->
+            <div class="hero-decoration-orb orb-1"></div>
+            <div class="hero-decoration-orb orb-2"></div>
+            
+            <div class="hero-content">
+                <div class="hero-badge">2026.9.11-12</div>
+                <h1 class="hero-title">南陵祭<br>2026</h1>
+                <p class="hero-slogan">南陵祭楽しすぎて滅</p>
+            </div>
+        </section>
+
+        <section class="countdown-container">
+            <!-- Phase 1: Countdown (Normal & Urgent) -->
+            <div id="phase-countdown" class="countdown-phase active">
+                <h2 class="countdown-label">開催まであと</h2>
+                <div class="timer-grid">
+                    <div class="time-box">
+                        <span class="time-value" id="days">00</span>
+                        <span class="time-unit">DAYS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="hours">00</span>
+                        <span class="time-unit">HOURS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="minutes">00</span>
+                        <span class="time-unit">MINS</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-value" id="seconds">00</span>
+                        <span class="time-unit">SECS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2: Happening Now -->
+            <div id="phase-happening" class="countdown-phase">
+                <div class="status-badge-large">
+                    開催中
+                </div>
+                <span class="status-badge-sub">みなさまのご来場をお待ちしています</span>
+            </div>
+
+            <!-- Phase 3: Ended -->
+            <div id="phase-ended" class="countdown-phase">
+                <div class="status-badge-ended">
+                    ご来場<br class="sp-only">ありがとうございました
+                </div>
+                <span class="status-badge-sub">本年度の南陵祭は終了しました</span>
+            </div>
+        </section>
+
+        <!-- 
+          ★ REAL-TIME INFO SECTION (DUMMY DATA) ★ 
+          将来的にFirebase Status JSONからリアルタイム情報を取得して表示するエリアです。
+          現在はデザイン確認用のダミーデータを表示しています。
+          backend logic: Not implemented yet.
+        -->
+        <section class="realtime-container" style="padding: 0 20px 40px; max-width: 800px; margin: 0 auto;">
+            <div class="highlight-header" style="margin-bottom: 16px;">
+                <h2 class="highlight-title">リアルタイム情報</h2>
+                <div class="live-badge-pulse">LIVE</div>
+            </div>
+            
+            <div class="venue-grid">
+                <!-- 体育館 -->
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="gym">
+                    <div class="venue-header">
+                        <h3>体育館</h3>
+                    </div>
+                    <div class="venue-body" id="current-gym">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name"><span class="inline-spinner"></span>読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-gym">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 音楽室 -->
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="music_room">
+                    <div class="venue-header">
+                        <h3>音楽室</h3>
+                    </div>
+                    <div class="venue-body" id="current-music_room">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name"><span class="inline-spinner"></span>読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-music_room">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 視聴覚室 -->
+                <div class="venue-card" onclick="toggleVenueExpand(this)" data-track="click_venue" data-track-venue="av_room">
+                    <div class="venue-header">
+                        <h3>視聴覚室</h3>
+                    </div>
+                    <div class="venue-body" id="current-av_room">
+                        <div class="venue-status-indicator preparing"><span class="dot"></span>準備中</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name"><span class="inline-spinner"></span>読み込み中...</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="venue-divider"></div>
+                    <div class="venue-footer" id="next-av_room">
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          ★ MOBILE ORDER PROMO SECTION ★ 
+        -->
+        <section class="mobile-order-promo">
+            <div class="promo-card-gradient">
+                <div class="promo-content-wrapper">
+                    <div class="promo-badge-glass">モバイルオーダー</div>
+                    <h2 class="promo-title-large">並ばずに、<br>スマホで注文。</h2>
+                    <p class="promo-desc-text">
+                        列に並ばずお好きな時間にご注文いただけます。<br>
+                        当日の混雑を避けてスムーズに受け取り！
+                    </p>
+                    <a href="../pos/mobile-order.html" class="promo-btn-white" data-track="click_mop_promo" data-track-section="index_hero">
+                        <i class="fas fa-mobile-alt"></i>
+                        モバイルオーダーを使う
+                    </a>
+                    
+                    <a href="mobile-order-guide.html" class="promo-link-sub" data-track="click_mop_safety">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>システムの安全性について</span>
+                    </a>
+                </div>
+                
+                <!-- CSS-only Phone Mockup -->
+                <div class="promo-visual-mockup">
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="screen-slideshow">
+                                <!-- Slide 1: Takoyaki -->
+                                <div class="app-icon-item">
+                                    <div class="app-icon-box">
+                                        🐙
+                                    </div>
+                                    <div class="app-icon-label">たこ焼き</div>
+                                    <div class="app-icon-price">¥???</div>
+                                </div>
+                                <!-- Slide 2: Yakisoba -->
+                                <div class="app-icon-item">
+                                    <div class="app-icon-box">
+                                        🍝
+                                    </div>
+                                    <div class="app-icon-label">焼きそば</div>
+                                    <div class="app-icon-price">¥???</div>
+                                </div>
+                                <!-- Slide 3: Tapioca -->
+                                <div class="app-icon-item">
+                                    <div class="app-icon-box">
+                                        🧋
+                                    </div>
+                                    <div class="app-icon-label">タピオカ</div>
+                                    <div class="app-icon-price">¥???</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+        </section>
+
+        <!-- 
+          ★ PROJECTS HIGHLIGHT SECTION (Horizontal Carousel) ★ 
+        -->
+        <section class="highlight-section">
+            <div class="highlight-header">
+                <h2 class="highlight-title">企画・展示 ハイライト</h2>
+                <a href="projects-list.html" class="highlight-link" data-track="click_section_more" data-track-section="projects">
+                    すべて見る <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="highlight-carousel" id="carousel-projects">
+                <!-- JS will inject cards here -->
+            </div>
+        </section>
+
+        
+        <!-- 
+          ★ TIMETABLE SECTION (Imported from stage-list) ★ 
+        -->
+        <section class="timetable-section" style="max-width: 1200px; margin: 0 auto; padding-bottom: 40px; width: 100%;">
+            <div class="highlight-header" style="margin-bottom: 16px; flex-direction: column; align-items: flex-start; padding: 0 20px;">
+                <h2 class="highlight-title">ステージ発表 タイムテーブル</h2>
+            </div>
+            <div class="filter-section">
+        <div class="day-selector">
+          <button class="day-btn active" data-day="1" data-track="click_gantt_day" data-track-day="1">DAY 1</button>
+          <button class="day-btn" data-day="2" data-track="click_gantt_day" data-track-day="2">DAY 2</button>
+        </div>
+      </div>
+
+      <div id="gantt-chart-container" class="gantt-chart-container">
+        <div id="gantt-chart" class="gantt-chart"></div>
+      </div>
+
+
+        </section>
+
+        <!-- Event Tooltip Modal -->
+        <div class="event-tooltip" id="event-popup">
+          <button class="event-tooltip-close" id="event-popup-close" data-track="close_gantt_popup"><i class="fas fa-times"></i></button>
+          <div class="event-tooltip-group" id="event-popup-group"></div>
+          <div class="event-tooltip-title" id="event-popup-title"></div>
+          <div class="event-tooltip-desc" id="event-popup-desc"></div>
+          <div class="event-tooltip-meta">
+            <div><i class="fas fa-clock"></i> <span id="event-popup-time"></span></div>
+            <div><i class="fas fa-map-marker-alt"></i> <span id="event-popup-place"></span></div>
+          </div>
+          <div style="text-align: center;">
+            <a href="#" class="event-tooltip-link" id="event-popup-link" data-track="click_gantt_popup_detail">詳細を見る</a>
+          </div>
+        </div>
+
+        <!-- 
+          ★ OVERVIEW SECTION ★ 
+        -->
+        <section class="overview-section">
+            <h2 class="scroller-title" style="text-align: center; margin-bottom: 24px;">開催概要</h2>
+            
+            <!-- Detail Table -->
+            <div class="overview-card overview-padding">
+                <div class="overview-grid">
+                    <!-- Date & Time -->
+                    <div class="overview-item">
+                        <div class="overview-icon-box">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="overview-details">
+                            <h3 class="overview-label">開催日時</h3>
+                            <p class="overview-value-lg">2026年 9月11日(金)・12日(土)</p>
+                            <p class="overview-sub-text">※1日目(11日)は非公開につき、一般の方のご来校はご遠慮ください。</p>
+                            <p class="overview-sub-text">※2日目(12日)一般公開：10:00 - 15:00</p>
+                            <p class="overview-sub-text">※2日目(12日)後夜祭：16:00 - 17:00</p>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="overview-item">
+                        <div class="overview-icon-box">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="overview-details">
+                            <h3 class="overview-label">場所</h3>
+                            <p class="overview-value-lg">横浜南陵高等学校</p>
+                            <a href="https://www.google.com/maps/place/%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E7%AB%8B%E6%A8%AA%E6%B5%9C%E5%8D%97%E9%99%B5%E9%AB%98%E7%AD%89%E5%AD%A6%E6%A0%A1/@35.394142,139.566861,15z/data=!4m6!3m5!1s0x60185038ec1dc97d:0xceb43f4967396a60!8m2!3d35.394142!4d139.566861!16s%2Fg%2F122d_05p?entry=ttu" target="_blank" class="overview-link" data-track="click_external_map">
+                                <i class="fas fa-location-arrow"></i> アクセス方法を見る
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="overview-divider"></div>
+
+                <!-- Notes Section -->
+                <div class="overview-notes-section">
+                    <h3 class="overview-notes-title">
+                        <i class="fas fa-exclamation-triangle"></i> 注意事項
+                    </h3>
+                    <ul class="overview-note-list-styled">
+                        <li>
+                            <span class="note-number">1</span>
+                            <span class="note-text">お車での来場はご遠慮ください。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">2</span>
+                            <span class="note-text">当日の入場は正門のみです。必ず受付をしてください。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">3</span>
+                            <span class="note-text">校内は土足の一足制です。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">4</span>
+                            <span class="note-text">体育館へ入場される際は、床を傷つける恐れのあるお履き物(ハイヒール等)はご遠慮ください。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">5</span>
+                            <span class="note-text">写真撮影・ビデオ撮影はご遠慮ください。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">6</span>
+                            <span class="note-text">敷地内は全面禁煙です。また、近隣住宅街での喫煙もご遠慮ください。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">7</span>
+                            <span class="note-text">お支払いはキャッシュレス決済（AirPay導入に伴い、クレジットカード・電子マネー・QR決済等）がご利用いただけます。</span>
+                        </li>
+                        <li>
+                            <span class="note-number">8</span>
+                            <span class="note-text">キャッシュレス決済に関するご質問は校門横の決済サポートブースで受け付けています。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Link to about.html -->
+                <div class="overview-more-link" style="text-align: center; margin-top: 30px;">
+                    <a href="about.html" class="about-btn-link" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: var(--primary-gradient); color: white; padding: 12px 32px; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3); transition: transform 0.2s, opacity 0.2s;" data-track="click_section_more" data-track-section="about">
+                        <i class="fas fa-info-circle"></i> 詳細を見る
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ★ UPDATES SECTION ★ -->
+        <section class="updates-preview-container" style="padding: 0 20px 40px; max-width: 800px; margin: 0 auto;">
+            <div class="highlight-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="highlight-title" style="font-size: 1.2rem; font-weight: 900; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-rocket" style="color: var(--primary-color);"></i> UPDATES
+                </h2>
+                <a href="updates.html" class="view-more-link" style="font-size: 0.85rem; font-weight: 700; color: var(--primary-color); text-decoration: none;">もっと見る <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <style>
+                .update-preview-item {
+                    display: flex;
+                    align-items: center;
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    text-decoration: none;
+                    color: inherit;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                    gap: 16px;
+                }
+                .update-preview-item:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                    text-decoration: none;
+                }
+                .update-preview-date {
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: var(--text-sub);
+                    white-space: nowrap;
+                    min-width: 75px;
+                }
+                .update-preview-title {
+                    font-size: 0.95rem;
+                    font-weight: 800;
+                    color: var(--text-main);
+                    margin: 0;
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+            </style>
+            <div id="updates-preview-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align:center; padding: 20px; color: var(--text-sub);">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- Footer is injected here by JS -->
+
+    <!-- Load External Data (duplicate removed) -->
+    
+    <script>
+        // Define current page for the shell
+        window.CURRENT_PAGE = 'home';
+
+        // Countdown Logic (Enhanced)
+        const START_DATE = new Date('2026-09-11T09:00:00+09:00').getTime();
+        const END_DATE   = new Date('2026-09-12T18:00:00+09:00').getTime(); // End of After-party
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            
+            // Phase Elements
+            const phaseCountdown = document.getElementById('phase-countdown');
+            const phaseHappening = document.getElementById('phase-happening');
+            const phaseEnded     = document.getElementById('phase-ended');
+
+            // --- Debug Mode (URL Params) ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const debugMode = urlParams.get('mode');
+
+            if (debugMode) {
+                if (debugMode === 'live') {
+                    switchPhase(phaseHappening);
+                    return;
+                }
+                if (debugMode === 'ended') {
+                    switchPhase(phaseEnded);
+                    return;
+                }
+                if (debugMode === 'urgent') {
+                    // Force urgent countdown style (fake 1 hour remaining)
+                    switchPhase(phaseCountdown);
+                    phaseCountdown.classList.add('countdown-urgent');
+                    // Mock display for visual check
+                    document.getElementById('days').innerText = "00";
+                    document.getElementById('hours').innerText = "00";
+                    document.getElementById('minutes').innerText = "59";
+                    document.getElementById('seconds').innerText = (59 - (new Date().getSeconds())).toString().padStart(2, '0');
+                    return;
+                }
+            }
+
+            // --- Phase Determination ---
+            
+            // 1. ENDED
+            if (now > END_DATE) {
+                switchPhase(phaseEnded);
+                return;
+            }
+
+            // 2. HAPPENING NOW (Start <= Now <= End)
+            if (now >= START_DATE && now <= END_DATE) {
+                switchPhase(phaseHappening);
+                return;
+            }
+
+            // 3. BEFORE START (Countdown Mode)
+            switchPhase(phaseCountdown);
+            
+            const distance = START_DATE - now;
+
+            // Urgent Mode Check (Within 24 Hours)
+            const hoursUntilStart = distance / (1000 * 60 * 60);
+            if (hoursUntilStart < 24) {
+                phaseCountdown.classList.add('countdown-urgent');
+            } else {
+                phaseCountdown.classList.remove('countdown-urgent');
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+        }
+
+        function switchPhase(activeElement) {
+            const phases = [
+                document.getElementById('phase-countdown'),
+                document.getElementById('phase-happening'),
+                document.getElementById('phase-ended')
+            ];
+
+            phases.forEach(el => {
+                if (el === activeElement) {
+                    if (!el.classList.contains('active')) {
+                        el.classList.add('active');
+                    }
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call
+
+        // Vertical Auto-Scroll Logic (Infinite Loop)
+        function setupHighlightAutoScroll(containerId, data) {
+            const container = document.getElementById(containerId);
+            if (!container || !data || data.length === 0) return;
+
+            // Generate Card HTML Helper
+            const generateCardsHTML = (items) => {
+                return items.map(item => {
+                    const groupName = item.groupName || item.groupId || '参加団体';
+                    const tags = item.tags ? item.tags.slice(0, 2) : [];
+                    const tagsHTML = tags.map(tag => `<span class="highlight-tag">${tag}</span>`).join('');
+                    
+                    // projectDataに対応があればそのIDでリンク、なくてもstageDataのIDでdetail.htmlが表示可能
+                    let linkId = item.id;
+                    let imgSrc = `../images/${item.id}.png`;
+                    const projects = window.projectData || [];
+                    const matchedProject = projects.find(p => 
+                        p.id === item.id ||
+                        (p.groupName || '').trim() === (item.groupName || '').trim()
+                    );
+                    if (matchedProject) {
+                        linkId = matchedProject.id;
+                        imgSrc = `../images/${matchedProject.id}.png`;
+                    }
+                    
+                    const trackEventName = containerId.includes('stage') ? 'click_stage_highlight' : 'click_project_highlight';
+                    return `
+                    <a href="detail.html?id=${linkId}" class="highlight-card" data-track="${trackEventName}" data-track-id="${linkId}">
+                        <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                        <div class="highlight-card-content">
+                            <span class="highlight-group-name">${groupName}</span>
+                            <h3 class="highlight-project-name">${item.name}</h3>
+                            <div class="highlight-place">
+                                <i class="fas fa-map-marker-alt"></i> ${item.place}
+                            </div>
+                            <div class="highlight-tags">${tagsHTML}</div>
+                        </div>
+                    </a>
+                `}).join('');
+            };
+
+            const cardsHTML = generateCardsHTML(data);
+            // Triple content for seamless bidirectional loop
+            container.innerHTML = cardsHTML + cardsHTML + cardsHTML;
+
+            // --- Infinite Loop Logic ---
+            let singleSetHeight = 0;
+            let isUserInteracting = false;
+            let scrollTimeout = null;
+
+            // Calculate single set height after render
+            // We use a slight delay or RAF to ensure DOM is ready
+            requestAnimationFrame(() => {
+                // Approximate height: total scrollHeight / 3
+                singleSetHeight = container.scrollHeight / 3;
+                // Start position at the beginning of the middle set
+                container.scrollTop = singleSetHeight;
+            });
+
+            // Boundary Check
+            const checkScrollPosition = () => {
+                if (singleSetHeight === 0) return;
+                
+                const scrollTop = container.scrollTop;
+                // If we reach the bottom of the middle set (start of 3rd set), jump back to start of 2nd set
+                // Or if we go too high, jump forward.
+                // Simpler logic: if scrollTop >= singleSetHeight * 2, subtract singleSetHeight
+                // if scrollTop <= 0, add singleSetHeight.
+
+                if (scrollTop >= singleSetHeight * 2) {
+                    container.scrollTop = scrollTop - singleSetHeight;
+                } else if (scrollTop <= 10) { // buffer near top
+                     container.scrollTop = scrollTop + singleSetHeight;
+                }
+            };
+
+            // Listen for user scroll to pause/resume and check bounds
+            container.addEventListener('scroll', () => {
+                // If user is manually scrolling, we consider it interaction
+                // But the 'scroll' event also fires during auto-scroll. 
+                // Checks logic in autoScroll loop.
+                checkScrollPosition();
+            });
+
+            // --- Auto Scroll Animation ---
+            const speedPxPerFrame = 0.5; // Adjust speed here
+            let animationId = null;
+
+            const animate = () => {
+                if (!isUserInteracting) {
+                    container.scrollTop += speedPxPerFrame;
+                }
+                animationId = requestAnimationFrame(animate);
+            };
+            
+            // Start Animation
+            animationId = requestAnimationFrame(animate);
+
+            // --- Interaction Handling (Pause on Hover/Touch) ---
+            const pause = () => { isUserInteracting = true; };
+            const resume = () => { isUserInteracting = false; };
+
+            container.addEventListener('mouseenter', pause);
+            container.addEventListener('mouseleave', resume);
+            container.addEventListener('touchstart', pause, { passive: true });
+            container.addEventListener('touchend', resume);
+        }
+
+        // --- Venue Accordion Logic ---
+        window.toggleVenueExpand = function(cardElement) {
+            const grid = document.querySelector('.venue-grid');
+            const isExpanded = cardElement.classList.contains('expanded');
+            
+            // 全てのカードから expanded を外す
+            const allCards = document.querySelectorAll('.venue-card');
+            allCards.forEach(card => card.classList.remove('expanded'));
+
+            if (!isExpanded) {
+                // 拡大する
+                cardElement.classList.add('expanded');
+                grid.classList.add('has-expanded');
+            } else {
+                // 閉じる
+                grid.classList.remove('has-expanded');
+            }
+        };
+
+        // Initialize Carousels
+        document.addEventListener('DOMContentLoaded', () => {
+        const chartWrapper = document.getElementById("gantt-chart-container");
+        const chartContainer = document.getElementById("gantt-chart");
+        const listContainer = document.getElementById("timeline-list");
+        const daySelector = document.querySelector(".day-selector");
+        const pastEventsToggle = document.getElementById(
+          "show-past-events-toggle",
+        );
+
+        // Festival setup
+        const startHour = 9;
+        const timeHeaders = [
+          "9:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+        ];
+        const totalMinutes = (timeHeaders.length - 1) * 60;
+        
+        // 2026年南陵祭の日程
+        const festivalDates = {
+          1: new Date(2026, 8, 11), // 9/11 (Dateの月は0-indexedなので8=9月)
+          2: new Date(2026, 8, 12), // 9/12
+        };
+
+        function timeToMinutes(timeStr) {
+          if (typeof timeStr !== "string" || !timeStr.includes(":"))
+            return null;
+          const [hours, minutes] = timeStr.split(":").map(Number);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+          return hours * 60 + minutes;
+        }
+
+        function renderGanttChart(day) {
+          if (!chartWrapper || typeof stageData === "undefined") return;
+
+          const dayData = stageData.filter(
+            (event) => event.day == day && event.time && event.time !== "不明",
+          );
+
+          const places = [...new Set(dayData.map((event) => event.place))].sort();
+          if (places.length === 0) {
+            chartWrapper.innerHTML = `<div style="padding: 40px; width: 100%; text-align: center; color: var(--text-sub); font-weight: bold;">この日の発表予定はありません。</div>`;
+            return;
+          }
+
+          const columnWidth = 180;
+          
+          let html = `<div class="gantt-sidebar">`;
+          html += `<div class="gantt-place-header">場所</div>`;
+          places.forEach((place) => {
+            html += `<div class="gantt-place">${place}</div>`;
+          });
+          html += `</div>`;
+
+          html += `<div class="gantt-content" id="gantt-content-scroll">`;
+          html += `<div class="gantt-chart" id="gantt-grid" style="grid-template-columns: repeat(${timeHeaders.length - 1}, ${columnWidth}px);">`;
+          
+          timeHeaders.forEach((time, index) => {
+            html += `<div class="gantt-time-header" style="grid-row: 1; grid-column: ${index + 1};">${time}</div>`;
+          });
+
+          places.forEach((place, placeIndex) => {
+            const placeEvents = dayData.filter((event) => event.place === place);
+            const rowIndex = placeIndex + 2;
+            for (let i = 0; i < timeHeaders.length - 1; i++) {
+              html += `<div class="gantt-time-cell" style="grid-row: ${rowIndex}; grid-column: ${i + 1};"></div>`;
+            }
+            html += `<div class="gantt-events" style="grid-row: ${rowIndex}; grid-column: 1 / span ${timeHeaders.length - 1};">`;
+            placeEvents.forEach((event) => {
+              const [startTime, endTime] = (event.time || " - ").split("-").map((s) => s.trim());
+              const startMinutes = timeToMinutes(startTime);
+              const endMinutes = timeToMinutes(endTime);
+              if (startMinutes !== null && endMinutes !== null) {
+                const left = ((startMinutes - startHour * 60) / totalMinutes) * 100;
+                const width = ((endMinutes - startMinutes) / totalMinutes) * 100;
+                if (width > 0) {
+                  html += `<div class="gantt-event-bar" 
+                                style="left: ${left}%; width: ${width}%" 
+                                data-target-id="list-${event.id}" 
+                                data-id="${event.id}"
+                                data-track="click_gantt_event"
+                                data-track-event-id="${event.id}"
+                                data-track-group-name="${event.groupName || ''}"
+                                data-track-event-name="${event.name || ''}"
+                                data-track-time="${event.time || ''}"
+                                data-track-place="${event.place || ''}"> 
+                                <span class="event-group-name">${event.groupName}</span>
+                                <span class="event-perf-name">${event.name}</span>
+                            </div>`;
+                }
+              }
+            });
+            html += `</div>`;
+          });
+          html += `</div></div>`;
+          chartWrapper.innerHTML = html;
+        }
+
+        function renderTimelineList(day, showPastEvents) {
+          if (!listContainer || typeof stageData === "undefined") return;
+
+          const now = new Date();
+          const festivalDay = festivalDates[day];
+          if (!festivalDay) return;
+
+          const todayDateOnly = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          const festivalDateOnly = new Date(
+            festivalDay.getFullYear(),
+            festivalDay.getMonth(),
+            festivalDay.getDate(),
+          );
+          const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+          let dayData = stageData.filter(
+            (event) => event.day == day && event.time && event.time !== "不明",
+          );
+
+          if (!showPastEvents) {
+            dayData = dayData.filter((event) => {
+              const timeParts = (event.time || "").split("-");
+              if (timeParts.length < 2) return true;
+              const endMinutes = timeToMinutes(timeParts[1].trim());
+              if (endMinutes === null) return true;
+
+              if (todayDateOnly.getTime() < festivalDateOnly.getTime()) {
+                return true;
+              }
+              if (todayDateOnly.getTime() > festivalDateOnly.getTime()) {
+                return false;
+              }
+              return endMinutes > currentMinutes;
+            });
+          }
+
+          dayData.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+          let listHTML = "";
+          if (dayData.length === 0) {
+            listHTML = `<div style="padding: 40px; text-align: center; color: var(--text-sub); font-weight: bold;">表示できる発表はありません。</div>`;
+          } else {
+            dayData.forEach((event) => {
+              // 関連する詳細情報へのリンクを探す
+              // projectDataに存在する場合はそのID（一貫性のため）、ない場合はこのステージイベント自身のIDを渡す
+              // detail.html 側で projectData にない場合は stageData から合成して表示する機能があるため、常にリンクを出す。
+              const relatedProject = projectData.find(p => p.groupName === event.groupName);
+              const linkId = relatedProject ? relatedProject.id : event.id;
+              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
+
+              listHTML += `
+                <div class="list-event-card fade-up" id="list-${event.id}">
+                    <div class="list-time">${event.time}</div>
+                    <div class="list-details">
+                        <div class="list-name">${event.groupName}</div>
+                        <div class="list-perf-name">${event.name}</div>
+                        ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
+                        <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
+                    </div>
+                    ${linkHTML}
+                </div>`;
+            });
+          }
+
+          listContainer.innerHTML = listHTML;
+
+          const newCards = listContainer.querySelectorAll(".fade-up");
+          newCards.forEach((card, index) => {
+            setTimeout(() => {
+              card.classList.add("is-visible");
+            }, index * 100);
+          });
+        }
+
+        function manageCurrentTimeIndicator() {
+          let indicator = document.getElementById("current-time-indicator");
+          if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "current-time-indicator";
+            const timeLabel = document.createElement("div");
+            timeLabel.className = "time-label";
+            indicator.appendChild(timeLabel);
+          }
+          const timeLabel = indicator.querySelector(".time-label");
+
+          function update() {
+            const contentScroll = document.getElementById("gantt-content-scroll");
+            const gridElement = document.getElementById("gantt-grid");
+            
+            if (!contentScroll || !gridElement) {
+              requestAnimationFrame(update);
+              return;
+            }
+            
+            if (indicator.parentNode !== contentScroll) {
+               contentScroll.appendChild(indicator);
+            }
+
+            const now = new Date();
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (!activeDayBtn) {
+              indicator.classList.remove("visible");
+              requestAnimationFrame(update);
+              return;
+            }
+
+            const activeFestivalDate = festivalDates[activeDayBtn.dataset.day];
+            const isTodayTheActiveDay =
+              now.getFullYear() === activeFestivalDate.getFullYear() &&
+              now.getMonth() === activeFestivalDate.getMonth() &&
+              now.getDate() === activeFestivalDate.getDate();
+
+            if (
+              isTodayTheActiveDay &&
+              now.getHours() >= startHour &&
+              now.getHours() < startHour + timeHeaders.length - 1
+            ) {
+              const currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes() +
+                now.getSeconds() / 60;
+              const chartAreaWidth = gridElement.scrollWidth;
+              if (chartAreaWidth <= 0) {
+                requestAnimationFrame(update);
+                return;
+              }
+              const leftPosition =
+                ((currentMinutes - startHour * 60) / totalMinutes) *
+                chartAreaWidth;
+              indicator.style.left = `${leftPosition}px`;
+              indicator.classList.add("visible");
+              const hours = String(now.getHours()).padStart(2, "0");
+              const minutes = String(now.getMinutes()).padStart(2, "0");
+              timeLabel.textContent = `${hours}:${minutes}`;
+            } else {
+              indicator.classList.remove("visible");
+            }
+            requestAnimationFrame(update);
+          }
+          update();
+        }
+
+        function renderPage(day, isInitialLoad = false) {
+          if (typeof stageData === "undefined") {
+            console.error("data.jsが読み込めていません。");
+            return;
+          }
+          renderGanttChart(day);
+          const showPast = pastEventsToggle ? pastEventsToggle.checked : false;
+          renderTimelineList(day, showPast);
+
+          if (isInitialLoad) {
+            setTimeout(() => {
+              const indicator = document.getElementById("current-time-indicator");
+              const contentScroll = document.getElementById("gantt-content-scroll");
+              if (indicator && contentScroll && indicator.classList.contains("visible")) {
+                const scrollPosition =
+                  indicator.offsetLeft -
+                  contentScroll.clientWidth / 2 +
+                  indicator.clientWidth / 2;
+                contentScroll.scrollTo({
+                  left: scrollPosition,
+                  behavior: "smooth",
+                });
+              }
+            }, 500);
+          }
+        }
+
+        // Event Listeners
+        if (daySelector) {
+          daySelector.addEventListener("click", function (e) {
+            if (!e.target.matches(".day-btn")) return;
+            daySelector
+              .querySelectorAll(".day-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            e.target.classList.add("active");
+            renderPage(e.target.dataset.day, false);
+          });
+        }
+
+        if (chartWrapper) {
+          const popupOverlay = document.getElementById("event-popup");
+          const popupClose = document.getElementById("event-popup-close");
+          
+          if (popupOverlay && popupClose) {
+            // クリックでポップアップ表示
+            chartWrapper.addEventListener("click", function (e) {
+              const eventBar = e.target.closest(".gantt-event-bar");
+              if (!eventBar) return;
+              
+              const eventId = eventBar.dataset.id;
+              if (!eventId || typeof stageData === "undefined") return;
+              
+              // Find event data
+              const eventData = stageData.find(item => item.id == eventId);
+              if (!eventData) return;
+              
+              // Populate popup
+              document.getElementById("event-popup-group").textContent = eventData.groupName || "";
+              document.getElementById("event-popup-title").textContent = eventData.name || "";
+              document.getElementById("event-popup-desc").textContent = eventData.description || "説明はありません。";
+              document.getElementById("event-popup-time").textContent = eventData.time || "";
+              document.getElementById("event-popup-place").textContent = eventData.place || "";
+              
+              const projects = window.projectData || (typeof projectData !== "undefined" ? projectData : []);
+              const relatedProject = projects.find(p => p.groupName === eventData.groupName || p.id === eventData.id);
+              const linkId = relatedProject ? relatedProject.id : eventData.id;
+              document.getElementById("event-popup-link").href = "detail.html?id=" + linkId;
+              
+              // ポップアップ要素をbody直下に移動（gantt-chart-container内に余分な縦スクロールが発生するのを防ぐため）
+              if (popupOverlay.parentNode !== document.body) {
+                  document.body.appendChild(popupOverlay);
+              }
+              
+              // ポジション計算 (Viewportに対する位置 + windowスクロール量 = ページ上の絶対位置)
+              const barRect = eventBar.getBoundingClientRect();
+              
+              // 吹き出しの幅を取得
+              const tooltipWidth = popupOverlay.offsetWidth || 250;
+              
+              const top = barRect.bottom + window.scrollY + 10;
+              const barCenterX = barRect.left + window.scrollX + (barRect.width / 2);
+              
+              // 見切れ防止のためのクランプ処理 (画面左右端に8pxのマージンを確保)
+              const minLeft = tooltipWidth / 2 + 8 + window.scrollX;
+              const maxLeft = window.innerWidth - (tooltipWidth / 2) - 8 + window.scrollX;
+              const targetLeft = Math.max(minLeft, Math.min(maxLeft, barCenterX));
+              
+              // 吹き出しのズレを相殺するための矢印位置調整 (CSS変数)
+              const offset = barCenterX - targetLeft;
+              popupOverlay.style.setProperty('--arrow-left', `calc(50% + ${offset}px)`);
+              
+              popupOverlay.style.top = top + "px";
+              popupOverlay.style.left = targetLeft + "px";
+              
+              // Show popup
+              popupOverlay.classList.add("active");
+              e.stopPropagation();
+            });
+
+            // 閉じる処理
+            popupClose.addEventListener("click", (e) => {
+              popupOverlay.classList.remove("active");
+              e.stopPropagation();
+            });
+            document.addEventListener("click", (e) => {
+              if (!popupOverlay.contains(e.target) && popupOverlay.classList.contains("active")) {
+                popupOverlay.classList.remove("active");
+              }
+            });
+            
+            // スクロール時にポップアップを非表示にする（位置ズレ＆浮き残り防止）
+            chartWrapper.addEventListener("scroll", () => {
+              if (popupOverlay.classList.contains("active")) {
+                popupOverlay.classList.remove("active");
+              }
+            }, { passive: true });
+
+            window.addEventListener("scroll", () => {
+              if (popupOverlay.classList.contains("active")) {
+                popupOverlay.classList.remove("active");
+              }
+            }, { passive: true });
+          }
+        }
+
+        if (pastEventsToggle) {
+          pastEventsToggle.addEventListener("change", function () {
+            const activeDayBtn = daySelector.querySelector(".day-btn.active");
+            if (activeDayBtn) {
+              const currentDay = activeDayBtn.dataset.day;
+              renderTimelineList(currentDay, this.checked);
+            }
+          });
+        }
+
+        // Initialize
+        function initializePage() {
+          const now = new Date();
+          const todayDateOnly = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          const day2Date = festivalDates[2];
+          let initialDay = "1";
+
+          // 本日がDAY2であればDAY2をデフォルトに
+          if (
+            todayDateOnly.getTime() === (day2Date ? day2Date.getTime() : null)
+          ) {
+            initialDay = "2";
+          }
+
+          daySelector.querySelectorAll(".day-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.day === initialDay);
+          });
+
+          renderPage(initialDay, true);
+          manageCurrentTimeIndicator();
+        }
+
+        if (typeof stageData !== "undefined") {
+          initializePage();
+        } else {
+          window.addEventListener("load", initializePage, { once: true });
+        }
+             if (typeof projectData !== 'undefined') {
+                const filteredProjects = projectData.filter(item => {
+                    return !item.tags || !item.tags.includes('ステージ');
+                });
+                setupHighlightAutoScroll('carousel-projects', filteredProjects);
+            }
+            if (typeof stageData !== 'undefined') {
+                setupHighlightAutoScroll('carousel-stage', stageData);
+            }
+        });
+    </script>
+    
+    <!-- Updates Preview Logic -->
+    <script type="module">
+        import { updatesList } from './data/updates.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('updates-preview-list');
+            if (!container) return;
+
+            if (!updatesList || updatesList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-sub); font-size: 0.9rem;">お知らせはありません。</div>';
+                return;
+            }
+
+            const sortedList = [...updatesList].slice(0, 3);
+
+            let html = '';
+            sortedList.forEach(update => {
+                const badgeHtml = update.badge ? `<span style="background:var(--primary-color); color:white; font-size:0.6rem; padding: 2px 6px; border-radius: 4px; font-weight:bold; margin-right:6px;">${update.badge}</span>` : '';
+                html += `
+                    <a href="updates.html?id=${update.id}" class="update-preview-item" data-track="click_update_preview">
+                        <h3 class="update-preview-title">${badgeHtml}${update.title}</h3>
+                        <i class="fas fa-chevron-right" style="margin-left: auto; color: var(--text-sub); font-size: 0.8rem;"></i>
+                    </a>
+                `;
+            });
+
+            container.innerHTML = html;
+        });
+    </script>
+
+    <!-- Master Data (stageData / projectData) -->
+    <script src="data/data.js"></script>
+    <!-- App Shell Logic -->
+    <script type="module" src="app-shell.js"></script>
+
+    <!-- Realtime Venue Status -->
+    <script type="module">
+        import { db } from './auth.js';
+        import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const venuesRef = collection(db, 'venues');
+        console.log("Starting venue status listener...");
+        
+        onSnapshot(venuesRef, (snapshot) => {
+            snapshot.forEach(doc => {
+                const id = doc.id; // gym, music_room, av_room
+                const data = doc.data();
+                console.log(`Venue update: ${id}`, data);
+                
+                const current = document.getElementById(`current-${id}`);
+                const next = document.getElementById(`next-${id}`);
+                
+                if (current && next) {
+                    let newStatusText = '準備中';
+                    let newStatusClass = data.status || 'preparing';
+                    switch(data.status) {
+                        case 'live': newStatusText = '開催中'; break;
+                        case 'soon': newStatusText = 'まもなく開始'; break;
+                        case 'preparing': newStatusText = '準備中'; break;
+                        case 'ended': newStatusText = '終了'; break;
+                    }
+
+                    const getStageHTML = (eventId, isCurrent) => {
+                        if (!eventId) return null;
+                        const stages = window.stageData || [];
+                        const stage = stages.find(s => s.id === eventId);
+                        if (stage) {
+                            const projects = window.projectData || [];
+                            const project = projects.find(p => 
+                                (p.groupName || "").trim() === (stage.groupName || "").trim() ||
+                                (p.id && stage.id.startsWith(p.id + "_")) ||
+                                (p.id && stage.id === p.id)
+                            );
+                            
+                            // projectDataに対応があればそのID、なくてもstageDataのIDでリンク
+                            const linkUrl = project ? `detail.html?id=${project.id}` : `detail.html?id=${stage.id}`;
+                            const arrowIcon = `<i class="fas fa-chevron-right venue-arrow"></i>`;
+                            
+                             const commonContent = `
+                                 <div class="venue-info">
+                                     <div class="venue-group-name">${stage.groupName}</div>
+                                     <div class="venue-event-name">${stage.name}</div>
+                                     <div class="venue-time">${stage.time}</div>
+                                 </div>
+                                 ${arrowIcon}
+                             `;
+ 
+                             if (isCurrent) {
+                                 return `
+                                     <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
+                                     <a href="${linkUrl}" class="venue-link-block" onclick="event.stopPropagation()">
+                                         ${commonContent}
+                                     </a>
+                                 `;
+                             } else {
+                                 return `
+                                     <div class="venue-next-label">NEXT</div>
+                                     <a href="${linkUrl}" class="venue-next-block" onclick="event.stopPropagation()">
+                                         ${commonContent}
+                                     </a>
+                                 `;
+                             }
+                        }
+                        return null;
+                    };
+
+                    const newCurrentHTML = getStageHTML(data.currentEventId, true) || `
+                        <div class="venue-status-indicator ${newStatusClass}"><span class="dot"></span>${newStatusText}</div>
+                        <div class="venue-link-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-group-name">（未設定）</div>
+                                <div class="venue-time">--:--</div>
+                            </div>
+                        </div>
+                    `;
+                    const newNextHTML = getStageHTML(data.nextEventId, false) || `
+                        <div class="venue-next-label">NEXT</div>
+                        <div class="venue-next-block" style="opacity: 0.5;">
+                            <div class="venue-info">
+                                <div class="venue-next-title">―</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Update with fade animation if changed
+                    const updateWithFade = (element, newHTML) => {
+                        if (element.innerHTML.trim() !== newHTML.trim()) {
+                            element.style.transition = 'opacity 0.3s ease';
+                            element.style.opacity = '0';
+                            setTimeout(() => {
+                                element.innerHTML = newHTML;
+                                element.style.opacity = '1';
+                            }, 300);
+                        }
+                    };
+
+                    updateWithFade(current, newCurrentHTML);
+                    updateWithFade(next, newNextHTML);
+                }
+            });
+        }, (error) => {
+            console.error("会場ステータスの取得に失敗しました:", error);
+        });
+    </script>
+</body>
+</html>

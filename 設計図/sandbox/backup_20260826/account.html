@@ -1,0 +1,972 @@
+<!--
+  Nanryosai 2026
+  Version: 0.2.0
+  Last Modified: 2026-05-07
+  Author: Nanryosai 2026 Project Team
+
+  v0.2.0: 未ログイン時を login.html へリダイレクトに統一 (Phase D)
+  v0.1.0: 初版
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("app-theme") || "auto";
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイページ | 南陵祭'26</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <style>
+      .profile-header {
+        text-align: center;
+        padding: 24px 16px;
+        background: var(--card-bg);
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 4px 15px var(--shadow-color);
+        margin-bottom: 20px;
+      }
+      .profile-img-lg {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--border-color);
+        margin: 0 auto 12px;
+        overflow: hidden;
+        border: 3px solid var(--card-bg);
+        box-shadow: 0 6px 12px var(--shadow-color);
+      }
+      .profile-img-lg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .profile-name {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+        color: var(--text-main);
+      }
+      .profile-email {
+        color: var(--text-sub);
+        font-size: 0.9rem;
+      }
+
+      .section-title {
+        padding: 0 20px;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-main);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: var(--card-bg);
+        padding: 16px 12px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 4px 10px var(--shadow-color);
+        transition: transform 0.2s;
+      }
+      .stat-card:active {
+        transform: scale(0.98);
+      }
+      .stat-num {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--primary-color);
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        margin-top: 5px;
+        font-weight: bold;
+      }
+      .stat-card {
+        transition:
+          transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+          box-shadow 0.3s ease;
+        cursor: default;
+      }
+      .stat-card[id="card-order-count"] {
+        cursor: pointer;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+      }
+
+      .menu-list {
+        padding: 0;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-weight: 500;
+        transition:
+          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          color 0.2s ease;
+        cursor: pointer;
+      }
+      .menu-item:hover {
+        transform: translateX(6px);
+        color: var(--primary-color);
+      }
+      .menu-item i,
+      .logout-btn i {
+        width: 30px;
+        text-align: center;
+        margin-right: 15px;
+        color: var(--primary-color);
+        transition: color 0.2s ease;
+      }
+      .logout-btn i {
+        color: #ff4757 !important;
+      }
+      .menu-item:hover i {
+        color: var(--brand-color);
+      }
+      .menu-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Menu items are standard div.menu-item */
+
+      /* Loading State */
+      .loading-skeleton {
+        animation: pulse 1.5s infinite;
+        background: var(--border-color);
+        color: transparent !important;
+        border-radius: 4px;
+      }
+
+      /* Order History Styles - Compact */
+      .order-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .order-card:active {
+        transform: scale(0.98);
+      }
+      .order-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--item-fill);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+      }
+      .order-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .order-info-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .store-name {
+        font-weight: 700;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .order-date {
+        font-size: 0.7rem;
+        color: var(--text-sub);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .order-items {
+        font-size: 0.75rem;
+        color: var(--text-sub);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 2px 0;
+      }
+      .order-info-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .order-price {
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: var(--text-main);
+      }
+      .status-badge {
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: bold;
+      }
+
+      .header-count-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: 6px;
+      }
+
+      .section-title {
+        padding: 0;
+        margin-bottom: 10px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--text-main);
+        cursor: pointer;
+        user-select: none;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .section-title:hover {
+        opacity: 0.8;
+        transform: translateY(-2px);
+      }
+
+      /* Toggle Arrow */
+      .toggle-icon {
+        transition: transform 0.3s ease;
+      }
+      .section-closed .toggle-icon {
+        transform: rotate(-90deg);
+      }
+
+      /* Collapsible Content */
+      .collapsible-content {
+        overflow: hidden;
+        transition:
+          max-height 0.3s ease,
+          opacity 0.3s ease;
+        max-height: 2000px; /* Arbitrary large height */
+        opacity: 1;
+      }
+      .section-closed + .collapsible-content {
+        max-height: 0;
+        opacity: 0;
+        padding-bottom: 0 !important;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      /* Toggle Switch CSS */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--primary-color);
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- Authenticated User Content -->
+      <div id="auth-content">
+        <div id="profile-area">
+          <!-- Loaded by JS -->
+          <div class="profile-header">
+            <div class="profile-img-lg loading-skeleton"></div>
+            <div
+              class="profile-name loading-skeleton"
+              style="width: 150px; height: 30px; margin: 0 auto"
+            ></div>
+            <div
+              class="profile-email loading-skeleton"
+              style="width: 200px; height: 20px; margin: 10px auto 0"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="account-section">
+          <div class="dashboard-grid">
+            <div class="stat-card" id="card-order-count">
+              <div class="stat-num" id="stat-orders">-</div>
+              <div class="stat-label">注文数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-favorites">0</div>
+              <div class="stat-label">お気に入り</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Favorites Section -->
+        <div class="account-section" id="favorites-section" style="margin-top: 10px">
+          <h3 class="section-title section-closed" id="favorites-toggle" data-track="click_account_accordion" data-track-section="favorites">
+            <span style="display: flex; align-items: center">
+              🌟 お気に入り
+              <span id="fav-count-badge" class="header-count-badge">0</span>
+            </span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+          </h3>
+          <div class="collapsible-content">
+            <div id="favorites-list">
+              <div
+                style="
+                  text-align: center;
+                  padding: 16px;
+                  color: var(--text-sub);
+                  background: var(--card-bg);
+                  border-radius: 12px;
+                  border: 1px dashed var(--border-color);
+                  font-size: 0.85rem;
+                  margin-bottom: 16px;
+                "
+              >
+                お気に入り機能は準備中です
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order History Section -->
+        <div class="account-section" id="order-history-section" style="margin-top: 10px">
+          <h3 class="section-title section-closed" id="order-history-toggle" data-track="click_account_accordion" data-track-section="order_history">
+            <span style="display: flex; align-items: center">
+              📦 注文履歴
+              <span id="order-count-badge" class="header-count-badge">-</span>
+            </span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+          </h3>
+          <div class="collapsible-content">
+            <div id="order-list">
+              <!-- Orders will be injected here -->
+              <div
+                class="loading-skeleton"
+                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
+              ></div>
+              <div
+                class="loading-skeleton"
+                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="account-section" style="margin-top: 16px; margin-bottom: 40px">
+          <h3 class="section-title" style="cursor: default">⚙️ 設定</h3>
+          <div
+            class="menu-list"
+            style="
+              background: var(--card-bg);
+              border-radius: 16px;
+              padding: 6px 16px;
+            "
+          >
+            <div class="menu-item" style="justify-content: space-between">
+              <div style="display: flex; align-items: center">
+                <i class="bi bi-bell"></i> 呼び出し通知
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notification-toggle" data-track="toggle_notification" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="menu-item" onclick="window.location.href = 'terms.html'" data-track="click_account_menu" data-track-target="terms">
+              <i class="bi bi-file-text"></i> 利用規約
+            </div>
+            <!-- Logout Button -->
+            <div
+              class="menu-item"
+              id="btn-logout"
+              data-track="click_account_menu" data-track-target="logout"
+            >
+              <i class="bi bi-box-arrow-right"></i>
+              ログアウト
+            </div>
+            <!-- Delete Account Button -->
+            <div
+              class="menu-item"
+              id="btn-delete-account"
+              style="border-bottom: none; cursor: pointer"
+              data-track="click_account_menu" data-track-target="delete_account"
+            >
+              <i class="bi bi-trash"></i> アカウント削除
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      window.CURRENT_PAGE = "account";
+    </script>
+    <script src="data/data.js"></script>
+    <script type="module" src="app-shell.js"></script>
+
+    <!-- Account Page specific logic -->
+    <script type="module">
+      import { watchUser, logout, db, app, auth, getFavorites, toggleFavorite } from "./auth.js";
+      import {
+        collection,
+        query,
+        where,
+        getCountFromServer,
+        getDocs,
+        getDoc,
+        orderBy,
+        limit,
+        updateDoc,
+        doc,
+        arrayUnion,
+        arrayRemove,
+        deleteDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        getMessaging,
+        getToken,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+      import { deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+      const profileArea = document.getElementById("profile-area");
+      const logoutBtn = document.getElementById("btn-logout");
+
+      const orderHistorySection = document.getElementById(
+        "order-history-section",
+      );
+      const orderList = document.getElementById("order-list");
+      const orderHistoryToggle = document.getElementById(
+        "order-history-toggle",
+      );
+      const favoritesToggle = document.getElementById("favorites-toggle");
+
+      // Generalized Toggle Logic
+      [orderHistoryToggle, favoritesToggle].forEach((toggle) => {
+        if (toggle) {
+          toggle.addEventListener("click", () => {
+            toggle.classList.toggle("section-closed");
+          });
+        }
+      });
+
+      // Notification Logic
+      const notificationToggle = document.getElementById("notification-toggle");
+      const messaging = getMessaging(app);
+      const VAPID_KEY =
+        "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
+
+      // Check permission and Device support on load
+      const isIOSorMac =
+        /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        /Macintosh/i.test(navigator.userAgent);
+
+      if (isIOSorMac) {
+        notificationToggle.disabled = true;
+        notificationToggle.parentElement.parentElement.title =
+          "この端末は通知に対応していません";
+        // Optional: Add visual label
+        const label = notificationToggle.parentElement.previousElementSibling;
+        if (label)
+          label.innerHTML +=
+            ' <span style="font-size:0.75rem; color:var(--status-unpaid);">(非対応)</span>';
+      } else if (Notification.permission === "granted") {
+        notificationToggle.checked = true;
+      }
+
+      notificationToggle.addEventListener("change", async (e) => {
+        const user = window.CURRENT_USER_OBJ;
+        if (!user) {
+          alert("ログインが必要です");
+          e.target.checked = false;
+          return;
+        }
+
+        if (e.target.checked) {
+          // Request Permission
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+              await saveToken(user);
+            } else {
+              alert("通知権限が拒否されました");
+              e.target.checked = false;
+            }
+          } catch (err) {
+            console.error("Notification Error:", err);
+            alert("エラーが発生しました: " + err.message);
+            e.target.checked = false;
+          }
+        } else {
+          alert(
+            "通知をオフにしました（完全に無効化するにはブラウザの設定も変更してください）",
+          );
+        }
+      });
+
+      async function saveToken(user) {
+        try {
+          // Register Service Worker first (Required for onMessage in background)
+          const registration = await navigator.serviceWorker.register(
+            "./firebase-messaging-sw.js",
+          );
+
+          // Wait for the service worker to be ready (active) to avoid "no active Service Worker" errors
+          const swReg = await navigator.serviceWorker.ready;
+
+          const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+          });
+
+          if (token) {
+            await updateDoc(doc(db, "users", user.uid), {
+              fcmTokens: arrayUnion(token),
+              notificationEnabled: true,
+            });
+            // Success feedback
+            // alert('通知設定をオンにしました'); // Optional: Toggle is visual enough
+          } else {
+            console.warn("No registration token available.");
+            alert("トークンの取得に失敗しました");
+            notificationToggle.checked = false;
+          }
+        } catch (error) {
+          console.error("An error occurred while retrieving token. ", error);
+          alert("通知設定のエラー: " + error.message);
+          notificationToggle.checked = false;
+        }
+      }
+
+      // Store user globally for access in event listeners
+      window.CURRENT_USER_OBJ = null;
+
+      // Cache stores
+      let storesCache = {};
+
+      // Fallback Timeout: If auth takes too long, redirect
+      const authTimeout = setTimeout(() => {
+        if (!window.CURRENT_USER_OBJ) {
+          console.warn("Auth timeout - redirecting to login");
+          const redirectTarget = encodeURIComponent("./account.html");
+          window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
+        }
+      }, 2500);
+
+      // UI Update Logic extracted for manual trigger
+      function handleUserUpdate(user) {
+        clearTimeout(authTimeout);
+
+        if (user) {
+          window.CURRENT_USER_OBJ = user;
+
+          renderProfile(user);
+          fetchOrderCount(user.uid);
+          fetchOrderHistory(user.uid);
+          fetchFavoritesList(user.uid);
+        } else {
+          const redirectTarget = encodeURIComponent("./account.html");
+          window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
+        }
+      }
+
+      // Initialize Listener
+      watchUser(handleUserUpdate);
+
+      // --- Missing Functions Implementation ---
+
+      async function renderProfile(user) {
+        const nameEl = document.querySelector(".profile-name");
+        const emailEl = document.querySelector(".profile-email");
+        const imgContainer = document.querySelector(".profile-img-lg");
+
+        if (nameEl) {
+          nameEl.classList.remove("loading-skeleton");
+          nameEl.removeAttribute("style"); // Clear fixed width/height from skeleton
+        }
+        if (emailEl) {
+          emailEl.classList.remove("loading-skeleton");
+          emailEl.removeAttribute("style"); // Clear fixed width/height from skeleton
+        }
+        if (imgContainer) imgContainer.classList.remove("loading-skeleton");
+
+        if (nameEl) nameEl.textContent = user.displayName || "ゲストユーザー";
+        if (emailEl) emailEl.textContent = user.email || "";
+
+        if (imgContainer) {
+          if (user.photoURL) {
+            imgContainer.innerHTML = `<img src="${user.photoURL}" alt="Profile">`;
+          } else {
+            imgContainer.innerHTML = `<i class="bi bi-person-fill" style="font-size: 60px; color: #ccc; display: flex; align-items: center; justify-content: center; height: 100%;"></i>`;
+          }
+        }
+      }
+
+      async function fetchOrderCount(uid) {
+        try {
+          const q = query(collection(db, "orders"), where("userId", "==", uid));
+          const snapshot = await getCountFromServer(q);
+          const count = snapshot.data().count;
+          const badge = document.getElementById("order-count-badge");
+          if (badge) badge.textContent = count;
+          const statEl = document.getElementById("stat-orders");
+          if (statEl) statEl.textContent = count;
+        } catch (e) {
+          console.error("Order Count Error:", e);
+        }
+      }
+
+      async function fetchFavoritesList(uid) {
+        const list = document.getElementById("favorites-list");
+        const favBadge = document.getElementById("fav-count-badge");
+        const statFavs = document.getElementById("stat-favorites");
+        if (!list) return;
+
+        try {
+          const favorites = await getFavorites();
+          if (favBadge) favBadge.textContent = favorites.length;
+          if (statFavs) statFavs.textContent = favorites.length;
+
+          if (favorites.length === 0) {
+            list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">お気に入りがありません</div>`;
+            return;
+          }
+
+          list.innerHTML = "";
+          
+          favorites.forEach(favId => {
+             let item = null;
+             let typeStr = "";
+             if (typeof projectData !== "undefined") {
+                 item = projectData.find(p => p.id === favId);
+                 if (item) typeStr = "企画";
+             }
+             if (!item && typeof stageData !== "undefined") {
+                 item = stageData.find(s => s.id === favId);
+                 if (item) typeStr = "ステージ";
+             }
+             
+             if (!item) return;
+
+             let imgPath = `../images/${item.id}.png`;
+
+             let detailsHTML = `<span>${item.groupName || item.place || ''}</span>`;
+             if (typeStr === "ステージ") {
+                 detailsHTML = `
+                     <span>${item.groupName || ''}</span>
+                     <span style="display:flex;align-items:center;gap:2px;"><i class="bi bi-clock"></i> ${item.time || ''}</span>
+                     <span style="display:flex;align-items:center;gap:2px;"><i class="bi bi-geo-alt"></i> ${item.place || ''}</span>
+                 `;
+             }
+
+             const el = document.createElement("div");
+             el.className = "order-card"; // 既存のスタイルを流用
+             el.style.cursor = "pointer";
+             
+             el.innerHTML = `
+                 <div style="width: 50px; height: 50px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--item-fill); border: 1px solid var(--border-color);">
+                     <img src="${imgPath}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                 </div>
+                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'" style="padding: 2px 0;">
+                     <div class="order-info-top" style="margin-bottom: 4px;">
+                         <span class="store-name" style="font-size: 0.95rem; line-height: 1.2;">${item.name}</span>
+                     </div>
+                     <div class="order-items" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-sub);">
+                         <span style="background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">${typeStr}</span>
+                         ${detailsHTML}
+                     </div>
+                 </div>
+                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto;" aria-label="Remove Favorite">
+                     <i class="bi bi-star"></i>
+                 </button>
+             `;
+             
+             const favBtn = el.querySelector(".btn-favorite-star");
+             favBtn.addEventListener("click", async (e) => {
+                 e.stopPropagation();
+                 favBtn.classList.remove("active");
+                 try {
+                     await toggleFavorite(favId);
+                     fetchFavoritesList(uid); // リスト再描画
+                 } catch(err) {
+                     favBtn.classList.add("active");
+                 }
+             });
+             
+             list.appendChild(el);
+          });
+        } catch (e) {
+          console.error("Fetch Favorites Error:", e);
+        }
+      }
+
+      async function fetchOrderHistory(uid) {
+        const list = document.getElementById("order-list");
+        if (!list) return;
+
+        try {
+          const q = query(
+            collection(db, "orders"),
+            where("userId", "==", uid),
+            orderBy("createdAt", "desc"),
+            limit(10),
+          );
+
+          const snap = await getDocs(q);
+          list.innerHTML = "";
+
+          if (snap.empty) {
+            list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">注文履歴がありません</div>`;
+            return;
+          }
+
+          for (const d of snap.docs) {
+            const data = d.data();
+            const orderId = d.id;
+            const date = data.createdAt
+              ? data.createdAt
+                  .toDate()
+                  .toLocaleString("ja-JP", {
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+              : "---";
+            const total = data.totalPrice;
+            const statusText = translateStatus(data.status);
+            const statusColor = getStatusColor(data.status);
+
+            // Fetch Store Name
+            let storeName = "読み込み中...";
+            if (storesCache[data.storeId]) {
+              storeName = storesCache[data.storeId];
+            }
+
+            const el = document.createElement("div");
+            el.className = "order-card";
+            // Link to Status Page
+            el.onclick = () => {
+              window.location.href = `../pos/status.html?orderId=${orderId}`;
+            };
+            el.style.cursor = "pointer";
+
+            // Items Summary
+            const itemNames = (data.items || [])
+              .map((i) => `${i.name} x${i.quantity}`)
+              .join("、");
+
+            el.innerHTML = `
+                        <div class="order-icon">
+                            <i class="bi bi-receipt" style="color: var(--primary-color)"></i>
+                        </div>
+                        <div class="order-info">
+                            <div class="order-info-top">
+                                <span class="store-name" id="store-name-${orderId}">${storeName}</span>
+                                <span class="order-date">${date}</span>
+                            </div>
+                            <div class="order-items">${itemNames}</div>
+                            <div class="order-info-bottom">
+                                <span class="order-price">¥${total}</span>
+                                <span class="status-badge" style="background: ${statusColor}; color: white;">${statusText}</span>
+                            </div>
+                        </div>
+                    `;
+            list.appendChild(el);
+
+            if (!storesCache[data.storeId]) {
+              fetchStoreName(data.storeId, `store-name-${orderId}`);
+            }
+          }
+        } catch (e) {
+          console.error("History Error:", e);
+          list.innerHTML = `<div style="color:red; text-align:center;">読み込みエラー</div>`;
+        }
+      }
+
+      async function fetchStoreName(storeId, elementId) {
+        if (storesCache[storeId]) {
+          const el = document.getElementById(elementId);
+          if (el) el.textContent = storesCache[storeId];
+          return;
+        }
+        try {
+          const snap = await getDoc(doc(db, "stores", storeId));
+          if (snap.exists()) {
+            const name = snap.data().name;
+            storesCache[storeId] = name;
+            const el = document.getElementById(elementId);
+            if (el) el.textContent = name;
+          } else {
+            storesCache[storeId] = "不明な店舗"; // Cache failed lookup to avoid loops
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      // Logout Logic
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          if (confirm("ログアウトしますか？")) {
+            await logout();
+          }
+        });
+      }
+
+      // Delete Account Logic
+      const deleteBtn = document.getElementById("btn-delete-account");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async () => {
+          const user = auth.currentUser;
+          if (!user) return;
+
+          if (
+            confirm(
+              "アカウントを完全に削除しますか？\nこの操作は取り消せません。\n(注文履歴などのデータも削除されます)",
+            )
+          ) {
+            try {
+              // 1. Delete user document from Firestore
+              await deleteDoc(doc(db, "users", user.uid));
+
+              // 2. Delete the user from Firebase Auth
+              await deleteUser(user);
+
+              alert("アカウントを削除しました。ご利用ありがとうございました。");
+            } catch (error) {
+              console.error("Account deletion failed:", error);
+              if (error.code === "auth/requires-recent-login") {
+                alert(
+                  "セキュリティ上の理由から、この操作を行うには再度ログインが必要です。一度ログアウトして再度ログインしてから実行してください。",
+                );
+              } else {
+                alert("アカウントの削除中にエラーが発生しました: " + error.message);
+              }
+            }
+          }
+        });
+      }
+
+      function translateStatus(s) {
+        if (s === "cooking") return "調理中";
+        if (s === "ready_to_serve") return "準備中";
+        if (s === "ready_for_pickup") return "呼出中";
+        if (s === "completed") return "受取完了";
+        if (s === "cancelled") return "キャンセル";
+        if (s === "abandoned") return "期限切れ";
+        return "調理中";
+      }
+
+      function getStatusColor(s) {
+        if (s === "cooking") return "#f59e0b";
+        if (s === "ready_to_serve") return "#3b82f6";
+        if (s === "ready_for_pickup") return "#10b981";
+        if (s === "completed") return "#10b981";
+        if (s === "cancelled") return "#ef4444";
+        if (s === "abandoned") return "#9ca3af";
+        return "#f59e0b";
+      }
+    </script>
+  </body>
+</html>

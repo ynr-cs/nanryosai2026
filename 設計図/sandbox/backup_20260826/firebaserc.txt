@@ -1,0 +1,5 @@
+{
+  "projects": {
+    "default": "nanryosai-2026-a4091"
+  }
+}
