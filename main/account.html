@@ -388,6 +388,195 @@
         color: var(--text-sub);
         font-size: 0.85rem;
       }
+
+      /* UID Badge Styles */
+      .user-uid-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--item-fill);
+        border: 1px solid var(--border-color);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        margin-top: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        max-width: 90%;
+      }
+      .user-uid-badge:hover {
+        background: var(--card-bg);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+      .user-uid-badge:active {
+        transform: scale(0.97);
+      }
+      .uid-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .btn-copy-uid {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+      }
+
+      /* Modern Nickname Edit Styles */
+      .nickname-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 2px;
+      }
+      .btn-edit-nick {
+        background: var(--item-fill);
+        border: 1px solid var(--border-color);
+        color: var(--text-sub);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .btn-edit-nick:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+        transform: scale(1.08);
+      }
+      .nickname-edit-panel {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin: 10px auto 4px;
+        max-width: 320px;
+        box-shadow: 0 4px 15px var(--shadow-color);
+        animation: fadeInDown 0.25s ease-out;
+      }
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .nickname-input-group {
+        position: relative;
+        margin-bottom: 10px;
+      }
+      .nickname-input {
+        width: 100%;
+        padding: 8px 48px 8px 12px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-main);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+        box-sizing: border-box;
+      }
+      .nickname-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+      }
+      .char-counter {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.7rem;
+        color: var(--text-sub);
+        pointer-events: none;
+      }
+      .nickname-action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .btn-nick-cancel {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-sub);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-nick-cancel:hover {
+        background: var(--item-fill);
+        color: var(--text-main);
+      }
+      .btn-nick-save {
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 20px;
+        border: none;
+        background: var(--primary-color);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .btn-nick-save:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: var(--text-sub);
+      }
+      .btn-nick-save:not(:disabled):hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(108, 92, 231, 0.3);
+      }
+      .toast-feedback {
+        position: fixed;
+        bottom: calc(var(--bottom-nav-height, 70px) + 20px);
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(30, 41, 59, 0.92);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 24px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(8px);
+      }
+      .toast-feedback.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
     </style>
   </head>
   <body>
@@ -406,23 +595,49 @@
             <div class="profile-img-lg" style="display:flex; align-items:center; justify-content:center; background:var(--item-fill); border:2px solid var(--border-color);">
               <i class="bi bi-person-fill" style="font-size: 40px; color: var(--text-sub);"></i>
             </div>
-            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:6px;">
+            
+            <!-- Nickname Display & Edit Trigger -->
+            <div class="nickname-wrap">
               <span id="display-nickname" class="profile-name" style="margin-bottom:0;">---</span>
-              <button id="btn-edit-nickname" class="btn btn-sm btn-outline-secondary" style="padding:2px 8px; font-size:0.75rem; border-radius:12px;" aria-label="ニックネーム編集">
-                <i class="bi bi-pencil" style="margin:0; width:auto;"></i>
+              <button id="btn-edit-nickname" class="btn-edit-nick" aria-label="ニックネーム編集" title="ニックネームを変更">
+                <i class="bi bi-pencil-fill"></i>
               </button>
             </div>
-            <div id="nickname-edit-box" style="display:none; margin:8px auto; max-width:240px;">
-              <div style="display:flex; gap:6px;">
-                <input type="text" id="input-nickname" maxlength="20" placeholder="ニックネーム" style="flex:1; padding:4px 8px; font-size:0.85rem; border-radius:6px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-main);" />
-                <button id="btn-save-nickname" class="btn btn-sm btn-primary" style="padding:4px 10px; font-size:0.8rem; border-radius:6px;">保存</button>
-                <button id="btn-cancel-nickname" class="btn btn-sm btn-outline-secondary" style="padding:4px 8px; font-size:0.8rem; border-radius:6px;">取消</button>
+
+            <!-- Modern Nickname Edit Panel -->
+            <div id="nickname-edit-box" class="nickname-edit-panel" style="display:none;">
+              <div class="nickname-input-group">
+                <input type="text" id="input-nickname" class="nickname-input" maxlength="20" placeholder="新しいニックネーム" autocomplete="off" />
+                <span id="char-counter" class="char-counter">0/20</span>
+              </div>
+              <div class="nickname-action-row">
+                <button type="button" id="btn-cancel-nickname" class="btn-nick-cancel">キャンセル</button>
+                <button type="button" id="btn-save-nickname" class="btn-nick-save" disabled>
+                  <i class="bi bi-check2"></i> 保存
+                </button>
               </div>
             </div>
-            <div id="student-badge-area" style="margin-top:8px;">
+
+            <!-- Student / Visitor Badge -->
+            <div id="student-badge-area" style="margin-top:6px;">
               <span id="student-badge" class="badge" style="font-size:0.8rem; padding:6px 12px; border-radius:20px; font-weight:600; background:var(--item-fill); color:var(--text-sub); border:1px solid var(--border-color);">確認中...</span>
             </div>
+
+            <!-- UID Badge (Copyable) -->
+            <div style="margin-top:4px;">
+              <div class="user-uid-badge" id="user-uid-badge" title="タップしてUIDをコピー">
+                <i class="bi bi-fingerprint" style="color:var(--primary-color);"></i>
+                <span id="display-uid" class="uid-text">UID: 読み込み中...</span>
+                <i class="bi bi-copy" id="icon-copy-uid" style="font-size:0.75rem; margin-left:2px; opacity:0.7;"></i>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <!-- Toast Notification Feedback -->
+        <div id="toast-feedback" class="toast-feedback">
+          <i class="bi bi-check-circle-fill text-success" id="toast-icon"></i>
+          <span id="toast-message">更新しました</span>
         </div>
 
         <!-- Dashboard Stats -->
@@ -719,6 +934,28 @@
       // Initialize Listener
       watchUser(handleUserUpdate);
 
+      // Helper: Toast Message
+      let toastTimer = null;
+      function showToast(message, isSuccess = true) {
+        const toast = document.getElementById("toast-feedback");
+        const msgEl = document.getElementById("toast-message");
+        const iconEl = document.getElementById("toast-icon");
+        if (!toast || !msgEl) return;
+
+        msgEl.textContent = message;
+        if (iconEl) {
+          iconEl.className = isSuccess
+            ? "bi bi-check-circle-fill text-success"
+            : "bi bi-exclamation-triangle-fill text-warning";
+        }
+
+        toast.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2600);
+      }
+
       // --- Profile & Nickname Management ---
       async function renderProfile(user) {
         const displayNick = document.getElementById("display-nickname");
@@ -728,8 +965,33 @@
         const btnSave = document.getElementById("btn-save-nickname");
         const btnCancel = document.getElementById("btn-cancel-nickname");
         const inputNick = document.getElementById("input-nickname");
+        const charCounter = document.getElementById("char-counter");
+        const displayUid = document.getElementById("display-uid");
+        const uidBadge = document.getElementById("user-uid-badge");
+        const iconCopy = document.getElementById("icon-copy-uid");
 
-        // 1. Firestore から nickname を取得
+        // 1. UID の表示 & コピー設定
+        if (displayUid) {
+          displayUid.textContent = `UID: ${user.uid}`;
+        }
+        if (uidBadge) {
+          uidBadge.onclick = async () => {
+            try {
+              await navigator.clipboard.writeText(user.uid);
+              if (iconCopy) {
+                iconCopy.className = "bi bi-check2 text-success";
+                setTimeout(() => {
+                  iconCopy.className = "bi bi-copy";
+                }, 2000);
+              }
+              showToast("UIDをコピーしました", true);
+            } catch (err) {
+              console.warn("Copy UID failed:", err);
+            }
+          };
+        }
+
+        // 2. Firestore から nickname を取得
         let currentNick = "南陵祭来場者";
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -741,7 +1003,7 @@
         }
         if (displayNick) displayNick.textContent = currentNick;
 
-        // 2. Custom Claims から在校生ステータスを判定
+        // 3. Custom Claims から在校生ステータスを判定
         try {
           const claims = await getClaims();
           if (isEffectiveStudent(claims)) {
@@ -763,40 +1025,76 @@
           console.warn("Failed to check claims:", e);
         }
 
-        // 3. ニックネーム編集イベント
-        if (btnEdit) {
-          btnEdit.onclick = () => {
-            if (inputNick) inputNick.value = displayNick.textContent === "南陵祭来場者" ? "" : displayNick.textContent;
-            if (editBox) editBox.style.display = "block";
+        // 4. ニックネームバリデーション関数
+        function validateNickname() {
+          if (!inputNick || !btnSave) return;
+          const val = (inputNick.value || "").trim();
+          const len = inputNick.value.length;
+          if (charCounter) charCounter.textContent = `${len}/20`;
+
+          // 空文字、または現在と同じなら disabled
+          if (val.length === 0 || val === currentNick) {
+            btnSave.disabled = true;
+          } else {
+            btnSave.disabled = false;
+          }
+        }
+
+        // 5. ニックネーム編集イベント
+        if (inputNick) {
+          inputNick.oninput = validateNickname;
+          inputNick.onkeydown = (e) => {
+            if (e.key === "Enter" && !btnSave.disabled) {
+              btnSave.click();
+            } else if (e.key === "Escape") {
+              if (btnCancel) btnCancel.click();
+            }
           };
         }
+
+        if (btnEdit) {
+          btnEdit.onclick = () => {
+            if (inputNick) {
+              inputNick.value = currentNick === "南陵祭来場者" ? "" : currentNick;
+              validateNickname();
+            }
+            if (editBox) {
+              editBox.style.display = "block";
+              if (inputNick) inputNick.focus();
+            }
+          };
+        }
+
         if (btnCancel) {
           btnCancel.onclick = () => {
             if (editBox) editBox.style.display = "none";
           };
         }
+
         if (btnSave) {
           btnSave.onclick = async () => {
             const newNick = (inputNick.value || "").trim();
-            if (!newNick) {
-              alert("ニックネームを入力してください。");
-              return;
-            }
+            if (!newNick || newNick === currentNick) return;
+
             btnSave.disabled = true;
-            btnSave.textContent = "...";
+            btnSave.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:12px; height:12px; border-width:2px; display:inline-block; vertical-align:-1px;"></span> 保存中...`;
+
             try {
               await setDoc(
                 doc(db, "users", user.uid),
                 { nickname: newNick },
                 { merge: true },
               );
+              currentNick = newNick;
               displayNick.textContent = newNick;
               if (editBox) editBox.style.display = "none";
+              showToast("ニックネームを更新しました", true);
             } catch (e) {
-              alert("ニックネームの保存に失敗しました: " + e.message);
+              console.error("Nickname save error:", e);
+              showToast("保存に失敗しました: " + e.message, false);
             } finally {
-              btnSave.disabled = false;
-              btnSave.textContent = "保存";
+              btnSave.innerHTML = `<i class="bi bi-check2"></i> 保存`;
+              validateNickname();
             }
           };
         }
