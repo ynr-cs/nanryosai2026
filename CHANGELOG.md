@@ -13,6 +13,38 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.124] 認証システムV4移行：フロントエンド精密バグ修正・構文エラー解消・連携パラメータ統一 - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 専門サブエージェントによる全コードベース精密監査で特定された、フロントエンド（POS/運営/管理/一般画面）における構文エラー（SyntaxError）、未定義関数参照、パラメータ不整合、および潜在的クラッシュリスク（計7件）をすべて解消し、本番稼働の安定性を確保。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **注文状況画面 (`pos/status.html`)**:
+  - `main/auth.js` v1.0.0 で廃止された `login` の import を削除し、画面読み込み時の `SyntaxError` クラッシュを解消。
+  - 未ログイン時のログインボタン押下処理を `login.html?redirect=...` へのリダイレクト遷移に置換。
+  - `startListener` 内での `updateUI(data); fetchStoreName(data.storeId);` の2重実行を解消。
+- **店舗ポータル (`pos/portal.html`)**:
+  - L3468–3470 で同一スコープ内に2重宣言されていた `const urlParams` を1行に整理し、スクリプトパースエラーを解消。
+  - 重複して記述されていた `<div id="error-overlay">` ブロックを整理。
+- **SOK キオスク端末 (`pos/sok.html`)**:
+  - 未ログイン時のリダイレクト先を `./portal.html?return=${encodeURIComponent(window.location.href)}&s=${storeId}` に修正し、店舗ログイン後に SOK 画面へ正常に自動復帰するよう連携パラメータを統一。
+- **SOK 来場者スマホ画面 (`pos/sok-to.html`)**:
+  - Firestore import に `arrayUnion` を追加し、FCM トークン保存処理を `fcmTokens: arrayUnion(token)` に修正。Cloud Functions からのプッシュ通知送信と形式を一致化。
+- **マスタ同期 GUI (`main/admin_sync.html`)**:
+  - `_metadata/master_sync` の `updatedBy` に書き込む値を `currentUser.email`（V4では未定義のためエラー）から `currentUser.uid` に修正し、同期時の例外クラッシュを防止。
+  - `watchUser` / `updateAuthUI` に非 SuperAdmin および未ログインユーザーのアクセスを即座に遮断・リダイレクトする認可ガードを追加。
+- **BAN 画面 (`main/banned.html`)**:
+  - 演出セリフ内に残存していたダミーアドレス `guest@example.com` および `{email}。` プレースホルダーを全廃し、UID / ニックネーム演出に統一。
+- **受渡呼出画面 (`pos/presenter.html`)**:
+  - 連続して2重に記述されていた `<body>` タグを1つに整理。
+- **アプリシェル (`main/app-shell.js`)**:
+  - 未使用の import（`logout, getClaims, isEffectiveStudent, isSuperAdminClaims`）を整理。
+  - ボトムナビ HTML から未使用の `<img id="nav-icon-user">` を削除し、`initAuth` 内の `user.photoURL` 依存分岐を整理。
+
 ## [0.5.123] 認証システムV4移行：コードベース全体PII監査・サンプルコードクリーンアップ - 2026-08-30
 
 ### メタ情報

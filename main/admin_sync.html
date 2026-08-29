@@ -1102,28 +1102,33 @@
       // --- Auth Logic ---
       const btnLogout = document.getElementById("btn-logout");
       const userDisplay = document.getElementById("user-display");
-      const loginContainer = document.getElementById("admin-login-btn-container");
-
       async function updateAuthUI(user) {
-        currentUser = user;
-        if (user) {
-          const claims = await getClaims();
-          const isSuper = isSuperAdminClaims(claims);
-          userDisplay.innerHTML = `ID: ${user.uid.slice(0, 8)}...` + (isSuper ? ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>' : '');
-          if (loginContainer) loginContainer.style.display = "none";
-          btnLogout.style.display = "inline-block";
-          log(`Logged in: ${user.uid} (SuperAdmin: ${isSuper})`);
-        } else {
-          userDisplay.textContent = "未ログイン";
-          if (loginContainer) {
-            loginContainer.style.display = "inline-block";
-            if (!loginContainer.hasChildNodes()) {
-              renderGoogleLoginButton(loginContainer, () => {}, (err) => console.error(err));
-            }
-          }
-          btnLogout.style.display = "none";
-          log("Logged out.");
+        if (!user) {
+          alert("管理者権限（SuperAdmin）がありません。");
+          window.location.replace("./index.html");
+          return;
         }
+        try {
+          const claims = await getClaims();
+          if (!isSuperAdminClaims(claims)) {
+            alert("管理者権限（SuperAdmin）がありません。");
+            window.location.replace("./index.html");
+            return;
+          }
+        } catch (e) {
+          console.error("Auth claims error:", e);
+          alert("管理者権限（SuperAdmin）がありません。");
+          window.location.replace("./index.html");
+          return;
+        }
+
+        currentUser = user;
+        const claims = await getClaims();
+        const isSuper = isSuperAdminClaims(claims);
+        userDisplay.innerHTML = `ID: ${user.uid.slice(0, 8)}...` + (isSuper ? ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>' : '');
+        if (loginContainer) loginContainer.style.display = "none";
+        btnLogout.style.display = "inline-block";
+        log(`Logged in: ${user.uid} (SuperAdmin: ${isSuper})`);
       }
 
       if (btnLogout)
@@ -1318,7 +1323,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
             doc(db, "_metadata", "master_sync"),
             {
               version: syncVersion,
-              updatedBy: currentUser.email,
+              updatedBy: currentUser.uid,
               updatedAt: new Date(),
             },
             { merge: true },

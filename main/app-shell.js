@@ -11,7 +11,7 @@
  */
 
 // Import Auth Logic
-import { logout, watchUser, db, getCurrentUser, getClaims, isEffectiveStudent, isSuperAdminClaims } from "./auth.js";
+import { watchUser, db, getCurrentUser } from "./auth.js";
 import {
   collection,
   query,
@@ -359,13 +359,10 @@ const AppShell = {
                     <span class="nav-label">ステージ</span>
                 </a>
                 
-                <!-- Account / My Page Item with Dynamic Avatar -->
+                <!-- Account / My Page Item -->
                 <a href="${this.resolvePath("account.html")}" class="nav-item" data-page="account" data-track="click_nav_account">
                     <div id="nav-user-icon-container" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                        <!-- Default Icon -->
                          <i id="nav-icon-guest" class="bi bi-person-circle" style="font-size: 1.5rem;"></i>
-                         <!-- Dynamic Avatar -->
-                         <img id="nav-icon-user" class="user-avatar" src="" style="display: none;">
                     </div>
                     <span class="nav-label">アカウント</span>
                 </a>
@@ -776,30 +773,18 @@ const AppShell = {
 
   initAuth: function () {
     const guestIcon = document.getElementById("nav-icon-guest");
-    const userImg = document.getElementById("nav-icon-user");
 
     // Watch for auth changes and update BOTTOM NAV icon
     watchUser((user) => {
       if (user) {
-        if (userImg) {
-          if (user.photoURL) {
-            userImg.src = user.photoURL;
-            userImg.style.display = "block";
-          } else {
-            userImg.style.display = "none";
-          }
-        }
         if (guestIcon) {
-          guestIcon.style.display = user.photoURL ? "none" : "block";
           guestIcon.style.color = "var(--primary-color)";
         }
 
         // Check for active orders after auth is confirmed
         this.checkActiveOrder(user);
       } else {
-        if (userImg) userImg.style.display = "none";
         if (guestIcon) {
-          guestIcon.style.display = "block";
           guestIcon.style.color = "";
         }
         // Hide badge if logged out

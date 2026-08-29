@@ -625,7 +625,7 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
       /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
-      import { app, auth, db, login } from "../main/auth.js";
+      import { app, auth, db } from "../main/auth.js";
 
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);
@@ -677,9 +677,7 @@
             document.querySelector(".spinner-border").style.display = "none";
 
             document.getElementById("btn-login-status").onclick = () => {
-              login().catch((e) =>
-                alert(e.message)
-              );
+              window.location.href = "../main/login.html?redirect=" + encodeURIComponent(window.location.href);
             };
           }
         });
@@ -697,9 +695,6 @@
             }
             const data = docSnap.data();
             console.log("Order Data Update:", data); 
-            updateUI(data);
-            fetchStoreName(data.storeId);
-            
             updateUI(data);
             fetchStoreName(data.storeId);
           },

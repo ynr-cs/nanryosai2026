@@ -334,6 +334,7 @@
         where,
         limit,
         getDocs,
+        arrayUnion,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         httpsCallable,
@@ -784,7 +785,7 @@
           const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
           if (token) {
             await setDoc(doc(db, "users", currentUser.uid), {
-              fcmToken: token,
+              fcmTokens: arrayUnion(token),
               notificationEnabled: true,
               lastLogin: serverTimestamp(),
             }, { merge: true });

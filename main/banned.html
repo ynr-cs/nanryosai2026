@@ -542,7 +542,6 @@
       // --- 語り手のセリフ（シナリオ） ---
       // 実際の運用時は localStorage 等からユーザー情報を取得してください
       let userName = "ゲスト";
-      let userEmail = "guest@example.com";
 
       // アスタリスク (*) で囲んだ部分が赤字になります
       const scenario = [
@@ -644,7 +643,6 @@
         "それでは、始めましょうか。",
         "これがあなたのアカウントです。",
         "{name}さん。",
-        "{email}。",
         "立派なアカウントですね。",
         "……。",
         "じゃあ、*ゴミ袋*に入れましょうか。",
@@ -678,8 +676,7 @@
       function typeLine(rawText) {
         // 変数（プレースホルダー）の置換
         let text = rawText
-          .replace("{name}", userName)
-          .replace("{email}", userEmail);
+          .replace("{name}", userName);
 
         // アスタリスク記法をパースして、1文字ごとのスタイル情報配列を作成
         currentChars = [];

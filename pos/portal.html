@@ -2318,20 +2318,6 @@
     </div>
 
     <!-- Error Overlay -->
-
-    <!-- Error Overlay -->
-    <div id="error-overlay">
-      <div class="error-icon">⚠️</div>
-      <div class="error-title">StoreID が指定されていません</div>
-      <div class="error-msg">
-        不正なURLです。<br />
-        正しいポータル画面からアクセスしてください<br />
-        <span style="font-size: 0.8em; color: #666"
-          >(Error: StoreID is missing)</span
-        >
-      </div>
-    </div>
-    <!-- Error Overlay -->
     <div id="error-overlay">
       <div class="error-icon">⚠️</div>
       <div class="error-title">StoreID が指定されていません</div>
@@ -3464,8 +3450,6 @@
       let pulseChartRange = { start: 480, end: 1080 }; // 8:00 - 18:00 (1分単位: 60 * 8 - 60 * 18)
       let pulseDataCache = null;
 
-      // URL parameters for Auth Hub routing
-      const urlParams = new URLSearchParams(window.location.search);
       // URL parameters for Auth Hub routing
       const urlParams = new URLSearchParams(window.location.search);
       const returnUrl = urlParams.get("return");

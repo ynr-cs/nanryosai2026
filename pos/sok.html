@@ -1717,7 +1717,7 @@
           if (!user) {
             // 未ログイン → portal.html へ
             window.location.replace(
-              `./portal.html?sok_redirect=${encodeURIComponent(window.location.href)}`,
+              `./portal.html?return=${encodeURIComponent(window.location.href)}&s=${storeId}`,
             );
             return;
           }
