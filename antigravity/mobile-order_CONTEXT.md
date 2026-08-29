@@ -37,9 +37,10 @@ body {
 ## 2. 認証とセッション管理 (Authentication)
 `mobile-order.html` の認証フローは `main/auth.js` と `main/login.html` に完全統合されています（SSOT: Single Source of Truth）。
 
-- **リダイレクト強制**: 未ログイン、または許可されていないドメイン（非在校生アカウント）でアクセスした場合、自動的に `../main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされます。
+- **リダイレクト強制**: 未ログイン、または Custom Claims 在校生権限（`isEffectiveStudent(claims)`）を持たないユーザーがアクセスした場合、自動的に `../main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされます。
 - **UIの分離**: `mobile-order.html` 内部にはログイン画面やゲスト向け案内画面は存在しません。認証はすべて `login.html` が担い、本ページは「認証済みユーザー（在校生）」向けの注文機能のみに特化しています。
-- **状態監視**: `auth.js` の `watchUser()` を用いて認証状態をリアクティブに監視し、状態変更に応じてUIを切り替えたりリダイレクトを行ったりします。
+- **状態監視**: `auth.js` の `watchUser()` および `getClaims()` を用いて認証状態・権限をリアクティブに監視し、状態変更に応じてUIを切り替えたりリダイレクトを行ったりします。
+- **個人情報非保持**: ユーザー情報保存時、メールアドレスや本名は保存せず、`lastLogin` および `fcmTokens`（配列）のみを更新します。
 - ローカル開発時 (`localhost`, `127.0.0.1`) は、App Check を突破するために `config.local.js` を読み込み、共有のデバッグトークンを利用してアクセスします。
 
 ## 3. ダークモードとパフォーマンス

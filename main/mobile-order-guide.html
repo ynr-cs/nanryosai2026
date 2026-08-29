@@ -405,11 +405,11 @@ match /orders/{orderId} {
             </div>
 
             <div class="subsection">
-                <h3 class="subsection-title"><i class="bi bi-person-badge-fill"></i> 認証レイヤー</h3>
+                <h3 class="subsection-title"><i class="bi bi-person-badge-fill"></i> 認証レイヤー（ゼロ・ナレッジ設計）</h3>
                 <p>
-                    認証プロセスは <span class="file-ref">main/auth.js</span> に集約され、Google Identity Platformを利用している。
-                    学校側のサーバーでパスワードハッシュ等の機密情報を一切保持しないため、パスワード漏洩のリスクは原理的にゼロである。
-                    また、ログイン時にはアプリ内ブラウザ（Line, Instagram等）を検知し、Googleログインが正常に動作しないリスクがある場合は、外部ブラウザへの切り替えを促す警告UIを動的に表示する安全設計となっている。
+                    認証プロセスは <span class="file-ref">main/auth.js</span> および Cloud Functions <span class="file-ref">authenticateWithGoogle</span> に集約され、Google Identity Services (GIS) と HMAC-SHA256 不可逆暗号ハッシュによる匿名 UID 導出を採用している。
+                    学校側サーバー・データベース・ログのいかなる場所にもメールアドレス・本名・Google プロフィール等の個人識別情報 (PII) を一切保存しないため、個人情報漏洩のリスクは原理的にゼロである。
+                    また、Google から発行された ID トークン内のドメイン判定に基づき、在校生には生徒権限（Custom Claims）を自動付与し、セキュアなアクセス制御を実現している。
                 </p>
             </div>
         </section>
@@ -448,7 +448,7 @@ cart.forEach((c) => {
                 <h3 class="subsection-title"><i class="bi bi-hourglass-split"></i> データの短命化ライフサイクル</h3>
                 <p>
                     本システムは「文化祭期間」という限定されたコンテキストでのみ動作することを前提に設計されている。
-                    収集された個人情報（メールアドレス等）および購買履歴データには、保存期間のTTL (Time To Live) ポリシーが適用されることが想定されており、イベント終了後のデータパージ（完全消去）プロセスが技術的に保証されている。
+                    匿名識別子（UID）および購買履歴データには、退会機能（`deleteMyAccount`）による即時完全消去プロセス、およびイベント終了後のデータパージ（完全消去）プロセスが技術的に保証されている。
                 </p>
             </div>
         </section>
@@ -524,8 +524,6 @@ cart.forEach((c) => {
             </div>
         </section>
 
-        </section>
-
         <!-- CHAPTER 6 -->
         <section id="pwa" class="chapter">
             <span class="chapter-number">第6章</span>
@@ -554,7 +552,7 @@ messaging.onBackgroundMessage((payload) =&gt; {
                 <h3 class="subsection-title"><i class="bi bi-cloud-check-fill"></i> FCM (Firebase Cloud Messaging)</h3>
                 <p>
                     サーバーからの通知配信には Google の FCM インフラストラクチャを採用している。
-                    数千台規模のデバイスに対しても遅延なくメッセージを到達させるスケーラビリティを有しており、混雑時の「呼び出し漏れ」を物理層レベルで防止している。
+                    マルチデバイストークン配列（`fcmTokens`）への同時配信に対応し、混雑時の「呼び出し漏れ」を物理層レベルで防止している。
                 </p>
             </div>
         </section>
@@ -574,8 +572,6 @@ messaging.onBackgroundMessage((payload) =&gt; {
             </div>
         </section>
 
-        </section>
-
         <!-- CHAPTER 8 -->
         <section id="schema" class="chapter">
             <span class="chapter-number">第8章</span>
@@ -585,16 +581,14 @@ messaging.onBackgroundMessage((payload) =&gt; {
                 <h3 class="subsection-title"><i class="bi bi-database-fill-gear"></i> ユーザープロファイル (User Collection)</h3>
                 <p>
                     ユーザー情報は `users/{uid}` ドキュメントとして管理される。
-                    ここには個人識別情報 (PII) は最小限に留められ、認証プロバイダ (Google) から取得した基本情報と、アプリの設定状態のみが永続化される。
+                    個人識別情報 (PII) は一切保存されず、ユーザー設定のニックネームおよびアプリ設定状態のみが永続化される。
                 </p>
                 <pre class="code-block" style="background: #1a1a1a; color: #a9b7c6; padding: 15px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto;">
 // Path: /users/{userId}
 {
-  "displayName": "Taro Suzuki",  // Googleアカウント表示名
-  "email": "taro@example.com",   // メールアドレス (連絡用)
-  "photoURL": "https://...",     // アイコン画像URL
+  "nickname": "南陵太郎",         // ユーザー設定ニックネーム（任意）
   "lastLogin": Timestamp,        // 最終ログイン日時 (Audit用)
-  "fcmToken": "cSDks2...",       // 通知用デバイストークン
+  "fcmTokens": ["cSDks2..."],    // 通知用デバイストークン配列 (マルチデバイス対応)
   "notificationEnabled": true,   // 通知許可フラグ
   "deviceType": "ios_or_mac",    // 端末種別 (UX最適化用)
   "permissionStatus": "granted"  // ブラウザ通知権限ステータス

@@ -26,34 +26,31 @@ last_updated: 2026-05-07
 - **デバッグ**: ローカル開発用トークンはソースコードにハードコーディングせず、プロジェクトルートの `config.local.js` に `window.LOCAL_ENV` として定義し、ブラウザから読み込む構成を採用（2026-04-28）。`auth.js` 内で localhost 判定し `self.FIREBASE_APPCHECK_DEBUG_TOKEN` を設定。現在の共有固定トークンは `a4eb006d-0867-45dc-b9f5-8026de0b17a0` （Firebase Consoleへの登録必須）。
 - **messaging のエラー耐性**: `getMessaging(app)` を try-catch でラップ。非対応ブラウザ（一部 iOS Safari 等）ではクラッシュせず `messaging = null` を export。利用側で null チェックが必要。
 
-- **認証方式**: **Popup-only 戦略** (2026-05-07 v0.4.0)
-  - **① アプリ内ブラウザ誘導UI**: LINE/Instagram 等のアプリ内ブラウザ検出時は `confirm()` で標準ブラウザへの切り替えを案内。
-  - **② signInWithPopup**: 即座呼び出し、ユーザージェスチャー保持。
-  - **③ popup-blocked 委譲**: `auth/popup-blocked` 時、呼び出し側にエラーをスローし、ユーザーに「ポップアップ解除手順」を提示するUIを表示。
-  - **重要な教訓（GitHub Pages + signInWithRedirect の非互換性）**:
-    - `signInWithRedirect` は `authDomain` (`firebaseapp.com`) とアプリのホスト (`github.io`) が異なるオリジンとなるため、Chrome 115+ 等のサードパーティCookie/ストレージ制限により `getRedirectResult` が常に `null` を返す。
-    - GitHub Pages ではリバースプロキシ (`/__/auth/`) の設定が不可能なため、`signInWithRedirect` は**根本的に動作しない**。そのため、v0.4.0 にて完全に廃止した。
-    - 解決にはホスティングをFirebase Hostingに移行するか、現行の `signInWithPopup` + ガイダンスUIを使用する必要がある。
-  - **ユーザージェスチャー保持のルール**: `signInWithPopup` 呼び出し前に `await` を挟むとブラウザがポップアップをブロックする。ログイン関数を `async` にせず、同期的にPromiseを返す設計が必須。
+- **認証方式**: **Google Identity Services (GIS) + ゼロ・ナレッジ匿名UIDアーキテクチャ (V4 / 2026-08-30)**
+  - **① GISクライアント連携**: `main/auth.js` の `renderGoogleLoginButton` により、Google公式のOne Tap / Buttonコンポーネントを描画。
+  - **② サーバー検証 & 匿名UID発行 (`authenticateWithGoogle` Callable Function)**:
+    - クライアントから送信された Google ID トークン（JWT）を Google Auth ライブラリで暗号学的に検証。
+    - ID トークンの `sub`（Google固有ID）から HMAC-SHA256（Firebase環境変数 `AUTH_PEPPER_SECRET` を使用）で一方向ハッシュ化し、不可逆な匿名 UID (`usr_` + 24文字) を生成。
+    - ID トークン内のドメイン（`@gl.pen-kanagawa.ed.jp`）判定を行い、在校生には `identity: 'student'`、一般には `identity: 'guest'` の Custom Claims を設定した Firebase Custom Token を発行・返却。
+    - **PII完全非保持**: メールアドレス・本名・プロフィール画像等の個人情報はデータベース、ログ、Authレコードのいずれにも一切保存しない。
+  - **③ クライアントサインイン**: `signInWithCustomToken(auth, customToken)` により Firebase セッションを確立。
+  - **④ 退会・アカウント完全消去 (`deleteMyAccount` Callable Function)**:
+    - ユーザーがアカウント設定から退会を実行すると、Firestore上の `users/{uid}`、`users/{uid}/cart`、`orders`（当該ユーザーUIDの注文履歴）、および Firebase Auth 上の認証レコードを即座に完全消去。
 - **モバイルオーダーのアクセス制御**:
-  - **在校生判定**: メールアドレスが `@gl.pen-kanagawa.ed.jp` またはマスターアカウント（`ynrcs1000@gmail.com` 等）であるかを厳格に判定。`watchUser` を通じて `mobile-order.html` 側でも検証され、条件を満たさない場合は `login.html` にリダイレクトされる。
-  - **ログイン機能の集約**: 以前存在した `mobile-order.html` 内部の対話型フローやゲスト歓迎画面は完全に廃止（Phase E-2）。未認証・非対象ユーザーは一律 `main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされ、認証・ドメイン確認はすべて `login.html` で処理される。
+  - **在校生判定**: Custom Claims (`identity == 'student'` または `identityOverride == 'student'` または `identity == 'super_admin'`) に基づき判定。`isEffectiveStudent(claims)` を利用。
+  - **ログイン機能の集約**: 未認証・非在校生ユーザーは一律 `main/login.html?redirect=../pos/mobile-order.html&reason=mobile-order&mode=student` へリダイレクトされ、認証・ドメイン確認はすべて `login.html` で処理される。
 - **管理・運営画面のアクセス制御**:
   - **対象**: `pos.html`, `monitor.html`, `kitchen.html`, `presenter.html`
   - **認証ハブ**: `portal.html`
-  - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（別フロー実装済み）
-  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・ドメイン不正・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。
+  - **除外**: `status.html`（来場者も使用するため制限なし）、`mobile-order.html`（在校生専用）
+  - **実装パターン (Auth Guard)**: 各スタッフ用ツール内で `onAuthStateChanged` を監視し、未認証・Custom Claims 在校生権限なし・店舗ID不一致の場合はすべて `portal.html` へURLパラメータ (`?return=...&s=...`) 付きで強制リダイレクト。
   - **Firestore更新の禁止**: クライアントから直接 `updateDoc` を呼ぶことは禁止。ステータス更新はすべて Cloud Functions (`kitchenComplete`, `callForPickup`, `completeOrder`, `adminUpdateOrderStatus`, `cancelOrder`) を使用する。
-  - **SDK実装の統一**: 全認証箇所で `signInWithPopup` を唯一の方式とし、`popup-blocked` 時は専用のガイダンスUI (`#popup-blocked-guidance`) を表示してユーザーに設定変更と再試行を促すパターンを徹底。
-- **統一ログイン画面 (`main/login.html`)** (v0.2.153, Phase C):
-  - **役割**: `auth.js` の `login()` を呼び出す共通ログインページ。Phase D/E で `account.html` / `mobile-order.html` がリダイレクト先として使用する予定。
+- **統一ログイン画面 (`main/login.html`)**:
+  - **役割**: GIS 連携ログインボタンを表示する共通ログインページ。
   - **URLパラメータ**: `redirect`（安全なリダイレクト先）、`reason`（メッセージ切替: `favorite`/`mobile-order`/`account`）、`mode`（`student` で学校メール強調枠表示）
   - **安全なリダイレクトバリデーション**: 相対パスまたは同一オリジンのみ許可。外部URLと `login.html` を含むURL（ループ防止）は `./index.html` にフォールバック。
   - **FOUC防止**: 初期表示はローディングスピナーのみ。`watchUser()` で認証状態確認後、ログイン済みなら `window.location.replace()` で即時遷移（履歴汚染回避）。
-  - **デザインの最終調整 (v0.2.157)**: `app-shell.js` による共通ヘッダー・ナビゲーションの適用を確認し、`login.html` 固有のヒーローセクションとの視覚的整合性を確保。ログインページがアプリの一部として自然に見えるよう、余白と配置を最適化した。
-  - 「`main/account.html` v0.2.0 (2026-05-07): 未ログイン時のゲスト画面を廃止し、`login.html?redirect=./account.html&reason=account` へリダイレクトに統一 (Phase D)。」
-  - **堅牢なログインボタンの状態管理**: ログイン処理中はボタンを無効化し「処理中...」を表示するが、`try...finally` を用いて、処理完了後（成功・失敗・キャンセル・ポップアップ閉鎖を問わず）に確実にボタンを再活性化させる。これにより、部外者アカウントでのログイン失敗後のアカウント切り替え再試行などを妨げない設計とする（2026-05-07）。
-- **同期**: ログイン時にユーザープロフィールを Firestore `users/{uid}` に保存。保存失敗時もUIがフリーズしないよう例外処理を徹底。
+- **同期**: ログイン時にユーザープロフィールを Firestore `users/{uid}` に保存（`nickname`, `lastLogin`, `fcmTokens`, `termsAgreedAt` のみ。PIIは保存不可）。
 
 ## 3. Firebase Analytics (GA4)
 
@@ -151,6 +148,9 @@ last_updated: 2026-05-07
 
 - **配置**: `functions/index.js` (`asia-northeast1` にデプロイ)
 - **関数一覧**:
+  - `authenticateWithGoogle` (OnCall, V4): Google Identity Services の ID トークンを暗号学的に検証し、不可逆ハッシュ（HMAC-SHA256）による匿名 UID を生成して Custom Token を発行。在校生ドメイン判定により `identity: 'student'` または `'guest'` の Custom Claims を設定。PIIは完全非保持。
+  - `grantIdentity` (OnCall, V4): SuperAdmin（`identity == 'super_admin'`）専用の権限管理関数。指定 UID または Google ID トークンハッシュに対して `identity`（`student`, `guest`, `super_admin`）を付与。
+  - `deleteMyAccount` (OnCall, V4): ユーザー自身による退会・完全データ消去関数。`users/{uid}`, `users/{uid}/cart`, `orders`（本人の注文履歴）、および Firebase Auth レコードを完全削除。
   - `createOrder` (OnCall): mobile / pos 両経路を統合した注文作成関数。`banned_users` チェック（mobileのみ）、発番、初期ステータス（`cooking`）の設定を行う。
   - `kitchenComplete` (OnCall): cooking → ready_to_serve ステータス遷移（店舗管理者のみ）。
   - `callForPickup` (OnCall): ready_to_serve → ready_for_pickup ステータス遷移（店舗管理者のみ）。
@@ -161,7 +161,7 @@ last_updated: 2026-05-07
   - `claimSokOrder` (OnCall): SOKQR読み取り時に保有者を確定（`sokStatus: "claimed"`）。トランザクションで二重読み取りを防止。
   - `confirmSokOrder` (OnCall): SOKの最終確定（`sokStatus: "confirmed"`, `status: "cooking"`）。ここでSOK用（2000番台）の受付番号を発番。
   - `cancelSokOrder` (OnCall): SOKの未確定注文(`sokStatus: "claimed"`)を手動キャンセルする。所有者認証を強制し、`sokStatus: "cancelled"` へ遷移させる(`status`は`null`のまま)。
-  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`PENALTY_WHITELIST_EMAILS`（`ynrcs1000@gmail.com`）は対象外。
+  - `abandonStaleOrders` (Schedule): 1分ごとに起動し、`ready_for_pickup` から**5分**超過した注文を `abandoned` に遷移させ、`banned_users` へ登録。`_metadata/system_alerts.penaltyEnabled` が `true` の場合のみ執行（安全弁）。`identity == 'super_admin'` のユーザーは対象外。
   - `expireSokOrders` (Schedule): 1分ごとに起動し、確定されずに5分超過したSOK仮注文を `expired` として自動キャンセル。
   - `sendOrderUpdateNotification` (Trigger): 注文ステータス変更時にFCMプッシュ通知を `fcmTokens` 配列に対して一斉送信。
   - `bulkCreateSpreadsheets` (OnCall): 既存店舗のスプレッドシートを一括作成。タイムアウト540秒設定。

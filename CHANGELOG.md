@@ -13,6 +13,29 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.121] 認証システムV4移行：ポリシー・規約・技術仕様書・設計コンテキスト知識永続化 - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第4章 4.6 / 4.7）に基づき、利用規約・プライバシーポリシー・技術仕様書および設計知識ドキュメント（CONTEXT）を改訂。個人情報（メールアドレス・本名）の非保持・ゼロナレッジ匿名UID運用、Custom Claims による在校生権限判定、および退会・完全データ消去機能を反映。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **プライバシーポリシー (`main/privacy.html`)**:
+  - 個人情報およびアカウント情報の取り扱い条項を追加。メールアドレス・本名・Googleアバターをサーバーに一切保存しない方針、HMAC-SHA256匿名UIDおよびCustom Claimsによる安全な認証管理、アカウント削除（退会）時の即時完全消去を明記。
+- **利用規約 (`main/terms.html`)**:
+  - 第2条（利用資格）において事前モバイルオーダー機能の在校生対象規定を明確化。
+  - 第9条（個人情報の取扱い）をゼロ・ナレッジ個人情報保護方針に改定。最終改定日を 2026年8月30日に更新。
+- **技術仕様書 (`main/mobile-order-guide.html`)**:
+  - 第2章認証レイヤーを「ゼロ・ナレッジ設計（GIS + HMAC-SHA256匿名UID）」に更新。
+  - 第8章データモデリングにおける `users/{userId}` スキーマから PII を排除し、ニックネームおよび `fcmTokens` 配列仕様に更新。
+- **設計コンテキスト (`antigravity/*_CONTEXT.md`)**:
+  - `firebase_CONTEXT.md`: 認証方式を GIS + ゼロ・ナレッジ匿名UIDアーキテクチャに更新。新 Cloud Functions (`authenticateWithGoogle`, `grantIdentity`, `deleteMyAccount`) の仕様を永続化。
+  - `mobile-order_CONTEXT.md`: Custom Claims 在校生判定（`isEffectiveStudent`）および PII 非保持方針を永続化。
+  - `account_CONTEXT.md`, `terms_CONTEXT.md`: V4 のニックネーム編集、在校生バッジ、退会 callable 連携、利用規約改訂内容を永続化。
+
 ## [0.5.120] 認証システムV4移行：POS・運営系フロントエンド改修（portal/mobile-order/sok/sok-to/pos/kitchen/monitor/presenter/status） - 2026-08-30
 
 ### メタ情報
