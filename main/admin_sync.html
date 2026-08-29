@@ -19,16 +19,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Master Data Admin | 南陵祭'26</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root {
         --bg-surface: #0f1117;
@@ -562,9 +554,7 @@
         </div>
         <div class="admin-header-right" id="auth-container">
           <span id="user-display">未ログイン</span>
-          <button id="btn-login" class="btn btn-ghost btn-sm">
-            <i class="fas fa-sign-in-alt"></i> Login
-          </button>
+          <div id="admin-login-btn-container" style="display:inline-block;"></div>
           <button
             id="btn-logout"
             class="btn btn-danger btn-sm"
@@ -874,7 +864,7 @@
 
     <!-- Main Logic -->
     <script type="module">
-      import { db, auth, app, login, logout, watchUser } from "./auth.js";
+      import { db, auth, app, logout, watchUser, getClaims, isSuperAdminClaims, renderGoogleLoginButton } from "./auth.js";
       import {
         doc,
         setDoc,
@@ -1110,37 +1100,32 @@
       };
 
       // --- Auth Logic ---
-      const btnLogin = document.getElementById("btn-login");
       const btnLogout = document.getElementById("btn-logout");
       const userDisplay = document.getElementById("user-display");
+      const loginContainer = document.getElementById("admin-login-btn-container");
 
-      function updateAuthUI(user) {
+      async function updateAuthUI(user) {
         currentUser = user;
         if (user) {
-          userDisplay.textContent = user.email;
-          if (user.email === "ynrcs1000@gmail.com") {
-            userDisplay.innerHTML +=
-              ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>';
-          }
-          btnLogin.style.display = "none";
+          const claims = await getClaims();
+          const isSuper = isSuperAdminClaims(claims);
+          userDisplay.innerHTML = `ID: ${user.uid.slice(0, 8)}...` + (isSuper ? ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>' : '');
+          if (loginContainer) loginContainer.style.display = "none";
           btnLogout.style.display = "inline-block";
-          log(`Logged in as ${user.email}`);
+          log(`Logged in: ${user.uid} (SuperAdmin: ${isSuper})`);
         } else {
           userDisplay.textContent = "未ログイン";
-          btnLogin.style.display = "inline-block";
+          if (loginContainer) {
+            loginContainer.style.display = "inline-block";
+            if (!loginContainer.hasChildNodes()) {
+              renderGoogleLoginButton(loginContainer, () => {}, (err) => console.error(err));
+            }
+          }
           btnLogout.style.display = "none";
           log("Logged out.");
         }
       }
 
-      if (btnLogin)
-        btnLogin.onclick = async () => {
-          try {
-            await login();
-          } catch (e) {
-            alert(e.message);
-          }
-        };
       if (btnLogout)
         btnLogout.onclick = async () => {
           try {

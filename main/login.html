@@ -46,11 +46,8 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
     />
-    <!-- Animate.css -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-    />
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <link rel="stylesheet" href="style.css" />
     <style>
@@ -513,32 +510,8 @@
               <span class="email-note">※ 個人のGmail等ではご利用いただけない機能があります</span>
             </div>
 
-            <!-- Google Login Button -->
-            <button id="btn-login" class="btn-login btn-primary-custom">
-              <i class="bi bi-google"></i>
-              Google でログイン
-            </button>
-
-            <!-- Popup Blocked Guidance (hidden by default) -->
-            <div id="popup-blocked-guidance" class="animate__animated animate__fadeIn">
-              <h3 class="guidance-title">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                ポップアップがブロックされました
-              </h3>
-              <p class="guidance-desc">
-                ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
-              </p>
-              <div class="guidance-steps">
-                <ol>
-                  <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
-                  <li><strong>「常に許可」</strong>を選択。</li>
-                  <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
-                </ol>
-              </div>
-              <button id="btn-retry" class="btn-retry">
-                設定したので再試行する
-              </button>
-            </div>
+            <!-- Google Login Button Container -->
+            <div id="google-login-btn-container" style="display:flex; justify-content:center; min-height:44px; margin-bottom:12px;"></div>
 
             <!-- Browser Recommendation -->
             <div class="browser-info-box">
@@ -587,8 +560,8 @@
                 モバイルオーダーは、<strong style="color: var(--accent-color); font-size: 1.05em;">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。
               </p>
               <div class="student-card mb-3 text-center" style="background: rgba(0,0,0,0.02);">
-                <span style="font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 4px;">現在のアカウント:</span>
-                <strong style="color: var(--text-main); font-size: 1.1rem; word-break: break-all;" id="unauthorized-email"></strong>
+                <span style="font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 4px;">アカウント区分:</span>
+                <strong style="color: var(--text-main); font-size: 1.1rem;">一般・ゲスト</strong>
               </div>
               <p class="small text-start" style="color: var(--text-sub); line-height: 1.5;">
                 お気に入り登録などの機能は引き続きご利用いただけます。<br>
@@ -615,7 +588,7 @@
               </div>
               <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">ログインありがとうございます！</h3>
               <p class="small" style="line-height: 1.5; color: var(--text-sub); margin-bottom: 24px;">
-                ログイン中：<strong style="color: var(--text-main); word-break: break-all;" id="guest-welcome-email"></strong><br><br>
+                アカウント区分：<strong style="color: var(--text-main);">一般アカウント</strong><br><br>
                 モバイルオーダーは在校生限定の機能ですが、ログインしたあなたなら以下の機能をお楽しみいただけます！
               </p>
               <div class="student-card text-start">
@@ -683,28 +656,8 @@
               <strong>どのGoogleアカウントでもOKです。</strong>
             </div>
 
-            <!-- Google Login Button (SOK Style) -->
-            <button id="btn-sok-login" class="btn-main pulsing">
-              <i class="bi bi-google"></i> Google でログイン
-            </button>
-
-            <!-- Popup Blocked Guidance (SOK用) -->
-            <div id="sok-popup-blocked" style="display:none; margin-top: 20px; background: #fffbeb; border: 1px solid #f59e0b; padding: 16px; border-radius: 12px; text-align: left;">
-              <h3 style="font-size: 1rem; color: #92400e; font-weight: bold; margin-bottom: 10px;">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>ポップアップがブロックされました
-              </h3>
-              <p style="font-size: 0.85rem; color: #78350f; margin-bottom: 12px; line-height: 1.5;">
-                ログイン画面の表示がブロックされました。続行するにはブラウザの設定を変更してください：
-              </p>
-              <ol style="font-size: 0.8rem; color: #78350f; padding-left: 20px; background: rgba(245, 158, 11, 0.05); padding: 12px 12px 12px 30px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
-                <li>アドレスバー右端の<strong>「ポップアップブロック」</strong>アイコンをタップ。</li>
-                <li><strong>「常に許可」</strong>を選択。</li>
-                <li>下の<strong>「再試行」</strong>ボタンをタップ。</li>
-              </ol>
-              <button id="btn-sok-retry" class="btn-sub" style="background: #374151; color: white; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%;">
-                設定したので再試行する
-              </button>
-            </div>
+            <!-- Google Login Button Container (SOK Style) -->
+            <div id="sok-google-login-btn-container" style="display:flex; justify-content:center; min-height:44px; margin-bottom:12px;"></div>
 
             <div class="hint-box" style="margin-top: 20px;">
               <i class="bi bi-info-circle-fill"></i>
@@ -728,7 +681,16 @@
     <script type="module" src="app-shell.js"></script>
 
     <script type="module">
-      import { watchUser, login, logout, analytics, logEvent, functions } from "./auth.js";
+      import {
+        watchUser,
+        logout,
+        renderGoogleLoginButton,
+        getClaims,
+        isEffectiveStudent,
+        analytics,
+        logEvent,
+        functions
+      } from "./auth.js";
       import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* ==============================
@@ -751,14 +713,6 @@
         }
         document.getElementById("login-loader").style.display = "none";
         document.getElementById("login-content").style.display = "block";
-      }
-
-      function isStudentEmail(email) {
-        if (!email) return false;
-        return (
-          email.endsWith("@gl.pen-kanagawa.ed.jp") ||
-          email === "ynrcs1000@gmail.com"
-        );
       }
 
       /* ==============================
@@ -824,7 +778,7 @@
       }
 
       /* ==============================
-         5. UI Initial Setup
+         5. UI Initial Setup & GIS Buttons
          ============================== */
       if (mode === "sok") {
         document.body.setAttribute("data-sok", "true");
@@ -841,26 +795,51 @@
         document.getElementById("email-emphasis-box").style.display = "none";
       }
 
+      function mountGisButtons() {
+        const normalContainer = document.getElementById("google-login-btn-container");
+        if (normalContainer && !normalContainer.hasChildNodes()) {
+          renderGoogleLoginButton(normalContainer, async ({ user, identity }) => {
+            handlePostLogin(user, identity);
+          }, (err) => {
+            console.error("[Auth] GIS render error:", err);
+          });
+        }
+
+        const sokContainer = document.getElementById("sok-google-login-btn-container");
+        if (sokContainer && !sokContainer.hasChildNodes()) {
+          renderGoogleLoginButton(sokContainer, () => {
+            window.location.replace(redirectUrl);
+          }, (err) => {
+            console.error("[Auth] SOK GIS render error:", err);
+          });
+        }
+      }
+
+      // GIS SDK の読み込み完了を待ってボタンを描画
+      if (window.google && window.google.accounts) {
+        mountGisButtons();
+      } else {
+        window.addEventListener("load", () => {
+          mountGisButtons();
+        });
+      }
+
       /* ==============================
          6. Auth State Watcher
          ============================== */
-      watchUser((user) => {
+      watchUser(async (user) => {
         if (user) {
           // 既ログイン
           if (mode === "sok") {
             window.location.replace(redirectUrl);
           } else if (mode === "student") {
-            // mode=student の場合、ドメインチェックを実行
-            if (isStudentEmail(user.email)) {
-              // 在校生として OK → redirect
+            const claims = await getClaims();
+            if (isEffectiveStudent(claims)) {
               window.location.replace(redirectUrl);
             } else {
-              // 個人 Gmail 等でログイン中 → 対象外画面
-              document.getElementById("unauthorized-email").textContent = user.email;
               showScreen("step-unauthorized");
             }
           } else {
-            // mode 未指定 → 既存通り即 redirect
             window.location.replace(redirectUrl);
           }
         } else {
@@ -897,16 +876,14 @@
       });
 
       document.getElementById("btn-guest-login").addEventListener("click", () => {
-        // GA4: ゲストログインボタン押下
         logEvent(analytics, "click_login", { method: "Guest" });
-        // isStudentFlow は false のまま
         showScreen("step-login");
       });
 
       document.getElementById("btn-switch-account").addEventListener("click", async () => {
         try {
           await logout();
-          isStudentFlow = false; // リセット
+          isStudentFlow = false;
           showScreen("step-student-check");
         } catch (e) {
           console.error("Logout failed:", e);
@@ -915,108 +892,24 @@
       });
 
       /* ==============================
-         8. Login Button Handler
+         8. Post Login Flow Handler
          ============================== */
-      const btnLogin = document.getElementById("btn-login");
-      const originalBtnHTML = btnLogin.innerHTML;
-
-      function handlePostLogin(user) {
+      async function handlePostLogin(user, identity) {
         if (mode === "student") {
+          const claims = await getClaims();
+          const isStudent = isEffectiveStudent(claims);
           if (isStudentFlow) {
-            // 在校生宣言済み → ドメインチェック
-            if (isStudentEmail(user.email)) {
-              // OK: redirect 先へ
+            if (isStudent) {
               window.location.replace(redirectUrl);
             } else {
-              // NG: 対象外画面
-              document.getElementById("unauthorized-email").textContent = user.email;
               showScreen("step-unauthorized");
             }
           } else {
-            // 「いいえ」選択後のログイン → ゲストウェルカム
-            document.getElementById("guest-welcome-email").textContent = user.email;
             showScreen("step-guest-welcome");
           }
         } else {
-          // mode 未指定 → 既存挙動
           window.location.replace(redirectUrl);
         }
-      }
-
-      async function handleLogin() {
-        // GA4: ログインボタン押下イベント
-        logEvent(analytics, "click_login", { method: "Google" });
-        // UI feedback
-        btnLogin.disabled = true;
-        btnLogin.innerHTML =
-          '<span class="spinner-border spinner-border-sm" role="status" style="width:1rem;height:1rem;border-width:0.15em;"></span> 処理中...';
-        document.getElementById("popup-blocked-guidance").style.display = "none";
-
-        try {
-          const user = await login();
-          if (user) {
-            handlePostLogin(user);
-          }
-          // Note: if user is null (cancelled), finally block will reset button
-        } catch (error) {
-          if (error.code === "auth/popup-blocked") {
-            // Show popup-blocked guidance
-            document.getElementById("popup-blocked-guidance").style.display =
-              "block";
-          }
-          // Other errors are handled by auth.js (alert)
-        } finally {
-          // 画面遷移（Redirect）が発生しない場合のために、常にボタンをリセット可能にする
-          resetButton();
-        }
-      }
-
-      function resetButton() {
-        btnLogin.disabled = false;
-        btnLogin.innerHTML = originalBtnHTML;
-      }
-
-      btnLogin.addEventListener("click", handleLogin);
-
-      /* ==============================
-         9. Retry Button Handler
-         ============================== */
-      document.getElementById("btn-retry").addEventListener("click", () => {
-        document.getElementById("popup-blocked-guidance").style.display = "none";
-        resetButton();
-        setTimeout(() => {
-          handleLogin();
-        }, 100);
-      });
-
-      // SOKログインボタン処理
-      const btnSokLogin = document.getElementById("btn-sok-login");
-      if (btnSokLogin) {
-        btnSokLogin.addEventListener("click", async () => {
-          btnSokLogin.disabled = true;
-          btnSokLogin.classList.remove("pulsing");
-          btnSokLogin.innerHTML = `<span class="spinner" style="display:inline-block; width:16px; height:16px; border-width:2px; vertical-align:-2px; margin-right:8px;"></span> 処理中...`;
-          document.getElementById("sok-popup-blocked").style.display = "none";
-          try {
-            await login();
-            // 成功すれば watchUser が反応して location.replace(redirectUrl) される
-          } catch (e) {
-            btnSokLogin.disabled = false;
-            btnSokLogin.classList.add("pulsing");
-            btnSokLogin.innerHTML = `<i class="bi bi-google"></i> Google でログイン`;
-            if (e.code === "auth/popup-blocked") {
-              document.getElementById("sok-popup-blocked").style.display = "block";
-            } else if (e.code !== "auth/popup-closed-by-user") {
-              alert("ログインエラー: " + e.message);
-            }
-          }
-        });
-      }
-      const btnSokRetry = document.getElementById("btn-sok-retry");
-      if (btnSokRetry) {
-        btnSokRetry.addEventListener("click", () => {
-          if (btnSokLogin) btnSokLogin.click();
-        });
       }
 
       // SOKキャンセルボタン処理

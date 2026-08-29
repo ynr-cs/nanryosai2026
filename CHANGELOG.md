@@ -13,6 +13,37 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.119] 認証システムV4移行：一般・管理系フロントエンド改修（login/account/app-shell/banned/admin_sync/superadmin） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第3章）に基づき、一般ユーザー向け画面（`login.html`, `account.html`, `banned.html`, `app-shell.js`）および管理者向け画面（`admin_sync.html`, `admin/superadmin.html`）を改修。個人情報（メールアドレス・本名・Googleアバター）の表示・取得を完全に根絶し、GIS連携ログイン、ニックネーム編集、在校生認証バッジ、`deleteMyAccount` callable 連携、Custom Claims ベースの SuperAdmin 認可、および手動権限付与（`grantIdentity`）UI を実装。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **ログイン画面 (`main/login.html`)**:
+  - GIS Client Script を読み込み、`renderGoogleLoginButton` により認証ボタンを描画。旧ログインボタン・旧メッセージを全廃。
+- **アカウント設定画面 (`main/account.html`)**:
+  - メールアドレスおよび本名（`displayName`）の表示を全廃。
+  - Firestore `users/{uid}` に保存される `nickname`（ニックネーム）の表示および編集・保存機能を実装。
+  - Custom Claims に基づく「🎓 在校生認証済み」バッジの表示を追加。
+  - アカウント削除（退会）処理を Cloud Functions `deleteMyAccount` callable 呼び出しに移行（進行中注文チェックおよびAuthレコードの完全消去）。
+  - FCM トークン保存時に `setDoc(..., { merge: true })` を使用し、安全に `fcmTokens` 配列を更新。
+- **共通シェル (`main/app-shell.js`)**:
+  - 旧 `login` のインポートを削除。
+  - ユーザーアバター表示部で `photoURL` が存在しない（匿名ログイン）場合でもアイコンが正しく表示されるようフォールバック処理を改善。
+- **アカウント停止画面 (`main/banned.html`)**:
+  - 最終警告表示からメールアドレス（`final-email`）の表示を完全排除し、匿名 UID またはニックネームのみを表示。
+- **マスターデータ同期画面 (`main/admin_sync.html`)**:
+  - メールアドレス（`ynrcs1000@gmail.com`）によるハードコード判定を排除。
+  - GIS ボタン描画と `isSuperAdminClaims` による SuperAdmin 判定に移行。
+- **スーパー管理者ダッシュボード (`main/admin/superadmin.html`)**:
+  - メールアドレスによるアクセスガードを `isSuperAdminClaims` 判定に移行。
+  - 例外的な在校生権限の手動付与・剥奪を行う `grantIdentity` UI（UID 入力フォーム・付与/剥奪ボタン・callable 連携）を新設。
+  - BAN ユーザー一覧からメールアドレス・本名取得処理を排除し、UID およびニックネームのみを表示。
+
 ## [0.5.118] 認証システムV4移行：フロントエンド共通認証モジュール刷新（main/auth.js v1.0.0 GIS化・PII保存完全撤廃） - 2026-08-30
 
 ### メタ情報

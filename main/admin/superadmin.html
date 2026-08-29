@@ -616,6 +616,22 @@
         </div>
       </div>
 
+      <!-- ===== 在校生権限手動付与 (grantIdentity) ===== -->
+      <div class="card" style="border-color: var(--accent);">
+        <div class="section-card-title" style="color: var(--accent); font-weight:700; margin-bottom:12px;">
+          <i class="bi bi-person-badge-fill me-2"></i>
+          在校生権限 手動付与 / 剥奪 (grantIdentity)
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
+          個人Googleアカウント等のユーザーに、例外的に在校生権限（モバイルオーダー利用権）を手動付与/剥奪します。
+        </div>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control form-control-sm" id="input-grant-uid" placeholder="対象ユーザーの UID (例: u_xxxxxxxx)" style="background:#111827; color:#fff; border-color:var(--border);" />
+          <button class="btn btn-primary btn-sm" id="btn-grant-student"><i class="bi bi-check-circle me-1"></i>生徒権限を付与</button>
+          <button class="btn btn-outline-danger btn-sm" id="btn-revoke-student"><i class="bi bi-x-circle me-1"></i>剥奪</button>
+        </div>
+      </div>
+
       <!-- 保存ボタン -->
       <button class="btn-save-main" id="btn-save">
         <i class="bi bi-cloud-arrow-up-fill me-2"></i>アラート設定を保存
@@ -623,7 +639,7 @@
     </div>
 
     <script type="module">
-      import { watchUser, db } from "../auth.js";
+      import { watchUser, db, getClaims, isSuperAdminClaims } from "../auth.js";
       import {
         doc,
         getDoc,
@@ -640,7 +656,6 @@
       import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
       import { getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 
-      const ALLOWED_EMAIL = "ynrcs1000@gmail.com";
       const METADATA_DOC = doc(db, "_metadata", "system_alerts");
       const STORES_COL = collection(db, "stores");
       const BANNED_USERS_COL = collection(db, "banned_users");
@@ -654,8 +669,20 @@
       const emergencyZone = document.getElementById("emergency-zone");
 
       // ===== Auth Guard =====
-      watchUser((user) => {
-        if (!user || user.email !== ALLOWED_EMAIL) {
+      watchUser(async (user) => {
+        if (!user) {
+          window.location.replace("../index.html");
+          return;
+        }
+        try {
+          const claims = await getClaims();
+          if (!isSuperAdminClaims(claims)) {
+            alert("管理者権限（SuperAdmin）がありません。");
+            window.location.replace("../index.html");
+            return;
+          }
+        } catch (e) {
+          console.error("Auth claims error:", e);
           window.location.replace("../index.html");
           return;
         }
@@ -663,6 +690,7 @@
         loadData();
         startRealtimeWatch();
         startBannedUsersWatch();
+        initGrantIdentity();
       });
 
       // ===== データ読み込み =====
@@ -880,19 +908,46 @@
         });
       });
 
+      // ===== 在校生権限手動付与 (grantIdentity) =====
+      function initGrantIdentity() {
+        const btnGrant = document.getElementById("btn-grant-student");
+        const btnRevoke = document.getElementById("btn-revoke-student");
+        const inputUid = document.getElementById("input-grant-uid");
+
+        async function handleGrant(grant) {
+          const uid = (inputUid.value || "").trim();
+          if (!uid) {
+            alert("対象ユーザーの UID を入力してください。");
+            return;
+          }
+          const actionText = grant ? "生徒権限を付与" : "生徒権限を剥奪";
+          if (!confirm(`UID: ${uid} に対して${actionText}しますか？`)) return;
+
+          try {
+            const grantFn = httpsCallable(fns, "grantIdentity");
+            await grantFn({ uid, grant });
+            showToast(`✅ ${actionText}しました (UID: ${uid})`, "success");
+            inputUid.value = "";
+          } catch (e) {
+            console.error("grantIdentity error:", e);
+            alert(`エラーが発生しました: ${e.message}`);
+          }
+        }
+
+        if (btnGrant) btnGrant.onclick = () => handleGrant(true);
+        if (btnRevoke) btnRevoke.onclick = () => handleGrant(false);
+      }
+
       // ===== BANユーザーリスト管理 =====
       async function fillMissingBanInfo(uid, orderId, storeId, rowEl) {
-        // メアド/名前のフォールバック取得
+        // ニックネームのフォールバック取得
         try {
           const userSnap = await getDoc(doc(db, "users", uid));
+          const nameEl = rowEl.querySelector(`.user-name-${uid}`);
           if (userSnap.exists()) {
             const uData = userSnap.data();
-            const emailEl = rowEl.querySelector(`.user-email-${uid}`);
-            const nameEl = rowEl.querySelector(`.user-name-${uid}`);
-            if (emailEl) emailEl.textContent = uData.email || "メアド不明";
-            if (nameEl) nameEl.textContent = uData.displayName || "名前不明";
+            if (nameEl) nameEl.textContent = uData.nickname || "ニックネーム未設定";
           } else {
-            const nameEl = rowEl.querySelector(`.user-name-${uid}`);
             if (nameEl) nameEl.textContent = "退会済みユーザー";
           }
         } catch (e) {
@@ -938,20 +993,14 @@
             const reason = data.reason || "理由不明";
             const orderId = data.orderId || "-";
             const storeId = data.storeId || "-";
-
-            const email = data.userEmail || "";
-            const displayName = data.userDisplayName || "";
             const receiptNumber = data.receiptNumber ? `No.${data.receiptNumber}` : "";
-
-            const hasEmail = !!email;
-            const hasReceipt = !!receiptNumber;
 
             html += `
               <tr id="row-${uid}">
                 <td>${bannedAt}</td>
                 <td>
-                  <div class="fw-bold user-name-${uid}">${displayName || (hasEmail ? "" : "読み込み中...")}</div>
-                  <div class="user-email-${uid}" style="font-size: 0.78rem; color: var(--text-sub);">${email || (hasEmail ? "" : "読み込み中...")}</div>
+                  <div class="fw-bold user-name-${uid}">読み込み中...</div>
+                  <div style="font-size: 0.75rem; color: var(--text-sub); font-family: monospace;">UID: ${uid}</div>
                 </td>
                 <td>
                   <div class="mb-1">${reason}</div>
@@ -968,9 +1017,7 @@
               </tr>
             `;
 
-            if (!hasEmail || (!hasReceipt && orderId !== "-")) {
-              fetchList.push({ uid, orderId, storeId });
-            }
+            fetchList.push({ uid, orderId, storeId });
           });
 
           tbody.innerHTML = html;

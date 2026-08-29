@@ -11,8 +11,7 @@
  */
 
 // Import Auth Logic
-// Import Auth Logic
-import { login, logout, watchUser, db, getCurrentUser } from "./auth.js";
+import { logout, watchUser, db, getCurrentUser, getClaims, isEffectiveStudent, isSuperAdminClaims } from "./auth.js";
 import {
   collection,
   query,
@@ -781,16 +780,28 @@ const AppShell = {
 
     // Watch for auth changes and update BOTTOM NAV icon
     watchUser((user) => {
-      if (user && user.photoURL) {
-        userImg.src = user.photoURL;
-        userImg.style.display = "block";
-        if (guestIcon) guestIcon.style.display = "none";
+      if (user) {
+        if (userImg) {
+          if (user.photoURL) {
+            userImg.src = user.photoURL;
+            userImg.style.display = "block";
+          } else {
+            userImg.style.display = "none";
+          }
+        }
+        if (guestIcon) {
+          guestIcon.style.display = user.photoURL ? "none" : "block";
+          guestIcon.style.color = "var(--primary-color)";
+        }
 
         // Check for active orders after auth is confirmed
         this.checkActiveOrder(user);
       } else {
-        userImg.style.display = "none";
-        if (guestIcon) guestIcon.style.display = "block";
+        if (userImg) userImg.style.display = "none";
+        if (guestIcon) {
+          guestIcon.style.display = "block";
+          guestIcon.style.color = "";
+        }
         // Hide badge if logged out
         const badge = document.getElementById("order-nav-badge");
         if (badge) badge.style.display = "none";
