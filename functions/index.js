@@ -4,6 +4,8 @@
  * Last Modified: 2026-02-05
  * Author: Nanryosai 2026 Project Team
  */
+const { OAuth2Client } = require("google-auth-library");
+const crypto = require("crypto");
 const functions = require("firebase-functions/v1");
 const {
   onDocumentUpdated,
@@ -18,9 +20,58 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // ============================================================
-// ペナルティ免除対象（スーパー管理者等）
+// 認証・権限管理 共通設定・ヘルパー
 // ============================================================
-const PENALTY_WHITELIST_EMAILS = ["ynrcs1000@gmail.com"];
+
+// GCP OAuth ウェブクライアントID(公開情報のためハードコード可)
+const OAUTH_CLIENT_ID =
+  "93228414556-tm81uv1jir0hd9ofc4kooq3kr49mpc00.apps.googleusercontent.com";
+
+// ペナルティ免除(UIDベース。V4以降 getUserByEmail は使用不可)
+// super_admin の UID は grantSuperAdmin.js 実行後に確認して記入(04_ops.md §4.3)
+const PENALTY_WHITELIST_UIDS = new Set([
+  // "u_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+]);
+
+// OAuth2Client はモジュールスコープで生成可(Secretは含まないため安全)
+const oauthClient = new OAuth2Client(OAUTH_CLIENT_ID);
+
+// ── 共通ヘルパー ───────────────────────────────
+
+/** App Check 強制(全 callable の先頭で呼ぶ) */
+function requireAppCheck(context) {
+  if (!context.app) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "不正なアプリケーションからのアクセスです。",
+    );
+  }
+}
+
+/** super_admin 判定(email 比較を全廃) */
+function isSuperAdminToken(token) {
+  return token && token.identity === "super_admin";
+}
+
+/** 有効生徒判定(identityOverride / super_admin を含む) */
+function isEffectiveStudent(token) {
+  if (!token) return false;
+  return (
+    token.identity === "student" ||
+    token.identityOverride === "student" ||
+    token.identity === "super_admin"
+  );
+}
+
+/** super_admin 必須ガード */
+function requireSuperAdmin(context) {
+  if (!context.auth || !isSuperAdminToken(context.auth.token)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "この操作を実行する権限がありません。",
+    );
+  }
+}
 
 // ============================================================
 // Google Sheets 同期 共通設定・ヘルパー
@@ -180,8 +231,241 @@ async function getNextReceiptNumber(channel, transaction) {
   throw new functions.https.HttpsError("resource-exhausted", `受付番号の空きがありません (${channel})`);
 }
 
+// ============================================================
+// 認証・アカウント管理 Cloud Functions (V4確定版)
+// ============================================================
+
+/**
+ * @name authenticateWithGoogle
+ * @description GIS IDトークンを検証し、匿名UIDのCustom Tokenを発行する。
+ *              メールアドレスは判定に使った直後に破棄され、どこにも保存されない。
+ * Secrets: UID_PEPPER
+ */
+exports.authenticateWithGoogle = functions
+  .region("asia-northeast1")
+  .runWith({ secrets: ["UID_PEPPER"], maxInstances: 20 })
+  .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const idToken = requestData.idToken;
+    const rawNonce = requestData.nonce;
+
+    if (
+      !idToken ||
+      typeof idToken !== "string" ||
+      !rawNonce ||
+      typeof rawNonce !== "string"
+    ) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "認証情報が不正です。",
+      );
+    }
+
+    // 1. Google IDトークン検証
+    let payload;
+    try {
+      const ticket = await oauthClient.verifyIdToken({
+        idToken,
+        audience: OAUTH_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (e) {
+      // 規約: e.message に PII が含まれ得るためログに出さない
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Google認証の検証に失敗しました。",
+      );
+    }
+
+    // 2. nonce 検証(リプレイ対策): payload.nonce === sha256(rawNonce)
+    const expectedNonce = crypto
+      .createHash("sha256")
+      .update(rawNonce)
+      .digest("hex");
+    if (!payload.nonce || payload.nonce !== expectedNonce) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "認証セッションが不正です。再度お試しください。",
+      );
+    }
+
+    // 3. アイデンティティ分類(メールはここでのみ参照)
+    const identity = classifyIdentity(payload);
+
+    // 4. 匿名UID導出(sub ベース。メール非依存)
+    const sub = payload.sub;
+    if (!sub) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Google認証の検証に失敗しました。",
+      );
+    }
+    const pepper = process.env.UID_PEPPER; // 関数内で遅延参照(規約)
+    if (!pepper) {
+      throw new functions.https.HttpsError(
+        "internal",
+        "サーバー設定エラーです。管理者に連絡してください。",
+      );
+    }
+    const uid =
+      "u_" +
+      crypto
+        .createHmac("sha256", pepper)
+        .update(sub)
+        .digest("base64url")
+        .slice(0, 32);
+
+    // ★ この時点以降 payload(メール等)は一切使わない ★
+    payload = null;
+
+    // 5. Auth ユーザーレコードの確保(匿名・プロバイダなし)
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(uid);
+    } catch (e) {
+      if (e.code === "auth/user-not-found") {
+        try {
+          userRecord = await admin.auth().createUser({ uid });
+        } catch (e2) {
+          if (e2.code === "auth/uid-already-exists") {
+            userRecord = await admin.auth().getUser(uid); // 同時ログイン競合
+          } else {
+            throw new functions.https.HttpsError(
+              "internal",
+              "アカウント作成に失敗しました。",
+            );
+          }
+        }
+      } else {
+        throw new functions.https.HttpsError(
+          "internal",
+          "アカウント照会に失敗しました。",
+        );
+      }
+    }
+
+    // 6. claims 再計算マージ(identityOverride / role / storeId は保持)
+    const current = userRecord.customClaims || {};
+    const newClaims = { ...current, identity };
+    await admin.auth().setCustomUserClaims(uid, newClaims);
+
+    // 7. Custom Token 発行(developer claims 引数は渡さない)
+    const customToken = await admin.auth().createCustomToken(uid);
+
+    // 8. 有効 identity(override 込み)を返す ※クライアントのUI分岐用
+    const effectiveIdentity =
+      identity === "guest" && newClaims.identityOverride === "student"
+        ? "student"
+        : identity;
+
+    return { customToken, identity: effectiveIdentity };
+  });
+
+/** 生徒/管理者 分類(確定ロジック) */
+function classifyIdentity(payload) {
+  const email = (payload.email || "").toLowerCase();
+  if (payload.email_verified !== true) return "guest";
+  if (email === "ynrcs1000@gmail.com") return "super_admin";
+  if (email.endsWith("@gl.pen-kanagawa.ed.jp") && email.startsWith("0014")) {
+    return "student";
+  }
+  return "guest";
+}
+
+/**
+ * @name grantIdentity
+ * @description guest 判定されたユーザーに identityOverride を手動付与/剥奪する。
+ *              例: 個人Gmailの実行委員、(将来必要になった場合の)教員。
+ */
+exports.grantIdentity = functions
+  .region("asia-northeast1")
+  .runWith({ maxInstances: 5 })
+  .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+    requireSuperAdmin(context);
+
+    const requestData =
+      data.data && typeof data.data === "object" ? data.data : data;
+    const targetUid = requestData.uid;
+    const grant = requestData.grant === true; // true=付与 / false=剥奪
+
+    if (!targetUid || typeof targetUid !== "string") {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "uid が必要です。",
+      );
+    }
+
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(targetUid);
+    } catch (e) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "ユーザーが見つかりません。",
+      );
+    }
+
+    const current = userRecord.customClaims || {};
+    let newClaims;
+    if (grant) {
+      newClaims = { ...current, identityOverride: "student" };
+    } else {
+      const { identityOverride, ...rest } = current;
+      newClaims = rest;
+    }
+    await admin.auth().setCustomUserClaims(targetUid, newClaims);
+
+    return { success: true, uid: targetUid, granted: grant };
+  });
+
+/**
+ * @name deleteMyAccount
+ * @description 本人によるアカウント削除。進行中注文がある場合は拒否。
+ *              Firestore の users/{uid} を削除し、Auth レコードも削除する。
+ *              注文履歴(orders)は匿名UIDのみで PII を含まないため残置(売上集計保全)。
+ */
+exports.deleteMyAccount = functions
+  .region("asia-northeast1")
+  .runWith({ maxInstances: 5 })
+  .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "ログインが必要です。",
+      );
+    }
+    const uid = context.auth.uid;
+
+    // 進行中注文チェック
+    const activeSnap = await db
+      .collection("orders")
+      .where("userId", "==", uid)
+      .where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"])
+      .limit(1)
+      .get();
+    if (!activeSnap.empty) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "進行中の注文があるため退会できません。受け取り完了後にお試しください。",
+      );
+    }
+
+    // users/{uid} とサブコレクションを削除
+    await db.recursiveDelete(db.collection("users").doc(uid));
+
+    // Auth レコード削除
+    await admin.auth().deleteUser(uid);
+
+    return { success: true };
+  });
+
 // 1. cryptoモジュールの読み込み
-const crypto = require("crypto");
+
 
 /**
  * パスワードをハッシュ化するユーティリティ関数
@@ -218,20 +502,8 @@ function verifyPassword(password, originalHash, salt) {
 exports.createStoreSecret = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    // 1. 認証チェック (Super Admin Only)
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "ログインが必要です。",
-      );
-    }
-    const email = context.auth.token.email;
-    if (email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "この操作を実行する権限がありません。",
-      );
-    }
+    requireAppCheck(context);
+    requireSuperAdmin(context);
 
     const requestData =
       data.data && typeof data.data === "object" ? data.data : data;
@@ -254,7 +526,7 @@ exports.createStoreSecret = functions
         hash: derivedKey,
         salt: salt,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedBy: email,
+        updatedBy: context.auth.uid,
       });
 
       return {
@@ -278,20 +550,8 @@ exports.createStoreSecret = functions
 exports.batchUpdateStoreSecrets = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    // 1. 認証チェック
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "ログインが必要です。",
-      );
-    }
-    const email = context.auth.token.email;
-    if (email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "この操作を実行する権限がありません。",
-      );
-    }
+    requireAppCheck(context);
+    requireSuperAdmin(context);
 
     const requestData =
       data.data && typeof data.data === "object" ? data.data : data;
@@ -325,7 +585,7 @@ exports.batchUpdateStoreSecrets = functions
           hash: derivedKey,
           salt: salt,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedBy: email,
+          updatedBy: context.auth.uid,
         });
       }
 
@@ -352,6 +612,8 @@ exports.batchUpdateStoreSecrets = functions
 exports.loginStore = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     // 1. ユーザー認証チェック
     if (!context.auth) {
       throw new functions.https.HttpsError(
@@ -487,6 +749,7 @@ exports.createOrder = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
@@ -506,9 +769,11 @@ exports.createOrder = functions
 
     // mobile はドメイン制限 + BANチェック（設計憲法§9, §10.2）
     if (orderChannel === "mobile") {
-      const email = context.auth.token.email || "";
-      if (!email.endsWith("@gl.pen-kanagawa.ed.jp") && email !== "ynrcs1000@gmail.com") {
-        throw new functions.https.HttpsError("permission-denied", "モバイルオーダーは在校生のみ利用可能です。");
+      if (!isEffectiveStudent(context.auth.token)) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "モバイルオーダーは在校生のみ利用可能です。",
+        );
       }
       // BAN チェック（サーバー側二層防御）
       const banDoc = await db.doc(`banned_users/${uid}`).get();
@@ -684,6 +949,7 @@ exports.kitchenComplete = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
@@ -711,6 +977,7 @@ exports.callForPickup = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
@@ -737,6 +1004,7 @@ exports.completeOrder = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
@@ -762,6 +1030,8 @@ exports.completeOrder = functions
 exports.cancelOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { orderRef, orderData } = await getOrderForTransition(context, requestData.orderId);
 
@@ -794,6 +1064,8 @@ exports.cancelOrder = functions
 exports.adminUpdateOrderStatus = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
@@ -811,7 +1083,7 @@ exports.adminUpdateOrderStatus = functions
     }
 
     const token = context.auth.token;
-    const isSuperAdmin = token.email === "ynrcs1000@gmail.com";
+    const isSuperAdmin = isSuperAdminToken(token);
 
     const orderRef = db.collection("orders").doc(orderId);
     const orderDoc = await orderRef.get();
@@ -839,7 +1111,7 @@ exports.adminUpdateOrderStatus = functions
 
     const updateData = {
       status: newStatus,
-      note: reason || `管理者 (${token.email}) による手動変更`,
+      note: reason || "管理者による手動変更",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       ...(timestampMap[newStatus] || {}),
     };
@@ -876,10 +1148,9 @@ exports.sendOrderUpdateNotification = onDocumentUpdated(
     // ユーザーのFCMトークンをFirestoreから取得
     const userSnapshot = await db.collection("users").doc(userId).get();
     const userData = userSnapshot.data();
-    const fcmToken = userData?.fcmToken;
-
-    if (!fcmToken) {
-      console.log(`User ${userId} has no FCM token.`);
+    const fcmTokens = Array.isArray(userData?.fcmTokens) ? userData.fcmTokens : [];
+    if (fcmTokens.length === 0) {
+      console.log(`User ${userId} has no FCM tokens.`);
       return;
     }
 
@@ -905,21 +1176,40 @@ exports.sendOrderUpdateNotification = onDocumentUpdated(
 
     // 通知メッセージの構築
     const message = {
-      notification: {
-        title: title,
-        body: body,
-      },
-      data: {
-        orderId: orderId,
-        url: `/status.html?orderId=${orderId}`,
-      },
-      token: fcmToken,
+      notification: { title, body },
+      data: { orderId, url: `/status.html?orderId=${orderId}` },
+      tokens: fcmTokens,
     };
 
-    // 送信
     try {
-      await getMessaging().send(message);
-      console.log(`Notification sent to ${userId} for order ${orderId}`);
+      const response = await getMessaging().sendEachForMulticast(message);
+      // 失効トークンの掃除
+      const invalidTokens = [];
+      response.responses.forEach((r, i) => {
+        if (!r.success) {
+          const code = r.error?.code || "";
+          if (
+            code === "messaging/registration-token-not-registered" ||
+            code === "messaging/invalid-argument"
+          ) {
+            invalidTokens.push(fcmTokens[i]);
+          }
+        }
+      });
+      if (invalidTokens.length > 0) {
+        await db
+          .collection("users")
+          .doc(userId)
+          .update({
+            fcmTokens: admin.firestore.FieldValue.arrayRemove(...invalidTokens),
+          });
+        console.log(
+          `Removed ${invalidTokens.length} invalid FCM tokens for ${userId}`,
+        );
+      }
+      console.log(
+        `Notification sent to ${userId} (${response.successCount}/${fcmTokens.length})`,
+      );
     } catch (error) {
       console.error("Error sending notification:", error);
     }
@@ -947,9 +1237,8 @@ exports.onStoreCreated = onDocumentCreated(
 exports.linkStoreSheet = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError("permission-denied", "管理者権限が必要です。");
-    }
+    requireAppCheck(context);
+    requireSuperAdmin(context);
 
     const payload = data.data && typeof data.data === "object" ? data.data : data;
     const { storeId, spreadsheetId } = payload;
@@ -1033,9 +1322,8 @@ exports.linkStoreSheet = functions
 exports.reinitSheetHeaders = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
-    if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError("permission-denied", "管理者権限が必要です。");
-    }
+    requireAppCheck(context);
+    requireSuperAdmin(context);
 
     try {
       const { sheets } = await getGoogleClients();
@@ -1287,9 +1575,8 @@ exports.rebuildStoreSheet = functions
   .region("asia-northeast1")
   .runWith({ timeoutSeconds: 540 })
   .https.onCall(async (data, context) => {
-    if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
-      throw new functions.https.HttpsError("permission-denied", "管理者権限が必要です。");
-    }
+    requireAppCheck(context);
+    requireSuperAdmin(context);
 
     const payload = data.data && typeof data.data === "object" ? data.data : data;
     const { storeId } = payload;
@@ -1356,6 +1643,8 @@ exports.rebuildStoreSheet = functions
 exports.loginVenueAdmin = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { urlToken, password } = requestData;
 
@@ -1402,6 +1691,8 @@ exports.loginVenueAdmin = functions
 exports.updateVenueStatus = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     const { sessionToken, venueId, updates } = requestData;
 
@@ -1487,6 +1778,8 @@ function warmupOrderFunctions() {
 exports.updateStoreStatus = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }
@@ -1655,18 +1948,6 @@ exports.abandonStaleOrders = functions
 
       console.log(`abandonStaleOrders: ${staleOrdersSnap.size} 件の放置注文を検出`);
 
-      // --- ホワイトリスト用: メールアドレスからUIDセットを構築 ---
-      const whitelistUids = new Set();
-      for (const email of PENALTY_WHITELIST_EMAILS) {
-        try {
-          const userRecord = await admin.auth().getUserByEmail(email);
-          whitelistUids.add(userRecord.uid);
-        } catch (e) {
-          // ユーザーが存在しない場合は無視
-          console.warn(`abandonStaleOrders: ホワイトリストのメール ${email} に対応するユーザーが見つかりません`);
-        }
-      }
-
       // --- 各注文を処理 ---
       const batch = db.batch();
       let processedCount = 0;
@@ -1681,21 +1962,19 @@ exports.abandonStaleOrders = functions
           continue;
         }
 
-        // ホワイトリスト除外
-        if (whitelistUids.has(userId)) {
+        // ホワイトリスト除外 (UIDベース)
+        if (PENALTY_WHITELIST_UIDS.has(userId)) {
           console.log(`abandonStaleOrders: 注文 ${doc.id} はホワイトリスト対象のためスキップ (uid: ${userId})`);
           continue;
         }
 
-        // ユーザーのメアドと名前を取得
-        let userEmail = null;
-        let userDisplayName = null;
+        // ニックネーム取得 (識別用・PII非保持)
+        let nickname = null;
         try {
           const userSnap = await db.collection("users").doc(userId).get();
           if (userSnap.exists) {
             const userData = userSnap.data();
-            userEmail = userData.email || null;
-            userDisplayName = userData.displayName || null;
+            nickname = userData.nickname || null;
           }
         } catch (e) {
           console.error(`abandonStaleOrders: ユーザー情報取得失敗 (uid: ${userId})`, e);
@@ -1716,8 +1995,7 @@ exports.abandonStaleOrders = functions
           orderId: doc.id,
           receiptNumber: orderData.receiptNumber || null,
           storeId: orderData.storeId || null,
-          userEmail: userEmail,
-          userDisplayName: userDisplayName,
+          nickname: nickname,
           bannedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
@@ -1741,10 +2019,8 @@ exports.abandonStaleOrders = functions
 // unbanUser – スーパー管理者によるBAN解除 (Callable)
 // ============================================================
 exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data, context) => {
-  // スーパー管理者のみ実行可能
-  if (!context.auth || context.auth.token.email !== "ynrcs1000@gmail.com") {
-    throw new functions.https.HttpsError("permission-denied", "スーパー管理者のみ実行可能です");
-  }
+  requireAppCheck(context);
+  requireSuperAdmin(context);
 
   const requestData = data.data && typeof data.data === "object" ? data.data : data;
   const { uid } = requestData;
@@ -1753,7 +2029,7 @@ exports.unbanUser = functions.region("asia-northeast1").https.onCall(async (data
   }
 
   await db.collection("banned_users").doc(uid).delete();
-  console.log(`unbanUser: UID ${uid} のBANを解除しました (by ${context.auth.token.email})`);
+  console.log(`unbanUser: UID ${uid} のBANを解除しました`);
   return { success: true };
 });
 
@@ -1773,6 +2049,7 @@ exports.createSokProvisional = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     // スタッフ認証必須（未ログインは拒否 → 無限スパム防止）
     if (!context.auth) {
@@ -1888,6 +2165,7 @@ exports.claimSokOrder = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
@@ -1954,6 +2232,7 @@ exports.confirmSokOrder = functions
   .https.onCall(async (data, context) => {
     const requestData = data.data && typeof data.data === "object" ? data.data : data;
     if (requestData && requestData.warmup === true) return { warmup: true };
+    requireAppCheck(context);
 
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
@@ -2058,6 +2337,8 @@ exports.expireSokOrders = functions
 exports.cancelSokOrder = functions
   .region("asia-northeast1")
   .https.onCall(async (data, context) => {
+    requireAppCheck(context);
+
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "ログインが必要です。");
     }

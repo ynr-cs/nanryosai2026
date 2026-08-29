@@ -13,6 +13,34 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.117] 認証システムV4移行：Cloud Functionsバックエンド実装（authenticateWithGoogle・grantIdentity・deleteMyAccount・App Check・PII全廃） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第1章）に基づき、Google Identity Services (GIS) IDトークン検証からHMAC-SHA256匿名UID導出・Custom Claims付与・Custom Token発行を行うメイン認証関数 `authenticateWithGoogle`、手動救済用 `grantIdentity`、退会処理用 `deleteMyAccount` を新規実装。あわせて全callableへのApp Check強制、FCMトークン配列対応、super_admin判定のclaims移行、およびデータベース・ログからの個人情報（PII）完全排除を実施。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **依存パッケージの追加 (`functions/package.json`)**:
+  - `google-auth-library` を追加し、GIS IDトークン検証用の `OAuth2Client` を導入。
+- **新規 Cloud Functions の実装 (`functions/index.js`)**:
+  - `authenticateWithGoogle`: GIS IDトークンおよびnonce（リプレイ攻撃対策）の検証、0014学校整理番号・県立ドメイン判定による生徒/ゲスト分類、HMAC-SHA256とSecret Manager（`UID_PEPPER`）による不可逆な匿名UID生成、Custom Claims設定、Custom Token発行。判定完了直後にメール等の個人情報をメモリ上から即時破棄。
+  - `grantIdentity`: super_admin専用の手動救済callable。guest判定ユーザーに `identityOverride: "student"` を付与/剥奪。
+  - `deleteMyAccount`: ユーザー自身によるアカウント削除callable。進行中注文がある場合は拒否し、`users/{uid}` とAuthレコードを完全消去。
+- **既存バックエンド関数の改修・セキュリティ強化**:
+  - **App Check 強制**: 全callable関数に `requireAppCheck(context)` を追加（ウォームアップ対応の7関数は保温リクエスト処理直後に配置しエラーログ出力を防止）。
+  - **superadmin 判定の claims 移行**: `token.email === "ynrcs1000@gmail.com"` を `isSuperAdminToken(token)` / `requireSuperAdmin(context)` に置換。
+  - **PII 保存の全廃**: `updatedBy` を `context.auth.uid` に、`note` 内のメールアドレス記載を固定文言に変更。
+  - **createOrder の在校生判定置換**: `isEffectiveStudent(context.auth.token)` によるCustom Claims判定に移行。
+  - **FCM通知の配列化と自動保守 (`sendOrderUpdateNotification`)**: `fcmTokens` 配列および `sendEachForMulticast` に移行し、無効化されたトークンの自動arrayRemove掃除を実装。
+  - **ペナルティ執行バッチのPII排除 (`abandonStaleOrders`)**: `getUserByEmail` を廃止し、`PENALTY_WHITELIST_UIDS` 照合に移行。`banned_users` へのメアド・本名保存を廃止（ニックネームのみ任意保持）。
+- **詳細技術知見**:
+  - **背景/原因**: 生徒・来場者の個人情報（メールアドレス・氏名）をシステムのいかなる場所（Firestore, Auth, Cloud Logging等）にも保存しないゼロトラスト・プライバシー保護の実現。
+  - **解決策**: Google IDトークンの検証と分類をサーバー側で行い、即座にHMAC-SHA256ハッシュで匿名UIDに変換してCustom Tokenを発行するアーキテクチャを採用。
+  - **得られた知見**: ウォームアップ定期ジョブからのコールドスタート保温リクエストにはApp Checkトークンが含まれないため、`warmup === true` の判定を `requireAppCheck` より前に配置する必要がある。
+
 ## [0.5.116] 認証システムV4移行：セキュリティルール改訂（isSuperAdminのclaims化＆PII書込禁止バリデーション追加） - 2026-08-30
 
 ### メタ情報
