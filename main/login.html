@@ -796,22 +796,24 @@
       }
 
       function mountGisButtons() {
-        const normalContainer = document.getElementById("google-login-btn-container");
-        if (normalContainer && !normalContainer.hasChildNodes()) {
-          renderGoogleLoginButton(normalContainer, async ({ user, identity }) => {
-            handlePostLogin(user, identity);
-          }, (err) => {
-            console.error("[Auth] GIS render error:", err);
-          });
-        }
-
-        const sokContainer = document.getElementById("sok-google-login-btn-container");
-        if (sokContainer && !sokContainer.hasChildNodes()) {
-          renderGoogleLoginButton(sokContainer, () => {
-            window.location.replace(redirectUrl);
-          }, (err) => {
-            console.error("[Auth] SOK GIS render error:", err);
-          });
+        if (mode === "sok") {
+          const sokContainer = document.getElementById("sok-google-login-btn-container");
+          if (sokContainer && !sokContainer.hasChildNodes()) {
+            renderGoogleLoginButton(sokContainer, () => {
+              window.location.replace(redirectUrl);
+            }, (err) => {
+              console.error("[Auth] SOK GIS render error:", err);
+            });
+          }
+        } else {
+          const normalContainer = document.getElementById("google-login-btn-container");
+          if (normalContainer && !normalContainer.hasChildNodes()) {
+            renderGoogleLoginButton(normalContainer, async ({ user, identity }) => {
+              handlePostLogin(user, identity);
+            }, (err) => {
+              console.error("[Auth] GIS render error:", err);
+            });
+          }
         }
       }
 

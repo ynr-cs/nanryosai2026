@@ -13,6 +13,26 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.128] 認証システムV4移行：GIS多重初期化バグ修正・バックエンド認証関数デプロイ・UID_PEPPERシークレット設定 - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ログイン画面において Google Identity Services の初期化が2重実行されて警告が発生していた問題、および未デプロイだったバックエンド認証関数（`authenticateWithGoogle`）とソルトシークレット（`UID_PEPPER`）の不足によるログイン失敗（`functions/internal`）を解消するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **ログイン画面 (`main/login.html`)**:
+  - **背景/原因**: `mountGisButtons()` が画面上の通常用ボタンコンテナと SOK用ボタンコンテナの両方に対して無条件に `renderGoogleLoginButton()` を呼び出していたため、`google.accounts.id.initialize()` が多重初期化され、Google SDK から警告が出力されていた。
+  - **解決策**: 表示モード（`mode === "sok"` か否か）に応じて適切な対象コンテナのみを初期化・マウントするよう条件分岐を追加。
+- **Cloud Functions / Secret Manager 設定**:
+  - **背景/原因**: V4確定版で新設された `authenticateWithGoogle` が Cloud Functions 上に未デプロイであり、また匿名UID生成に必須のソルトシークレット `UID_PEPPER` が Secret Manager に未作成だったため、認証時に `functions/internal` エラーが発生していた。
+  - **解決策**:
+    - Secret Manager に暗号学的に安全な `UID_PEPPER`（32バイトランダムソルト）を設定・権限付与。
+    - `authenticateWithGoogle` を Cloud Functions（`asia-northeast1`）に本番デプロイ完了。
+  - **得られた知見**: Google Identity Services 連携の callable function は Secret Manager との依存関係（IAM権限）を確実に解決した上でデプロイする必要がある。
+
 ## [0.5.127] マイページUI改善：FOUC（未ログイン時チラツキ）解消・ローディングスピナー統一 - 2026-08-30
 
 ### メタ情報
