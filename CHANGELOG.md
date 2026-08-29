@@ -13,6 +13,21 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.122] 認証システムV4移行：運用・メンテナンス用Adminスクリプト整備（wipeAuthUsers/grantSuperAdmin） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第4章 4.4）に基づき、Firebase Admin SDK を用いた運用管理・データメンテナンス用スクリプトを整備。旧認証ユーザーの一括パージ（`wipeAuthUsers.js`）および手動 SuperAdmin 権限付与（`grantSuperAdmin.js`）を提供。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **ユーザー一括削除スクリプト (`scripts/wipeAuthUsers.js`)**:
+  - `admin.auth().deleteUsers(uids)` によるページネーション一括パージ処理を実装。V4移行に伴う残存Authアカウントの安全な一掃が可能。
+- **管理者権限付与スクリプト (`scripts/grantSuperAdmin.js`)**:
+  - 引数に指定された UID に対し、`identity: "super_admin"` の Custom Claims を設定するメンテナンスツールを実装。
+
 ## [0.5.121] 認証システムV4移行：ポリシー・規約・技術仕様書・設計コンテキスト知識永続化 - 2026-08-30
 
 ### メタ情報
