@@ -651,8 +651,7 @@ messaging.onBackgroundMessage((payload) =&gt; {
                 </p>
                 <div class="code-display" data-file="auth.js">
 <span class="kw">await</span> setDoc(doc(db, <span class="str">"users"</span>, uid), {
-  lastLogin: serverTimestamp(),
-  email: user.email
+  lastLogin: serverTimestamp()
 }, { merge: <span class="kw">true</span> }); <span class="com">// Safe Merge Strategy</span>
                 </div>
             </div>
