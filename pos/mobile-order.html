@@ -1589,30 +1589,43 @@
       }
 
       // Handlers
-      document.getElementById("btn-req-notification").onclick = () => {
-        try {
-          Notification.requestPermission().then((p) => {
-            if (p === "granted") {
-              saveToken(); // バックグラウンドで実行
+      const btnReqNotification = document.getElementById("btn-req-notification");
+      if (btnReqNotification) {
+        btnReqNotification.onclick = async () => {
+          btnReqNotification.disabled = true;
+          const originalText = btnReqNotification.innerHTML;
+          btnReqNotification.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:14px; height:14px; border-width:2px; display:inline-block; vertical-align:-1px;"></span> 確認中...`;
+
+          try {
+            const permission = await Notification.requestPermission();
+            // ユーザーが許可/拒否を押した瞬間に即座に次の画面へ遷移
+            showScreen("step-terms");
+
+            // UIをブロックせずバックグラウンドでFCMトークン保存・更新
+            if (permission === "granted") {
+              saveToken().catch((e) => console.warn("Background saveToken error:", e));
             } else {
               updateUserProfile({
                 notificationEnabled: false,
-                permissionStatus: p,
-              });
+                permissionStatus: permission,
+              }).catch((e) => console.warn("Background updateUserProfile error:", e));
             }
-          });
-        } catch (e) {
-          console.warn(e);
-        }
-        showScreen("step-terms");
-      };
+          } catch (e) {
+            console.warn("Notification request error:", e);
+            showScreen("step-terms");
+          } finally {
+            btnReqNotification.disabled = false;
+            btnReqNotification.innerHTML = originalText;
+          }
+        };
+      }
 
       window.skipNotification = () => {
+        showScreen("step-terms");
         updateUserProfile({
           notificationEnabled: false,
           permissionStatus: "skipped",
-        });
-        showScreen("step-terms");
+        }).catch((e) => console.warn("Background updateUserProfile error:", e));
       };
 
       document.getElementById("check-terms").onchange = (e) => {
