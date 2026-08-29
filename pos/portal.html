@@ -6,7 +6,8 @@
 <!doctype html>
 <html lang="ja">
   <head>
-
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       /* --- ローダー --- */
       #global-loader {
@@ -2393,12 +2394,6 @@
         ><br />
         に限定されています。
       </p>
-      <p
-        id="domain-error-email"
-        style="color: #6b7280; font-size: 0.85rem; margin-bottom: 32px"
-      >
-        誤ったアカウントでログインしています
-      </p>
       <button
         id="btn-domain-logout"
         style="
@@ -2429,38 +2424,12 @@
         <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px">
           ポータル
         </h1>
-        <p style="color: #6b7280; margin-bottom: 4px">
+        <p style="color: #6b7280; margin-bottom: 16px">
           南陵高校から配布された<br /><strong style="color: #10b981"
             >@gl.pen-kanagawa.ed.jp</strong
           ><br />のGoogleアカウントでログインしてください
         </p>
-        <button
-          id="btn-google-login"
-          class="btn-primary google-btn"
-          style="
-            width: 100%;
-            background: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid #d1d5db;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            height: 48px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-          "
-        >
-          <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Googleでログイン
-        </button>
+        <div id="g_id_signin_portal" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
         <p
           id="google-error"
           style="color: red; margin-top: 12px; font-size: 0.9rem"
@@ -3381,11 +3350,6 @@
         ReCaptchaV3Provider,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
       import {
-        getAuth,
-        GoogleAuthProvider,
-        signInWithPopup,
-        signInWithRedirect,
-        getRedirectResult,
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -3415,6 +3379,7 @@
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
       import { renderPosAlert } from "./pos-alert.js";
+      import { renderGoogleLoginButton, getClaims, isEffectiveStudent, logout } from "../main/auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
@@ -3501,24 +3466,10 @@
 
       // URL parameters for Auth Hub routing
       const urlParams = new URLSearchParams(window.location.search);
+      // URL parameters for Auth Hub routing
+      const urlParams = new URLSearchParams(window.location.search);
       const returnUrl = urlParams.get("return");
       const storeParam = urlParams.get("s");
-
-      // Handle redirect result (signInWithPopup の popup-blocked フォールバック用)
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result && result.user) {
-            console.log(
-              "[Portal Auth] Redirect login success:",
-              result.user.email,
-            );
-          }
-        })
-        .catch((error) => {
-          if (error.code === "auth/popup-closed-by-user") return;
-          console.error("Redirect Login Error:", error);
-          document.getElementById("google-error").innerText = error.message;
-        });
 
       // --- Tooltip Logic ---
       window.toggleTooltip = (element) => {
@@ -3549,8 +3500,6 @@
         document
           .querySelectorAll(".nav-item")
           .forEach((el) => el.classList.remove("active"));
-        // Find the nav item - simply by index or adding ID. For now assume order.
-        // A bit hacky but simple selector:
         const navs = document.querySelectorAll(".nav-item");
         if (viewName === "top") navs[0].classList.add("active");
         if (viewName === "items") navs[1].classList.add("active");
@@ -3582,28 +3531,27 @@
         if (viewName === "search") renderSearchTable();
       };
 
-      // ドメインチェックヘルパー
-      const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
-      const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
-
-      function isAuthorizedUser(user) {
-        if (!user || !user.email) return false;
-        return (
-          user.email.endsWith(ALLOWED_DOMAIN) ||
-          MASTER_ACCOUNTS.includes(user.email)
-        );
+      async function isAuthorizedUser(user) {
+        if (!user) return false;
+        try {
+          const claims = await getClaims();
+          return isEffectiveStudent(claims);
+        } catch (e) {
+          console.error("Claims check failed:", e);
+          return false;
+        }
       }
+
       function showDomainError(user) {
         const overlay = document.getElementById("domain-error-overlay");
-        const emailEl = document.getElementById("domain-error-email");
-        // Email display removed for privacy
         overlay.style.display = "flex";
         document.getElementById("auth-overlay").style.display = "none";
       }
+
       document
         .getElementById("btn-domain-logout")
         .addEventListener("click", async () => {
-          await signOut(auth);
+          await logout();
           document.getElementById("domain-error-overlay").style.display =
             "none";
           document.getElementById("auth-overlay").style.display = "flex";
@@ -3619,8 +3567,9 @@
       onAuthStateChanged(auth, async (user) => {
         document.getElementById("global-loader").classList.remove("active");
         if (user) {
-          // ドメインチェック（最優先）
-          if (!isAuthorizedUser(user)) {
+          // 在校生権限チェック
+          const isAuth = await isAuthorizedUser(user);
+          if (!isAuth) {
             showDomainError(user);
             return;
           }
@@ -3629,8 +3578,6 @@
 
           // Check Cached Login
           const cachedId = localStorage.getItem("nanryosai_store_id");
-          // AUTO LOGIN IMPROVEMENT: If we have a cached ID, verify it exists (mentally) and just GO.
-          // We trust the local storage for friction reduction.
 
           // POSアラート監視 (認証後)
           import("./pos-alert.js")
@@ -3643,9 +3590,6 @@
 
           if (cachedId) {
             currentStoreId = cachedId;
-            // We can skip the "step-store" screen entirely
-            // But we might want to fetch store name for the header.
-            // For now, let's just startApp and let listeners fetch data.
             startApp();
             return;
           }
@@ -3656,6 +3600,12 @@
           transitionView(stepGoogle, stepStore, "block", "anim-slide-up");
         } else {
           document.getElementById("auth-overlay").style.display = "flex";
+          const btnContainer = document.getElementById("g_id_signin_portal");
+          if (btnContainer && !btnContainer.hasChildNodes()) {
+            renderGoogleLoginButton(btnContainer, () => {}, (err) => {
+              document.getElementById("google-error").innerText = err.message;
+            });
+          }
           transitionView(
             document.getElementById("step-store"),
             document.getElementById("step-google"),
@@ -3665,74 +3615,6 @@
           document.getElementById("app").style.display = "none";
         }
       });
-
-      // アプリ内ブラウザ検出
-      function detectInAppBrowser() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        return (
-          ua.indexOf("FBAN") > -1 ||
-          ua.indexOf("FBAV") > -1 ||
-          ua.indexOf("Instagram") > -1 ||
-          ua.indexOf("Line/") > -1 ||
-          ua.indexOf("LINE/") > -1 ||
-          (ua.indexOf("wv") > -1 && ua.indexOf("Android") > -1)
-        );
-      }
-
-      document.getElementById("btn-google-login").onclick = () => {
-        // アプリ内ブラウザ警告
-        if (detectInAppBrowser()) {
-          const proceed = confirm(
-            "⚠️ アプリ内ブラウザが検出されました\n\n" +
-              "ログインに失敗する場合があります。\n" +
-              "右上の「…」→「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
-              "このまま続行しますか？",
-          );
-          if (!proceed) return;
-        }
-
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-
-        // Triple Fallback: Popup → Redirect → Error
-        signInWithPopup(auth, provider)
-          .then((result) => {
-            if (result && result.user) {
-              console.log(
-                "[Portal Auth] Popup login success:",
-                result.user.email,
-              );
-            }
-          })
-          .catch(async (error) => {
-            if (error.code === "auth/popup-blocked") {
-              console.warn("[Portal Auth] Popup blocked, showing guidance...");
-              document.getElementById("popup-blocked-guidance").style.display =
-                "block";
-
-              // Re-trigger the same logic on retry
-              document.getElementById("btn-retry-login").onclick = () => {
-                document.getElementById(
-                  "popup-blocked-guidance",
-                ).style.display = "none";
-                document.getElementById("btn-google-login").click();
-              };
-              return;
-            }
-            if (
-              error.code === "auth/popup-closed-by-user" ||
-              error.code === "auth/cancelled-popup-request"
-            ) {
-              return; // ユーザーがキャンセル
-            }
-            console.warn("[Portal Auth] Popup failed, falling back to redirect...", error);
-            // Fallback to redirect
-            signInWithRedirect(auth, provider).catch(err => {
-              console.error("[Portal Auth] Redirect login error:", err);
-              document.getElementById("google-error").innerText = err.message;
-            });
-          });
-      };
 
       async function loadStoreOptions() {
         const q = query(collection(db, "stores"), orderBy("teamName"));

@@ -1439,6 +1439,7 @@
         query,
         where,
         limit,
+        arrayUnion,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
         getToken,
@@ -1452,7 +1453,7 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
-      import { app, auth, db, storage, functions, messaging, watchUser, analytics, logEvent } from "../main/auth.js";
+      import { app, auth, db, storage, functions, messaging, watchUser, analytics, logEvent, getClaims, isEffectiveStudent } from "../main/auth.js";
 
       /* VAPID Key (FCM) */
       const VAPID_KEY =
@@ -1497,22 +1498,19 @@
       function init() {
         watchUser(async (user) => {
           if (user) {
-            // ドメイン再チェック（保険）
-            const email = user.email || "";
-            const isNanryoStudent =
-              email.endsWith("@gl.pen-kanagawa.ed.jp") ||
-              email === "ynrcs1000@gmail.com";
-
-            if (isNanryoStudent) {
-              // 在校生メールでログイン済み → 通知画面以降のフローへ
-              currentUser = user;
-              await checkFlow();
-            } else {
-              // ドメイン NG → login.html へ（保険）
+            try {
+              const claims = await getClaims();
+              if (isEffectiveStudent(claims)) {
+                currentUser = user;
+                await checkFlow();
+              } else {
+                redirectToLogin();
+              }
+            } catch (e) {
+              console.error("Auth check failed:", e);
               redirectToLogin();
             }
           } else {
-            // 未ログイン → login.html へ
             redirectToLogin();
           }
         });
@@ -1634,8 +1632,6 @@
         if (!currentUser) return;
         try {
           const baseData = {
-            email: currentUser.email,
-            displayName: currentUser.displayName,
             lastLogin: serverTimestamp(),
             ...additionalData,
           };
@@ -1660,7 +1656,7 @@
             await setDoc(
               doc(db, "users", currentUser.uid),
               {
-                fcmToken: token,
+                fcmTokens: arrayUnion(token),
                 notificationEnabled: true,
                 lastLogin: serverTimestamp(),
                 permissionStatus: "granted",

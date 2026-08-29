@@ -13,6 +13,40 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.120] 認証システムV4移行：POS・運営系フロントエンド改修（portal/mobile-order/sok/sok-to/pos/kitchen/monitor/presenter/status） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第3章 3.2）に基づき、店舗運営・モバイルオーダー・キオスク系画面（`portal.html`, `mobile-order.html`, `sok.html`, `sok-to.html`, `pos.html`, `kitchen.html`, `monitor.html`, `presenter.html`, `status.html`）を改修。個人情報（メールアドレス・本名）の参照および表示を完全に排除し、Custom Claims による在校生権限判定（`isEffectiveStudent`）、GIS 連携ログイン、FCM トークン配列管理（`arrayUnion`）へ移行。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **ポータル画面 (`pos/portal.html`)**:
+  - GIS Client Script を導入し、認証ステップ 1 に `renderGoogleLoginButton` を配置。
+  - 旧 Popup/Redirect ログイン処理を廃止。
+  - 在校生アクセス判定（`isAuthorizedUser`）をメールアドレス判定から Custom Claims 判定（`isEffectiveStudent`）に移行。
+  - エラー画面・UI からメールアドレス表示を完全排除。
+- **モバイルオーダー画面 (`pos/mobile-order.html`)**:
+  - 初期化時の在校生判定を `isEffectiveStudent(claims)` に移行。
+  - `updateUserProfile` における `email`, `displayName` の書き込みを撤廃（`lastLogin` のみ記録）。
+  - `saveToken` での FCM トークン保存処理を `fcmTokens: arrayUnion(token)` に移行。
+- **SOK・注文連携画面 (`pos/sok-to.html`)**:
+  - ユーザー情報バッジからメールアドレスおよび `displayName` 表示を排除し、「ログイン中」表記に統一。
+- **POS・レジ画面 (`pos/pos.html`)**:
+  - `isAuthorizedUser` を Custom Claims（`isEffectiveStudent`）判定に移行。
+  - ドメインエラーオーバーレイからメールアドレス表示を排除。
+- **キッチン画面 (`pos/kitchen.html`)**:
+  - `isAuthorizedUser` を `getIdTokenResult()` による Custom Claims 判定に移行。
+  - ドメインエラーオーバーレイからメールアドレス表示を排除。
+- **モニター画面 (`pos/monitor.html`)**:
+  - `setupAuthListeners` 内のアクセス認可を Custom Claims 判定に移行。
+  - ドメインエラーオーバーレイからメールアドレス表示を排除。
+- **呼出・プレゼンター画面 (`pos/presenter.html`)**:
+  - `isAuthorizedUser` を Custom Claims 判定に移行。
+  - ドメインエラーオーバーレイからメールアドレス表示を排除。
+
 ## [0.5.119] 認証システムV4移行：一般・管理系フロントエンド改修（login/account/app-shell/banned/admin_sync/superadmin） - 2026-08-30
 
 ### メタ情報

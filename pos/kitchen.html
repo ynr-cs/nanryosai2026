@@ -619,7 +619,6 @@
         <code style="background:#1f2937; padding:2px 8px; border-radius:4px; color:#60a5fa; font-size:0.9rem;">@gl.pen-kanagawa.ed.jp</code><br>
         に限定されています。
       </p>
-      <p id="domain-error-email" style="color:#6b7280; font-size:0.85rem; margin-bottom:32px;"></p>
       <button id="btn-domain-logout" style="background:#3b82f6; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:12px; width:100%; max-width:300px;">別のアカウントでログインする</button>
       <a href="../main/index.html" style="color:#6b7280; font-size:0.85rem; text-decoration:underline;">ホームへ戻る</a>
     </div>
@@ -800,19 +799,24 @@
       }
 
       // --- Auth Guard ---
-      const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
-      const MASTER_ACCOUNTS = ["ynrcs1000@gmail.com"];
-
-      function isAuthorizedUser(user) {
-        if (!user || !user.email) return false;
-        return user.email.endsWith(ALLOWED_DOMAIN) || MASTER_ACCOUNTS.includes(user.email);
+      async function isAuthorizedUser(user) {
+        if (!user) return false;
+        try {
+          const tokenResult = await user.getIdTokenResult();
+          const claims = tokenResult.claims || {};
+          return claims.identity === "student" || claims.identityOverride === "student" || claims.identity === "super_admin";
+        } catch (e) {
+          console.error("Auth claims error:", e);
+          return false;
+        }
       }
 
-      auth.onAuthStateChanged((user) => {
+      auth.onAuthStateChanged(async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
+        const isAuth = user ? await isAuthorizedUser(user) : false;
 
-        if (!user || !isAuthorizedUser(user) || cachedId !== storeId) {
+        if (!user || !isAuth || cachedId !== storeId) {
           const currentUrl = encodeURIComponent(window.location.href);
           const storeParam = storeId ? `&s=${storeId}` : '';
           window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
@@ -833,10 +837,6 @@
               if (snap.exists) module.renderPosAlert(snap.data());
             });
           }).catch(err => console.error("Failed to load pos-alert module", err));
-          
-          // AudioContext is usually blocked until user interaction. 
-          // We can't automatically unlock it if we bypassed login clicks,
-          // but clicking anywhere in the UI later will unlock it.
           
           startOrderListener();
           startTimerLoop();
