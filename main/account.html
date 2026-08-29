@@ -362,15 +362,44 @@
       input:checked + .slider {
         background-color: var(--primary-color);
       }
-      input:checked + .slider:before {
-        transform: translateX(20px);
+      /* Loading State */
+      #account-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        gap: 16px;
+      }
+      .standard-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loader-text {
+        color: var(--text-sub);
+        font-size: 0.85rem;
       }
     </style>
   </head>
   <body>
     <main>
+      <!-- Loading State (visible by default) -->
+      <div id="account-loader">
+        <div class="standard-spinner"></div>
+        <div class="loader-text">読み込み中...</div>
+      </div>
+
       <!-- Authenticated User Content -->
-      <div id="auth-content">
+      <div id="auth-content" style="display: none;">
         <div id="profile-area">
           <!-- Loaded by JS -->
           <div class="profile-header">
@@ -672,6 +701,11 @@
 
         if (user) {
           window.CURRENT_USER_OBJ = user;
+          const loader = document.getElementById("account-loader");
+          const content = document.getElementById("auth-content");
+          if (loader) loader.style.display = "none";
+          if (content) content.style.display = "block";
+
           renderProfile(user);
           fetchOrderCount(user.uid);
           fetchOrderHistory(user.uid);
