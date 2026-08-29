@@ -87,8 +87,8 @@ if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = window.LOCAL_ENV.FIREBASE_APPCHECK_DEBUG_TOKEN;
     console.log("[App Check] Using shared local debug token.");
   } else {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    console.warn("[App Check] config.local.js not found. Using auto-generated token.");
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = "a4eb006d-0867-45dc-b9f5-8026de0b17a0";
+    console.log("[App Check] Using registered fallback debug token.");
   }
 }
 
