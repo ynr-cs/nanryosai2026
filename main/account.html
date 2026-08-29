@@ -577,6 +577,151 @@
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
+
+      /* Account Delete Modal & Full-screen Overlay */
+      .modal-custom-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(6px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+      .modal-custom-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .delete-modal-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        max-width: 360px;
+        width: 100%;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transform: scale(0.92);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .modal-custom-overlay.active .delete-modal-card {
+        transform: scale(1);
+      }
+      .delete-icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 16px;
+      }
+      .delete-modal-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 8px;
+      }
+      .delete-modal-desc {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .delete-modal-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-modal-cancel {
+        flex: 1;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: var(--item-fill);
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-modal-cancel:hover {
+        background: var(--border-color);
+      }
+      .btn-modal-delete {
+        flex: 1;
+        padding: 10px;
+        border-radius: 12px;
+        border: none;
+        background: #ef4444;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.1s;
+      }
+      .btn-modal-delete:hover {
+        opacity: 0.9;
+      }
+      .btn-modal-delete:active {
+        transform: scale(0.98);
+      }
+
+      /* Deletion Progress Screen Overlay */
+      .deletion-processing-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 10001;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .deletion-processing-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .deletion-spinner-wrap {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #ef4444;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin-bottom: 20px;
+      }
+      .deletion-processing-title {
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .deletion-processing-sub {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        text-align: center;
+        max-width: 280px;
+        line-height: 1.4;
+      }
     </style>
   </head>
   <body>
@@ -749,6 +894,37 @@
               <i class="bi bi-trash"></i> アカウント削除
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Delete Account Confirmation Modal -->
+      <div id="delete-account-modal" class="modal-custom-overlay" aria-hidden="true">
+        <div class="delete-modal-card">
+          <div class="delete-icon-circle">
+            <i class="bi bi-trash3-fill"></i>
+          </div>
+          <h4 class="delete-modal-title">アカウントを削除しますか？</h4>
+          <p class="delete-modal-desc">
+            お気に入りや注文履歴など、すべてのデータが完全に削除されます。<br>
+            <strong>この操作は取り消せません。</strong>
+          </p>
+          <div id="delete-modal-error" class="alert alert-danger py-2 px-3 small text-start mb-3" style="display:none; font-size:0.8rem; border-radius:10px;"></div>
+          <div class="delete-modal-actions">
+            <button type="button" id="btn-cancel-delete" class="btn-modal-cancel">キャンセル</button>
+            <button type="button" id="btn-confirm-delete" class="btn-modal-delete">削除する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deletion Full-screen Processing Overlay -->
+      <div id="deletion-processing-overlay" class="deletion-processing-overlay" aria-hidden="true">
+        <div id="deletion-spinner" class="deletion-spinner-wrap"></div>
+        <div id="deletion-success-icon" style="display:none; font-size:52px; color:#10b981; margin-bottom:16px;">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div id="deletion-progress-title" class="deletion-processing-title">アカウントを削除中...</div>
+        <div id="deletion-progress-sub" class="deletion-processing-sub">
+          安全にデータを消去しています。<br>画面を閉じずにお待ちください。
         </div>
       </div>
     </main>
@@ -1309,35 +1485,88 @@
         });
       }
 
-      // Delete Account Logic (Cloud Functions deleteMyAccount 連携)
-      const deleteBtn = document.getElementById("btn-delete-account");
-      if (deleteBtn) {
-        deleteBtn.addEventListener("click", async () => {
+      // Delete Account Modal & Full-screen Progress Logic
+      const deleteAccountModal = document.getElementById("delete-account-modal");
+      const deletionProgressOverlay = document.getElementById("deletion-processing-overlay");
+      const btnDeleteAccount = document.getElementById("btn-delete-account");
+      const btnCancelDelete = document.getElementById("btn-cancel-delete");
+      const btnConfirmDelete = document.getElementById("btn-confirm-delete");
+      const deleteModalError = document.getElementById("delete-modal-error");
+
+      if (btnDeleteAccount) {
+        btnDeleteAccount.addEventListener("click", () => {
+          if (deleteModalError) deleteModalError.style.display = "none";
+          if (deleteAccountModal) {
+            deleteAccountModal.classList.add("active");
+            deleteAccountModal.setAttribute("aria-hidden", "false");
+          }
+        });
+      }
+
+      if (btnCancelDelete) {
+        btnCancelDelete.addEventListener("click", () => {
+          if (deleteAccountModal) {
+            deleteAccountModal.classList.remove("active");
+            deleteAccountModal.setAttribute("aria-hidden", "true");
+          }
+        });
+      }
+
+      if (deleteAccountModal) {
+        deleteAccountModal.addEventListener("click", (e) => {
+          if (e.target === deleteAccountModal) {
+            if (btnCancelDelete) btnCancelDelete.click();
+          }
+        });
+      }
+
+      if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener("click", async () => {
           const user = auth.currentUser;
           if (!user) return;
 
-          if (
-            confirm(
-              "アカウントを完全に削除（退会）しますか？\nこの操作は取り消せません。",
-            )
-          ) {
-            deleteBtn.style.pointerEvents = "none";
-            deleteBtn.style.opacity = "0.5";
-            try {
-              const deleteFn = httpsCallable(functions, "deleteMyAccount");
-              await deleteFn();
-              alert("アカウントを削除しました。ご利用ありがとうございました。");
-              await logout();
+          // 1. 確認モーダルを閉じ、全画面ロックオーバーレイを表示
+          if (deleteAccountModal) {
+            deleteAccountModal.classList.remove("active");
+            deleteAccountModal.setAttribute("aria-hidden", "true");
+          }
+          if (deletionProgressOverlay) {
+            deletionProgressOverlay.classList.add("active");
+            deletionProgressOverlay.setAttribute("aria-hidden", "false");
+          }
+
+          const spinnerEl = document.getElementById("deletion-spinner");
+          const successIconEl = document.getElementById("deletion-success-icon");
+          const titleEl = document.getElementById("deletion-progress-title");
+          const subEl = document.getElementById("deletion-progress-sub");
+
+          try {
+            const deleteFn = httpsCallable(functions, "deleteMyAccount");
+            await deleteFn();
+
+            // 2. 成功時の演出
+            if (spinnerEl) spinnerEl.style.display = "none";
+            if (successIconEl) successIconEl.style.display = "block";
+            if (titleEl) titleEl.textContent = "削除が完了しました";
+            if (subEl) subEl.textContent = "ご利用ありがとうございました。ホームに戻ります。";
+
+            await logout();
+            setTimeout(() => {
               window.location.replace("./index.html");
-            } catch (error) {
-              console.error("Account deletion failed:", error);
-              deleteBtn.style.pointerEvents = "auto";
-              deleteBtn.style.opacity = "1";
-              if (error.code === "functions/failed-precondition") {
-                alert(error.message);
-              } else {
-                alert("アカウントの削除中にエラーが発生しました: " + error.message);
-              }
+            }, 1400);
+          } catch (error) {
+            console.error("Account deletion failed:", error);
+            // 失敗時はオーバーレイを解除し、モーダルにエラーを表示
+            if (deletionProgressOverlay) {
+              deletionProgressOverlay.classList.remove("active");
+              deletionProgressOverlay.setAttribute("aria-hidden", "true");
+            }
+
+            if (deleteAccountModal && deleteModalError) {
+              deleteModalError.textContent = error.message || "アカウントの削除中にエラーが発生しました";
+              deleteModalError.style.display = "block";
+              deleteAccountModal.classList.add("active");
+              deleteAccountModal.setAttribute("aria-hidden", "false");
             }
           }
         });
