@@ -826,6 +826,8 @@
         });
       }
 
+      let isSwitchingAccount = false;
+
       /* ==============================
          6. Auth State Watcher
          ============================== */
@@ -839,7 +841,9 @@
             if (isEffectiveStudent(claims)) {
               window.location.replace(redirectUrl);
             } else {
-              showScreen("step-unauthorized");
+              if (!isSwitchingAccount) {
+                showScreen("step-unauthorized");
+              }
             }
           } else {
             window.location.replace(redirectUrl);
@@ -882,21 +886,18 @@
         showScreen("step-login");
       });
 
-      document.getElementById("btn-switch-account").addEventListener("click", async () => {
-        try {
-          await logout();
-          isStudentFlow = false;
-          showScreen("step-student-check");
-        } catch (e) {
-          console.error("Logout failed:", e);
-          alert("ログアウトに失敗しました: " + e.message);
-        }
+      document.getElementById("btn-switch-account").addEventListener("click", () => {
+        // 勝手にログアウトせず、別のアカウントでのログイン画面へ直接遷移
+        isSwitchingAccount = true;
+        isStudentFlow = true;
+        showScreen("step-login");
       });
 
       /* ==============================
          8. Post Login Flow Handler
          ============================== */
       async function handlePostLogin(user, identity) {
+        isSwitchingAccount = false;
         if (mode === "student") {
           const claims = await getClaims();
           const isStudent = isEffectiveStudent(claims);
