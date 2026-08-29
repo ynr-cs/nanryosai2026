@@ -17,15 +17,13 @@ service cloud.firestore {
              && request.auth.token.storeId == targetStoreId;
     }
 
-    // スーパー管理者 (緊急メンテナンス用: ynrcs1000@gmail.com)
-    // 【設計判断】このアカウントはFirebase自体のオーナーであり、
-    // アカウント自体に「Google高度な保護機能プログラム(APP)」を適用し物理キー等で強力に保護しています。
-    // Custom Claimsの初期化トラブル（ロックアウト）を防ぐための確実なフェイルセーフとしてハードコードを許容します。
-    // （※このアドレスは部活の公式な窓口として公開されているため、ソースコードからの漏洩によるスパムリスク等は実運用上ゼロとみなします）
+    // スーパー管理者 (identity claim ベース — V4)
+    // 【設計判断】V4移行によりトークンに email は存在しない。
+    // ロックアウト時のフェイルセーフは scripts/grantSuperAdmin.js (Admin SDK直実行) に移管。
+    // Firebase Console からは Custom Claims を編集できない点に注意(04_ops.md §4.3)。
     function isSuperAdmin() {
-      return isAuthenticated() 
-             && request.auth.token.email == 'ynrcs1000@gmail.com'
-             && request.auth.token.email_verified == true;
+      return isAuthenticated()
+             && request.auth.token.identity == 'super_admin';
     }
 
     // --- Collection Rules ---
@@ -112,7 +110,12 @@ service cloud.firestore {
     // 未知の機能による情報露出を危惧した過剰なスキーマ検証(hasOnly等)は意図的に除外しています）
     match /users/{userId}/{document=**} {
       allow read: if (isAuthenticated() && request.auth.uid == userId) || isSuperAdmin();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      // delete 時: request.resource が null のため PII チェックは行わず UID 一致のみで許可
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+      // create, update 時のみ: PII フィールドの書き込みをルール層で禁止
+      allow create, update: if isAuthenticated() && request.auth.uid == userId
+                   && !request.resource.data.keys().hasAny(
+                        ['email', 'displayName', 'photoURL']);
     }
 
     // 5. Counters (採番)

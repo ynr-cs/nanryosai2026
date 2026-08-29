@@ -1,13 +1,17 @@
 /**
  * Nanryosai 2026
- * Version: 0.4.0
- * Last Modified: 2026-05-06
+ * Version: 1.0.0
+ * Last Modified: 2026-08-30
  * Author: Nanryosai 2026 Project Team
  *
  * Firebase Auth Module - Single Source of Truth
  * Firebase の初期化・認証・App Check を一元管理する。
  *
  * 変更履歴:
+ *   v1.0.0 - Google Identity Services (GIS) + Custom Token 認証への全面移行
+ *            旧 login() (signInWithPopup / PII保存) を完全廃止
+ *            renderGoogleLoginButton() 実装
+ *            getClaims(), isEffectiveStudent(), isSuperAdminClaims() ヘルパー追加
  *   v0.4.0 - signInWithRedirect 完全廃止 (GitHub Pages 環境では使えないため)
  *            popup-blocked エラーを呼び出し側に委譲する設計に変更
  *            getRedirectResult の処理を削除
@@ -22,8 +26,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
+  signInWithCustomToken,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -42,6 +45,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import {
   getFunctions,
+  httpsCallable,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 import {
   getMessaging,

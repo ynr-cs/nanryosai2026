@@ -73,3 +73,8 @@ config.local.js
 
 # 校舎写真・動画データ（大容量 — 3Dマップ作成の参考資料）
 main/map_editor_v2/pictures/
+
+# Firebase Admin Service Account Key
+serviceAccountKey.json
+scripts/serviceAccountKey.json
+*serviceAccountKey*.json

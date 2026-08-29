@@ -13,6 +13,30 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.116] 認証システムV4移行：セキュリティルール改訂（isSuperAdminのclaims化＆PII書込禁止バリデーション追加） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第2章）に基づき、FirestoreおよびStorageのセキュリティルールからemail依存を全廃し、Custom Claims `identity: 'super_admin'` による認可へ移行。同時に多層防御として `users` コレクションへの個人情報（PII: `email`, `displayName`, `photoURL`）フィールド書き込みをルール層で恒久的にブロックするため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **Firestore セキュリティルール改修 (`firestore.rules`)**:
+  - **isSuperAdmin() の Custom Claims 化**: `request.auth.token.identity == 'super_admin'` による判定に置換し、トークン内の email 依存を完全撤廃。
+  - **users コレクションの PII 書込禁止バリデーション＆delete分離**:
+    - `allow delete`: `request.resource` が `null` となるため UID 一致のみで許可。
+    - `allow create, update`: `!request.resource.data.keys().hasAny(['email', 'displayName', 'photoURL'])` により、ルール層で個人情報フィールドの混入を厳格に遮断。
+- **Storage セキュリティルール改修 (`storage.rules`)**:
+  - **isSuperAdmin() の Custom Claims 化**: Firestore 同様に `request.auth.token.identity == 'super_admin'` に置換。
+- **アーキテクチャ知識ベースの同期 (`antigravity/firebase_CONTEXT.md`)**:
+  - 改訂されたセキュリティルールの仕様を同期し永続化。
+- **詳細技術知見**:
+  - **背景/原因**: V4認証アーキテクチャでは、メールアドレス等の個人情報（PII）を一切保持せず判定直後に破棄する匿名UIDモデルを採用。これによりトークン内に `email` が含まれなくなるため、従来の `email == 'ynrcs1000@gmail.com'` 判定から Custom Claims `identity` 判定への移行が必須であった。
+  - **解決策**: `isSuperAdmin()` を `identity == 'super_admin'` に統一。`users` の `create, update` で PII フィールドの書き込みを拒否するバリデーションを導入。
+  - **得られた知見**: Firestore ルールにおいて `delete` 操作時は `request.resource` が `null` となるため、`request.resource.data` にアクセスするバリデーションが存在すると実行時エラーで削除に失敗する。そのため、`allow delete` と `allow create, update` を明示的に分離して定義することが安全である。
+
 ## [0.5.114] 設計図V4確定版の整理・5.4スケジュール削除・CHANGELOG/コミット運用プロトコル明記 - 2026-08-30
 
 ### メタ情報

@@ -131,8 +131,9 @@ last_updated: 2026-05-07
   - `orders`: 作成(**Create**)はクライアントから**禁止**（Function経由必須）。読み取りは設計憲法§8.1に基づき、「自身の注文」「SOKの未確定仮注文（`sokStatus == "pending"`）」「提供準備完了（`ready_for_pickup`）」「自店舗の管理者・スーパー管理者」のみ許可。
   - `banned_users`: 利用規約違反等によるアクセス制限ユーザーのUIDを記録。本人のみ読み取り可能で、書き込みはクライアントから完全禁止（設計憲法§10.2）。
   - `items`: 読み取りは誰でも可能。書き込みは管理者のみ。
-  - `users`: 本人のみ読み書き可。
+  - `users`: 本人のみ読み書き可（V4: `email`, `displayName`, `photoURL` のPII書き込みはルール層で禁止。`delete` 時はUID一致のみで許可）。
   - `store_secrets`: 読み書き完全禁止。
+  - `isSuperAdmin()`: `request.auth.token.identity == 'super_admin'` の Custom Claim で判定（V4移行によりトークン内のemail依存を全廃）。
 
 - **インデックス (Indexes)**:
   - **複合インデックス**: 売上ダッシュボードの前日比（DoD）機能のため、以下のインデックスが必要。
