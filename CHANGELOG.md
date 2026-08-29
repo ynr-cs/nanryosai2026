@@ -13,6 +13,32 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.118] 認証システムV4移行：フロントエンド共通認証モジュール刷新（main/auth.js v1.0.0 GIS化・PII保存完全撤廃） - 2026-08-30
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 認証システム移行実装計画V4確定版（`設計図/sandbox/v4-final.md` 第3章 3.1）に基づき、フロントエンド共通認証基盤 `main/auth.js` を v1.0.0 に全面刷新。従来の `signInWithPopup` および Firestore `users/{uid}` への個人情報（`email`, `displayName`, `photoURL`）保存処理を完全撤廃し、Google Identity Services (GIS) + Custom Token 連携ボタン描画機構 `renderGoogleLoginButton` および Custom Claims 判定ヘルパーを実装。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **共通認証モジュールの刷新 (`main/auth.js` v1.0.0)**:
+  - **旧認証・PII保存処理の完全削除**: `GoogleAuthProvider`, `signInWithPopup`, 旧 `login()` 関数、および `users/{uid}` への個人情報保存処理（`setDoc` による email/displayName/photoURL 書込）を全廃。
+  - **GISログインボタン描画機構の実装 (`renderGoogleLoginButton`)**:
+    - `crypto.randomUUID()` による nonce 生成および sessionStorage 保持。
+    - Web Crypto API (`crypto.subtle.digest`) による SHA-256 ハッシュ化 nonce の生成と GIS `initialize` への連携。
+    - `ux_mode: "popup"`, `use_fedcm_for_button: true` の標準設定。
+    - GIS callback 内で `authenticateWithGoogle` callable を呼び出し、返却された Custom Token で `signInWithCustomToken` を実行。
+  - **Custom Claims 判定ヘルパーの追加**:
+    - `getClaims(force = false)`: IDトークン結果から claims を取得。
+    - `isEffectiveStudent(claims)`: `identity === "student" || identityOverride === "student" || identity === "super_admin"` による生徒機能アクセス可否判定。
+    - `isSuperAdminClaims(claims)`: `identity === "super_admin"` 判定。
+- **詳細技術知見**:
+  - **背景/原因**: フロントエンドから Firebase Auth の標準 Google 認証（Popup）を呼ぶと、Auth ユーザーレコードにメールアドレスが強制的に紐付いてしまう。また、ログイン直後にクライアントから Firestore へ email 等を書き込む設計であったため、これらを根絶する必要があった。
+  - **解決策**: GIS SDK によるクライアント側 IDトークン取得 ➜ Cloud Functions によるサーバー側検証・匿名UID発行 ➜ `signInWithCustomToken` による匿名ログインというフローに一本化。
+  - **得られた知見**: `crypto.subtle` はセキュアコンテキスト（HTTPS / localhost）でのみ利用可能であり、本番（GitHub Pages）およびローカル開発環境で安全に動作する。
+
 ## [0.5.117] 認証システムV4移行：Cloud Functionsバックエンド実装（authenticateWithGoogle・grantIdentity・deleteMyAccount・App Check・PII全廃） - 2026-08-30
 
 ### メタ情報

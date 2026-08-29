@@ -184,90 +184,94 @@ function detectInAppBrowser() {
   );
 }
 
+const OAUTH_CLIENT_ID =
+  "93228414556-tm81uv1jir0hd9ofc4kooq3kr49mpc00.apps.googleusercontent.com";
+
 /**
- * Initiates Google Login via signInWithPopup (popup-only strategy).
- *
- * このプロジェクトは GitHub Pages 環境のため、signInWithRedirect は使わない。
- * (リダイレクト後に認証状態が正しく引き継がれない問題があるため)
- *
- * フロー:
- *   ① アプリ内ブラウザ検出 → confirm() で警告
- *   ② signInWithPopup を即座に呼ぶ(ユーザージェスチャー保持)
- *   ③ popup-blocked → 呼び出し側にエラーをスロー(UI ガイダンス表示用)
- *
- * @returns {Promise<import("firebase/auth").User|null>}
- *   - ログイン成功時: User
- *   - ユーザーがポップアップを閉じた場合: null
- *   - ネットワークエラー: null (alert 表示済み)
- *   - popup-blocked: throw (error.code === "auth/popup-blocked")
- *   - その他のエラー: throw
+ * SHA-256 ハッシュを計算して 16進数文字列で返す
+ * @param {string} text
+ * @returns {Promise<string>}
  */
-function login() {
-  // 1. アプリ内ブラウザ検出 → 警告表示（ログインは試行させる）
-  if (detectInAppBrowser()) {
-    const proceed = confirm(
-      "⚠️ アプリ内ブラウザが検出されました\n\n" +
-      "LINEやInstagramのアプリ内ブラウザでは、ログインに失敗する場合があります。\n\n" +
-      "【推奨】右上の「…」メニュー → 「ブラウザで開く」で標準ブラウザに切り替えてください。\n\n" +
-      "このまま続行しますか？"
-    );
-    if (!proceed) return Promise.resolve(null);
+async function sha256hex(text) {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text),
+  );
+  return [...new Uint8Array(buf)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * GISボタンを指定コンテナに描画する。
+ * @param {HTMLElement} container ボタンを置く要素
+ * @param {(result:{user: import("firebase/auth").User, identity:string})=>void} [onSuccess]
+ * @param {(error:Error)=>void} [onError]
+ */
+async function renderGoogleLoginButton(container, onSuccess, onError) {
+  const rawNonce = crypto.randomUUID();
+  sessionStorage.setItem("gis_nonce", rawNonce);
+  const hashedNonce = await sha256hex(rawNonce);
+
+  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
+    const err = new Error("Google Identity Services is not loaded.");
+    console.error("[Auth]", err);
+    if (onError) onError(err);
+    return;
   }
 
-  // 2. Provider を先に準備
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
-
-  // 3. 即座に signInWithPopup を呼ぶ（await/async なし＝ユーザージェスチャー保持）
-  //    ※ この関数自体を async にしないことで、ポップアップブロックを回避
-  return signInWithPopup(auth, provider)
-    .then(async (result) => {
-      if (result && result.user) {
-        const user = result.user;
-        console.log("[Auth] Popup login success:", user.email);
-        // Firestore にユーザープロファイルを保存
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            lastLogin: serverTimestamp(),
-          },
-          { merge: true },
-        );
-        // GA4: ログイン完了イベント
+  google.accounts.id.initialize({
+    client_id: OAUTH_CLIENT_ID,
+    nonce: hashedNonce,
+    ux_mode: "popup",
+    use_fedcm_for_button: true,
+    callback: async (response) => {
+      try {
+        const authFn = httpsCallable(functions, "authenticateWithGoogle");
+        const result = await authFn({
+          idToken: response.credential,
+          nonce: sessionStorage.getItem("gis_nonce"),
+        });
+        const { customToken, identity } = result.data;
+        const cred = await signInWithCustomToken(auth, customToken);
+        console.log("[Auth] Login success. identity:", identity);
         logEvent(analytics, "login", { method: "Google" });
-        return user;
+        if (onSuccess) onSuccess({ user: cred.user, identity });
+      } catch (e) {
+        console.error("[Auth] Login failed:", e.code || e.name || e.message);
+        if (onError) onError(e);
       }
-      return null;
-    })
-    .catch((error) => {
-      // ポップアップがブロックされた場合 → 呼び出し側に委譲(UI ガイダンス表示用)
-      // このプロジェクトは GitHub Pages 環境のため signInWithRedirect は使わない。
-      // 呼び出し側(login.html 等)で popup-blocked-guidance を表示する設計。
-      if (error.code === "auth/popup-blocked") {
-        console.warn("[Auth] Popup blocked. Caller should show guidance UI.");
-        throw error; // error.code === "auth/popup-blocked" のままスロー
-      }
+    },
+  });
+  google.accounts.id.renderButton(container, {
+    type: "standard",
+    theme: "outline",
+    size: "large",
+    text: "signin_with",
+    shape: "pill",
+    logo_alignment: "left",
+    width: Math.min(container.clientWidth || 320, 400),
+  });
+}
 
-      // ユーザーがポップアップを閉じた場合 → 何もしない(null を返す)
-      if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
-        console.log("[Auth] User cancelled popup");
-        return null;
-      }
+/** IDトークンの claims を取得(forceRefresh 指定可) */
+async function getClaims(force = false) {
+  const u = auth.currentUser;
+  if (!u) return null;
+  return (await u.getIdTokenResult(force)).claims;
+}
 
-      // ネットワークエラー
-      if (error.code === "auth/network-request-failed") {
-        alert("ネットワークエラーが発生しました。通信環境を確認して再度お試しください。");
-        return null;
-      }
+function isEffectiveStudent(claims) {
+  return (
+    !!claims &&
+    (claims.identity === "student" ||
+      claims.identityOverride === "student" ||
+      claims.identity === "super_admin")
+  );
+}
 
-      // その他のエラー
-      console.error("[Auth] Login failed:", error);
-      alert("ログインエラー: " + error.message);
-      throw error;
-    });
+function isSuperAdminClaims(claims) {
+  return !!claims && claims.identity === "super_admin";
 }
 
 /**
@@ -483,11 +487,15 @@ export {
   appCheck,
   analytics,
   logEvent,
-  login,
   logout,
   watchUser,
   getCurrentUser,
   requireLogin,
   toggleFavorite,
   getFavorites,
+  detectInAppBrowser,
+  renderGoogleLoginButton,
+  getClaims,
+  isEffectiveStudent,
+  isSuperAdminClaims,
 };
