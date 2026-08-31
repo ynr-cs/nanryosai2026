@@ -672,6 +672,13 @@
       </main>
     </div>
 
+    <!-- Login Processing Full-screen Overlay -->
+    <div id="login-processing-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:99999; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center; padding:20px;">
+      <div class="spinner" style="width:48px; height:48px; border:3.5px solid rgba(255,255,255,0.2); border-top-color:var(--primary-color, #6c5ce7); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:18px;"></div>
+      <div style="font-size:1.15rem; font-weight:700; margin-bottom:6px;">ログイン中...</div>
+      <div style="font-size:0.85rem; color:rgba(255,255,255,0.75);">安全に認証を行っています。少々お待ちください。</div>
+    </div>
+
     <!-- ============================
          JavaScript (Module)
          ============================ -->
@@ -795,24 +802,50 @@
         document.getElementById("email-emphasis-box").style.display = "none";
       }
 
+      function showLoginOverlay() {
+        const overlay = document.getElementById("login-processing-overlay");
+        if (overlay) overlay.style.display = "flex";
+      }
+
+      function hideLoginOverlay() {
+        const overlay = document.getElementById("login-processing-overlay");
+        if (overlay) overlay.style.display = "none";
+      }
+
       function mountGisButtons() {
         if (mode === "sok") {
           const sokContainer = document.getElementById("sok-google-login-btn-container");
           if (sokContainer && !sokContainer.hasChildNodes()) {
-            renderGoogleLoginButton(sokContainer, () => {
-              window.location.replace(redirectUrl);
-            }, (err) => {
-              console.error("[Auth] SOK GIS render error:", err);
-            });
+            renderGoogleLoginButton(
+              sokContainer,
+              () => {
+                window.location.replace(redirectUrl);
+              },
+              (err) => {
+                console.error("[Auth] SOK GIS render error:", err);
+                hideLoginOverlay();
+              },
+              () => {
+                showLoginOverlay();
+              }
+            );
           }
         } else {
           const normalContainer = document.getElementById("google-login-btn-container");
           if (normalContainer && !normalContainer.hasChildNodes()) {
-            renderGoogleLoginButton(normalContainer, async ({ user, identity }) => {
-              handlePostLogin(user, identity);
-            }, (err) => {
-              console.error("[Auth] GIS render error:", err);
-            });
+            renderGoogleLoginButton(
+              normalContainer,
+              async ({ user, identity }) => {
+                handlePostLogin(user, identity);
+              },
+              (err) => {
+                console.error("[Auth] GIS render error:", err);
+                hideLoginOverlay();
+              },
+              () => {
+                showLoginOverlay();
+              }
+            );
           }
         }
       }
@@ -899,15 +932,16 @@
       async function handlePostLogin(user, identity) {
         isSwitchingAccount = false;
         if (mode === "student") {
-          const claims = await getClaims();
-          const isStudent = isEffectiveStudent(claims);
+          const isStudent = identity === "student";
           if (isStudentFlow) {
             if (isStudent) {
               window.location.replace(redirectUrl);
             } else {
+              hideLoginOverlay();
               showScreen("step-unauthorized");
             }
           } else {
+            hideLoginOverlay();
             showScreen("step-guest-welcome");
           }
         } else {

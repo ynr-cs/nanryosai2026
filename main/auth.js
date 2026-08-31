@@ -207,8 +207,9 @@ async function sha256hex(text) {
  * @param {HTMLElement} container ボタンを置く要素
  * @param {(result:{user: import("firebase/auth").User, identity:string})=>void} [onSuccess]
  * @param {(error:Error)=>void} [onError]
+ * @param {()=>void} [onStart] 認証処理開始時（ポップアップ選択直後）のコールバック
  */
-async function renderGoogleLoginButton(container, onSuccess, onError) {
+async function renderGoogleLoginButton(container, onSuccess, onError, onStart) {
   const rawNonce = crypto.randomUUID();
   sessionStorage.setItem("gis_nonce", rawNonce);
   const hashedNonce = await sha256hex(rawNonce);
@@ -226,6 +227,7 @@ async function renderGoogleLoginButton(container, onSuccess, onError) {
     ux_mode: "popup",
     use_fedcm_for_button: true,
     callback: async (response) => {
+      if (onStart) onStart();
       try {
         const authFn = httpsCallable(functions, "authenticateWithGoogle");
         const result = await authFn({
