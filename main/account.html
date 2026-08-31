@@ -362,13 +362,13 @@
       input:checked + .slider {
         background-color: var(--primary-color);
       }
-      /* Loading State */
+      /* Loading State & Footer Layout Shift Prevention */
       #account-loader {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 60vh;
+        min-height: calc(100vh - 140px);
         gap: 16px;
       }
       .standard-spinner {
@@ -387,6 +387,18 @@
       .loader-text {
         color: var(--text-sub);
         font-size: 0.85rem;
+      }
+
+      /* 認証完了前、または未ログインリダイレクト中はフッターを絶対に表示させず画面のガクつきを防ぐ */
+      body:not(.auth-ready) .app-footer {
+        display: none !important;
+      }
+      body.auth-ready .app-footer {
+        animation: fadeInFooter 0.3s ease-in;
+      }
+      @keyframes fadeInFooter {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
 
       /* UID Badge Styles */
@@ -1096,6 +1108,7 @@
           const content = document.getElementById("auth-content");
           if (loader) loader.style.display = "none";
           if (content) content.style.display = "block";
+          document.body.classList.add("auth-ready");
 
           renderProfile(user);
           fetchOrderCount(user.uid);

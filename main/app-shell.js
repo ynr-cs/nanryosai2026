@@ -436,6 +436,20 @@ const AppShell = {
         }
       });
     }
+
+    // Smart Navigation for Account Tab
+    const accountBtn = document.querySelector('.nav-item[data-page="account"]');
+    if (accountBtn) {
+      accountBtn.addEventListener("click", (e) => {
+        const user = getCurrentUser();
+        if (!user) {
+          // 未ログイン時は二重リダイレクトを回避し直接ログイン画面へ遷移（ガクつき防止）
+          e.preventDefault();
+          const targetUrl = this.resolvePath("login.html?redirect=./account.html&reason=account");
+          window.location.href = targetUrl;
+        }
+      });
+    }
   },
 
   injectFooter: function () {
