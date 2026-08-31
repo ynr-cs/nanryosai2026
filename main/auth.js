@@ -225,7 +225,8 @@ async function renderGoogleLoginButton(container, onSuccess, onError, onStart) {
     client_id: OAUTH_CLIENT_ID,
     nonce: hashedNonce,
     ux_mode: "popup",
-    use_fedcm_for_button: true,
+    auto_select: false,
+    use_fedcm_for_button: false,
     callback: async (response) => {
       if (onStart) onStart();
       try {
@@ -252,7 +253,7 @@ async function renderGoogleLoginButton(container, onSuccess, onError, onStart) {
     text: "signin_with",
     shape: "pill",
     logo_alignment: "left",
-    width: Math.min(container.clientWidth || 320, 400),
+    width: Math.min(container.clientWidth || 280, 320),
   });
 }
 
