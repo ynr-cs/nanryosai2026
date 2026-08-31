@@ -625,38 +625,30 @@
       <div id="orders-container" class="orders-grid"></div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
-
-    <script>
-      // --- Firebase Config ---
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do", // ダミーです
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
-        messagingSenderId: "360316480856",
-        appId: "1:360316480856:web:1234567890abcdef",
-      };
-
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      const analytics = firebase.analytics();
-      const db = firebase.firestore();
-      const auth = firebase.auth();
-      const provider = new firebase.auth.GoogleAuthProvider();
-
-      // POSアラート監視 (動的インポート)
-      import("./pos-alert.js").then((module) => {
-        db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
-          if (snap.exists) module.renderPosAlert(snap.data());
-        });
-      }).catch(err => console.error("Failed to load pos-alert module", err));
+    <!-- Firebase & Auth (Modular) -->
+    <script type="module">
+      import {
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { renderPosAlert } from "./pos-alert.js";
+      import {
+        app,
+        auth,
+        db,
+        functions,
+        watchUser,
+        getClaims,
+        isEffectiveStudent,
+        logout as authLogout,
+      } from "../main/auth.js";
 
       let unsubscribe = null;
       const urlParams = new URLSearchParams(window.location.search);
@@ -690,21 +682,22 @@
         if (currentZoom > 2.0) currentZoom = 2.0;
         document.body.style.zoom = currentZoom;
       }
+      window.adjustZoom = adjustZoom;
 
       function toggleFullScreen() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         if (isStandalone) return;
 
-        const doc = window.document;
-        const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
+        const docEl = document.body; // iPad Safariの余白対策のため documentElement から body に変更
         const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        const cancelFullScreen = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen;
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
           if (requestFullScreen) requestFullScreen.call(docEl);
         } else {
-          if (cancelFullScreen) cancelFullScreen.call(doc);
+          if (cancelFullScreen) cancelFullScreen.call(document);
         }
       }
+      window.toggleFullScreen = toggleFullScreen;
 
       function showError(html) {
         errorMsgEl.innerHTML = html;
@@ -715,16 +708,17 @@
       async function isAuthorizedUser(user) {
         if (!user) return false;
         try {
-          const tokenResult = await user.getIdTokenResult();
-          const claims = tokenResult.claims || {};
-          return claims.identity === "student" || claims.identityOverride === "student" || claims.identity === "super_admin";
+          const claims = await getClaims();
+          return isEffectiveStudent(claims);
         } catch (e) {
           console.error("Auth claims error:", e);
           return false;
         }
       }
 
-      auth.onAuthStateChanged(async (user) => {
+      let initialLoaderTimer = null;
+
+      watchUser(async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
         const isAuth = user ? await isAuthorizedUser(user) : false;
@@ -743,56 +737,68 @@
           document.getElementById("global-loader").classList.remove("active");
           document.getElementById("main-content").style.display = "block";
           document.getElementById("display-store-id").textContent = storeId;
+
+          // POSアラート監視
+          onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+            if (snap.exists()) renderPosAlert(snap.data());
+          });
+
           startOrderListener();
           startTimerLoop();
         }
       });
-      function logout() {
-        if (confirm("ログアウトしますか？"))
-          auth.signOut().then(() => location.reload());
-      }
+
+      window.logout = async function () {
+        if (confirm("ログアウトしますか？")) {
+          await authLogout();
+          location.reload();
+        }
+      };
 
       // --- Firestore Listener ---
       function startOrderListener() {
         let isInitialLoad = true;
 
-        unsubscribe = db
-          .collection("orders")
-          .where("storeId", "==", storeId)
-          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "abandoned"])
-          .orderBy("createdAt", "asc")
-          .onSnapshot(
-            (snapshot) => {
-              snapshot.docChanges().forEach((change) => {
-                const data = change.doc.data();
-                if (change.type === "added") {
-                  removeCard(change.doc.id);
-                  renderCardSorted(change.doc);
-                  if (!isInitialLoad && data.status === "ready_to_serve") {
-                    playPingSound();
-                  }
+        const q = query(
+          collection(db, "orders"),
+          where("storeId", "==", storeId),
+          where("status", "in", ["ready_to_serve", "ready_for_pickup", "abandoned"]),
+          orderBy("createdAt", "asc")
+        );
+
+        unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+              const data = change.doc.data();
+              if (change.type === "added") {
+                removeCard(change.doc.id);
+                renderCardSorted(change.doc);
+                if (!isInitialLoad && data.status === "ready_to_serve") {
+                  playPingSound();
                 }
-                if (change.type === "modified") {
-                  removeCard(change.doc.id);
-                  renderCardSorted(change.doc);
-                }
-                if (change.type === "removed") {
-                  removeCard(change.doc.id);
-                }
-              });
-              isInitialLoad = false;
-            },
-            (error) => {
-              console.error("Firestore Error:", error);
-              if (error.code === "failed-precondition") {
-                showError(
-                  `インデックスが必要です。<a href="#" onclick="alert('コンソールを確認してください')">詳細</a>`,
-                );
-              } else if (error.code === "permission-denied") {
-                showError("アクセス権限がありません。");
               }
-            },
-          );
+              if (change.type === "modified") {
+                removeCard(change.doc.id);
+                renderCardSorted(change.doc);
+              }
+              if (change.type === "removed") {
+                removeCard(change.doc.id);
+              }
+            });
+            isInitialLoad = false;
+          },
+          (error) => {
+            console.error("Firestore Error:", error);
+            if (error.code === "failed-precondition") {
+              showError(
+                `インデックスが必要です。<a href="#" onclick="alert('コンソールを確認してください')">詳細</a>`,
+              );
+            } else if (error.code === "permission-denied") {
+              showError("アクセス権限がありません。");
+            }
+          }
+        );
       }
 
       function renderCardSorted(doc) {
@@ -1074,7 +1080,7 @@
 
       window.callForPickup = function (orderId) {
         setLoading(orderId, "呼出処理中...");
-        const callFn = firebase.app().functions("asia-northeast1").httpsCallable("callForPickup");
+        const callFn = httpsCallable(functions, "callForPickup");
         callFn({ orderId }).catch(e => {
           alert("呼出失敗: " + e.message + "\n画面を再読み込みします。");
           location.reload();
@@ -1083,7 +1089,7 @@
 
       window.completeOrder = function (orderId) {
         setLoading(orderId, "完了処理中...");
-        const completeFn = firebase.app().functions("asia-northeast1").httpsCallable("completeOrder");
+        const completeFn = httpsCallable(functions, "completeOrder");
         completeFn({ orderId }).catch(e => {
           alert("完了失敗: " + e.message + "\n画面を再読み込みします。");
           location.reload();
@@ -1093,7 +1099,7 @@
       window.forceComplete = function (orderId) {
         if (!confirm("【緊急完了】\n強制的に完了済みに変更します。")) return;
         setLoading(orderId, "緊急完了処理中...");
-        const adminUpdate = firebase.app().functions("asia-northeast1").httpsCallable("adminUpdateOrderStatus");
+        const adminUpdate = httpsCallable(functions, "adminUpdateOrderStatus");
         adminUpdate({ orderId, newStatus: "completed" }).catch(e => {
           alert("緊急完了失敗: " + e.message + "\n画面を再読み込みします。");
           location.reload();
@@ -1108,7 +1114,7 @@
           return;
         }
         setLoading(orderId, "キャンセル処理中...");
-        const cancelFn = firebase.app().functions("asia-northeast1").httpsCallable("cancelOrder");
+        const cancelFn = httpsCallable(functions, "cancelOrder");
         cancelFn({ orderId, reason }).catch(e => {
           alert("キャンセル失敗: " + e.message + "\n画面を再読み込みします。");
           location.reload();

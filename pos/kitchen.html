@@ -691,38 +691,31 @@
       </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-check-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
-
-    <script>
-      // --- Firebase Config ---
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
-        messagingSenderId: "360316480856",
-        appId: "1:360316480856:web:1234567890abcdef",
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      const analytics = firebase.analytics();
-
-      // App Check Init (Compat)
-      if (firebase.appCheck) {
-        firebase
-          .appCheck()
-          .activate("6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS", true);
-      }
-
-      const db = firebase.firestore();
-      const auth = firebase.auth();
-      const provider = new firebase.auth.GoogleAuthProvider();
+    <!-- Firebase & Auth (Modular) -->
+    <script type="module">
+      import {
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+        getDocs,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import {
+        httpsCallable,
+      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+      import { renderPosAlert } from "./pos-alert.js";
+      import {
+        app,
+        auth,
+        db,
+        functions,
+        watchUser,
+        getClaims,
+        isEffectiveStudent,
+        logout as authLogout,
+      } from "../main/auth.js";
 
       let unsubscribe = null;
       const urlParams = new URLSearchParams(window.location.search);
@@ -773,21 +766,22 @@
         // CSS Zoomプロパティ適用 (iPad/Chrome対応)
         document.body.style.zoom = currentZoom;
       }
+      window.adjustZoom = adjustZoom;
 
       function toggleFullScreen() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        if (isStandalone) return;
+        if (isStandalone) return; // PWA(ホーム画面追加)時は全画面APIを呼ばない
 
-        const doc = window.document;
-        const docEl = doc.body; // iPad Safariの余白対策のため documentElement から body に変更
+        const docEl = document.body; // iPad Safariの余白対策のため documentElement から body に変更
         const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        const cancelFullScreen = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen;
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
           if (requestFullScreen) requestFullScreen.call(docEl);
         } else {
-          if (cancelFullScreen) cancelFullScreen.call(doc);
+          if (cancelFullScreen) cancelFullScreen.call(document);
         }
       }
+      window.toggleFullScreen = toggleFullScreen;
 
       function showError(html, isPermanent = false) {
         errorMsgEl.innerHTML = html;
@@ -802,16 +796,17 @@
       async function isAuthorizedUser(user) {
         if (!user) return false;
         try {
-          const tokenResult = await user.getIdTokenResult();
-          const claims = tokenResult.claims || {};
-          return claims.identity === "student" || claims.identityOverride === "student" || claims.identity === "super_admin";
+          const claims = await getClaims();
+          return isEffectiveStudent(claims);
         } catch (e) {
           console.error("Auth claims error:", e);
           return false;
         }
       }
 
-      auth.onAuthStateChanged(async (user) => {
+      let initialLoaderTimer = null;
+
+      watchUser(async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
         const isAuth = user ? await isAuthorizedUser(user) : false;
@@ -831,67 +826,64 @@
           document.getElementById("main-content").style.display = "block";
           document.getElementById("display-store-id").textContent = storeId;
           
-          // POSアラート監視 (動的インポート)
-          import("./pos-alert.js").then((module) => {
-            db.collection("_metadata").doc("system_alerts").onSnapshot((snap) => {
-              if (snap.exists) module.renderPosAlert(snap.data());
-            });
-          }).catch(err => console.error("Failed to load pos-alert module", err));
+          // POSアラート監視
+          onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
+            if (snap.exists()) renderPosAlert(snap.data());
+          });
           
           startOrderListener();
           startTimerLoop();
         }
       });
-      function logout() {
-        if (confirm("ログアウトしますか？"))
-          auth.signOut().then(() => location.reload());
-      }
+
+      window.logout = async function () {
+        if (confirm("ログアウトしますか？")) {
+          await authLogout();
+          location.reload();
+        }
+      };
 
       // --- Firestore Listener (調理中) ---
       function startOrderListener() {
-        // 初回読み込み時は音を鳴らさないためのフラグ
         let isInitialLoad = true;
 
-        unsubscribe = db
-          .collection("orders")
-          .where("storeId", "==", storeId)
-          .where("status", "==", "cooking")
-          .orderBy("createdAt", "asc")
-          .onSnapshot(
-            (snapshot) => {
-              snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                  // 既存があれば削除
-                  removeCard(change.doc.id);
-                  // 描画
-                  renderCardSorted(change.doc);
+        const q = query(
+          collection(db, "orders"),
+          where("storeId", "==", storeId),
+          where("status", "==", "cooking"),
+          orderBy("createdAt", "asc")
+        );
 
-                  // 初回ロードでなければ音を鳴らす
-                  if (!isInitialLoad) {
-                    playNotificationSound();
-                  }
+        unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+              if (change.type === "added") {
+                removeCard(change.doc.id);
+                renderCardSorted(change.doc);
+                if (!isInitialLoad) {
+                  playNotificationSound();
                 }
+              }
 
-                if (change.type === "modified") {
-                  removeCard(change.doc.id);
-                  renderCardSorted(change.doc);
-                  // 修正の場合も鳴らしたいならここで playNotificationSound();
-                }
+              if (change.type === "modified") {
+                removeCard(change.doc.id);
+                renderCardSorted(change.doc);
+              }
 
-                if (change.type === "removed") {
-                  removeCard(change.doc.id);
-                }
-              });
+              if (change.type === "removed") {
+                removeCard(change.doc.id);
+              }
+            });
 
-              // 最初のバッチ処理が終わったらフラグを解除
-              isInitialLoad = false;
-            },
-            (error) => {
-              console.error("Firestore Error:", error);
-              if (error.code === "permission-denied")
-                showError("アクセス権限がありません。");
-            },
-          );
+            isInitialLoad = false;
+          },
+          (error) => {
+            console.error("Firestore Error:", error);
+            if (error.code === "permission-denied")
+              showError("アクセス権限がありません。");
+          }
+        );
       }
 
       // --- 注文カード描画 (自動ソート挿入) ---
@@ -1047,7 +1039,7 @@
         if (snackbarTimeout) clearTimeout(snackbarTimeout);
 
         // バックグラウンドでステータス更新処理を回す
-        const kitchenComplete = firebase.app().functions("asia-northeast1").httpsCallable("kitchenComplete");
+        const kitchenComplete = httpsCallable(functions, "kitchenComplete");
         kitchenComplete({ orderId }).then(() => {
           pendingRequests--;
           if (pendingRequests === 0) {
@@ -1077,74 +1069,73 @@
         historyModal.style.display = "none";
       };
 
-      function loadHistory() {
+      async function loadHistory() {
         historyListEl.innerHTML =
           '<p style="text-align:center; color:#999; margin-top:20px;">読み込み中...</p>';
-        db.collection("orders")
-          .where("storeId", "==", storeId)
-          .where("status", "in", ["ready_to_serve", "ready_for_pickup", "completed", "cancelled", "abandoned"])
-          .orderBy("updatedAt", "desc")
-          .get()
-          .then((querySnapshot) => {
-            if (querySnapshot.empty) {
-              historyListEl.innerHTML =
-                '<p style="text-align:center; color:#333; margin-top:20px;">完了した注文はありません。</p>';
-              return;
-            }
-            let html = "";
-            querySnapshot.forEach((doc) => {
-              const data = doc.data();
-              const orderId = doc.id;
-              const displayId = data.receiptNumber
-                ? `#${data.receiptNumber}`
-                : `#${orderId.slice(-4).toUpperCase()}`;
-              let completedTimeStr = "不明";
-              if (data.completedAt)
-                completedTimeStr = data.completedAt
-                  .toDate()
-                  .toLocaleString("ja-JP");
-              else if (data.updatedAt)
-                completedTimeStr = data.updatedAt
-                  .toDate()
-                  .toLocaleString("ja-JP");
-              let itemsSummary = "";
-              if (data.items)
-                itemsSummary = data.items
-                  .map((i) => `${i.quantity} ${i.name}`)
-                  .join(", ");
-              const statusMap = {
-                ready_to_serve: "提供待ち",
-                ready_for_pickup: "呼出中",
-                completed: "提供完了",
-                cancelled: "キャンセル",
-                abandoned: "強制終了"
-              };
-              const stLabel = statusMap[data.status] || data.status;
-              html += `
-                <div class="history-item">
-                    <div class="h-info">
-                        <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span> <span style="margin-left: 10px; font-size: 0.9em; background: #eee; padding: 2px 8px; border-radius: 4px;">${stLabel}</span></div>
-                        <div class="h-details">${itemsSummary}</div>
-                    </div>
-                </div>`;
-            });
-            historyListEl.innerHTML = html;
-          })
-          .catch((error) => {
-            console.error(error);
-            let msg = "履歴の読み込みに失敗しました。";
-            if (error.message.includes("requires an index")) {
-              const link = error.message.match(
-                /https:\/\/console\.firebase\.google\.com[^\s]*/,
-              );
-              if (link)
-                msg = `システム: <a href="${link[0]}" target="_blank">ここをクリックしてインデックスを作成してください</a>`;
-            }
-            historyListEl.innerHTML = `<p style="text-align:center; color:red; padding:20px;">${msg}</p>`;
+        try {
+          const q = query(
+            collection(db, "orders"),
+            where("storeId", "==", storeId),
+            where("status", "in", ["ready_to_serve", "ready_for_pickup", "completed", "cancelled", "abandoned"]),
+            orderBy("updatedAt", "desc")
+          );
+          const querySnapshot = await getDocs(q);
+          if (querySnapshot.empty) {
+            historyListEl.innerHTML =
+              '<p style="text-align:center; color:#333; margin-top:20px;">完了した注文はありません。</p>';
+            return;
+          }
+          let html = "";
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const orderId = docSnap.id;
+            const displayId = data.receiptNumber
+              ? `#${data.receiptNumber}`
+              : `#${orderId.slice(-4).toUpperCase()}`;
+            let completedTimeStr = "不明";
+            if (data.completedAt && data.completedAt.toDate)
+              completedTimeStr = data.completedAt
+                .toDate()
+                .toLocaleString("ja-JP");
+            else if (data.updatedAt && data.updatedAt.toDate)
+              completedTimeStr = data.updatedAt
+                .toDate()
+                .toLocaleString("ja-JP");
+            let itemsSummary = "";
+            if (data.items)
+              itemsSummary = data.items
+                .map((i) => `${i.quantity} ${i.name}`)
+                .join(", ");
+            const statusMap = {
+              ready_to_serve: "提供待ち",
+              ready_for_pickup: "呼出中",
+              completed: "提供完了",
+              cancelled: "キャンセル",
+              abandoned: "強制終了"
+            };
+            const stLabel = statusMap[data.status] || data.status;
+            html += `
+              <div class="history-item">
+                  <div class="h-info">
+                      <div class="h-title">${displayId} <span class="h-time">(${completedTimeStr})</span> <span style="margin-left: 10px; font-size: 0.9em; background: #eee; padding: 2px 8px; border-radius: 4px;">${stLabel}</span></div>
+                      <div class="h-details">${itemsSummary}</div>
+                  </div>
+              </div>`;
           });
+          historyListEl.innerHTML = html;
+        } catch (error) {
+          console.error(error);
+          let msg = "履歴の読み込みに失敗しました。";
+          if (error.message && error.message.includes("requires an index")) {
+            const link = error.message.match(
+              /https:\/\/console\.firebase\.google\.com[^\s]*/,
+            );
+            if (link)
+              msg = `システム: <a href="${link[0]}" target="_blank">ここをクリックしてインデックスを作成してください</a>`;
+          }
+          historyListEl.innerHTML = `<p style="text-align:center; color:red; padding:20px;">${msg}</p>`;
+        }
       }
-
-      // (revertOrder is removed for new system)
 
       window.onclick = function (event) {
         if (event.target == historyModal) closeHistory();

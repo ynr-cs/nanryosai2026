@@ -618,48 +618,26 @@
         </div>
       </div>
 
-
-
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
-        getAnalytics,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
-      import {
-        initializeAppCheck,
-        ReCaptchaV3Provider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-      import {
-        getAuth,
-        onAuthStateChanged,
-        signOut,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-      import {
-        getFirestore,
         collection,
         query,
         where,
         onSnapshot,
-        getDocs,
-        doc,
-        updateDoc,
-        getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
-        getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-      import { getClaims, isEffectiveStudent, logout } from "../main/auth.js";
-
-      // Firebase設定
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.appspot.com",
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
+      import {
+        app,
+        auth,
+        db,
+        functions,
+        analytics,
+        watchUser,
+        getClaims,
+        isEffectiveStudent,
+      } from "../main/auth.js";
 
       // URLパラメータ取得 (storeId)
       const urlParams = new URLSearchParams(window.location.search);
@@ -667,20 +645,11 @@
 
       class KioskApp {
         constructor() {
-          this.app = initializeApp(firebaseConfig);
-          this.analytics = getAnalytics(this.app);
-          // App Check Initialization
-          this.appCheck = initializeAppCheck(this.app, {
-            provider: new ReCaptchaV3Provider(
-              "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
-            ),
-            isTokenAutoRefreshEnabled: true,
-          });
-
-          this.db = getFirestore(this.app);
-
-          this.auth = getAuth(this.app);
-          this.functions = getFunctions(this.app, "asia-northeast1");
+          this.app = app;
+          this.analytics = analytics;
+          this.db = db;
+          this.auth = auth;
+          this.functions = functions;
 
           this.currentInput = "";
           this.currentOrder = null;
@@ -715,7 +684,7 @@
             }
           }
 
-          onAuthStateChanged(this.auth, async (user) => {
+          watchUser(async (user) => {
             if (!STORE_ID) {
               this.showParamError();
               return;
@@ -739,12 +708,12 @@
           // UI listeners for kiosk removed in Phase 2 as the monitor is now read-only.
         }
 
-
-
-        logout() {
-          signOut(this.auth).catch((error) => {
+        async logout() {
+          try {
+            await logout();
+          } catch (error) {
             console.error("Sign out error", error);
-          });
+          }
         }
 
         toggleMenu() {

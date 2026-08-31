@@ -13,6 +13,26 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.137] POS・店舗ポータル認証完全統合：Firebaseインスタンス重複初期化の撤廃・Single Source of Truth化 - 2026-08-31
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 店舗ポータル（`pos/portal.html`）や POS 運営画面において、`main/auth.js` とは別に独自で `initializeApp` / `getAuth` を実行していたために認証インスタンスが分離し、Google ログイン完了後に認証イベントが伝播せずログイン後の店舗選択画面に進めない致命的不具合を解消するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **店舗ポータル (`pos/portal.html`)**:
+  - **背景/原因**: ファイル内で独自の `initializeApp` と `getAuth` を実行していた一方、ログインボタン（`renderGoogleLoginButton`）やログアウトは `main/auth.js` 側のインスタンスで動作していたため、Auth インスタンスが乖離しログイン状態の同期が破綻していた。
+  - **解決策**:
+    - 独自の Firebase 初期化コード（`initializeApp`, `getAnalytics`, `initializeAppCheck`, `getAuth`, `getFirestore`, `getStorage`, `getFunctions`）を全廃。
+    - `main/auth.js` から一元管理されたインスタンス（`app`, `auth`, `db`, `storage`, `functions`, `analytics`, `watchUser`, `renderGoogleLoginButton`, `getClaims`, `isEffectiveStudent`, `logout`）を直接インポート。
+    - `watchUser` で認証状態を確実に検知し、Google 認証成功後に店舗選択画面（`step-store`）へ即座に遷移するよう統一。
+- **POS・厨房・受取・モニター画面 (`pos/pos.html`, `pos/kitchen.html`, `pos/presenter.html`, `pos/monitor.html`, `pos/training/pos.html`)**:
+  - レガシーな Firebase compat スクリプトタグおよび各画面での個別 `initializeApp` を完全撤廃。
+  - 全画面をモジュラーな `<script type="module">` と `main/auth.js`（Single Source of Truth）に完全統合。
+
 ## [0.5.136] ログインUI改善：ボタン内アカウント事前サジェストの無効化・標準Googleログインボタンへの統一 - 2026-08-31
 
 ### メタ情報

@@ -3329,18 +3329,7 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
       import {
-        initializeAppCheck,
-        ReCaptchaV3Provider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-      import {
-        onAuthStateChanged,
-        signOut,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-      import {
-        getFirestore,
         collection,
         query,
         where,
@@ -3355,43 +3344,27 @@
         Timestamp,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
-        getStorage,
         ref,
         uploadBytes,
         getDownloadURL,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
       import {
-        getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
       import { renderPosAlert } from "./pos-alert.js";
-      import { renderGoogleLoginButton, getClaims, isEffectiveStudent, logout } from "../main/auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket:
-          "nanryosai-2026-a4091.firebasestorage.app" /* Corrected bucket domain usually ends with appspot logging elsewhere, but user config had firebasestorage.app or appspot.com. Using generic logic. */,
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(
-          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
-        ),
-        isTokenAutoRefreshEnabled: true,
-      });
-
-      const auth = getAuth(app);
-
-      const db = getFirestore(app);
-      const storage = getStorage(app);
-      const functions = getFunctions(app, "asia-northeast1");
+      import {
+        app,
+        auth,
+        db,
+        storage,
+        functions,
+        analytics,
+        watchUser,
+        renderGoogleLoginButton,
+        getClaims,
+        isEffectiveStudent,
+        logout,
+      } from "../main/auth.js";
 
       // コンソールからの手動実行用 (Admin/Debug用)
       window.firebaseFunctions = functions;
@@ -3548,8 +3521,9 @@
         });
 
       // --- Auth Logic ---
-      onAuthStateChanged(auth, async (user) => {
-        document.getElementById("global-loader").classList.remove("active");
+      watchUser(async (user) => {
+        const loader = document.getElementById("global-loader");
+        if (loader) loader.classList.remove("active");
         if (user) {
           // 在校生権限チェック
           const isAuth = await isAuthorizedUser(user);

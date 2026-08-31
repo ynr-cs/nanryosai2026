@@ -798,21 +798,7 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
-        getAnalytics,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
-      import {
-        initializeAppCheck,
-        ReCaptchaV3Provider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-      import {
-        getAuth,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-      // MOD: onSnapshot をインポート
-      import {
-        getFirestore,
         collection,
         query,
         where,
@@ -823,34 +809,20 @@
         getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
-        getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
       import { renderPosAlert } from "./pos-alert.js";
-      import { getClaims, isEffectiveStudent, logout } from "../main/auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.appspot.com",
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-
-      // App Check の初期化
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(
-          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
-        ),
-        isTokenAutoRefreshEnabled: true,
-      });
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const functions = getFunctions(app, "asia-northeast1");
+      import {
+        app,
+        auth,
+        db,
+        functions,
+        analytics,
+        watchUser,
+        getClaims,
+        isEffectiveStudent,
+        logout,
+      } from "../main/auth.js";
 
       // State
       let products = [];
@@ -920,7 +892,7 @@
       }
 
       // Auth Guard
-      onAuthStateChanged(auth, async (user) => {
+      watchUser(async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
         const isAuth = user ? await isAuthorizedUser(user) : false;

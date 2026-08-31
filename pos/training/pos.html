@@ -746,18 +746,7 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
       import {
-        getAnalytics,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
-      import {
-        initializeAppCheck,
-        ReCaptchaV3Provider,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-      // Removed: getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged
-      // MOD: onSnapshot をインポート
-      import {
-        getFirestore,
         collection,
         query,
         where,
@@ -768,32 +757,14 @@
         getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
       import {
-        getFunctions,
         httpsCallable,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyA-Ijkbo-9rgrNKbDlRJ-rQVYdSXR_a9Do",
-        authDomain: "nanryosai-2026-a4091.firebaseapp.com",
-        projectId: "nanryosai-2026-a4091",
-        storageBucket: "nanryosai-2026-a4091.appspot.com",
-        messagingSenderId: "93228414556",
-        appId: "1:93228414556:web:f64f90c13849fae9049899",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(
-          "6LeHxzIsAAAAAOIf0lXePHNpUkvYRdFtQw9osmIS",
-        ),
-        isTokenAutoRefreshEnabled: true,
-      });
-
-      // const auth = getAuth(app); // Removed: Auth initialization
-      const db = getFirestore(app);
-      const functions = getFunctions(app);
+      import {
+        app,
+        db,
+        functions,
+        analytics,
+      } from "../../main/auth.js";
 
       // State
       let products = [];
