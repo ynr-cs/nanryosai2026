@@ -34,10 +34,6 @@
     <title>ステージ発表 | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <style>
       .page-header {
         padding: 40px 20px 20px;
@@ -798,7 +794,7 @@
                         <div class="list-name">${event.groupName}</div>
                         <div class="list-perf-name">${event.name}</div>
                         ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
-                        <div class="list-place"><i class="fas fa-map-marker-alt"></i> ${event.place}</div>
+                        <div class="list-place"><i class="bi bi-geo-alt-fill"></i> ${event.place}</div>
                     </div>
                     <div class="list-button-wrapper">
                         <button class="${favBtnClass}" data-event-id="${linkId}" aria-label="Favorite" data-track="click_favorite_stage" data-track-event-id="${linkId}">

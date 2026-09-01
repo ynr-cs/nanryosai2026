@@ -13,6 +13,23 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.153] 企画一覧・ステージ一覧のBootstrap Icons統一 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/projects-list.html` および `main/stage-list.html` における FontAwesome 依存を撤廃し、Bootstrap Icons に完全統一するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **企画一覧画面 (`main/projects-list.html`)**:
+  - FontAwesome 6 CDN リンクを削除。
+  - 表示切替（グリッド/リスト）、オーダーボタン、場所アイコンを Bootstrap Icons（`bi bi-...`）に置換。
+- **ステージ一覧画面 (`main/stage-list.html`)**:
+  - FontAwesome 6 CDN リンクを削除。
+  - 発表場所アイコンを Bootstrap Icons（`bi bi-geo-alt-fill`）に置換。
+
 ## [0.5.152] 企画詳細画面のBootstrap Icons統一・投票リンク結線・画像フォールバック強化 - 2026-09-01
 
 ### メタ情報

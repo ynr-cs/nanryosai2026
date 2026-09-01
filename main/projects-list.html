@@ -40,10 +40,6 @@
     <title>企画一覧 | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <style>
       .page-header {
         padding: 40px 20px 20px;
@@ -670,14 +666,14 @@
             id="grid-view-btn"
             aria-label="Grid View"
           >
-            <i class="fas fa-th-large"></i>
+            <i class="bi bi-grid-fill"></i>
           </button>
           <button
             class="view-toggle-btn active"
             id="list-view-btn"
             aria-label="List View"
           >
-            <i class="fas fa-list"></i>
+            <i class="bi bi-list-ul"></i>
           </button>
         </div>
       </div>
@@ -844,8 +840,8 @@
               }
 
               const orderBtnHTML = isOrderable
-                ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order" data-track="click_order_from_list" data-track-project-id="${project.id}"><i class="fas fa-shopping-cart"></i> オーダー</a>`
-                : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="fas fa-shopping-cart"></i> 準備中</button>` : "");
+                ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order" data-track="click_order_from_list" data-track-project-id="${project.id}"><i class="bi bi-cart-fill"></i> オーダー</a>`
+                : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="bi bi-cart-fill"></i> 準備中</button>` : "");
 
               const detailUrl = project.linkUrl ? project.linkUrl : `detail.html?id=${project.id}`;
               const isFavorite = userFavorites.includes(project.id);
@@ -862,7 +858,7 @@
                             ${statusBadge}
                             <p class="card-catchphrase">${catchphrase}</p>
                             <div class="card-place">
-                                <i class="fas fa-map-marker-alt"></i> ${place}
+                                <i class="bi bi-geo-alt-fill"></i> ${place}
                             </div>
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
