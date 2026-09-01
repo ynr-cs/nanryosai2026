@@ -402,17 +402,16 @@ async function requireLogin(options = {}) {
   // 既にログイン済みなら現在のユーザーを返す
   if (currentUser) return currentUser;
 
-  // TODO: 後のステップで login.html へのリダイレクトを実装する
-  // 想定実装:
-  //   const redirect = options.redirect || location.href;
-  //   const params = new URLSearchParams();
-  //   params.set("redirect", redirect);
-  //   if (options.reason) params.set("reason", options.reason);
-  //   if (options.mode) params.set("mode", options.mode);
-  //   location.href = `/main/login.html?${params.toString()}`;
-  //   return null;
+  const redirect = options.redirect || (window.location.pathname + window.location.search);
+  const params = new URLSearchParams();
+  params.set("redirect", redirect);
+  if (options.reason) params.set("reason", options.reason);
+  if (options.mode) params.set("mode", options.mode);
 
-  console.warn("[Auth] requireLogin called but login.html is not yet implemented");
+  // 相対パスで login.html へ安全に遷移（main/ 内または pos/ 内からのアクセスに対応）
+  const isPos = window.location.pathname.includes("/pos/");
+  const loginPath = isPos ? "../main/login.html" : "./login.html";
+  window.location.href = `${loginPath}?${params.toString()}`;
   return null;
 }
 
