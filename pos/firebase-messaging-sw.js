@@ -1,7 +1,7 @@
 /**
  * Nanryosai 2026
- * Version: 0.1.0
- * Last Modified: 2026-02-05
+ * Version: 0.5.141
+ * Last Modified: 2026-09-01
  * Author: Nanryosai 2026 Project Team
  */
 // firebase-messaging-sw.js
@@ -17,8 +17,8 @@ const firebaseConfig = {
   authDomain: "nanryosai-2026-a4091.firebaseapp.com",
   projectId: "nanryosai-2026-a4091",
   storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
-  messagingSenderId: "360316480856",
-  appId: "1:360316480856:web:1234567890abcdef",
+  messagingSenderId: "93228414556",
+  appId: "1:93228414556:web:f64f90c13849fae9049899",
 };
 
 firebase.initializeApp(firebaseConfig);
