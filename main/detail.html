@@ -40,10 +40,6 @@
     <title>詳細 | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
 
     <!-- Page Specific Style -->
     <style>
@@ -859,7 +855,7 @@
       function showError(message) {
         document.getElementById("detail-title").innerHTML = `
                 <div class="error-container">
-                    <div class="error-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="error-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
                     <div class="error-title">エラー</div>
                     <div class="error-message">${message}</div>
                 </div>
@@ -875,10 +871,17 @@
         // Set page title
         document.title = `${project.name} | 南陵祭'26`;
 
-        // Header Background
+        // Header Background with fallback
         const headerBg = document.getElementById("detail-header-bg");
         const imgSrc = `../images/${project.id}.png`;
-        headerBg.style.backgroundImage = `url(${imgSrc})`;
+        const testImg = new Image();
+        testImg.onload = () => {
+          headerBg.style.backgroundImage = `url(${imgSrc})`;
+        };
+        testImg.onerror = () => {
+          headerBg.style.backgroundImage = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+        };
+        testImg.src = imgSrc;
 
         // Title section
         document.getElementById("detail-group-name").textContent =
@@ -892,10 +895,10 @@
         const tagsStr = (project.tags || []).join("・");
         let chipsHTML = "";
         if (project.place) {
-          chipsHTML += `<div class="meta-chip"><i class="fas fa-map-marker-alt"></i>${project.place}</div>`;
+          chipsHTML += `<div class="meta-chip"><i class="bi bi-geo-alt-fill"></i>${project.place}</div>`;
         }
         if (tagsStr) {
-          chipsHTML += `<div class="meta-chip"><i class="fas fa-tag"></i>${tagsStr}</div>`;
+          chipsHTML += `<div class="meta-chip"><i class="bi bi-tag-fill"></i>${tagsStr}</div>`;
         }
         
         const useMobileOrder = project.useMobileOrder === true;
@@ -903,7 +906,7 @@
            let text = "準備中";
            let color = "#92400e";
            let bg = "#fef3c7";
-           let icon = "fa-clock";
+           let icon = "bi-clock";
            
            if (project.operationStatus === "open") {
              const available = project.availableItemCount;
@@ -913,39 +916,39 @@
                  text = "現在売切";
                  color = "#991b1b";
                  bg = "#fee2e2";
-                 icon = "fa-ban";
+                 icon = "bi-slash-circle";
                  project.isOrderable = false;
                } else if (available > 0 && available < total) {
                  text = "一部売切";
                  color = "#92400e";
                  bg = "#fef3c7";
-                 icon = "fa-exclamation-circle";
+                 icon = "bi-exclamation-circle-fill";
                  project.isOrderable = true;
                } else {
                  text = "営業中";
                  color = "#065f46";
                  bg = "#d1fae5";
-                 icon = "fa-door-open";
+                 icon = "bi-door-open-fill";
                  project.isOrderable = true;
                }
              } else {
                text = "営業中";
                color = "#065f46";
                bg = "#d1fae5";
-               icon = "fa-door-open";
+               icon = "bi-door-open-fill";
                project.isOrderable = true;
              }
            } else if (project.operationStatus === "closed") {
              text = "本日の営業終了";
              color = "#374151";
              bg = "#f3f4f6";
-             icon = "fa-door-closed";
+             icon = "bi-door-closed-fill";
              project.isOrderable = false;
            } else {
              project.isOrderable = false;
            }
            
-           chipsHTML += `<div class="meta-chip" style="background:${bg};color:${color};border-color:${color}"><i class="fas ${icon}" style="color:${color}"></i>${text}</div>`;
+           chipsHTML += `<div class="meta-chip" style="background:${bg};color:${color};border-color:${color}"><i class="bi ${icon}" style="color:${color}"></i>${text}</div>`;
         }
         
         metaChipsEl.innerHTML = chipsHTML;
@@ -972,10 +975,10 @@
         let snsHTML = "";
         if (project.sns) {
           const snsLinks = [];
-          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;" data-track="click_detail_sns" data-track-sns="instagram"><i class="fab fa-instagram"></i> Instagram</a>`);
-          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;" data-track="click_detail_sns" data-track-sns="twitter"><i class="fab fa-twitter"></i> Twitter</a>`);
-          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;" data-track="click_detail_sns" data-track-sns="tiktok"><i class="fab fa-tiktok"></i> TikTok</a>`);
-          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;" data-track="click_detail_sns" data-track-sns="youtube"><i class="fab fa-youtube"></i> YouTube</a>`);
+          if (project.sns.instagram) snsLinks.push(`<a href="${project.sns.instagram}" target="_blank" rel="noopener" class="sns-link-btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;" data-track="click_detail_sns" data-track-sns="instagram"><i class="bi bi-instagram"></i> Instagram</a>`);
+          if (project.sns.twitter) snsLinks.push(`<a href="${project.sns.twitter}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#1da1f2;color:#fff;" data-track="click_detail_sns" data-track-sns="twitter"><i class="bi bi-twitter-x"></i> Twitter</a>`);
+          if (project.sns.tiktok) snsLinks.push(`<a href="${project.sns.tiktok}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#010101;color:#fff;" data-track="click_detail_sns" data-track-sns="tiktok"><i class="bi bi-tiktok"></i> TikTok</a>`);
+          if (project.sns.youtube) snsLinks.push(`<a href="${project.sns.youtube}" target="_blank" rel="noopener" class="sns-link-btn" style="background:#ff0000;color:#fff;" data-track="click_detail_sns" data-track-sns="youtube"><i class="bi bi-youtube"></i> YouTube</a>`);
           if (snsLinks.length > 0) {
             snsHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">${snsLinks.join("")}</div>`;
           }
@@ -985,19 +988,20 @@
         let votingHTML = "";
         if (project.votingEnabled) {
           const votingLabel = project.votingLabel || "この企画に投票する";
+          const voteUrl = project.voteUrl || "https://forms.google.com";
           votingHTML = `
             <div style="margin-top:20px;padding:16px;background:var(--glass-bg);border:1px solid var(--border-color);border-radius:16px;text-align:center;">
-              <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:8px;"><i class="fas fa-poll"></i> 来場者投票</p>
-              <button class="vote-btn" data-project-id="${project.id}" data-track="click_detail_vote" data-track-project-id="${project.id}" style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <i class="fas fa-thumbs-up"></i> ${votingLabel}
-              </button>
+              <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:8px;"><i class="bi bi-bar-chart-fill"></i> 来場者投票</p>
+              <a href="${voteUrl}" target="_blank" rel="noopener" class="vote-btn" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(var(--primary-rgb),0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" data-track="click_detail_vote" data-track-project-id="${project.id}">
+                <i class="bi bi-hand-thumbs-up-fill"></i> ${votingLabel}
+              </a>
             </div>
           `;
         }
 
         contentsHTML += `
                 <div class="tab-content" id="tab-info">
-                    <h2 class="section-title"><i class="fas fa-info-circle"></i>基本情報</h2>
+                    <h2 class="section-title"><i class="bi bi-info-circle-fill"></i>基本情報</h2>
                     <div class="detail-description">
                         ${project.description || "詳細は当日をお楽しみに！"}
                     </div>
@@ -1020,7 +1024,7 @@
           // こだわりポイント（メニュー全体）
           let menuNoteHTML = "";
           if (project.menuNote) {
-            menuNoteHTML = `<div style="background:var(--glass-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-sub);"><i class="fas fa-star" style="color:var(--primary-color);margin-right:6px;"></i>${project.menuNote}</div>`;
+            menuNoteHTML = `<div style="background:var(--glass-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-sub);"><i class="bi bi-star-fill" style="color:var(--primary-color);margin-right:6px;"></i>${project.menuNote}</div>`;
           }
 
           const menuItemsHTML = sortedMenu
@@ -1032,12 +1036,12 @@
               // アレルギー表示
               let allergenHTML = "";
               if (item.allergens && item.allergens.length > 0) {
-                allergenHTML = `<div style="margin-top:4px;font-size:0.7rem;color:#d97706;"><i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>アレルギー: ${item.allergens.join("・")}</div>`;
+                allergenHTML = `<div style="margin-top:4px;font-size:0.7rem;color:#d97706;"><i class="bi bi-exclamation-triangle-fill" style="margin-right:3px;"></i>アレルギー: ${item.allergens.join("・")}</div>`;
               }
               // こだわりメモ（個別）
               let noteHTML = "";
               if (item.note) {
-                noteHTML = `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-sub);font-style:italic;"><i class="fas fa-comment" style="margin-right:3px;"></i>${item.note}</div>`;
+                noteHTML = `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-sub);font-style:italic;"><i class="bi bi-chat-dots-fill" style="margin-right:3px;"></i>${item.note}</div>`;
               }
               const isSoldOut = item.isAvailable === false;
               const soldOutBadge = isSoldOut 
@@ -1091,10 +1095,10 @@
                         onmouseover="this.style.transform='translateY(-2px)'"
                         onmouseout="this.style.transform='translateY(0)'"
                      >
-                        <i class="fas fa-shopping-cart"></i> モバイルオーダーで注文する
+                        <i class="bi bi-cart-fill"></i> モバイルオーダーで注文する
                      </a>
                      <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                        <i class="fas fa-info-circle"></i> スマホで注文・決済完了、呼び出し通知で受け取り
+                        <i class="bi bi-info-circle-fill"></i> スマホで注文・決済完了、呼び出し通知で受け取り
                      </p>
                 </div>
               `;
@@ -1116,10 +1120,10 @@
                             cursor: not-allowed;
                         "
                      >
-                        <i class="fas fa-shopping-cart"></i> 現在注文できません
+                        <i class="bi bi-cart-fill"></i> 現在注文できません
                      </button>
                      <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-                        <i class="fas fa-info-circle"></i> この店舗は現在モバイルオーダーを受け付けていません
+                        <i class="bi bi-info-circle-fill"></i> この店舗は現在モバイルオーダーを受け付けていません
                      </p>
                 </div>
               `;
@@ -1128,7 +1132,7 @@
 
           contentsHTML += `
                     <div class="tab-content" id="tab-menu">
-                        <h2 class="section-title"><i class="fas fa-utensils"></i>メニュー</h2>
+                        <h2 class="section-title"><i class="bi bi-cup-hot-fill"></i>メニュー</h2>
                         ${menuNoteHTML}
                         <div class="menu-list">${menuItemsHTML}</div>
                         ${orderButtonHTML}
@@ -1150,7 +1154,7 @@
             .join("");
           contentsHTML += `
                     <div class="tab-content" id="tab-gallery">
-                        <h2 class="section-title"><i class="fas fa-images"></i>ギャラリー</h2>
+                        <h2 class="section-title"><i class="bi bi-images"></i>ギャラリー</h2>
                         <div class="gallery-grid">${galleryHTML}</div>
                     </div>
                 `;
@@ -1161,7 +1165,7 @@
           tabsHTML += `<button class="tab-button" data-tab="performers" data-track="click_detail_tab" data-track-tab="performers">出演者</button>`;
           const performersHTML = project.performers.map(p => `
             <div style="display:flex;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:8px;">
-              ${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--glass-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:1.5rem;color:var(--text-sub);"></i></div>`}
+              ${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--glass-bg);display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-fill" style="font-size:1.5rem;color:var(--text-sub);"></i></div>`}
               <div style="flex:1;">
                 <div style="font-weight:700;font-size:0.95rem;">${p.name}</div>
                 ${p.role ? `<div style="font-size:0.75rem;color:var(--text-sub);margin-top:2px;">${p.role}</div>` : ""}
@@ -1171,7 +1175,7 @@
           `).join("");
           contentsHTML += `
             <div class="tab-content" id="tab-performers">
-              <h2 class="section-title"><i class="fas fa-users"></i>出演者</h2>
+              <h2 class="section-title"><i class="bi bi-people-fill"></i>出演者</h2>
               ${performersHTML}
             </div>
           `;
@@ -1223,7 +1227,7 @@
                              <div class="schedule-info">
                                 <div class="schedule-time">${s.time || "時間未定"}</div>
                                 ${nameInfo}
-                                <div class="schedule-place"><i class="fas fa-map-marker-alt"></i> ${s.place || ""}</div>
+                                <div class="schedule-place"><i class="bi bi-geo-alt-fill"></i> ${s.place || ""}</div>
                              </div>
                         </div>
                     `;
@@ -1231,7 +1235,7 @@
             .join("");
           contentsHTML += `
                     <div class="tab-content" id="tab-schedule">
-                        <h2 class="section-title"><i class="fas fa-calendar-alt"></i>スケジュール</h2>
+                        <h2 class="section-title"><i class="bi bi-calendar3"></i>スケジュール</h2>
                         <div class="schedule-list">
                             <div class="schedule-timeline">
                                 ${scheduleHTML}
@@ -1245,9 +1249,9 @@
         tabsHTML += `<button class="tab-button" data-tab="map" data-track="click_detail_tab" data-track-tab="map">マップ</button>`;
         contentsHTML += `
                 <div class="tab-content" id="tab-map">
-                    <h2 class="section-title"><i class="fas fa-map-marked-alt"></i>マップ</h2>
+                    <h2 class="section-title"><i class="bi bi-map-fill"></i>マップ</h2>
                     <div class="map-placeholder">
-                        <div class="map-placeholder-icon"><i class="fas fa-cube"></i></div>
+                        <div class="map-placeholder-icon"><i class="bi bi-box"></i></div>
                         <div class="map-placeholder-text">3Dマップ機能 近日公開</div>
                         <div class="map-placeholder-sub">よりリアルな校内案内を準備中です。</div>
                     </div>
