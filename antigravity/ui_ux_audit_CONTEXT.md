@@ -45,11 +45,12 @@
 
 ## 2. 共通基盤・アーキテクチャの改修方針
 
-### 2.1 `main/style.css` の `zoom: 0.9` 撤廃と標準レスポンシブ化
-- **方針**: `main { zoom: 0.9; }` を完全に削除。
-- **実ファイル検証結果**:
-  - 主要画面（`index.html`, `detail.html`, `projects-list.html`, `stage-list.html`, `account.html`, `login.html`）はすべて `box-sizing: border-box;` かつ Flexbox/CSS Grid で組まれており、コンテナ幅も `max-width: 800px` や `100%` と相対指定されているため、`zoom` を削除しても**横スクロールやレイアウト崩れは一切発生しない**ことを確認。
-  - フォーム入力欄（`<input>`, `<select>`, `<textarea>`）のフォントサイズを `16px` に保証することで、iOS Safariでフォームタップ時に画面が勝手に強制ズームする不具合が完全に解消される。
+### 2.1 `main/style.css` の Web標準高密度スケーリング基盤（`html { font-size: 88%; }`）
+- **方針**: 非標準の `main { zoom: 0.9; }` を撤廃し、Web標準のルートフォントスケーリング（`html { font-size: 88%; }` / PC `90%`）を全画面に適用。
+- **背景と効果**:
+  - 全画面の基準設計値が10〜15%大きく設計されていたため、単純に `zoom` を外すと全体が巨大化し一覧性が損なわれる課題があった。
+  - ルートフォントサイズを `88%`（1rem = 14.08px）に設定することで、全画面のすべての `rem` 単位（文字・余白・カード幅）が一括で 0.88倍 に引き締まり、Spotify / Instagram ライクな高密度な一覧性をWeb標準で実現。
+  - iOS Safariのフォーム入力時自動強制ズーム防止（`font-size: 16px !important;`）と完全両立し、タップ座標ズレや画面拡大バグを完全に排除。
 
 ### 2.2 Bootstrap Icons（`bi bi-...`）への完全一本化
 - **方針**: 個別ページ（`index.html`, `detail.html`, `projects-list.html`, `stage-list.html`, `about.html`, `access.html` 等）から FontAwesome 6 の `<link>` を全削除し、すべて Bootstrap Icons（`bi bi-...`）に置換。
@@ -144,19 +145,28 @@
 ```css
 /* main/style.css */
 
-/* 1. 非標準 zoom の完全撤廃 */
-/* 削除: @media (max-width: 768px) { main { zoom: 0.9; } } */
+/* 1. Web標準高密度スケーリング基盤（zoom: 0.9の完全代替） */
+html {
+  font-size: 88%; /* 1rem = 14.08px。全画面のrem単位を一括で0.88倍に引き締め */
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 90%; /* PC大画面でも引き締まった高密度レイアウト */
+  }
+}
 
 /* 2. モバイルコンテナパディングの適正化 */
 @media (max-width: 768px) {
   .overview-section,
   .highlight-section,
   .account-section {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   .overview-padding {
-    padding: 16px;
+    padding: 14px;
   }
   
   /* フォーム要素のiOS Safari強制ズーム防止（最低16px） */
