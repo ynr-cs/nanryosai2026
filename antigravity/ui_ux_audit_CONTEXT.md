@@ -118,6 +118,14 @@
    - ポスター画像は公式URL（`https://www.pen-kanagawa.ed.jp/y-nanryo-h/nyugaku/images/r8bunkasai.jpg`）を直接参照して鮮明に表示。
    - 学校案内パンフレット（公式PDF）および神奈川県立横浜南陵高等学校「入学希望者の方へ」公式ページへの直接リンクを設置。
 
+### 3.7 ハンバーガーメニュー（`main/app-shell.js`, `main/style.css`）
+1. **メインナビゲーション（ゆったりした縦リスト）**:
+   - 開催概要 (`about.html`), 企画一覧 (`projects-list.html`), ステージ発表 (`stage-list.html`), 校内マップ (`map.html`), アクセス (`access.html`)
+2. **サブ機能クイックボタングリッド（`.menu-quick-grid`）**:
+   - マイページ (`account.html`), 生徒会人気投票（アンケート外部リンク）, モバイルオーダー (`mobile-order.html`), 感想アンケート（外部リンク）, 利用規約・ポリシー (`terms.html`) をコンパクトなピル型ボタンで配置。
+3. **テーマ設定セレクターの移動**:
+   - テーマ設定（ライト / ダーク / 自動）を上部から「Powered By コンピュータ科学部」の直前（メニュー下部）へ移動。
+
 ---
 
 ## 4. 店舗運営・モバイルオーダー（`pos/`）の確定仕様＆改修方針

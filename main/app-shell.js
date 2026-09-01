@@ -667,17 +667,67 @@ const AppShell = {
     if (document.querySelector(".app-menu-overlay")) return;
 
     const currentTheme = localStorage.getItem("app-theme") || "auto";
+    const surveyForm = "https://docs.google.com/forms/d/e/1FAIpQLSeCqNNdr9NFcosejNj0acvD7MSqFfmgOQIAVad_Ss1YV-Sh9A/viewform?usp=header";
+    const voteUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy5VYJWBJmWIWnTeZwnmQ/viewform?usp=header";
 
     const menuHtml = `
             <div class="app-menu-overlay" id="app-menu-overlay">
                 <div class="app-menu-content">
                     <div class="menu-header">
                         <span>MENU</span>
-                        <div onclick="document.getElementById('app-menu-overlay').classList.remove('active')" style="cursor:pointer; padding: 10px;">✕</div>
+                        <div onclick="document.getElementById('app-menu-overlay').classList.remove('active')" style="cursor:pointer; padding: 10px;" aria-label="閉じる">✕</div>
+                    </div>
+
+                    <!-- Main Navigation List -->
+                    <ul class="menu-list">
+                        <li><a href="${this.resolvePath("about.html")}" data-track="click_menu_link" data-track-target="about">
+                            <span style="font-size: 1.2rem; margin-right: 12px;">ℹ️</span> 開催概要
+                        </a></li>
+                        <li><a href="${this.resolvePath("projects-list.html")}" data-track="click_menu_link" data-track-target="projects">
+                            <span style="font-size: 1.2rem; margin-right: 12px;">🎪</span> 企画一覧
+                        </a></li>
+                        <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_menu_link" data-track-target="stage">
+                            <span style="font-size: 1.2rem; margin-right: 12px;">🎤</span> ステージ発表
+                        </a></li>
+                        <li><a href="${this.resolvePath("map.html")}" data-track="click_menu_link" data-track-target="map">
+                            <span style="font-size: 1.2rem; margin-right: 12px;">🗺️</span> 校内マップ
+                        </a></li>
+                        <li><a href="${this.resolvePath("access.html")}" data-track="click_menu_link" data-track-target="access">
+                            <span style="font-size: 1.2rem; margin-right: 12px;">🚃</span> アクセス
+                        </a></li>
+                    </ul>
+
+                    <!-- Sub Services / Quick Actions Grid -->
+                    <div class="menu-quick-section">
+                        <div class="section-label">サービス・サポート</div>
+                        <div class="menu-quick-grid">
+                            <a href="${this.resolvePath("account.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="account">
+                                <i class="bi bi-person-circle"></i>
+                                <span>マイページ</span>
+                            </a>
+                            <a href="${voteUrl}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="vote">
+                                <i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
+                                <span>人気投票</span>
+                                <i class="bi bi-box-arrow-up-right ext-icon"></i>
+                            </a>
+                            <a href="${this.resolvePath("mobile-order.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="order">
+                                <i class="bi bi-bag-check-fill" style="color:var(--primary-color);"></i>
+                                <span>オーダー</span>
+                            </a>
+                            <a href="${surveyForm}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="survey">
+                                <i class="bi bi-chat-heart-fill" style="color:#ec4899;"></i>
+                                <span>感想アンケート</span>
+                                <i class="bi bi-box-arrow-up-right ext-icon"></i>
+                            </a>
+                            <a href="${this.resolvePath("terms.html")}" class="menu-quick-btn" style="grid-column: span 2;" data-track="click_menu_link" data-track-target="terms">
+                                <i class="bi bi-shield-check"></i>
+                                <span>利用規約・ポリシー</span>
+                            </a>
+                        </div>
                     </div>
                     
-                    <!-- Theme Selector -->
-                    <div class="menu-section">
+                    <!-- Theme Selector (Moved Above Footer) -->
+                    <div class="menu-section" style="margin-bottom: 20px;">
                         <div class="section-label">テーマ設定</div>
                         <div class="theme-selector-grid">
                             <button class="theme-toggle-btn ${currentTheme === "light" ? "active" : ""}" data-theme="light">
@@ -692,26 +742,8 @@ const AppShell = {
                         </div>
                     </div>
 
-                    <ul class="menu-list">
-                        <li><a href="${this.resolvePath("about.html")}">
-                            <span style="font-size: 1.2rem; margin-right: 10px;">ℹ️</span> 概要
-                        </a></li>
-                        <li><a href="${this.resolvePath("projects-list.html")}">
-                            <span style="font-size: 1.2rem; margin-right: 10px;">🎪</span> 企画一覧
-                        </a></li>
-                        <li><a href="${this.resolvePath("stage-list.html")}">
-                            <span style="font-size: 1.2rem; margin-right: 10px;">🎤</span> ステージ発表
-                        </a></li>
-                        <li><a href="${this.resolvePath("map.html")}">
-                            <span style="font-size: 1.2rem; margin-right: 10px;">🗺️</span> 校内マップ
-                        </a></li>
-                        <li><a href="${this.resolvePath("access.html")}">
-                            <span style="font-size: 1.2rem; margin-right: 10px;">🚃</span> アクセス
-                        </a></li>
-                    </ul>
-
-                    <div class="menu-footer" style="text-align: center; padding: 20px 0;">
-                        <a href="${this.resolvePath("about-us.html")}" class="menu-footer-link" style="opacity: 0.8; text-decoration: none; color: inherit; font-size: 0.85rem;">
+                    <div class="menu-footer" style="text-align: center; padding: 16px 0;">
+                        <a href="${this.resolvePath("about-us.html")}" class="menu-footer-link" style="opacity: 0.85; text-decoration: none; color: inherit; font-size: 0.85rem;" data-track="click_menu_link" data-track-target="about_cs">
                             Powered By コンピュータ科学部
                         </a>
                         <div id="app-version-display" style="font-size: 0.7rem; color: var(--text-sub); margin-top: 4px; opacity: 0.5; display: none;"></div>
