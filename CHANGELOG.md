@@ -13,6 +13,27 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.177] マイページアコーディオンアイコン修復・全画面アイコンCDN統一・企画一覧グリッド画像見切れ解消 - 2026-09-02
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: マイページ（`account.html`）のお気に入り・注文履歴アコーディオン右側アイコン（`.toggle-icon`）の描画不具合および開閉CSSの欠落を修復し、全HTMLファイルにおける Bootstrap Icons CDN バージョンを最新の `1.11.3` に統一するとともに、企画一覧（`projects-list.html`）のグリッド表示時に画像上部が見切れてしまう問題を解消してポスター・写真の完全表示（`object-fit: contain`）を実現するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **マイページ (`main/account.html`)**:
+  - CDN を最新の `1.11.3` に更新。
+  - アコーディオン右側アイコン（`.toggle-icon`）に寸法・配色・余白を定義し、見失われない鮮明なシェブロンアイコンを配置。
+  - アコーディオン開閉時にアイコン回転（`rotate(-90deg)`）と連動してコンテンツ（`.collapsible-content`）が開閉するアニメーションCSSを実装。
+- **企画一覧 (`main/projects-list.html`)**:
+  - グリッド表示時のカード画像（`.card-image img`）を `object-fit: contain` ＋ `background: var(--item-fill)` に変更。縦長ポスターやチラシなどの上部や全体が切り取られることなく100%美しく表示されるよう改善。
+- **全画面のアイコン読み込み統一 (`main/login.html`, `main/app-shell.js`, `pos/mobile-order.html`, `pos/status.html`)**:
+  - 古い `1.10.5` を最新の `1.11.3/font/bootstrap-icons.min.css` に統一し、全画面で欠落ゼロの安定したアイコン描画を保証。
+- **プロジェクト知識ベース (`antigravity/ui_ux_audit_CONTEXT.md`)**:
+  - グリッド画像表示仕様（`object-fit: contain`）およびアコーディオンUI仕様を永続化。
+
 ## [0.5.176] 公式ポスター画像直通URL参照およびアクセス内部リンク（access.html）への最適化 - 2026-09-02
 
 ### メタ情報
