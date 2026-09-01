@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.156] 開催概要・アクセス案内画面のBootstrap Icons統一 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/about.html` および `main/access.html` における FontAwesome 依存を撤廃し、Bootstrap Icons に完全統一するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **開催概要画面 (`main/about.html`)**:
+  - FontAwesome 6 CDN リンクを削除し、全アイコンを Bootstrap Icons に置換。
+- **アクセス案内画面 (`main/access.html`)**:
+  - FontAwesome 6 CDN リンクを削除。
+  - 所在地、マップ（Google/Apple）、注意事項、バス停・主要駅・地下鉄の全交通アイコンを Bootstrap Icons（`bi bi-...`）に置換。
+
 ## [0.5.155] ログイン画面の一般来場者向け警告表示制御の適正化 - 2026-09-01
 
 ### メタ情報
