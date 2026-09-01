@@ -10,6 +10,12 @@
     <script>
       (function() {
         try {
+          var params = new URLSearchParams(window.location.search);
+          var id = (params.get("id") || "").toLowerCase();
+          if (id === "cs") {
+            window.location.replace("about-us.html");
+            return;
+          }
           var theme = localStorage.getItem('app-theme');
           if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
           else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
@@ -718,6 +724,11 @@
         // Get ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
+
+        if (id && id.toLowerCase() === "cs") {
+          window.location.replace("about-us.html");
+          return;
+        }
 
         if (!id) {
           showError("IDが指定されていません");
