@@ -13,6 +13,21 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.151] トップページの構文エラー修正・死にコード整理・Bootstrap Icons一本化 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/index.html` における余分な `</section>` 閉じタグの構文エラー、未定義IDに対する死にスクリプト呼び出し（`carousel-stage`）の解消、および FontAwesome 依存を全廃して Bootstrap Icons に一本化するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **トップページ (`main/index.html`)**:
+  - 行 1147 の余分な `</section>` 閉じタグを削除しマークアップ構文を是正。
+  - 存在しない要素に対する `setupHighlightAutoScroll('carousel-stage')` 呼び出しを削除しコンソールエラーを解消。
+  - FontAwesome 6 の CDN 読み込みを削除し、全アイコン（PR、ハイライト、開催概要、UPDATES、会場ステータス等）を Bootstrap Icons（`bi bi-...`）に完全置換。
+
 ## [0.5.150] 認証ガード requireLogin の完全実装（安全なリダイレクト連携） - 2026-09-01
 
 ### メタ情報
