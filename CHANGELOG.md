@@ -13,6 +13,19 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.140] マスター同期画面の未定義変数参照（loginContainer）削除 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/admin_sync.html` の認証完了処理において、過去のUI残骸である未定義変数 `loginContainer` の参照によって発生する `ReferenceError` を解消するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **マスター同期管理画面 (`main/admin_sync.html`)**:
+  - `updateAuthUI` 内の未定義参照行 `if (loginContainer) loginContainer.style.display = "none";` を削除。
+
 ## [0.5.139] 呼出モニタ画面のログアウト関数インポート漏れ修正 - 2026-09-01
 
 ### メタ情報

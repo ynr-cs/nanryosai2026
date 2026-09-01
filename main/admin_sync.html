@@ -1,7 +1,7 @@
 <!--
   Nanryosai 2026
-  Version: 0.2.86
-  Last Modified: 2026-02-24
+  Version: 0.5.140
+  Last Modified: 2026-09-01
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -1126,7 +1126,6 @@
         const claims = await getClaims();
         const isSuper = isSuperAdminClaims(claims);
         userDisplay.innerHTML = `ID: ${user.uid.slice(0, 8)}...` + (isSuper ? ' <span style="color:gold; font-size:0.8em; border:1px solid gold; padding:2px; border-radius:4px; margin-left:5px;">SUPER ADMIN</span>' : '');
-        if (loginContainer) loginContainer.style.display = "none";
         btnLogout.style.display = "inline-block";
         log(`Logged in: ${user.uid} (SuperAdmin: ${isSuper})`);
       }
