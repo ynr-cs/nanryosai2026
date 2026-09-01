@@ -916,16 +916,14 @@
       };
     </script>
     <script type="module">
-      import { auth, watchUser } from "./auth.js";
-      import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import { auth, watchUser, db } from "./auth.js";
+      import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       // 「戻る」操作を無効化する（履歴を上書きして戻れなくする）
       history.pushState(null, null, location.href);
       window.addEventListener('popstate', function () {
           history.pushState(null, null, location.href);
       });
-
-      const db = getFirestore();
 
       watchUser((user) => {
           if (user) {
