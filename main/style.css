@@ -106,16 +106,10 @@
   --glass-border: rgba(255, 255, 255, 0.5);
 }
 
-/* High Density & Compact Scaling — Web標準による全体スケールダウン（zoom: 0.9の安全・完全代替） */
+/* Typography & Scaling Baseline — Web標準 1rem = 16px 基準 */
 html {
-  font-size: 88%; /* 1rem = 14.08px。全画面のrem単位を一括で0.88倍に引き締め、Instagram/Spotify風の高密度UIを実現 */
+  font-size: 100%;
   -webkit-text-size-adjust: 100%;
-}
-
-@media (min-width: 1024px) {
-  html {
-    font-size: 90%; /* PC大画面でも間延びせず引き締まったレイアウト */
-  }
 }
 
 /* Mobile Responsive Optimization — 余白適正化＆フォームズーム防止 */

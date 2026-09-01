@@ -120,36 +120,36 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 0, 128, 0); }
         }
 
-        /* --- Imported Stage List CSS --- */
-.filter-section {
+        /* --- Imported Stage List CSS (Synchronized with stage-list.html) --- */
+      .filter-section {
         background: var(--glass-bg);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 20px;
-        margin: 0 20px 20px;
+        border-radius: 18px;
+        padding: 10px 16px;
+        margin: 0 12px 14px;
         max-width: 900px;
         margin-left: auto;
         margin-right: auto;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         animation: fadeInUp 0.8s ease-out 0.2s backwards;
       }
 
       .day-selector {
         display: flex;
         justify-content: center;
-        gap: 12px;
+        gap: 10px;
       }
 
       .day-btn {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         color: var(--text-sub);
-        padding: 10px 24px;
+        padding: 8px 22px;
         border-radius: 50px;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
         transition: all 0.2s ease;
       }
@@ -163,10 +163,10 @@
         background: var(--primary-gradient);
         color: white;
         border-color: transparent;
-        box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+        box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
       }
 
-      /* Gantt Chart (Ultra Compact) */
+      /* Gantt Chart (Harmonized Scale) */
       .gantt-chart-container {
         display: flex;
         background: var(--card-bg);
@@ -174,14 +174,14 @@
         border-radius: 16px;
         position: relative;
         max-width: 1200px;
-        margin: 0 auto 12px;
+        margin: 0 auto 14px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         overflow: hidden;
       }
 
       .gantt-sidebar {
         flex-shrink: 0;
-        width: 90px;
+        width: 95px;
         background: var(--card-bg);
         border-right: 2px solid var(--primary-color);
         box-shadow: 2px 0 10px rgba(0,0,0,0.06);
@@ -202,20 +202,20 @@
 
       .gantt-place-header,
       .gantt-time-header {
-        height: 34px;
+        height: 38px;
         box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
       }
 
       .gantt-place,
       .gantt-time-cell {
-        height: 46px;
+        height: 52px;
         box-sizing: border-box;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
@@ -227,7 +227,7 @@
         justify-content: center;
         font-weight: 800;
         color: var(--text-main);
-        font-size: 0.82rem;
+        font-size: 0.88rem;
       }
 
       .gantt-time-cell {
@@ -255,9 +255,9 @@
         position: absolute;
         background: var(--primary-gradient);
         color: white;
-        padding: 4px 8px;
+        padding: 5px 10px;
         border-radius: 8px;
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -279,15 +279,16 @@
       .event-group-name {
         font-weight: 700;
         display: block;
-        font-size: 0.78rem;
-        line-height: 1.1;
+        font-size: 0.82rem;
+        line-height: 1.15;
         margin-bottom: 1px;
       }
 
       .event-perf-name {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         opacity: 0.9;
         display: block;
+        line-height: 1.15;
       }
 
       #current-time-indicator {
@@ -297,7 +298,7 @@
         width: 2px;
         background-color: #ff3b30;
         z-index: 30;
-        box-shadow: 0 0 10px #ff3b30;
+        box-shadow: 0 0 8px #ff3b30;
         opacity: 0;
         transition: opacity 0.5s;
         pointer-events: none;
@@ -309,14 +310,14 @@
 
       #current-time-indicator .time-label {
         position: absolute;
-        top: -30px;
+        top: -24px;
         left: 50%;
         transform: translateX(-50%);
         background: #ff3b30;
         color: white;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 0.8rem;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: 0.75rem;
         font-weight: 700;
         white-space: nowrap;
       }
@@ -325,30 +326,32 @@
       .timeline-list-container {
         max-width: 900px;
         margin: 0 auto 80px;
-        padding: 0 20px;
+        padding: 0 16px;
       }
 
       .timeline-controls {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
-        padding: 0 10px 16px;
+        padding: 0 6px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
       .toggle-switch-label {
         display: inline-flex;
         align-items: center;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
         color: var(--text-sub);
-        gap: 12px;
+        gap: 8px;
       }
 
       .toggle-switch {
         position: relative;
-        width: 44px;
-        height: 24px;
+        width: 40px;
+        height: 22px;
       }
 
       .toggle-switch input {
@@ -365,8 +368,8 @@
         right: 0;
         bottom: 0;
         background-color: var(--item-fill);
-        transition: 0.4s;
-        border-radius: 34px;
+        transition: 0.3s;
+        border-radius: 30px;
         border: 1px solid var(--border-color);
       }
 
@@ -375,10 +378,10 @@
         content: "";
         height: 16px;
         width: 16px;
-        left: 4px;
-        bottom: 3px;
+        left: 2px;
+        bottom: 2px;
         background-color: var(--text-sub);
-        transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
         border-radius: 50%;
       }
 
@@ -388,19 +391,19 @@
       }
 
       input:checked + .slider:before {
-        transform: translateX(20px);
+        transform: translateX(18px);
         background-color: white;
       }
 
       .list-event-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
-        margin-bottom: 6px;
-        padding: 8px 12px;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        padding: 10px 14px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         transition: all 0.2s ease;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       }
@@ -416,34 +419,35 @@
       }
 
       .list-time {
-        font-size: 0.95rem;
+        font-size: 1.05rem;
         font-weight: 800;
-        min-width: 90px;
+        min-width: 95px;
         color: var(--primary-color);
       }
 
       .list-details {
         flex-grow: 1;
+        min-width: 0;
       }
 
       .list-name {
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         font-weight: 800;
         color: var(--text-main);
-        margin-bottom: 4px;
+        margin-bottom: 3px;
       }
 
       .list-perf-name {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         color: var(--text-main);
         font-weight: 600;
         margin-bottom: 2px;
       }
 
       .list-desc {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: var(--text-sub);
-        margin-top: 4px;
+        margin-top: 3px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -455,23 +459,23 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         color: var(--text-sub);
-        margin-top: 8px;
+        margin-top: 4px;
         background: var(--item-fill);
-        padding: 4px 8px;
-        border-radius: 8px;
+        padding: 3px 8px;
+        border-radius: 6px;
         font-weight: 600;
       }
 
       .list-link-button {
         background: var(--item-fill);
         color: var(--text-main);
-        padding: 8px 16px;
+        padding: 6px 14px;
         border-radius: 50px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         border: 1px solid var(--border-color);
         transition: all 0.2s ease;
         white-space: nowrap;
@@ -481,12 +485,39 @@
         background: var(--border-color);
       }
 
+      .list-button-wrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .btn-favorite-star {
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        color: var(--text-placeholder);
+        font-size: 1.05rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, color 0.2s;
+        padding: 0;
+      }
+
+      .btn-favorite-star.active {
+        color: #f59e0b;
+      }
+
       .fade-up {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(15px);
         transition:
-          opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
-          transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+          opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+          transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
       }
 
       .fade-up.is-visible {
@@ -495,25 +526,36 @@
       }
 
       @media (max-width: 768px) {
+        .filter-section {
+          padding: 8px 12px;
+          margin: 0 8px 10px;
+        }
+        .gantt-chart-container {
+          margin: 0 8px 12px;
+        }
+        .timeline-list-container {
+          padding: 0 10px;
+        }
         .list-event-card {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-          padding: 16px;
+          padding: 10px 12px;
+          gap: 10px;
         }
-
         .list-time {
-          font-size: 1.1rem;
-          min-width: auto;
+          font-size: 0.95rem;
+          min-width: 80px;
         }
-
-        .list-details {
-          width: 100%;
+        .list-name {
+          font-size: 0.98rem;
         }
-
+        .list-perf-name {
+          font-size: 0.82rem;
+        }
+        .list-button-wrapper {
+          gap: 6px;
+        }
         .list-link-button {
-          align-self: stretch;
-          text-align: center;
+          padding: 5px 12px;
+          font-size: 0.78rem;
         }
       }
 

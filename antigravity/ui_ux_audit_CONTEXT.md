@@ -45,20 +45,22 @@
 
 ## 2. 共通基盤・アーキテクチャの改修方針
 
-### 2.1 `main/style.css` の Web標準高密度スケーリング基盤（`html { font-size: 88%; }`）
-- **方針**: 非標準の `main { zoom: 0.9; }` を撤廃し、Web標準のルートフォントスケーリング（`html { font-size: 88%; }` / PC `90%`）を全画面に適用。
-- **統一タイポグラフィ階層（調和の取れた高密度UI基準）**:
-  - **大見出し (Page Title)**: `1.4rem`
-  - **セクション見出し (Section Title)**: `1.15rem`
-  - **カードタイトル (Card Title)**: `0.95rem`（企画名・発表名）
-  - **サブテキスト / 団体名 (Sub / Group)**: `0.75rem〜0.82rem`
-  - **メタ情報・バッジ・タグ (Meta / Badge)**: `0.72rem〜0.75rem`
-  - **ボタン・ピル (Action Buttons / Filter Pills)**: `0.78rem`（最小タップ領域24px保証）
-  - **リストカード画像**: `52px × 52px`（リストカード高さ約 64px）
+### 2.1 `main/style.css` の Web標準スケーリング基盤（`html { font-size: 100%; }`）と統一タイポグラフィ
+- **方針**: 非標準の `main { zoom: 0.9; }` を撤廃し、Web標準のルートフォント（`html { font-size: 100%; }` / 1rem = 16px）を基準とした調和の取れたタイポグラフィ階層を全画面に適用。
+- **統一タイポグラフィ階層（全画面調和基準）**:
+  - **大見出し (Page Title / H1)**: `1.4rem〜1.6rem`（22.4px〜25.6px）
+  - **セクション見出し (Section Title / H2)**: `1.15rem〜1.25rem`（18.4px〜20.0px）
+  - **カード主タイトル (Card Title)**: `1.0rem〜1.05rem`（16.0px〜16.8px / 企画名・ステージ発表名）
+  - **時間・重要メタ (Time / Price)**: `0.95rem〜1.05rem`（15.2px〜16.8px / タイムテーブル時間、価格等）
+  - **サブテキスト / 団体名 (Sub / Group)**: `0.82rem〜0.88rem`（13.1px〜14.0px）
+  - **補足・説明文 (Catchphrase / Desc)**: `0.82rem〜0.85rem`（13.1px〜13.6px）
+  - **バッジ / メタタグ (Badge / Meta / Tag)**: `0.72rem〜0.78rem`（11.5px〜12.5px、最小保証）
+  - **アクションボタン (Action Buttons / Pills)**: `0.82rem〜0.88rem`（padding: `6px 14px`）
+  - **リストカード画像**: `56px × 56px`（リストカード高さ約 72px）
 - **背景と効果**:
-  - 全画面の基準設計値が10〜15%大きく設計されていたため、単純に `zoom` を外すと全体が巨大化し一覧性が損なわれる課題があった。
-  - ルートフォントサイズを `88%`（1rem = 14.08px）に設定することで、全画面のすべての `rem` 単位（文字・余白・カード幅）が一括で 0.88倍 に引き締まり、Spotify / Instagram ライクな高密度な一覧性をWeb標準で実現。
-  - iOS Safariのフォーム入力時自動強制ズーム防止（`font-size: 16px !important;`）と完全両立し、タップ座標ズレや画面拡大バグを完全に排除。
+  - 以前の過度な縮小（88%設定や0.68remへの切り詰め）による「豆粒化・トップページとの著しい落差」を解消。
+  - Web標準の 1rem = 16px をベースに、トップページ（`index.html`）、ステージ発表（`stage-list.html`）、企画一覧（`projects-list.html`）、詳細（`detail.html`）の全画面で一貫したタイポグラフィとタップしやすいボタンサイズを確立。
+  - iOS Safariのフォーム入力時自動強制ズーム防止（`font-size: 16px !important;`）と完全両立。
 
 ### 2.2 Bootstrap Icons（`bi bi-...`）への完全一本化
 - **方針**: 個別ページ（`index.html`, `detail.html`, `projects-list.html`, `stage-list.html`, `about.html`, `access.html` 等）から FontAwesome 6 の `<link>` を全削除し、すべて Bootstrap Icons（`bi bi-...`）に置換。
@@ -158,16 +160,10 @@
 ```css
 /* main/style.css */
 
-/* 1. Web標準高密度スケーリング基盤（zoom: 0.9の完全代替） */
+/* 1. Web標準スケーリング基盤（1rem = 16px 基準） */
 html {
-  font-size: 88%; /* 1rem = 14.08px。全画面のrem単位を一括で0.88倍に引き締め */
+  font-size: 100%;
   -webkit-text-size-adjust: 100%;
-}
-
-@media (min-width: 1024px) {
-  html {
-    font-size: 90%; /* PC大画面でも引き締まった高密度レイアウト */
-  }
 }
 
 /* 2. モバイルコンテナパディングの適正化 */
