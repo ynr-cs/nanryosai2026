@@ -1,6 +1,6 @@
 <!--
   Nanryosai 2026
-  Version: 0.2.69
+  Version: 0.5.138
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -3558,12 +3558,28 @@
           transitionView(stepGoogle, stepStore, "block", "anim-slide-up");
         } else {
           document.getElementById("auth-overlay").style.display = "flex";
-          const btnContainer = document.getElementById("g_id_signin_portal");
-          if (btnContainer && !btnContainer.hasChildNodes()) {
-            renderGoogleLoginButton(btnContainer, () => {}, (err) => {
-              document.getElementById("google-error").innerText = err.message;
-            });
+          const mountPortalGisButton = () => {
+            const btnContainer = document.getElementById("g_id_signin_portal");
+            if (btnContainer && !btnContainer.hasChildNodes()) {
+              renderGoogleLoginButton(btnContainer, () => {}, (err) => {
+                document.getElementById("google-error").innerText = err.message;
+              });
+            }
+          };
+
+          if (window.google && window.google.accounts) {
+            mountPortalGisButton();
+          } else {
+            window.addEventListener("load", mountPortalGisButton);
+            const checkGis = setInterval(() => {
+              if (window.google && window.google.accounts) {
+                clearInterval(checkGis);
+                mountPortalGisButton();
+              }
+            }, 200);
+            setTimeout(() => clearInterval(checkGis), 5000);
           }
+
           transitionView(
             document.getElementById("step-store"),
             document.getElementById("step-google"),
@@ -3637,9 +3653,13 @@
         // Let's rely on basic info for now.
       }
 
-      window.logout = () => {
+      window.logout = async () => {
         if (confirm("ログアウトしますか？")) {
-          signOut(auth);
+          try {
+            await logout();
+          } catch (err) {
+            console.error("Logout error:", err);
+          }
           localStorage.removeItem("nanryosai_store_id");
           location.reload();
         }
