@@ -106,16 +106,28 @@
   --glass-border: rgba(255, 255, 255, 0.5);
 }
 
-/* Mobile Responsive Optimization — zoom非依存のセマンティック余白＆フォーム最適化 */
+/* High Density & Compact Scaling — Web標準による全体スケールダウン（zoom: 0.9の安全・完全代替） */
+html {
+  font-size: 88%; /* 1rem = 14.08px。全画面のrem単位を一括で0.88倍に引き締め、Instagram/Spotify風の高密度UIを実現 */
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 90%; /* PC大画面でも間延びせず引き締まったレイアウト */
+  }
+}
+
+/* Mobile Responsive Optimization — 余白適正化＆フォームズーム防止 */
 @media (max-width: 768px) {
   .overview-section,
   .highlight-section,
   .account-section {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   .overview-padding {
-    padding: 16px;
+    padding: 14px;
   }
   /* iOS Safariフォームフォーカス時自動強制ズーム防止（最低16px） */
   input[type="text"],
