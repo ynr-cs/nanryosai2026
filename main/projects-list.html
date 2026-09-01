@@ -165,7 +165,57 @@
       .sort-wrapper {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+      }
+
+      .sort-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        white-space: nowrap;
+      }
+
+      .sort-select-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .sort-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 6px 30px 6px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.84rem;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        font-family: inherit;
+      }
+
+      .sort-select:hover {
+        border-color: var(--primary-color);
+      }
+
+      .sort-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.2);
+      }
+
+      .sort-select-arrow {
+        position: absolute;
+        right: 11px;
+        pointer-events: none;
+        font-size: 0.72rem;
+        color: var(--text-sub);
+        display: flex;
+        align-items: center;
       }
 
       .card-button-wrapper .btn-favorite-star {
@@ -546,6 +596,17 @@
           padding: 10px 12px;
           margin: 0 8px 10px;
         }
+        .control-row {
+          padding: 0 10px 6px;
+          gap: 8px;
+        }
+        .sort-label {
+          display: none;
+        }
+        .sort-select {
+          padding: 5px 26px 5px 10px;
+          font-size: 0.78rem;
+        }
         .projects-grid-container {
           padding: 0 8px 80px;
           grid-template-columns: repeat(2, 1fr);
@@ -733,15 +794,15 @@
         </label>
 
         <div class="sort-wrapper">
-          <span
-            style="font-size: 0.9rem; font-weight: 700; color: var(--text-sub)"
-            >並び替え:</span
-          >
-          <select id="sort-select" class="sort-select">
-            <option value="id-asc">クラス・団体順</option>
-            <option value="name-asc">五十音順 (昇順)</option>
-            <option value="floor-asc">場所・階数順</option>
-          </select>
+          <span class="sort-label">並び替え:</span>
+          <div class="sort-select-wrapper">
+            <select id="sort-select" class="sort-select" aria-label="並び替え">
+              <option value="id-asc">クラス・団体順</option>
+              <option value="name-asc">五十音順 (昇順)</option>
+              <option value="floor-asc">場所・階数順</option>
+            </select>
+            <i class="bi bi-chevron-down sort-select-arrow"></i>
+          </div>
         </div>
 
         <div class="view-toggle-wrapper">

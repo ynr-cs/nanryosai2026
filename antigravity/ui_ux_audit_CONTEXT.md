@@ -56,6 +56,7 @@
   - **補足・説明文 (Catchphrase / Desc)**: `0.82rem〜0.85rem`（13.1px〜13.6px）
   - **バッジ / メタタグ (Badge / Meta / Tag)**: `0.72rem〜0.78rem`（11.5px〜12.5px、最小保証）
   - **アクションボタン (Action Buttons / Pills)**: `0.82rem〜0.88rem`（padding: `6px 14px`）
+  - **並び替えセレクト (Custom Pill Select)**: ピル型角丸（`50px`）、`padding: 6px 30px 6px 14px`、カスタムアイコン（`bi-chevron-down`）付き
   - **トグルスイッチ (iOS Style Switch)**: 外枠 `44px × 24px`、つまみ `18px × 18px`、余白 `3px` 均等、`align-items: center` でテキストと完全垂直中央揃え
   - **リストカード画像**: `56px × 56px`（リストカード高さ約 72px）
 - **背景と効果**:
