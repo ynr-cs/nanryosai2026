@@ -42,12 +42,12 @@
     <link rel="stylesheet" href="style.css" />
     <style>
       .page-header {
-        padding: 40px 20px 20px;
+        padding: 16px 16px 6px;
         text-align: center;
       }
 
       .page-title {
-        font-size: 2rem;
+        font-size: 1.4rem;
         font-weight: 900;
         margin: 0;
         background: var(--primary-gradient);
@@ -57,32 +57,32 @@
         animation: fadeInDown 0.8s ease-out;
       }
 
-      /* Filter Section */
+      /* Filter Section (Compact & Sleek) */
       .filter-section {
         background: var(--glass-bg);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 20px;
-        margin: 0 20px 20px;
+        border-radius: 16px;
+        padding: 10px 14px;
+        margin: 0 12px 10px;
         max-width: 900px;
         margin-left: auto;
         margin-right: auto;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         animation: fadeInUp 0.8s ease-out 0.2s backwards;
       }
 
       .search-box-wrapper {
         width: 100%;
         max-width: 600px;
-        margin: 0 auto 16px;
+        margin: 0 auto 8px;
       }
 
       .search-input {
         width: 100%;
-        padding: 10px 20px;
-        font-size: 0.95rem;
+        padding: 6px 14px;
+        font-size: 0.85rem;
         color: var(--text-main);
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -94,15 +94,15 @@
       .search-input:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
       }
 
       .filter-group {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        margin-bottom: 10px;
+        gap: 6px;
+        margin-bottom: 5px;
         flex-wrap: wrap;
       }
 
@@ -113,15 +113,15 @@
       .filter-label {
         color: var(--text-sub);
         font-weight: 700;
-        font-size: 0.8rem;
-        min-width: 40px;
+        font-size: 0.72rem;
+        min-width: 32px;
         text-align: right;
       }
 
       .filter-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 4px;
         justify-content: center;
       }
 
@@ -129,10 +129,10 @@
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         color: var(--text-sub);
-        padding: 5px 14px;
+        padding: 3px 10px;
         border-radius: 50px;
         cursor: pointer;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         font-weight: 600;
         transition: all 0.2s ease;
       }
@@ -146,7 +146,7 @@
         background: var(--primary-gradient);
         color: white;
         border-color: transparent;
-        box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
+        box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.3);
       }
 
       /* Control Row */
@@ -155,16 +155,16 @@
         justify-content: space-between;
         align-items: center;
         max-width: 900px;
-        margin: 0 auto 16px;
-        padding: 0 24px;
+        margin: 0 auto 8px;
+        padding: 0 14px;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 8px;
       }
 
       .sort-wrapper {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
       }
 
       .card-button-wrapper .btn-favorite-star {
@@ -177,12 +177,12 @@
       }
 
       .sort-select {
-        padding: 6px 12px;
-        border-radius: 10px;
+        padding: 4px 8px;
+        border-radius: 8px;
         border: 1px solid var(--border-color);
         background: var(--card-bg);
         color: var(--text-main);
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 600;
         cursor: pointer;
         outline: none;
@@ -190,10 +190,10 @@
 
       .view-toggle-wrapper {
         display: flex;
-        gap: 6px;
+        gap: 4px;
         background: var(--card-bg);
-        padding: 4px;
-        border-radius: 12px;
+        padding: 2px;
+        border-radius: 8px;
         border: 1px solid var(--border-color);
       }
 
@@ -201,14 +201,15 @@
         background: transparent;
         border: none;
         color: var(--text-sub);
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
+        font-size: 0.85rem;
       }
 
       .view-toggle-btn.active {
@@ -224,45 +225,45 @@
       /* Projects Grid Container */
       .projects-grid-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 16px;
-        padding: 0 20px 80px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+        padding: 0 14px 80px;
         max-width: 1200px;
         margin: 0 auto;
       }
 
-      /* Compact List View */
+      /* Compact List View (Spotify/Instagram High Density Style) */
       .projects-grid-container.list-view {
         grid-template-columns: 1fr;
         max-width: 800px;
-        gap: 12px;
+        gap: 6px;
       }
 
       /* Project Card Base */
       .project-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 16px;
+        border-radius: 12px;
         overflow: hidden;
         transition:
-          transform 0.3s ease,
-          box-shadow 0.3s ease;
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
         display: flex;
         flex-direction: column;
         text-decoration: none;
         color: var(--text-main);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         will-change: transform;
       }
 
       .project-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
         border-color: rgba(var(--primary-rgb), 0.3);
       }
 
       .card-image {
-        height: 130px;
+        height: 100px;
         overflow: hidden;
         position: relative;
       }
@@ -271,48 +272,52 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.6s ease;
+        transition: transform 0.4s ease;
       }
 
       .project-card:hover .card-image img {
-        transform: scale(1.08);
+        transform: scale(1.05);
       }
 
       .card-content {
-        padding: 12px;
+        padding: 8px 10px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
       }
 
-      /* List View Refinement */
+      /* Ultra Compact List View Refinement */
       .list-view .project-card {
         flex-direction: row;
         align-items: center;
-        padding: 12px;
-        border-radius: 18px;
-        min-height: 100px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        min-height: 58px;
+        gap: 8px;
       }
 
       .list-view .card-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 14px;
+        width: 46px;
+        height: 46px;
+        border-radius: 8px;
         flex-shrink: 0;
       }
 
       .list-view .card-content {
-        padding: 0 0 0 16px;
-        gap: 2px;
+        padding: 0;
+        gap: 1px;
         justify-content: center;
+        flex: 1;
+        min-width: 0;
       }
 
       .card-group-name {
         color: var(--primary-color);
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        margin-bottom: 2px;
+        margin-bottom: 0;
         display: block;
+        line-height: 1.1;
       }
 
       [data-theme="dark"] .card-group-name {
@@ -320,11 +325,11 @@
       }
 
       .card-project-title {
-        font-size: 1rem;
-        font-weight: 800;
-        margin: 0 0 4px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        margin: 0 0 2px;
         color: var(--text-main);
-        line-height: 1.3;
+        line-height: 1.2;
         text-decoration: none;
         transition: color 0.2s ease;
       }
@@ -334,25 +339,30 @@
       }
 
       .list-view .card-project-title {
-        font-size: 1rem;
+        font-size: 0.82rem;
         margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
       }
 
       /* Place info */
       .card-place {
         display: flex;
         align-items: center;
-        gap: 4px;
-        font-size: 0.75rem;
+        gap: 3px;
+        font-size: 0.7rem;
         color: var(--text-sub);
         margin-top: auto;
-        padding-top: 8px;
+        padding-top: 4px;
+        line-height: 1.1;
       }
 
       .list-view .card-place {
-        margin-top: 2px;
+        margin-top: 1px;
         padding-top: 0;
-        font-size: 0.75rem;
+        font-size: 0.68rem;
       }
 
       .card-place i {
@@ -362,21 +372,21 @@
       .card-tags {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 8px;
+        gap: 3px;
+        margin-top: 4px;
       }
 
       .list-view .card-tags {
-        margin-top: 4px;
+        margin-top: 2px;
       }
 
       .card-tag {
         background: var(--item-fill);
         color: var(--text-sub);
-        font-size: 0.7rem;
+        font-size: 0.62rem;
         font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 6px;
+        padding: 1px 5px;
+        border-radius: 4px;
         border: none;
       }
 
@@ -386,9 +396,9 @@
       }
 
       .card-catchphrase {
-        font-size: 0.85rem;
-        line-height: 1.5;
-        margin-top: 6px;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        margin-top: 4px;
         color: var(--text-sub);
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -403,25 +413,47 @@
 
       .card-button-wrapper {
         margin-top: 0;
-        padding: 0 12px 14px;
+        padding: 0 8px 8px;
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 4px;
         justify-content: flex-end;
       }
 
       .list-view .card-button-wrapper {
         padding: 0;
         margin-left: auto;
-        flex-wrap: wrap;
-        align-items: center;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
         justify-content: flex-end;
+        gap: 4px !important;
+        flex-shrink: 0;
+      }
+
+      .btn-favorite-star {
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        color: var(--text-placeholder);
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, color 0.2s;
+        padding: 0;
+      }
+
+      .btn-favorite-star.active {
+        color: #f59e0b;
       }
 
       .btn-action {
-        padding: 6px 14px;
+        padding: 4px 9px;
         border-radius: 50px;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-decoration: none;
         transition: all 0.2s;
@@ -445,54 +477,56 @@
         background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
         color: white;
         border: none;
-        box-shadow: 0 4px 10px rgba(255, 0, 128, 0.2);
+        box-shadow: 0 2px 6px rgba(255, 0, 128, 0.2);
       }
 
       .btn-order:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(255, 0, 128, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(255, 0, 128, 0.3);
       }
 
-      /* Mobile adjustments for List View to ensure it fits */
+      /* Mobile adjustments — 縦積み廃止・高密度横並び維持 */
       @media (max-width: 480px) {
         .page-header {
-          padding-top: 30px;
+          padding: 12px 10px 4px;
         }
         .page-title {
-          font-size: 1.6rem;
+          font-size: 1.25rem;
         }
         .filter-section {
-          padding: 16px;
-          margin: 0 10px 16px;
+          padding: 8px 10px;
+          margin: 0 6px 8px;
         }
         .projects-grid-container {
-          padding: 0 10px 80px;
+          padding: 0 6px 80px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
         }
-
+        .projects-grid-container.list-view {
+          grid-template-columns: 1fr;
+          gap: 5px;
+        }
         .list-view .card-image {
-          width: 60px;
-          height: 60px;
+          width: 42px;
+          height: 42px;
         }
         .list-view .project-card {
-          padding: 10px;
+          padding: 5px 8px;
+          min-height: 52px;
+          gap: 6px;
         }
         .list-view .card-project-title {
-          font-size: 0.95rem;
+          font-size: 0.78rem;
         }
-        /* ボタン類を縦に積んで説明領域を広く確保する */
         .list-view .card-button-wrapper {
-          flex-direction: column;
-          align-items: flex-end;
-          width: auto;
-          gap: 8px;
-        }
-        .list-view .card-button-wrapper .btn-favorite-star {
-          margin-right: 0;
+          flex-direction: row !important;
+          align-items: center !important;
+          width: auto !important;
+          gap: 3px !important;
         }
         .list-view .card-button-wrapper .btn-action {
-          padding: 8px 16px;
-          font-size: 0.8rem;
-          text-align: center;
+          padding: 3px 7px;
+          font-size: 0.68rem;
         }
       }
 
