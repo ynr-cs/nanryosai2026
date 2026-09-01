@@ -53,8 +53,8 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 35vh; /* Reduced height for cleaner look */
-        min-height: 250px;
+        height: 24vh;
+        min-height: 160px;
         background-size: cover;
         background-position: center;
         z-index: 1;
@@ -86,22 +86,22 @@
         flex-direction: column;
         align-items: flex-start; /* Left align for modern look */
         text-align: left;
-        padding: 0 0 30px 0;
+        padding: 0 0 16px 0;
         color: var(--text-main);
       }
 
       .detail-group-name {
-        font-size: 1.3rem; /* クラス表示を大きく */
+        font-size: 0.95rem;
         font-weight: 800;
         color: var(--primary-color);
         background: rgba(106, 17, 203, 0.08);
-        padding: 8px 20px; /* 余白も広げる */
-        border-radius: 12px;
-        margin-bottom: 16px;
-        letter-spacing: 0.05em;
+        padding: 4px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        letter-spacing: 0.03em;
         display: inline-block;
         width: fit-content;
-        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.05); /* ほんの少し立体感を追加 */
+        box-shadow: 0 2px 8px rgba(106, 17, 203, 0.04);
       }
 
       [data-theme="dark"] .detail-group-name {
@@ -110,32 +110,32 @@
       }
 
       .detail-title {
-        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
         font-weight: 900;
         color: var(--text-main);
         line-height: 1.2;
-        margin-bottom: 12px;
+        margin-bottom: 6px;
         letter-spacing: -0.01em;
       }
 
       .detail-catchphrase {
-        font-size: clamp(1rem, 2vw, 1.2rem);
+        font-size: 0.88rem;
         font-weight: 500;
         color: var(--text-sub);
         max-width: 700px;
-        line-height: 1.6;
+        line-height: 1.5;
       }
 
       /* Content Wrapper */
       .detail-content-wrapper {
         max-width: 900px;
-        margin: 25vh auto 0; /* Starts over the image slightly */
-        padding: 40px 30px 80px;
+        margin: 16vh auto 0;
+        padding: 20px 16px 80px;
         position: relative;
         z-index: 10;
         background: var(--bg-color);
-        border-radius: 32px 32px 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.04);
       }
 
       [data-theme="dark"] .detail-content-wrapper {
