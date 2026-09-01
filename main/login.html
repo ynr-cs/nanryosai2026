@@ -718,6 +718,17 @@
           target.classList.add("active");
           currentScreen = screenId;
         }
+
+        // 一般来場者フローの場合は在校生赤枠警告を非表示にする
+        const emailBox = document.getElementById("email-emphasis-box");
+        if (emailBox) {
+          if (mode === "student" && isStudentFlow) {
+            emailBox.style.display = "block";
+          } else {
+            emailBox.style.display = "none";
+          }
+        }
+
         document.getElementById("login-loader").style.display = "none";
         document.getElementById("login-content").style.display = "block";
       }
