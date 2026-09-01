@@ -797,20 +797,6 @@
           <span id="toast-message">更新しました</span>
         </div>
 
-        <!-- Dashboard Stats -->
-        <div class="account-section">
-          <div class="dashboard-grid">
-            <div class="stat-card" id="card-order-count">
-              <div class="stat-num" id="stat-orders">-</div>
-              <div class="stat-label">注文数</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-num" id="stat-favorites">0</div>
-              <div class="stat-label">お気に入り</div>
-            </div>
-          </div>
-        </div>
-
         <!-- Favorites Section -->
         <div class="account-section" id="favorites-section" style="margin-top: 10px">
           <h3 class="section-title section-closed" id="favorites-toggle" data-track="click_account_accordion" data-track-section="favorites">
@@ -1089,19 +1075,8 @@
       window.CURRENT_USER_OBJ = null;
       let storesCache = {};
 
-      // Fallback Timeout: If auth takes too long, redirect
-      const authTimeout = setTimeout(() => {
-        if (!window.CURRENT_USER_OBJ) {
-          console.warn("Auth timeout - redirecting to login");
-          const redirectTarget = encodeURIComponent("./account.html");
-          window.location.replace(`./login.html?redirect=${redirectTarget}&reason=account`);
-        }
-      }, 5000);
-
       // UI Update Logic
       function handleUserUpdate(user) {
-        clearTimeout(authTimeout);
-
         if (user) {
           window.CURRENT_USER_OBJ = user;
           const loader = document.getElementById("account-loader");
