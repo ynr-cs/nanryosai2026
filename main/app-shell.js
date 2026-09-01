@@ -678,7 +678,7 @@ const AppShell = {
                         <div onclick="document.getElementById('app-menu-overlay').classList.remove('active')" style="cursor:pointer; padding: 10px;" aria-label="閉じる">✕</div>
                     </div>
 
-                    <!-- Main Navigation List -->
+                    <!-- Main Navigation List (Borderless Clean Look) -->
                     <ul class="menu-list">
                         <li><a href="${this.resolvePath("about.html")}" data-track="click_menu_link" data-track-target="about">
                             <span style="font-size: 1.2rem; margin-right: 12px;">ℹ️</span> 開催概要
@@ -697,38 +697,45 @@ const AppShell = {
                         </a></li>
                     </ul>
 
-                    <!-- Sub Services / Quick Actions Grid -->
-                    <div class="menu-quick-section">
-                        <div class="section-label">サービス・サポート</div>
-                        <div class="menu-quick-grid">
-                            <a href="${this.resolvePath("account.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="account">
-                                <i class="bi bi-person-circle"></i>
-                                <span>マイページ</span>
-                            </a>
-                            <a href="${voteUrl}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="vote">
-                                <i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
-                                <span>人気投票</span>
-                                <i class="bi bi-box-arrow-up-right ext-icon"></i>
-                            </a>
-                            <a href="${this.resolvePath("mobile-order.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="order">
-                                <i class="bi bi-bag-check-fill" style="color:var(--primary-color);"></i>
-                                <span>オーダー</span>
-                            </a>
-                            <a href="${surveyForm}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="survey">
-                                <i class="bi bi-chat-heart-fill" style="color:#ec4899;"></i>
-                                <span>感想アンケート</span>
-                                <i class="bi bi-box-arrow-up-right ext-icon"></i>
-                            </a>
-                            <a href="${this.resolvePath("terms.html")}" class="menu-quick-btn" style="grid-column: span 2;" data-track="click_menu_link" data-track-target="terms">
-                                <i class="bi bi-shield-check"></i>
-                                <span>利用規約・ポリシー</span>
-                            </a>
+                    <!-- Other Services (Accordion) -->
+                    <div class="menu-accordion-section">
+                        <button type="button" class="menu-accordion-toggle closed" id="menu-services-toggle" aria-expanded="false">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <i class="bi bi-grid-3x3-gap-fill" style="color: var(--primary-color);"></i> その他のサービス
+                            </span>
+                            <i class="bi bi-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="menu-accordion-content" id="menu-services-content">
+                            <div class="menu-quick-grid">
+                                <a href="${this.resolvePath("account.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="account">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>マイページ</span>
+                                </a>
+                                <a href="${voteUrl}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="vote">
+                                    <i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
+                                    <span>人気投票</span>
+                                    <i class="bi bi-box-arrow-up-right ext-icon"></i>
+                                </a>
+                                <a href="${this.resolvePath("mobile-order.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="order">
+                                    <i class="bi bi-bag-check-fill" style="color:var(--primary-color);"></i>
+                                    <span>オーダー</span>
+                                </a>
+                                <a href="${surveyForm}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="survey">
+                                    <i class="bi bi-chat-heart-fill" style="color:#ec4899;"></i>
+                                    <span>感想アンケート</span>
+                                    <i class="bi bi-box-arrow-up-right ext-icon"></i>
+                                </a>
+                                <a href="${this.resolvePath("terms.html")}" class="menu-quick-btn" style="grid-column: span 2;" data-track="click_menu_link" data-track-target="terms">
+                                    <i class="bi bi-shield-check"></i>
+                                    <span>利用規約・ポリシー</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Theme Selector (Moved Above Footer) -->
-                    <div class="menu-section" style="margin-bottom: 20px;">
-                        <div class="section-label">テーマ設定</div>
+                    <!-- Theme Selector (Separated Section Above Footer) -->
+                    <div class="menu-theme-separated">
+                        <div class="section-label" style="margin-bottom: 8px;">テーマ設定</div>
                         <div class="theme-selector-grid">
                             <button class="theme-toggle-btn ${currentTheme === "light" ? "active" : ""}" data-theme="light">
                                 <i class="bi bi-sun-fill"></i> ライト
@@ -742,7 +749,7 @@ const AppShell = {
                         </div>
                     </div>
 
-                    <div class="menu-footer" style="text-align: center; padding: 16px 0;">
+                    <div class="menu-footer" style="text-align: center; padding: 12px 0 4px;">
                         <a href="${this.resolvePath("about-us.html")}" class="menu-footer-link" style="opacity: 0.85; text-decoration: none; color: inherit; font-size: 0.85rem;" data-track="click_menu_link" data-track-target="about_cs">
                             Powered By コンピュータ科学部
                         </a>
@@ -752,6 +759,15 @@ const AppShell = {
             </div>
         `;
     document.body.insertAdjacentHTML("beforeend", menuHtml);
+
+    // Accordion Toggle Logic
+    const servicesToggle = document.getElementById("menu-services-toggle");
+    if (servicesToggle) {
+      servicesToggle.addEventListener("click", () => {
+        const isClosed = servicesToggle.classList.toggle("closed");
+        servicesToggle.setAttribute("aria-expanded", !isClosed);
+      });
+    }
 
     // Add event listeners for theme buttons
     document.querySelectorAll(".theme-toggle-btn").forEach((btn) => {

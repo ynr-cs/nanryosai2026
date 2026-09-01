@@ -1287,11 +1287,11 @@ main {
 .menu-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
 }
 
 .menu-list li {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .menu-list a {
@@ -1301,32 +1301,79 @@ main {
   font-weight: 700;
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  transition: all 0.2s ease;
 }
 
 .menu-list a:hover {
+  background: var(--card-bg);
   transform: translateX(4px);
-  border-color: rgba(var(--primary-rgb), 0.4);
 }
 
 .menu-list a:active {
-  background: var(--bg-color);
+  background: var(--item-fill);
   transform: scale(0.98);
 }
 
-/* Quick Action / Sub-feature Pill Buttons */
-.menu-quick-section {
-  margin-bottom: 24px;
+/* Other Services Accordion */
+.menu-accordion-section {
+  margin-bottom: 20px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.menu-accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.menu-accordion-toggle:hover {
+  color: var(--text-main);
+  background: var(--card-bg);
+}
+
+.menu-accordion-toggle .toggle-icon {
+  font-size: 0.9rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-accordion-toggle.closed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.menu-accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+  max-height: 500px;
+  opacity: 1;
+  padding-top: 8px;
+}
+
+.menu-accordion-toggle.closed + .menu-accordion-content {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
 }
 
 .menu-quick-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  padding: 0 4px;
 }
 
 .menu-quick-btn {
@@ -1366,6 +1413,14 @@ main {
   font-size: 0.75rem;
   color: var(--text-sub);
   margin-left: auto;
+}
+
+/* Separated Theme Section */
+.menu-theme-separated {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-bottom: 8px;
 }
 
 /* Menu Footer */
