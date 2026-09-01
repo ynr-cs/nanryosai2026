@@ -40,6 +40,8 @@
     <title>ホーム | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css">
+    <!-- Master Data (stageData / projectData) -->
+    <script src="data/data.js"></script>
     
     <!-- Page Specific Style -->
     <style>
@@ -164,25 +166,25 @@
         box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
       }
 
-      /* Gantt Chart */
+      /* Gantt Chart (Ultra Compact) */
       .gantt-chart-container {
         display: flex;
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 24px;
+        border-radius: 16px;
         position: relative;
         max-width: 1200px;
-        margin: 0 auto 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        margin: 0 auto 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         overflow: hidden;
       }
 
       .gantt-sidebar {
         flex-shrink: 0;
-        width: 120px;
+        width: 90px;
         background: var(--card-bg);
         border-right: 2px solid var(--primary-color);
-        box-shadow: 4px 0 15px rgba(0,0,0,0.08);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.06);
         z-index: 30;
         position: relative;
       }
@@ -200,19 +202,20 @@
 
       .gantt-place-header,
       .gantt-time-header {
-        height: 50px;
+        height: 34px;
         box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
+        font-size: 0.8rem;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
       }
 
       .gantt-place,
       .gantt-time-cell {
-        height: 70px;
+        height: 46px;
         box-sizing: border-box;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
@@ -224,7 +227,7 @@
         justify-content: center;
         font-weight: 800;
         color: var(--text-main);
-        font-size: 1.05rem; /* 少し大きくして見やすくする */
+        font-size: 0.82rem;
       }
 
       .gantt-time-cell {
@@ -252,15 +255,15 @@
         position: absolute;
         background: var(--primary-gradient);
         color: white;
-        padding: 8px 12px;
-        border-radius: 12px;
-        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.72rem;
         font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
-        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
+        transition: all 0.2s ease;
         cursor: pointer;
         display: flex;
         flex-direction: column;
@@ -276,8 +279,9 @@
       .event-group-name {
         font-weight: 700;
         display: block;
-        font-size: 0.95rem;
-        margin-bottom: 2px;
+        font-size: 0.78rem;
+        line-height: 1.1;
+        margin-bottom: 1px;
       }
 
       .event-perf-name {
@@ -1113,6 +1117,28 @@
                                 <div class="app-icon-item">
                                     <div class="app-icon-box">
                                         🐙
+                                    </div>
+                                    <div class="app-icon-text">たこ焼き</div>
+                                </div>
+                                <!-- Slide 2: Crepe -->
+                                <div class="app-icon-item">
+                                    <div class="app-icon-box">
+                                        🥞
+                                    </div>
+                                    <div class="app-icon-text">クレープ</div>
+                                </div>
+                                <!-- Slide 3: Drink -->
+                                <div class="app-icon-item">
+                                    <div class="app-icon-box">
+                                        🧃
+                                    </div>
+                                    <div class="app-icon-text">ドリンク</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mobile-order-features">
                     <div class="mo-feature-item">
                         <div class="mo-feature-icon">
@@ -1184,7 +1210,6 @@
             </div>
         </section>
 
-        
         <!-- 
           ★ STAGE HIGHLIGHT SECTION (Gantt Chart Preview) ★ 
         -->
@@ -1195,7 +1220,13 @@
                     すべて見る <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
-            <div id="gantt-preview-container" class="gantt-preview-wrapper">
+            
+            <div class="day-selector" style="margin-bottom: 12px;">
+                <button class="day-btn active" data-day="1" data-track="click_stage_day_tab" data-track-day="1">DAY 1</button>
+                <button class="day-btn" data-day="2" data-track="click_stage_day_tab" data-track-day="2">DAY 2</button>
+            </div>
+
+            <div class="gantt-chart-container" id="gantt-chart-container">
                 <!-- JS will inject Mini Gantt Chart here -->
             </div>
         </section>
@@ -1991,9 +2022,11 @@
             initialDay = "2";
           }
 
-          daySelector.querySelectorAll(".day-btn").forEach((btn) => {
-            btn.classList.toggle("active", btn.dataset.day === initialDay);
-          });
+          if (daySelector) {
+            daySelector.querySelectorAll(".day-btn").forEach((btn) => {
+              btn.classList.toggle("active", btn.dataset.day === initialDay);
+            });
+          }
 
           renderPage(initialDay, true);
           manageCurrentTimeIndicator();
@@ -2004,13 +2037,22 @@
         } else {
           window.addEventListener("load", initializePage, { once: true });
         }
-             if (typeof projectData !== 'undefined') {
-                const filteredProjects = projectData.filter(item => {
-                    return !item.tags || !item.tags.includes('ステージ');
-                });
-                setupHighlightAutoScroll('carousel-projects', filteredProjects);
-            }
-        });
+
+        const initProjectsHighlight = () => {
+          if (typeof projectData !== 'undefined') {
+            const filteredProjects = projectData.filter(item => {
+              return !item.tags || !item.tags.includes('ステージ');
+            });
+            setupHighlightAutoScroll('carousel-projects', filteredProjects);
+          }
+        };
+
+        if (typeof projectData !== 'undefined') {
+          initProjectsHighlight();
+        } else {
+          window.addEventListener("load", initProjectsHighlight, { once: true });
+        }
+      });
     </script>
     
     <!-- Updates Preview Logic -->
