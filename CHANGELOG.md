@@ -13,6 +13,19 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.144] ログイン画面のSuperAdminログイン後ルーティング判定修正 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/login.html` の `handlePostLogin` において、SuperAdmin（`identity === "super_admin"`）が在校生モード（`mode=student`）でログインした際、`identity === "student"` の厳密一致判定により誤って「対象外アカウント」画面へ遷移してしまう不具合を修正し、在校生と同等に即座に目的画面へリダイレクトされるようにするため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **共通ログイン画面 (`main/login.html`)**:
+  - `handlePostLogin` 内の在校生判定を `const isStudent = identity === "student" || identity === "super_admin";` に修正。
+
 ## [0.5.143] 認証共通モジュールのBANリダイレクトURL解決安全化および監査レポートの永続化 - 2026-09-01
 
 ### メタ情報

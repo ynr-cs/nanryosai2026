@@ -932,7 +932,7 @@
       async function handlePostLogin(user, identity) {
         isSwitchingAccount = false;
         if (mode === "student") {
-          const isStudent = identity === "student";
+          const isStudent = identity === "student" || identity === "super_admin";
           if (isStudentFlow) {
             if (isStudent) {
               window.location.replace(redirectUrl);
