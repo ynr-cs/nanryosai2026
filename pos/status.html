@@ -619,13 +619,8 @@
         getDoc,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-      // Auth モジュールから必要な関数のみ import
-      import {
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-
-      /* Firebase インスタンスは auth.js から import (Single Source of Truth) */
-      import { app, auth, db } from "../main/auth.js";
+      /* Firebase インスタンス・認証監視は auth.js から import (Single Source of Truth) */
+      import { app, auth, db, watchUser } from "../main/auth.js";
 
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);
@@ -665,8 +660,8 @@
         document.getElementById("status-desc").textContent = "正しいURLでアクセスしてください";
         document.querySelector(".spinner-border").style.display = "none";
       } else {
-        // PERMISSION FIX: Wait for Auth
-        onAuthStateChanged(auth, (user) => {
+        // PERMISSION FIX: Wait for Auth via watchUser (SSOT & BAN monitoring)
+        watchUser((user) => {
           if (user) {
             startListener();
           } else {
