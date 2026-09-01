@@ -1,7 +1,7 @@
 /**
  * Nanryosai 2026
- * Version: 1.0.0
- * Last Modified: 2026-08-30
+ * Version: 0.5.143
+ * Last Modified: 2026-09-01
  * Author: Nanryosai 2026 Project Team
  *
  * Firebase Auth Module - Single Source of Truth
@@ -337,7 +337,8 @@ function showBanPopupAndRedirect() {
   btn.style.cursor = "pointer";
   btn.style.fontWeight = "bold";
   btn.addEventListener("click", () => {
-    window.location.replace("/main/banned.html");
+    const bannedUrl = new URL("./banned.html", import.meta.url).href;
+    window.location.replace(bannedUrl);
   });
   modal.appendChild(btn);
 
@@ -358,8 +359,9 @@ function watchUser(callback) {
       currentBanUnsubscribe = onSnapshot(doc(db, "banned_users", user.uid), (snap) => {
         if (snap.exists()) {
           if (!window.location.pathname.endsWith("/banned.html")) {
+            const bannedUrl = new URL("./banned.html", import.meta.url).href;
             if (localStorage.getItem("ban_story_read") === "true") {
-              window.location.replace("/main/banned.html");
+              window.location.replace(bannedUrl);
             } else {
               showBanPopupAndRedirect();
             }

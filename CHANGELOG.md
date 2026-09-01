@@ -13,6 +13,21 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.143] 認証共通モジュールのBANリダイレクトURL解決安全化および監査レポートの永続化 - 2026-09-01
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/auth.js` の `watchUser` および `showBanPopupAndRedirect` において、BAN 警告画面への遷移先が `/main/banned.html` とルート固定されていたため、サブディレクトリ配下や GitHub Pages 等のホスティング環境でも確実に遷移できるよう `import.meta.url` ベースの相対 URL 解決に修正し、一連の認証システム監査レポートを `antigravity/auth_audit_report.md` に永続化するため。
+
+### 追加 (Added) / 改善 (Changed) / 修正 (Fixed)
+
+- **認証共通モジュール (`main/auth.js`)**:
+  - `banned.html` へのリダイレクト URL 解決を `new URL("./banned.html", import.meta.url).href` に変更し、環境に依存しない安全な遷移を保証。
+- **ナレッジ永続化 (`antigravity/auth_audit_report.md`)**:
+  - 全 19 ファイルの認証関連コード査読、依存関係マップ、発見された課題一覧と修正方針をまとめた監査レポートを永続化。
+
 ## [0.5.142] 厨房モニタ・受取モニタのローダータイマーシャドーイング解消 - 2026-09-01
 
 ### メタ情報
