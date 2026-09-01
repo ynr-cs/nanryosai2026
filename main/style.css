@@ -863,34 +863,90 @@ a {
 }
 
 /* Responsive */
-/* Only stack on very small screens */
 @media (max-width: 600px) {
+  .mobile-order-promo {
+    padding: 0 14px 28px;
+  }
+
   .promo-card-gradient {
-    flex-direction: column;
-    padding: 24px 20px;
-    text-align: center;
-    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 14px;
+    gap: 10px;
+    min-height: auto;
+    border-radius: 18px;
   }
 
   .promo-content-wrapper {
-    margin-bottom: 24px;
-    align-items: center;
+    margin-bottom: 0;
+    align-items: flex-start;
+    text-align: left;
+    max-width: 64%;
+  }
+
+  .promo-title-large {
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+  }
+
+  .promo-desc-text {
+    font-size: 0.72rem;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .promo-badge-glass,
   .promo-btn-white {
-    align-self: center;
+    align-self: flex-start;
+  }
+
+  .promo-btn-white {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+  }
+
+  .promo-link-sub {
+    margin-top: 6px;
+    font-size: 0.7rem;
   }
 
   .promo-visual-mockup {
     margin-left: 0;
-    display: none; /* Hide visual mockup on small screens */
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
   }
 
   .phone-mockup {
+    width: 90px;
+    height: 168px;
+    border-radius: 16px;
+    border: 4px solid #111;
     margin-top: 0;
-    /* Ensure no transform here either */
     transform: none;
+  }
+
+  .app-icon-box {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    margin: 0 auto 3px;
+    border-radius: 8px;
+  }
+
+  .app-icon-label {
+    font-size: 0.72rem;
+  }
+
+  .app-icon-price {
+    font-size: 0.65rem;
   }
 }
 
