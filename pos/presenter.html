@@ -1,7 +1,7 @@
 <!--
   Nanryosai 2026
-  Version: 0.1.0
-  Last Modified: 2026-02-05
+  Version: 0.5.142
+  Last Modified: 2026-09-01
   Author: Nanryosai 2026 Project Team
 -->
 <!doctype html>
@@ -591,7 +591,7 @@
       </div>
     </div>
     <script>
-      let initialLoaderTimer = setTimeout(() => {
+      window.initialLoaderTimer = setTimeout(() => {
         const fallback = document.getElementById("loader-fallback");
         if (fallback) fallback.style.display = "block";
       }, 8000);
@@ -716,8 +716,6 @@
         }
       }
 
-      let initialLoaderTimer = null;
-
       watchUser(async (user) => {
         const LS_KEY = "nanryosai_store_id";
         const cachedId = localStorage.getItem(LS_KEY);
@@ -728,9 +726,9 @@
           const storeParam = storeId ? `&s=${storeId}` : '';
           window.location.href = `portal.html?return=${currentUrl}${storeParam}`;
         } else {
-          if (initialLoaderTimer) {
-            clearTimeout(initialLoaderTimer);
-            initialLoaderTimer = null;
+          if (window.initialLoaderTimer) {
+            clearTimeout(window.initialLoaderTimer);
+            window.initialLoaderTimer = null;
           }
           const fallback = document.getElementById("loader-fallback");
           if (fallback) fallback.style.display = "none";
