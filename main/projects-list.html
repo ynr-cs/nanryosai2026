@@ -113,15 +113,15 @@
       .filter-label {
         color: var(--text-sub);
         font-weight: 700;
-        font-size: 0.72rem;
-        min-width: 32px;
+        font-size: 0.78rem;
+        min-width: 36px;
         text-align: right;
       }
 
       .filter-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
+        gap: 5px;
         justify-content: center;
       }
 
@@ -129,10 +129,10 @@
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         color: var(--text-sub);
-        padding: 3px 10px;
+        padding: 4px 12px;
         border-radius: 50px;
         cursor: pointer;
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         font-weight: 600;
         transition: all 0.2s ease;
       }
@@ -177,69 +177,55 @@
       }
 
       .sort-select {
-        padding: 4px 8px;
+        padding: 5px 10px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
         background: var(--card-bg);
         color: var(--text-main);
-        font-size: 0.75rem;
         font-weight: 600;
+        font-size: 0.8rem;
         cursor: pointer;
-        outline: none;
       }
 
-      .view-toggle-wrapper {
-        display: flex;
-        gap: 4px;
-        background: var(--card-bg);
-        padding: 2px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-      }
-
-      .view-toggle-btn {
+      .toggle-btn {
         background: transparent;
         border: none;
-        color: var(--text-sub);
-        width: 28px;
-        height: 28px;
+        padding: 5px 8px;
         border-radius: 6px;
+        color: var(--text-sub);
         cursor: pointer;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        font-size: 0.85rem;
       }
 
-      .view-toggle-btn.active {
-        background: var(--item-fill);
-        color: var(--primary-color);
-        font-weight: bold;
+      .toggle-btn.active {
+        background: var(--primary-gradient);
+        color: white;
       }
 
-      [data-theme="dark"] .view-toggle-btn.active {
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      /* Projects Grid Container */
+      /* Projects Grid / List Containers */
       .projects-grid-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 10px;
-        padding: 0 14px 80px;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
         max-width: 1200px;
-        margin: 0 auto;
+        margin: 0 auto 80px;
+        padding: 0 14px;
       }
 
-      /* Compact List View (Spotify/Instagram High Density Style) */
+      /* List View Layout */
       .projects-grid-container.list-view {
-        grid-template-columns: 1fr;
-        max-width: 800px;
-        gap: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 900px;
+        margin: 0 auto 80px;
       }
 
-      /* Project Card Base */
+      /* Base Project Card */
       .project-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -263,7 +249,7 @@
       }
 
       .card-image {
-        height: 100px;
+        height: 120px;
         overflow: hidden;
         position: relative;
       }
@@ -286,26 +272,26 @@
         flex-grow: 1;
       }
 
-      /* Ultra Compact List View Refinement */
+      /* Harmonized High Density List View */
       .list-view .project-card {
         flex-direction: row;
         align-items: center;
-        padding: 6px 10px;
-        border-radius: 10px;
-        min-height: 58px;
-        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        min-height: 64px;
+        gap: 10px;
       }
 
       .list-view .card-image {
-        width: 46px;
-        height: 46px;
+        width: 52px;
+        height: 52px;
         border-radius: 8px;
         flex-shrink: 0;
       }
 
       .list-view .card-content {
         padding: 0;
-        gap: 1px;
+        gap: 2px;
         justify-content: center;
         flex: 1;
         min-width: 0;
@@ -313,7 +299,7 @@
 
       .card-group-name {
         color: var(--primary-color);
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         font-weight: 700;
         margin-bottom: 0;
         display: block;
@@ -325,7 +311,7 @@
       }
 
       .card-project-title {
-        font-size: 0.88rem;
+        font-size: 0.95rem;
         font-weight: 700;
         margin: 0 0 2px;
         color: var(--text-main);
@@ -339,7 +325,7 @@
       }
 
       .list-view .card-project-title {
-        font-size: 0.82rem;
+        font-size: 0.92rem;
         margin: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -352,7 +338,7 @@
         display: flex;
         align-items: center;
         gap: 3px;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: var(--text-sub);
         margin-top: auto;
         padding-top: 4px;
@@ -360,9 +346,9 @@
       }
 
       .list-view .card-place {
-        margin-top: 1px;
+        margin-top: 2px;
         padding-top: 0;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
       }
 
       .card-place i {
@@ -381,13 +367,12 @@
       }
 
       .card-tag {
+        font-size: 0.68rem;
+        padding: 2px 6px;
+        border-radius: 4px;
         background: var(--item-fill);
         color: var(--text-sub);
-        font-size: 0.62rem;
         font-weight: 600;
-        padding: 1px 5px;
-        border-radius: 4px;
-        border: none;
       }
 
       .card-tag.highlight-tag {
@@ -427,7 +412,7 @@
         flex-wrap: nowrap !important;
         align-items: center !important;
         justify-content: flex-end;
-        gap: 4px !important;
+        gap: 6px !important;
         flex-shrink: 0;
       }
 
@@ -451,9 +436,9 @@
       }
 
       .btn-action {
-        padding: 4px 9px;
+        padding: 5px 12px;
         border-radius: 50px;
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         font-weight: 700;
         text-decoration: none;
         transition: all 0.2s;
