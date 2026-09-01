@@ -48,23 +48,25 @@
 ### 2.1 `main/style.css` の Web標準スケーリング基盤（`html { font-size: 100%; }`）と統一タイポグラフィ
 - **方針**: 非標準の `main { zoom: 0.9; }` を撤廃し、Web標準のルートフォント（`html { font-size: 100%; }` / 1rem = 16px）を基準とした調和の取れたタイポグラフィ階層を全画面に適用。
 - **統一タイポグラフィ階層（全画面調和基準）**:
-  - **大見出し (Page Title / H1)**: `1.4rem〜1.6rem`（22.4px〜25.6px）
-  - **セクション見出し (Section Title / H2)**: `1.15rem〜1.25rem`（18.4px〜20.0px）
+  - **ページ最上部大見出し (Page Title / H1)**: `1.85rem`（約29.6px、モバイル `1.55rem` / 24.8px）
+  - **セクション見出し (Section Title / H2)**: `1.2rem〜1.3rem`（19.2px〜20.8px）
   - **カード主タイトル (Card Title)**: `1.0rem〜1.05rem`（16.0px〜16.8px / 企画名・ステージ発表名）
   - **時間・重要メタ (Time / Price)**: `0.95rem〜1.05rem`（15.2px〜16.8px / タイムテーブル時間、価格等）
   - **サブテキスト / 団体名 (Sub / Group)**: `0.82rem〜0.88rem`（13.1px〜14.0px）
   - **補足・説明文 (Catchphrase / Desc)**: `0.82rem〜0.85rem`（13.1px〜13.6px）
   - **バッジ / メタタグ (Badge / Meta / Tag)**: `0.72rem〜0.78rem`（11.5px〜12.5px、最小保証）
   - **アクションボタン (Action Buttons / Pills)**: `0.82rem〜0.88rem`（padding: `6px 14px`）
+  - **トグルスイッチ (iOS Style Switch)**: 外枠 `44px × 24px`、つまみ `18px × 18px`、余白 `3px` 均等、`align-items: center` でテキストと完全垂直中央揃え
   - **リストカード画像**: `56px × 56px`（リストカード高さ約 72px）
 - **背景と効果**:
   - 以前の過度な縮小（88%設定や0.68remへの切り詰め）による「豆粒化・トップページとの著しい落差」を解消。
+  - ページ最上部タイトル（`.page-title`）を十分な存在感とグラデーション美を持つ `1.85rem`（モバイル `1.55rem`）に引き上げ、ファーストビューの訴求力を強化。
   - Web標準の 1rem = 16px をベースに、トップページ（`index.html`）、ステージ発表（`stage-list.html`）、企画一覧（`projects-list.html`）、詳細（`detail.html`）の全画面で一貫したタイポグラフィとタップしやすいボタンサイズを確立。
   - iOS Safariのフォーム入力時自動強制ズーム防止（`font-size: 16px !important;`）と完全両立。
 
-### 2.2 Bootstrap Icons（`bi bi-...`）への完全一本化
-- **方針**: 個別ページ（`index.html`, `detail.html`, `projects-list.html`, `stage-list.html`, `about.html`, `access.html` 等）から FontAwesome 6 の `<link>` を全削除し、すべて Bootstrap Icons（`bi bi-...`）に置換。
-- **効果**: 学校祭当日の混雑回線において、**約600KB超の不要なWebフォント・CSS通信を削減**し、アプリ全体の初期ロード速度を大幅に向上させる。
+### 2.2 Bootstrap Icons（`bi bi-...`）への完全一本化と確実な読み込み
+- **方針**: 全個別ページの `<head>` に `bootstrap-icons.min.css` CDN リンクを直接配置し、`main/style.css` 冒頭にも `@import` を追加。
+- **効果**: 非同期injectによるアイコンの遅延・文字化け・欠落バグを根絶し、全画面で瞬時に鮮明なアイコンを表示。
 
 ### 2.3 `main/auth.js` の `requireLogin()` 完全実装
 - **方針**: スタブ警告状態だった `requireLogin(purpose)` を実装し、未ログイン時に安全なリダイレクト（`login.html?redirect=...&reason=${purpose}`）を行う共通ガード関数として整備。

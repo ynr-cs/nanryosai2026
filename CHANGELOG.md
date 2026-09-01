@@ -13,6 +13,32 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.173] ページタイトル拡大・indexタイムテーブルモーダル修復・企画一覧アイコンバグ修正・トグルスイッチUI刷新 - 2026-09-02
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: ページ最上部タイトル（`.page-title`）の視認性・存在感向上、トップページ（`index.html`）でのタイムテーブル詳細ポップアップ・モーダル修復（DOM要素欠落によるJSエラー解消）、企画一覧（`projects-list.html`）のアイコンバグ修正（Bootstrap Icons CDN直接読み込み・表示切り替えボタンクラス名一致・お気に入り星アイコンfill対応）、およびトグルスイッチのズレ・違和感を解消するiOS風モダンスイッチ刷新を実施するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **ページ最上部タイトルの拡大 (`projects-list.html`, `stage-list.html`, `about.html`, `access.html`)**:
+  - デスクトップで `font-size: 1.85rem`、モバイルで `font-size: 1.55rem`、`padding: 22px 16px 8px` に拡大し、存在感とグラデーション美を向上。
+- **トップページ (`main/index.html`) のモーダル修復**:
+  - HTMLに `#event-popup`（モーダル・ツールチップDOM）を正しく再配置し、未定義要素参照によるJS停止バグを解消。
+  - ガントチャートのイベントバーおよびリストカードクリック時に詳細ポップアップが表示されるように強化。
+- **企画一覧画面 (`main/projects-list.html`) のアイコン修復**:
+  - `<head>` に Bootstrap Icons 1.11.3 CDN リンクを追加。
+  - グリッド/リスト切り替えボタンのクラス名（`.view-toggle-btn`）とCSSスタイルを完全同期。
+  - お気に入りスターボタンのアクティブ時塗りつぶしアイコン（`bi-star-fill`）を正常化。
+- **トグルスイッチのUI刷新 (`stage-list.html`, `projects-list.html`, `index.html`)**:
+  - 外枠 `44px × 24px`、つまみ `18px × 18px`、余白 `3px` 均等のiOS風モダンスイッチにリデザインし、ラベルテキストとの完全な垂直中央揃え（`align-items: center`）を実現。
+- **共通スタイルシート (`main/style.css`)**:
+  - 冒頭に Bootstrap Icons CDN の `@import` を追加。
+- **プロジェクト知識ベース (`antigravity/ui_ux_audit_CONTEXT.md`)**:
+  - ページタイトル見出し基準（1.85rem）、iOS風トグルスイッチ仕様、Bootstrap Icons読み込み基準を永続化。
+
 ## [0.5.172] Web標準スケーリング（1rem=16px）正常化・ステージ発表/企画一覧と他画面のサイズ調和 - 2026-09-02
 
 ### メタ情報

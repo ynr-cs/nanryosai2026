@@ -37,19 +37,20 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>企画一覧 | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
       .page-header {
-        padding: 16px 16px 6px;
+        padding: 22px 16px 8px;
         text-align: center;
       }
 
       .page-title {
-        font-size: 1.4rem;
+        font-size: 1.85rem;
         font-weight: 900;
         margin: 0;
+        letter-spacing: -0.01em;
         background: var(--primary-gradient);
         -webkit-background-clip: text;
         background-clip: text;
@@ -176,34 +177,93 @@
         }
       }
 
-      .sort-select {
-        padding: 6px 12px;
-        border-radius: 8px;
+      /* View Toggle Buttons */
+      .view-toggle-wrapper {
+        display: flex;
+        gap: 4px;
+        background: var(--item-fill);
+        padding: 3px;
+        border-radius: 10px;
         border: 1px solid var(--border-color);
-        background: var(--card-bg);
-        color: var(--text-main);
-        font-weight: 600;
-        font-size: 0.82rem;
-        cursor: pointer;
       }
 
-      .toggle-btn {
+      .view-toggle-btn {
         background: transparent;
         border: none;
-        padding: 6px 10px;
-        border-radius: 8px;
+        padding: 5px 10px;
+        border-radius: 7px;
         color: var(--text-sub);
         cursor: pointer;
-        font-size: 1.05rem;
+        font-size: 1rem;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
-      .toggle-btn.active {
+      .view-toggle-btn.active {
         background: var(--primary-gradient);
         color: white;
+        box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.3);
+      }
+
+      /* iOS Style Toggle Switch */
+      .toggle-switch-label {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-main);
+        gap: 10px;
+        user-select: none;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--border-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 24px;
+      }
+
+      .slider::before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        top: 3px;
+        background-color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      input:checked + .slider {
+        background: var(--primary-gradient);
+      }
+
+      input:checked + .slider::before {
+        transform: translateX(20px);
       }
 
       /* Projects Grid / List Containers */
@@ -435,6 +495,10 @@
         color: #f59e0b;
       }
 
+      .btn-favorite-star.active i.bi-star::before {
+        content: "\f586"; /* bi-star-fill */
+      }
+
       .btn-action {
         padding: 6px 14px;
         border-radius: 50px;
@@ -473,10 +537,10 @@
       /* Mobile adjustments — 調和されたモバイル表示 */
       @media (max-width: 480px) {
         .page-header {
-          padding: 14px 12px 6px;
+          padding: 16px 12px 6px;
         }
         .page-title {
-          font-size: 1.35rem;
+          font-size: 1.55rem;
         }
         .filter-section {
           padding: 10px 12px;

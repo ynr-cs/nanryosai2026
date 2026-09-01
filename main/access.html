@@ -34,6 +34,7 @@
     <title>アクセス | 南陵祭'26</title>
     <!-- Core Style (Shell) -->
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
       .access-wrapper {
         padding: 0 20px 80px;
@@ -42,19 +43,29 @@
       }
       
       .page-header {
-        padding: 16px 16px 6px;
+        padding: 22px 16px 8px;
         text-align: center;
       }
 
       .page-title {
-        font-size: 1.4rem;
+        font-size: 1.85rem;
         font-weight: 900;
         margin: 0;
+        letter-spacing: -0.01em;
         background: var(--primary-gradient);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
         animation: fadeInDown 0.8s ease-out;
+      }
+
+      @media (max-width: 768px) {
+        .page-header {
+          padding: 16px 12px 6px;
+        }
+        .page-title {
+          font-size: 1.55rem;
+        }
       }
 
       @keyframes fadeInDown {
