@@ -49,21 +49,21 @@
     <style>
       .profile-header {
         text-align: center;
-        padding: 24px 16px;
+        padding: 16px 14px 18px;
         background: var(--card-bg);
-        border-radius: 0 0 24px 24px;
-        box-shadow: 0 4px 15px var(--shadow-color);
-        margin-bottom: 20px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        margin-bottom: 14px;
       }
       .profile-img-lg {
-        width: 80px;
-        height: 80px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
         background: var(--border-color);
-        margin: 0 auto 12px;
+        margin: 0 auto 8px;
         overflow: hidden;
-        border: 3px solid var(--card-bg);
-        box-shadow: 0 6px 12px var(--shadow-color);
+        border: 2.5px solid var(--card-bg);
+        box-shadow: 0 4px 10px var(--shadow-color);
       }
       .profile-img-lg img {
         width: 100%;
@@ -71,38 +71,38 @@
         object-fit: cover;
       }
       .profile-name {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         font-weight: 800;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
         color: var(--text-main);
       }
       .profile-email {
         color: var(--text-sub);
-        font-size: 0.9rem;
+        font-size: 0.82rem;
       }
 
       .section-title {
         padding: 0 20px;
         margin-bottom: 8px;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 800;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         color: var(--text-main);
       }
 
       .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
         padding: 0;
-        margin-bottom: 20px;
+        margin-bottom: 14px;
       }
       .stat-card {
         background: var(--card-bg);
-        padding: 16px 12px;
-        border-radius: 16px;
+        padding: 12px 10px;
+        border-radius: 14px;
         text-align: center;
         box-shadow: 0 4px 10px var(--shadow-color);
         transition: transform 0.2s;
@@ -111,15 +111,15 @@
         transform: scale(0.98);
       }
       .stat-num {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 900;
         color: var(--primary-color);
         line-height: 1;
       }
       .stat-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: var(--text-sub);
-        margin-top: 5px;
+        margin-top: 4px;
         font-weight: bold;
       }
       .stat-card {
@@ -132,8 +132,8 @@
         cursor: pointer;
       }
       .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.12);
       }
 
       .menu-list {
@@ -142,9 +142,10 @@
       .menu-item {
         display: flex;
         align-items: center;
-        padding: 15px 0;
+        padding: 11px 0;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
+        font-size: 0.88rem;
         font-weight: 500;
         transition:
           transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
@@ -152,14 +153,15 @@
         cursor: pointer;
       }
       .menu-item:hover {
-        transform: translateX(6px);
+        transform: translateX(4px);
         color: var(--primary-color);
       }
       .menu-item i,
       .logout-btn i {
-        width: 30px;
+        width: 24px;
         text-align: center;
-        margin-right: 15px;
+        margin-right: 10px;
+        font-size: 0.95rem;
         color: var(--primary-color);
         transition: color 0.2s ease;
       }
@@ -186,28 +188,28 @@
       /* Order History Styles - Compact */
       .order-card {
         background: var(--card-bg);
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
         border: 1px solid var(--border-color);
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         transition: transform 0.15s, box-shadow 0.15s;
       }
       .order-card:active {
         transform: scale(0.98);
       }
       .order-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
         background: var(--item-fill);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
       }
       .order-info {
         flex: 1;
@@ -217,67 +219,67 @@
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        gap: 8px;
+        gap: 6px;
       }
       .store-name {
         font-weight: 700;
         color: var(--text-main);
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .order-date {
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         color: var(--text-sub);
         white-space: nowrap;
         flex-shrink: 0;
       }
       .order-items {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: var(--text-sub);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin: 2px 0;
+        margin: 1px 0;
       }
       .order-info-bottom {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
       }
       .order-price {
         font-weight: 800;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--text-main);
       }
       .status-badge {
-        padding: 2px 8px;
+        padding: 2px 7px;
         border-radius: 20px;
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         font-weight: bold;
       }
 
       .header-count-badge {
         background: var(--primary-color);
         color: white;
-        padding: 2px 8px;
+        padding: 1px 7px;
         border-radius: 10px;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         margin-left: 6px;
       }
 
       .section-title {
         padding: 0;
-        margin-bottom: 10px;
-        font-size: 1.05rem;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
         font-weight: 800;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 6px;
         color: var(--text-main);
         cursor: pointer;
         user-select: none;
@@ -287,12 +289,12 @@
       }
       .section-title:hover {
         opacity: 0.8;
-        transform: translateY(-2px);
+        transform: translateY(-1px);
       }
 
       /* Toggle Arrow */
       .toggle-icon {
-        font-size: 1.15rem;
+        font-size: 1rem;
         color: var(--text-sub);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
         display: inline-flex;
@@ -338,8 +340,8 @@
       .toggle-switch {
         position: relative;
         display: inline-block;
-        width: 44px;
-        height: 24px;
+        width: 38px;
+        height: 20px;
       }
       .toggle-switch input {
         opacity: 0;
@@ -354,19 +356,22 @@
         right: 0;
         bottom: 0;
         background-color: #ccc;
-        transition: 0.4s;
-        border-radius: 34px;
+        transition: 0.3s;
+        border-radius: 30px;
       }
       .slider:before {
         position: absolute;
         content: "";
-        height: 18px;
-        width: 18px;
+        height: 14px;
+        width: 14px;
         left: 3px;
         bottom: 3px;
         background-color: white;
-        transition: 0.4s;
+        transition: 0.3s;
         border-radius: 50%;
+      }
+      input:checked + .slider:before {
+        transform: translateX(18px);
       }
       input:checked + .slider {
         background-color: var(--primary-color);
@@ -624,10 +629,10 @@
       .delete-modal-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 20px;
-        max-width: 360px;
+        border-radius: 16px;
+        max-width: 330px;
         width: 100%;
-        padding: 24px;
+        padding: 18px 20px;
         text-align: center;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         transform: scale(0.92);
@@ -637,42 +642,42 @@
         transform: scale(1);
       }
       .delete-icon-circle {
-        width: 64px;
-        height: 64px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: rgba(239, 68, 68, 0.12);
         color: #ef4444;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
-        margin: 0 auto 16px;
+        font-size: 22px;
+        margin: 0 auto 12px;
       }
       .delete-modal-title {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
         color: var(--text-main);
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .delete-modal-desc {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: var(--text-sub);
-        line-height: 1.5;
-        margin-bottom: 20px;
+        line-height: 1.45;
+        margin-bottom: 16px;
       }
       .delete-modal-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
       }
       .btn-modal-cancel {
         flex: 1;
-        padding: 10px;
-        border-radius: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
         border: 1px solid var(--border-color);
         background: var(--item-fill);
         color: var(--text-main);
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         cursor: pointer;
         transition: background 0.2s;
       }
@@ -681,13 +686,13 @@
       }
       .btn-modal-delete {
         flex: 1;
-        padding: 10px;
-        border-radius: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
         border: none;
         background: #ef4444;
         color: #fff;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         cursor: pointer;
         transition: opacity 0.2s, transform 0.1s;
       }
@@ -759,7 +764,7 @@
           <!-- Loaded by JS -->
           <div class="profile-header">
             <div class="profile-img-lg" style="display:flex; align-items:center; justify-content:center; background:var(--item-fill); border:2px solid var(--border-color);">
-              <i class="bi bi-person-fill" style="font-size: 40px; color: var(--text-sub);"></i>
+              <i class="bi bi-person-fill" style="font-size: 32px; color: var(--text-sub);"></i>
             </div>
             
             <!-- Nickname Display & Edit Trigger -->
@@ -860,7 +865,7 @@
         </div>
 
         <!-- Settings Section -->
-        <div class="account-section" style="margin-top: 16px; margin-bottom: 40px">
+        <div class="account-section" style="margin-top: 14px; margin-bottom: 24px">
           <h3 class="section-title" style="cursor: default">⚙️ 設定</h3>
           <div
             class="menu-list"
