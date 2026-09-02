@@ -859,6 +859,9 @@
               const linkId = relatedProject ? relatedProject.id : event.id;
               const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button" data-track="click_stage_detail" data-track-event-id="${linkId}" data-track-event-name="${event.name || ''}" data-track-time="${event.time || ''}" data-track-place="${event.place || ''}">詳細</a>`;
 
+              const isFavorite = userFavorites.includes(linkId);
+              const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
+
               const timeParts = (event.time || "").split("-").map(s => s.trim());
               const timeHTML = timeParts.length === 2
                 ? `<div class="list-time"><span class="time-start">${timeParts[0]}</span><span class="time-sep">〜</span><span class="time-end">${timeParts[1]}</span></div>`

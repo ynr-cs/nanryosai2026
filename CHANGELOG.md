@@ -13,6 +13,19 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.191] stage-list.htmlのお気に入りクラス未定義エラーの修正 - 2026-09-02
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: `main/stage-list.html` の `renderTimelineList` 内でタイムバッジHTML生成を追加した際に誤って欠落していた `favBtnClass` 変数の宣言を復元し、`ReferenceError` を解消するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **ステージ発表一覧 (`main/stage-list.html`)**:
+  - `renderTimelineList` ループ内のお気に入り状態判定（`isFavorite` / `favBtnClass`）の定義を復元。
+
 ## [0.5.190] ステージ発表カードの時間表示デザイン刷新（2段タイムバッジ）と詳細ボタン拡大 - 2026-09-02
 
 ### メタ情報
