@@ -13,6 +13,25 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.193] Google認証Custom TokenへのCustom Claims埋め込みによる在校生/管理者判定不具合の修正 - 2026-09-02
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: 0014在校生アカウントおよびSuperAdminアカウント（`ynrcs1000@gmail.com`）でログインしても、モバイルオーダー注文時に `createOrder` が「モバイルオーダーは在校生のみ利用可能です。」（403 Permission Denied）を返して失敗する致命的な認証バグを修正するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **Cloud Functions (`functions/index.js`)**:
+  - `authenticateWithGoogle` において、`admin.auth().createCustomToken(uid)` の第2引数に `newClaims` を渡すよう修正（`createCustomToken(uid, newClaims)`）。
+  - **背景/原因**: `setCustomUserClaims` のみで `createCustomToken(uid)`（引数なし）を発行した場合、クライアントが `signInWithCustomToken` した直後の初回 ID トークンに Custom Claims が反映されず `identity: undefined` となっていた。
+  - **解決策**: Custom Token の payload に直接 Claims を埋め込み、サインイン直後から `identity: "student"` / `"super_admin"` が付与された ID トークンを即時発行するようにした。
+- **フロントエンド共通認証 (`main/auth.js`)**:
+  - `renderGoogleLoginButton` 内で `signInWithCustomToken` 完了直後に `await cred.user.getIdToken(true)` を呼び出す多層防御を追加。
+- **プロジェクト知識ベース (`antigravity/firebase_CONTEXT.md`)**:
+  - Custom Token 発行時の Claims 埋め込み仕様を記録・永続化。
+
 ## [0.5.192] 企画一覧のソート・フィルタ・コントロールバー全体のコンパクト化 - 2026-09-02
 
 ### メタ情報

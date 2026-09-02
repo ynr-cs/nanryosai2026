@@ -237,6 +237,7 @@ async function renderGoogleLoginButton(container, onSuccess, onError, onStart) {
         });
         const { customToken, identity } = result.data;
         const cred = await signInWithCustomToken(auth, customToken);
+        await cred.user.getIdToken(true);
         console.log("[Auth] Login success. identity:", identity);
         logEvent(analytics, "login", { method: "Google" });
         if (onSuccess) onSuccess({ user: cred.user, identity });

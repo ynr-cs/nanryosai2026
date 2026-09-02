@@ -352,8 +352,8 @@ exports.authenticateWithGoogle = functions
     const newClaims = { ...current, identity };
     await admin.auth().setCustomUserClaims(uid, newClaims);
 
-    // 7. Custom Token 発行(developer claims 引数は渡さない)
-    const customToken = await admin.auth().createCustomToken(uid);
+    // 7. Custom Token 発行(newClaims を渡し、初回サインイン時の ID トークンに即時反映)
+    const customToken = await admin.auth().createCustomToken(uid, newClaims);
 
     // 8. 有効 identity(override 込み)を返す ※クライアントのUI分岐用
     const effectiveIdentity =

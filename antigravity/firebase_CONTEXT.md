@@ -31,7 +31,7 @@ last_updated: 2026-05-07
   - **② サーバー検証 & 匿名UID発行 (`authenticateWithGoogle` Callable Function)**:
     - クライアントから送信された Google ID トークン（JWT）を Google Auth ライブラリで暗号学的に検証。
     - ID トークンの `sub`（Google固有ID）から HMAC-SHA256（Firebase環境変数 `AUTH_PEPPER_SECRET` を使用）で一方向ハッシュ化し、不可逆な匿名 UID (`usr_` + 24文字) を生成。
-    - ID トークン内のドメイン（`@gl.pen-kanagawa.ed.jp`）判定を行い、在校生には `identity: 'student'`、一般には `identity: 'guest'` の Custom Claims を設定した Firebase Custom Token を発行・返却。
+    - ID トークン内のドメイン（`@gl.pen-kanagawa.ed.jp`）判定を行い、在校生には `identity: 'student'`、一般には `identity: 'guest'` の Custom Claims を設定。`admin.auth().setCustomUserClaims(uid, newClaims)` と同時に `admin.auth().createCustomToken(uid, newClaims)` にクレームを渡すことで、クライアント側サインイン直後の初期 ID トークンに即時反映させる。
     - **PII完全非保持**: メールアドレス・本名・プロフィール画像等の個人情報はデータベース、ログ、Authレコードのいずれにも一切保存しない。
   - **③ クライアントサインイン**: `signInWithCustomToken(auth, customToken)` により Firebase セッションを確立。
   - **④ 退会・アカウント完全消去 (`deleteMyAccount` Callable Function)**:
