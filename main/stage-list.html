@@ -352,10 +352,39 @@
       }
 
       .list-time {
-        font-size: 0.88rem;
-        font-weight: 700;
-        min-width: 76px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--primary-rgb), 0.08);
+        border: 1px solid rgba(var(--primary-rgb), 0.15);
+        border-radius: 8px;
+        padding: 6px 4px;
+        min-width: 68px;
+        text-align: center;
+        flex-shrink: 0;
+        line-height: 1.15;
+      }
+
+      .list-time .time-start {
+        font-size: 0.92rem;
+        font-weight: 800;
         color: var(--primary-color);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .list-time .time-sep {
+        font-size: 0.65rem;
+        color: var(--text-sub);
+        line-height: 0.9;
+        margin: 1px 0;
+      }
+
+      .list-time .time-end {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-sub);
+        font-variant-numeric: tabular-nums;
       }
 
       .list-details {
@@ -404,14 +433,16 @@
       .list-link-button {
         background: var(--item-fill);
         color: var(--text-main);
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 5px 14px;
+        border-radius: 50px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.75rem;
+        font-size: 0.82rem;
         border: 1px solid var(--border-color);
         transition: all 0.2s ease;
         white-space: nowrap;
+        text-align: center;
+        min-width: 52px;
       }
 
       .list-link-button:hover {
@@ -485,8 +516,14 @@
           gap: 8px;
         }
         .list-time {
-          font-size: 0.82rem;
-          min-width: 70px;
+          min-width: 62px;
+          padding: 5px 3px;
+        }
+        .list-time .time-start {
+          font-size: 0.85rem;
+        }
+        .list-time .time-end {
+          font-size: 0.72rem;
         }
         .list-name {
           font-size: 0.88rem;
@@ -498,8 +535,9 @@
           gap: 4px;
         }
         .list-link-button {
-          padding: 4px 8px;
-          font-size: 0.75rem;
+          padding: 4px 11px;
+          font-size: 0.78rem;
+          min-width: 48px;
         }
       }
 
@@ -821,12 +859,14 @@
               const linkId = relatedProject ? relatedProject.id : event.id;
               const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button" data-track="click_stage_detail" data-track-event-id="${linkId}" data-track-event-name="${event.name || ''}" data-track-time="${event.time || ''}" data-track-place="${event.place || ''}">詳細</a>`;
 
-              const isFavorite = userFavorites.includes(linkId);
-              const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
+              const timeParts = (event.time || "").split("-").map(s => s.trim());
+              const timeHTML = timeParts.length === 2
+                ? `<div class="list-time"><span class="time-start">${timeParts[0]}</span><span class="time-sep">〜</span><span class="time-end">${timeParts[1]}</span></div>`
+                : `<div class="list-time"><span class="time-start">${event.time || ''}</span></div>`;
 
               listHTML += `
                 <div class="list-event-card fade-up" id="list-${event.id}">
-                    <div class="list-time">${event.time}</div>
+                    ${timeHTML}
                     <div class="list-details">
                         <div class="list-name">${event.groupName}</div>
                         <div class="list-perf-name">${event.name}</div>
