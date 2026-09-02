@@ -31,8 +31,13 @@ body {
 モーダル（`.modal` クラス）や画面内にフローティングで配置される要素（カートバー `.bottom-cart-bar` など）は、`#app-container` の通常のスクロール制御外となる場合があります。
 そのため、最下部にあるボタン（「カートに追加」「レジへ進む」等）が、画面下部のメニューバーやOSのホームインジケータと重なる問題が発生します。
 これを防ぐため、以下の対応を行い安全な余白を確保しています：
-- モーダルのフッター要素（`.modal-footer`）に対して、`padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px) !important;` を設定。
+- モーダルのフッター要素（`.modal-footer`）に対して、`padding: 10px 14px;`、下部安全マージンを設定。
 - フローティングカートバー（`.bottom-cart-bar`）に対して、`bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px);` を設定。
+
+### 1.5 UIコンパクト化と操作性の最適化 (2026-09-02 更新)
+- **スクリーン余白**: `.screen` のパディングを `16px 14px`、下部余白を適正化し、スマホ画面での間延び感を解消。
+- **ボタンサイズ**: `.btn-primary-custom`（`padding: 11px 18px; font-size: 0.92rem; border-radius: 12px;`）および注文確定ボタンのサイズを引き締め、操作性と視認性を両立。
+- **店舗カード & トッピング**: 店舗カード（`.store-card`）のパディング・アイコンサイズ、トッピングボタン（`.topping-btn` のフォント `0.85rem`、パディング `6px 12px`）をスリム化し、一覧性とスクロール体験を向上。
 
 ## 2. 認証とセッション管理 (Authentication)
 `mobile-order.html` の認証フローは `main/auth.js` と `main/login.html` に完全統合されています（SSOT: Single Source of Truth）。
