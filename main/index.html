@@ -399,19 +399,19 @@
       .list-event-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 14px;
-        margin-bottom: 8px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        margin-bottom: 6px;
+        padding: 8px 12px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       }
 
       .list-event-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
       }
 
       .list-event-card.highlight {
@@ -420,9 +420,9 @@
       }
 
       .list-time {
-        font-size: 1.05rem;
-        font-weight: 800;
-        min-width: 95px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        min-width: 76px;
         color: var(--primary-color);
       }
 
@@ -432,23 +432,23 @@
       }
 
       .list-name {
-        font-size: 1.05rem;
-        font-weight: 800;
+        font-size: 0.92rem;
+        font-weight: 700;
         color: var(--text-main);
-        margin-bottom: 3px;
+        margin-bottom: 1px;
       }
 
       .list-perf-name {
-        font-size: 0.88rem;
+        font-size: 0.8rem;
         color: var(--text-main);
         font-weight: 600;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
       }
 
       .list-desc {
-        font-size: 0.82rem;
+        font-size: 0.75rem;
         color: var(--text-sub);
-        margin-top: 3px;
+        margin-top: 2px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -460,11 +460,11 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         color: var(--text-sub);
-        margin-top: 4px;
+        margin-top: 2px;
         background: var(--item-fill);
-        padding: 3px 8px;
+        padding: 2px 6px;
         border-radius: 6px;
         font-weight: 600;
       }
@@ -472,11 +472,11 @@
       .list-link-button {
         background: var(--item-fill);
         color: var(--text-main);
-        padding: 6px 14px;
-        border-radius: 50px;
+        padding: 4px 10px;
+        border-radius: 20px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.82rem;
+        font-size: 0.75rem;
         border: 1px solid var(--border-color);
         transition: all 0.2s ease;
         white-space: nowrap;
@@ -489,18 +489,18 @@
       .list-button-wrapper {
         display: flex;
         flex-direction: row;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
         flex-shrink: 0;
       }
 
       .btn-favorite-star {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         background: transparent;
         border: none;
         color: var(--text-placeholder);
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -538,25 +538,25 @@
           padding: 0 10px;
         }
         .list-event-card {
-          padding: 10px 12px;
-          gap: 10px;
+          padding: 6px 10px;
+          gap: 8px;
         }
         .list-time {
-          font-size: 0.95rem;
-          min-width: 80px;
+          font-size: 0.82rem;
+          min-width: 70px;
         }
         .list-name {
-          font-size: 0.98rem;
+          font-size: 0.88rem;
         }
         .list-perf-name {
-          font-size: 0.82rem;
+          font-size: 0.78rem;
         }
         .list-button-wrapper {
-          gap: 6px;
+          gap: 4px;
         }
         .list-link-button {
-          padding: 5px 12px;
-          font-size: 0.78rem;
+          padding: 3px 8px;
+          font-size: 0.72rem;
         }
       }
 
@@ -1233,7 +1233,7 @@
             <span><i class="bi bi-clock"></i> <span id="event-popup-time"></span></span>
             <span><i class="bi bi-geo-alt-fill"></i> <span id="event-popup-place"></span></span>
           </div>
-          <a href="#" id="event-popup-link" class="event-tooltip-link" data-track="click_gantt_popup_detail">詳細を見る</a>
+          <a href="#" id="event-popup-link" class="event-tooltip-link" data-track="click_gantt_popup_detail">詳細</a>
         </div>
 
         <!-- 
@@ -1800,7 +1800,7 @@
               // detail.html 側で projectData にない場合は stageData から合成して表示する機能があるため、常にリンクを出す。
               const relatedProject = projectData.find(p => p.groupName === event.groupName);
               const linkId = relatedProject ? relatedProject.id : event.id;
-              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細を見る</a>`;
+              const linkHTML = `<a href="detail.html?id=${linkId}" class="list-link-button">詳細</a>`;
 
               listHTML += `
                 <div class="list-event-card fade-up" id="list-${event.id}">
