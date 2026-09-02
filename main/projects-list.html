@@ -76,14 +76,15 @@
 
       .search-box-wrapper {
         width: 100%;
-        max-width: 600px;
-        margin: 0 auto 10px;
+        max-width: 500px;
+        margin: 0 auto 6px;
       }
 
       .search-input {
         width: 100%;
-        padding: 8px 16px;
-        font-size: 0.88rem;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        height: 32px;
         color: var(--text-main);
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -102,8 +103,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        margin-bottom: 6px;
+        gap: 6px;
+        margin-bottom: 4px;
         flex-wrap: wrap;
       }
 
@@ -114,15 +115,15 @@
       .filter-label {
         color: var(--text-sub);
         font-weight: 700;
-        font-size: 0.82rem;
-        min-width: 36px;
+        font-size: 0.75rem;
+        min-width: 30px;
         text-align: right;
       }
 
       .filter-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 4px;
         justify-content: center;
       }
 
@@ -130,10 +131,10 @@
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         color: var(--text-sub);
-        padding: 6px 14px;
+        padding: 3px 10px;
         border-radius: 50px;
         cursor: pointer;
-        font-size: 0.82rem;
+        font-size: 0.75rem;
         font-weight: 600;
         transition: all 0.2s ease;
       }
@@ -156,20 +157,20 @@
         justify-content: space-between;
         align-items: center;
         max-width: 900px;
-        margin: 0 auto 10px;
+        margin: 0 auto 8px;
         padding: 0 16px;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
       }
 
       .sort-wrapper {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
       }
 
       .sort-label {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         font-weight: 700;
         color: var(--text-sub);
         white-space: nowrap;
@@ -185,13 +186,14 @@
         appearance: none;
         -webkit-appearance: none;
         -moz-appearance: none;
-        padding: 6px 30px 6px 14px;
+        padding: 3px 22px 3px 9px;
         border-radius: 50px;
         border: 1px solid var(--border-color);
         background-color: var(--card-bg);
         color: var(--text-main);
-        font-weight: 700;
-        font-size: 0.84rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        height: 28px;
         cursor: pointer;
         outline: none;
         transition: all 0.2s ease;
@@ -210,9 +212,9 @@
 
       .sort-select-arrow {
         position: absolute;
-        right: 11px;
+        right: 7px;
         pointer-events: none;
-        font-size: 0.72rem;
+        font-size: 0.62rem;
         color: var(--text-sub);
         display: flex;
         align-items: center;
@@ -230,21 +232,24 @@
       /* View Toggle Buttons */
       .view-toggle-wrapper {
         display: flex;
-        gap: 4px;
+        gap: 3px;
         background: var(--item-fill);
-        padding: 3px;
-        border-radius: 10px;
+        padding: 2px;
+        border-radius: 8px;
         border: 1px solid var(--border-color);
+        height: 28px;
+        align-items: center;
       }
 
       .view-toggle-btn {
         background: transparent;
         border: none;
-        padding: 5px 10px;
-        border-radius: 7px;
+        padding: 2px 7px;
+        border-radius: 6px;
         color: var(--text-sub);
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 0.85rem;
+        height: 22px;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -262,17 +267,17 @@
         display: inline-flex;
         align-items: center;
         cursor: pointer;
-        font-size: 0.88rem;
+        font-size: 0.78rem;
         font-weight: 700;
         color: var(--text-main);
-        gap: 10px;
+        gap: 6px;
         user-select: none;
       }
 
       .toggle-switch {
         position: relative;
-        width: 44px;
-        height: 24px;
+        width: 34px;
+        height: 18px;
         flex-shrink: 0;
       }
 
@@ -298,8 +303,8 @@
       .slider::before {
         position: absolute;
         content: "";
-        height: 18px;
-        width: 18px;
+        height: 12px;
+        width: 12px;
         left: 3px;
         top: 3px;
         background-color: white;
@@ -313,7 +318,7 @@
       }
 
       input:checked + .slider::before {
-        transform: translateX(20px);
+        transform: translateX(16px);
       }
 
       /* Projects Grid / List Containers */
@@ -610,19 +615,20 @@
           font-size: 1.55rem;
         }
         .filter-section {
-          padding: 10px 12px;
-          margin: 0 8px 10px;
+          padding: 8px 10px;
+          margin: 0 8px 8px;
         }
         .control-row {
-          padding: 0 10px 6px;
-          gap: 8px;
+          padding: 0 8px 4px;
+          gap: 6px;
         }
         .sort-label {
           display: none;
         }
         .sort-select {
-          padding: 5px 26px 5px 10px;
-          font-size: 0.78rem;
+          padding: 3px 20px 3px 8px;
+          font-size: 0.72rem;
+          height: 26px;
         }
         .projects-grid-container {
           padding: 0 8px 80px;
