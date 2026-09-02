@@ -13,6 +13,27 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.188] リストカードのボタン群縦並び化とカード余白・横幅レイアウト最適化 - 2026-09-02
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: 企画一覧（`projects-list.html`）およびステージ一覧（`stage-list.html`）、トップページ（`index.html`）のリストカードにおいて、お気に入り・オーダー・詳細ボタンが横一列に並ぶことで右側の横幅を大きく占有し、左側のタイトルやメタ情報が圧迫されていたため、ボタン群を縦一列（`flex-direction: column`）に配置してコンテンツ領域を広く使い、圧迫感を解消するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **企画一覧 (`main/projects-list.html`)**:
+  - リストビューのボタンラッパー（`.list-view .card-button-wrapper`）を縦並び（`flex-direction: column`）に刷新。
+  - アクションボタン（`.btn-action`）を `padding: 2px 7px; font-size: 0.7rem; min-width: 48px; border-radius: 10px;` にスリム化。
+  - お気に入り星ボタン（`.btn-favorite-star`）を `22px x 22px` に縮小。
+  - リストカード（`.list-view .project-card`）のサムネイルを `46px x 46px`、タイトルを `0.92rem` に調整し、テキストが広く自然に収まるよう改善。
+- **ステージ発表一覧 (`main/stage-list.html`) & トップページ (`main/index.html`)**:
+  - ステージリストのボタンラッパー（`.list-button-wrapper`）を縦並び（`flex-direction: column`）に統一。
+  - 星ボタンとお気に入りボタンの余白を最適化し、時間・団体名・演目名の横幅を拡大。
+- **プロジェクト知識ベース (`antigravity/main/list_pages_CONTEXT.md`)**:
+  - リストカードのボタン縦一列配置仕様を永続化。
+
 ## [0.5.187] ステージ発表カードの全体サイズ最適化・詳細ボタン文言変更 - 2026-09-02
 
 ### メタ情報

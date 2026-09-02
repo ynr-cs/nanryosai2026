@@ -390,22 +390,22 @@
       .list-view .project-card {
         flex-direction: row;
         align-items: center;
-        padding: 10px 14px;
-        border-radius: 14px;
-        min-height: 72px;
-        gap: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        min-height: 60px;
+        gap: 10px;
       }
 
       .list-view .card-image {
-        width: 56px;
-        height: 56px;
-        border-radius: 10px;
+        width: 46px;
+        height: 46px;
+        border-radius: 8px;
         flex-shrink: 0;
       }
 
       .list-view .card-content {
         padding: 0;
-        gap: 2px;
+        gap: 1px;
         justify-content: center;
         flex: 1;
         min-width: 0;
@@ -439,7 +439,7 @@
       }
 
       .list-view .card-project-title {
-        font-size: 1.0rem;
+        font-size: 0.92rem;
         margin: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -460,9 +460,9 @@
       }
 
       .list-view .card-place {
-        margin-top: 2px;
+        margin-top: 1px;
         padding-top: 0;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
       }
 
       .card-place i {
@@ -522,11 +522,11 @@
       .list-view .card-button-wrapper {
         padding: 0;
         margin-left: auto;
-        flex-direction: row !important;
+        flex-direction: column !important;
         flex-wrap: nowrap !important;
-        align-items: center !important;
-        justify-content: flex-end;
-        gap: 8px !important;
+        align-items: flex-end !important;
+        justify-content: center !important;
+        gap: 3px !important;
         flex-shrink: 0;
       }
 
@@ -543,6 +543,12 @@
         justify-content: center;
         transition: transform 0.2s, color 0.2s;
         padding: 0;
+      }
+
+      .list-view .btn-favorite-star {
+        width: 22px;
+        height: 22px;
+        font-size: 0.88rem;
       }
 
       .btn-favorite-star.active {
@@ -564,6 +570,13 @@
         align-items: center;
         justify-content: center;
         white-space: nowrap;
+      }
+
+      .list-view .btn-action {
+        padding: 2px 7px;
+        font-size: 0.7rem;
+        border-radius: 10px;
+        min-width: 48px;
       }
 
       .btn-details {
@@ -634,14 +647,14 @@
           font-size: 0.92rem;
         }
         .list-view .card-button-wrapper {
-          flex-direction: row !important;
-          align-items: center !important;
+          flex-direction: column !important;
+          align-items: flex-end !important;
           width: auto !important;
-          gap: 4px !important;
+          gap: 3px !important;
         }
         .list-view .card-button-wrapper .btn-action {
-          padding: 5px 10px;
-          font-size: 0.75rem;
+          padding: 2px 6px;
+          font-size: 0.68rem;
         }
       }
 
