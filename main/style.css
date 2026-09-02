@@ -208,9 +208,9 @@ a {
    OVERVIEW SECTION
    ============================== */
 .overview-section {
-  padding: 0 20px 40px;
+  padding: 0 16px 24px;
   max-width: 800px;
-  margin: 0 auto 80px;
+  margin: 0 auto 32px;
   user-select: text; /* Allow text selection */
 }
 
@@ -252,9 +252,9 @@ a {
    HIGHLIGHT SECTION (Horizontal Carousel)
    ============================== */
 .highlight-section {
-  padding: 0 20px 40px;
+  padding: 0 16px 24px;
   max-width: 800px;
-  margin: 0 auto 40px;
+  margin: 0 auto 24px;
   overflow-x: hidden;
   /* No horizontal padding on section to let carousel bleed */
 }
@@ -622,9 +622,9 @@ a {
    MOBILE ORDER PROMO (Redesigned)
    ============================== */
 .mobile-order-promo {
-  padding: 0 20px 40px;
+  padding: 0 16px 24px;
   max-width: 800px; /* Reduced max-width */
-  margin: 0 auto;
+  margin: 0 auto 24px;
 }
 
 .promo-card-gradient {
@@ -1529,7 +1529,7 @@ main {
 
 /* Hero Container */
 .hero-container {
-  padding: 32px 20px 48px;
+  padding: 20px 16px 28px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -1546,8 +1546,8 @@ main {
       transparent 60%
     ),
     linear-gradient(to bottom, var(--bg-color), rgba(255, 255, 255, 0.05));
-  border-radius: 0 0 40px 40px;
-  margin-bottom: 30px;
+  border-radius: 0 0 28px 28px;
+  margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1578,20 +1578,20 @@ main {
 }
 
 .orb-1 {
-  width: 150px;
-  height: 150px;
+  width: 110px;
+  height: 110px;
   background: rgba(106, 17, 203, 0.15);
-  top: -50px;
-  left: -50px;
+  top: -40px;
+  left: -40px;
   animation-delay: 0s;
 }
 
 .orb-2 {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   background: rgba(37, 117, 252, 0.15);
-  bottom: 20px;
-  right: -20px;
+  bottom: 10px;
+  right: -15px;
   animation-delay: -4s;
 }
 
@@ -1602,16 +1602,16 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* Main Title */
 .hero-title {
   margin: 0;
-  font-size: clamp(2.2rem, 10vw, 3.2rem); /* Compact responsive text */
+  font-size: clamp(1.8rem, 8vw, 2.5rem); /* Compact responsive text */
   font-weight: 900;
   line-height: 1.1;
-  letter-spacing: -2px;
+  letter-spacing: -1px;
   background: linear-gradient(-45deg, #2575fc 0%, #6a11cb 50%, #2575fc 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -1625,7 +1625,7 @@ main {
 /* Slogan */
 .hero-slogan {
   margin: 0;
-  font-size: clamp(0.85rem, 3vw, 1rem);
+  font-size: clamp(0.8rem, 2.5vw, 0.92rem);
   font-weight: 500;
   color: var(--text-sub);
   max-width: 600px;
@@ -1637,14 +1637,14 @@ main {
 .hero-badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 16px;
+  padding: 4px 12px;
   background: rgba(106, 17, 203, 0.1);
   border: 1px solid rgba(106, 17, 203, 0.2);
   border-radius: 20px;
   color: var(--primary-color);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 0s forwards;
   backdrop-filter: blur(4px);
@@ -1684,14 +1684,14 @@ main {
    ============================== */
 .countdown-container {
   text-align: center;
-  padding: 20px;
-  margin-bottom: 40px;
+  padding: 10px 16px;
+  margin-bottom: 24px;
 }
 
 .countdown-label {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--text-sub);
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   opacity: 0;
@@ -1757,9 +1757,9 @@ main {
    ========================================= */
 .realtime-container {
   width: 100%;
-  max-width: 1000px; /* 少し幅を狭めてコンパクトに */
-  margin: 40px auto 30px;
-  padding: 0 15px;
+  max-width: 1000px;
+  margin: 0 auto 24px;
+  padding: 0 16px 24px;
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 1.2s forwards;
 }
@@ -1923,9 +1923,9 @@ main {
    ========================================= */
 .mobile-order-promo {
   width: 100%;
-  max-width: 800px; /* Reduced max-width for compactness */
-  margin: 40px auto 60px; /* Reduced margins */
-  padding: 0 20px;
+  max-width: 800px;
+  margin: 0 auto 24px;
+  padding: 0 16px 24px;
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 1.4s forwards;
 }
