@@ -2,7 +2,7 @@
 title: Info Pages (`map.html`, `access.html`, `about.html`, `about-us.html`) 開発コンテキスト
 tags: ['context', 'main']
 status: active
-last_updated: 2026-03-19
+last_updated: 2026-09-04
 ---
 
 # Info Pages (`map.html`, `access.html`, `about.html`, `about-us.html`) 開発コンテキスト
@@ -21,7 +21,7 @@ last_updated: 2026-03-19
 
 - **役割**: 学校までの交通案内。
 - **コンテンツ構造**:
-  - **所在地**: 学校名（「神奈川県立横浜南陵高等学校」）と住所。
+  - **所在地**: 学校名（「神奈川県立横浜南陵高等学校」）と公式住所（`〒234-0053 横浜市港南区日野中央2-26-1`）。※`index.html` および `about.html` の会場住所表記も同一に統一。
   - **Googleマップ & マップ連携**: 埋め込みマップおよび Apple Maps (Place ID: `IDCEE73B74D8D9EB3`) / Google Maps へのスポット詳細リンク。
   - **来場上の注意事項**: 駐車場なし・バイク不可・正門のみ等の注意書き（常時表示）。
   - **最寄りのバス停からのご案内**: 洋光台北口（徒歩5分）、日野中央公園入口（徒歩10分）、日野小学校前（徒歩8分）を整理したアコーディオン。
