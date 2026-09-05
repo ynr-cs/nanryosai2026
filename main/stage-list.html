@@ -1131,9 +1131,8 @@
             btn.classList.toggle("active", btn.dataset.day === initialDay);
           });
 
-          // auth解決までのつなぎとしてスケルトンを表示、ただしガントチャートは同期的に描画可能
-          renderSkeletons();
-          renderGanttChart(initialDay);
+          // 0秒先行描画（ガントチャートとタイムラインリストの両方を即時描画）
+          renderPage(initialDay, true);
           manageCurrentTimeIndicator();
         }
 
