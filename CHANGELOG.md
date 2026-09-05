@@ -13,6 +13,31 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.196] 全ページのアコーディオン・アイコン非表示不具合の網羅的抽出と解消 - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**: アクセス案内（`access.html`）でのアコーディオンアイコン非表示（Font Awesome 依存・未読み込み）が他ページでも発生している可能性を全網羅スキャンし、`admin_sync.html`（JSON展開アコーディオン含む42箇所のアイコン非表示）、`privacy.html`（不要FA読込/BI未読込）、`terms.html`（戻るボタン等のBI未読込）、`detail.html`（企画詳細のBI未読込）、`mobile-order.html`（カスタマイズ折りたたみアコーディオンのchevron回転スタイル欠落）を特定・一括解消するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **データ同期管理 (`main/admin_sync.html`)**:
+  - `<head>` に `bootstrap-icons.min.css` を追加。
+  - JSON出力アコーディオンの展開トグルアイコン（`#json-toggle-icon`）を含む、全42箇所の Font Awesome アイコン（`fas fa-...`）を Bootstrap Icons（`bi bi-...`）へ完全置換。アコーディオン展開アニメーションと全UIアイコンの正常表示を復旧。
+- **プライバシーポリシー (`main/privacy.html`)**:
+  - 本文で未使用だった Font Awesome 6 の外部リンクを完全削除。
+  - 本文のお問い合わせボタン等で利用されている Bootstrap Icons（`bi bi-envelope-fill`, `bi bi-box-arrow-up-right`）の CDN リンクを `<head>` に追加し、直接アクセス時のアイコン欠落を解消。
+- **利用規約 (`main/terms.html`)**:
+  - `<head>` に `bootstrap-icons.min.css` を追加し、戻るボタン（`bi-chevron-left`）や条項ヘッダーアイコン（`bi-clock-history`, `bi-file-earmark-text`, `bi-slash-circle`）が直接アクセス時でも確実に表示されるよう修正。
+- **企画詳細 (`main/detail.html`)**:
+  - `<head>` に `bootstrap-icons.min.css` を追加。お気に入り星、SNSリンク、メニュー、モバイルオーダー、出演者、スケジュール、マップ等の多用されている全アイコンの直接アクセス時初期表示を担保。
+- **モバイルオーダー (`pos/mobile-order.html`)**:
+  - 商品詳細モーダル内の「カスタマイズ」折りたたみアコーディオン（`#customization-collapse`）に対し、開閉時（`aria-expanded="true"`）に `bi-chevron-down` が 180 度スムーズ回転するアニメーションスタイル（`transition: transform 0.25s` / `rotate(180deg)`）を追加。
+- **プロジェクト知識ベース (`antigravity/design_CONTEXT.md`)**:
+  - 第16節として「アイコンシステムおよびアコーディオンUIの統一規約」を追記し、Bootstrap Icons 単一標準とアコーディオン回転設計を永続化。
+
 ## [0.5.195] アクセスアコーディオンアイコン表示修正・モバイルオーダー浮遊カートバー重複解消・最下部余白確保・Androidステータス自動同期リカバリ - 2026-09-05
 
 ### メタ情報

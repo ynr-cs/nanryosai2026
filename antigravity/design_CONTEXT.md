@@ -2,7 +2,7 @@
 title: デザインシステム・UIガイドライン
 tags: [infra, context, design]
 status: active
-last_updated: 2026-04-19
+last_updated: 2026-09-05
 ---
 
 # デザインシステム・UIガイドライン
@@ -268,4 +268,21 @@ const voteUrl = this.resolvePath("404.html");
 ### ローディング停滞時のフォールバックUI
 - **起動時タイムアウト**: 初回アクセス時や再読み込み時に、Firebase初期化・認証の停滞によってローディング画面（`#global-loader`）が解除されない場合に備え、起動から8秒後に「ポータルへ戻る」リンク（`#loader-fallback`）を表示する。
 - **誤表示防止制御**: 認証完了時（`hideLoader()`）に `clearTimeout` で8秒タイマーを解約し、`loader-fallback` を非表示化する。さらに、注文送信や決済中などで呼び出される通常の `showLoader("注文送信中...")` 内でも `loader-fallback` を強制的に非表示に設定し、通常操作中にポータルへの戻りボタンが表示される誤動作を防止する。
+
+---
+
+## 16. アイコンシステムおよびアコーディオンUIの統一規約 (v0.5.196)
+
+### 16.1 Bootstrap Icons への完全統一
+- **単一標準の徹底**: プロジェクト全体における標準アイコンフォントは **Bootstrap Icons**（`bootstrap-icons.min.css`）に統一する。
+- **Font Awesome の排除**: Font Awesome（`fas fa-...`、`Font Awesome 6 Free`）の直接利用や stylesheet 依存は行わない。過去のコードに含まれる Font Awesome 記述はすべて Bootstrap Icons（`bi bi-...`）へ移行・統一する。
+- **`<head>` での静的読み込み必須化**: `app-shell.js` は未読み込み環境向けに動的注入ロジックを持つが、初期レンダリング時（HTMLパース時）のアイコン未表示や FOUC（Flash of Unstyled Content）を防ぐため、アイコンを使用する全HTMLファイルの `<head>` に明示的に以下を記述すること。
+  ```html
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  ```
+
+### 16.2 アコーディオン・トグルUIのシェブロン回転アニメーション
+- **標準インタラクション**: アコーディオン（`<details>`, `.menu-accordion-toggle`, `data-bs-toggle="collapse"`）の開閉トリガーには `bi-chevron-down` を配置し、展開時に 180 度回転（`transform: rotate(180deg);`）させる視覚的フィードバックを必須とする。
+- **トランジション**: `transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);` を付与し、スムーズな開閉アニメーションを実現する。
+
 

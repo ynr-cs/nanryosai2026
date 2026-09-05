@@ -19,6 +19,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Master Data Admin | 南陵祭'26</title>
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
     <!-- Google Identity Services (GIS) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -560,7 +565,7 @@
             class="btn btn-danger btn-sm"
             style="display: none"
           >
-            <i class="fas fa-sign-out-alt"></i> Logout
+            <i class="bi bi-box-arrow-right"></i> Logout
           </button>
         </div>
       </header>
@@ -572,25 +577,25 @@
           <div class="action-group-label">操作</div>
           <div class="action-group-row">
             <button class="btn btn-accent" onclick="saveAllWithSync()">
-              <i class="fas fa-bolt"></i> 一括保存 & 同期
+              <i class="bi bi-lightning-charge-fill"></i> 一括保存 & 同期
             </button>
 
             <div class="action-divider"></div>
 
             <button class="btn btn-success btn-sm" onclick="addNewStore()">
-              <i class="fas fa-plus"></i> 新規店舗
+              <i class="bi bi-plus-lg"></i> 新規店舗
             </button>
             <button class="btn btn-ghost btn-sm" onclick="generateJSON()">
-              <i class="fas fa-code"></i> data.js 生成
+              <i class="bi bi-code-slash"></i> data.js 生成
             </button>
 
             <div class="action-divider"></div>
 
             <button class="btn btn-ghost btn-sm" id="btn-import-prod">
-              <i class="fas fa-download"></i> 本番読込
+              <i class="bi bi-download"></i> 本番読込
             </button>
             <button class="btn btn-ghost btn-sm" id="btn-import">
-              <i class="fas fa-cloud-download-alt"></i> モード読込
+              <i class="bi bi-cloud-arrow-down"></i> モード読込
             </button>
 
             <div class="action-divider"></div>
@@ -600,13 +605,13 @@
                 NOTE(重要): Firestore stores.name は「団体名」、stores.teamName は「店名(企画名)」として運用している。
                 直感と逆なので、変更する場合は mobile-order / status / portal / docs を同時に修正すること。
               -->
-              <i class="fas fa-cloud-upload-alt"></i> 店舗同期
+              <i class="bi bi-cloud-arrow-up"></i> 店舗同期
             </button>
             <button class="btn btn-primary btn-sm" id="btn-sync-items">
-              <i class="fas fa-utensils"></i> メニュー同期
+              <i class="bi bi-cup-hot-fill"></i> メニュー同期
             </button>
             <button class="btn btn-danger btn-sm" onclick="syncAllPasswords()">
-              <i class="fas fa-key"></i> PW一括
+              <i class="bi bi-key-fill"></i> PW一括
             </button>
           </div>
         </div>
@@ -663,7 +668,7 @@
           "
         >
           <i
-            class="fas fa-cloud"
+            class="bi bi-cloud-fill"
             style="
               font-size: 1.6rem;
               color: var(--accent-blue);
@@ -705,7 +710,7 @@
           "
         >
           <i
-            class="fas fa-desktop"
+            class="bi bi-display"
             style="
               font-size: 1.6rem;
               color: var(--accent-purple);
@@ -747,7 +752,7 @@
           "
         >
           <i
-            class="fas fa-file-code"
+            class="bi bi-file-earmark-code"
             style="
               font-size: 1.6rem;
               color: var(--accent-green);
@@ -795,8 +800,8 @@
       <!-- JSON Output (Collapsible) -->
       <div class="json-output-area">
         <div class="json-output-header" onclick="toggleJsonOutput()">
-          <h3><i class="fas fa-terminal"></i>&nbsp; data.js 出力コード</h3>
-          <i class="fas fa-chevron-down" id="json-toggle-icon"></i>
+          <h3><i class="bi bi-terminal-fill"></i>&nbsp; data.js 出力コード</h3>
+          <i class="bi bi-chevron-down" id="json-toggle-icon"></i>
         </div>
         <div class="json-output-body" id="json-output-body">
           <p
@@ -1198,8 +1203,8 @@
                       project.catchphrase || ""
                     }" onchange="updateRow(${index}, 'catchphrase', this.value)"></td>
                     <td>
-                        <button class="btn btn-warning" style="padding:4px 8px; font-size:0.8rem; margin-right:4px;" onclick="setStorePassword(${index})" title="パスワード設定"><i class="fas fa-key"></i></button>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteRow(${index})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-warning" style="padding:4px 8px; font-size:0.8rem; margin-right:4px;" onclick="setStorePassword(${index})" title="パスワード設定"><i class="bi bi-key-fill"></i></button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteRow(${index})"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 `;
           tbody.appendChild(tr);
@@ -1427,7 +1432,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
                       ${
                         item.imageUrl
                           ? `<img src="${item.imageUrl}" style="width:100%; height:100%; object-fit:cover;">`
-                          : '<i class="fas fa-image" style="color:#999;"></i>'
+                          : '<i class="bi bi-image" style="color:#999;"></i>'
                       }
                   </div>
                   <div style="flex:1;">
@@ -1438,12 +1443,12 @@ console.log("data.js loaded: projectData count =", projectData.length);
                       }
                   </div>
                   <label class="btn btn-sm" style="background:#17a2b8; color:white; margin:0; font-size:0.8rem; cursor:pointer; padding:5px 10px; border-radius:4px;">
-                      <i class="fas fa-upload"></i> ${item.imageUrl ? "変更" : "追加"}
+                      <i class="bi bi-upload"></i> ${item.imageUrl ? "変更" : "追加"}
                       <input type="file" id="menu-file-${mIndex}" style="display:none;" accept="image/*" onchange="uploadMenuImage(${mIndex}, this)">
                   </label>
                   ${
                     item.imageUrl
-                      ? `<button class="btn btn-sm" style="background:#dc3545; color:white; margin:0; font-size:0.8rem; padding:5px 10px; border-radius:4px;" onclick="deleteMenuImage(${mIndex})"><i class="fas fa-trash"></i></button>`
+                      ? `<button class="btn btn-sm" style="background:#dc3545; color:white; margin:0; font-size:0.8rem; padding:5px 10px; border-radius:4px;" onclick="deleteMenuImage(${mIndex})"><i class="bi bi-trash-fill"></i></button>`
                       : ""
                   }
               </div>
@@ -1451,7 +1456,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
               <!-- Row 3: Toppings Section -->
               <div style="margin-bottom:10px; background:#f8f9fa; padding:8px; border-radius:6px;">
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                      <span style="font-size:0.85rem; font-weight:bold; color:#555;"><i class="fas fa-plus-circle"></i> トッピング (${(item.allowedToppings || []).length})</span>
+                      <span style="font-size:0.85rem; font-weight:bold; color:#555;"><i class="bi bi-plus-circle"></i> トッピング (${(item.allowedToppings || []).length})</span>
                       <button type="button" onclick="addTopping(${mIndex})" style="background:#28a745; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.75rem;">+ 追加</button>
                   </div>
                   <div id="toppings-container-${mIndex}">
@@ -1462,7 +1467,7 @@ console.log("data.js loaded: projectData count =", projectData.length);
               <!-- Row 4: Options & Delete -->
               <div style="display:flex; gap:10px; align-items:center; border-top:1px solid #eee; padding-top:10px;">
                   <label style="font-size:0.85rem; display:flex; align-items:center; gap:4px;"><input type="checkbox" ${item.isRecommended ? "checked" : ""} id="menu-rec-${mIndex}"> おすすめ</label>
-                  <button onclick="removeMenuItem(${mIndex})" class="btn btn-sm" style="margin-left:auto; background:#f8f9fa; color:#dc3545; border:1px solid #dc3545; padding:4px 10px; border-radius:4px; font-size:0.8rem;"><i class="fas fa-trash"></i> 削除</button>
+                  <button onclick="removeMenuItem(${mIndex})" class="btn btn-sm" style="margin-left:auto; background:#f8f9fa; color:#dc3545; border:1px solid #dc3545; padding:4px 10px; border-radius:4px; font-size:0.8rem;"><i class="bi bi-trash-fill"></i> 削除</button>
               </div>
           `;
           container.appendChild(div);

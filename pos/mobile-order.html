@@ -487,6 +487,13 @@
       }
 
       /* Customization / Toppings */
+      [data-bs-target="#customization-collapse"] .bi-chevron-down {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      [data-bs-target="#customization-collapse"][aria-expanded="true"] .bi-chevron-down {
+        transform: rotate(180deg);
+      }
+
       .mode-toggle {
         display: flex;
         gap: 8px;
