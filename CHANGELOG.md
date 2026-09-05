@@ -13,6 +13,23 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.237] 本番クリーンアップ運用スクリプト堅牢化（Cloud Storage完全パージ・全関連コレクション初期化・検証アサーション自動化） - 2026-09-06
+
+### メタ情報
+
+- **AIモデル**: Claude
+- **筆者**: AI
+- **変更理由**: 先行作業（0.5.236）において作成された管理者向けクリーンアップスクリプト（`scripts/cleanupAndSyncOfficialData.js`）で未実装だったCloud Storageバケット内商品画像の自動パージ処理、要件仕様に明記されていた `order_counters` / `orders_test` / `counters_test` / `sheet_sync_failures` / `receipts` 等の関連コレクション完全初期化、および全検証アサーションロジック（Firestore, Storage, Local File）を統合・堅牢化するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **運用同期スクリプトの拡充・堅牢化 (`scripts/cleanupAndSyncOfficialData.js`)**:
+  - **Cloud Storage パージ機能の追加**: `cleanupCloudStorage()` を新設し、Firebase Cloud Storage バケット（`nanryosai-2026-a4091.firebasestorage.app`）内の旧商品画像およびアップロードファイルを自動一括削除。
+  - **対象コレクションの完全網羅**: `order_counters`, `orders_test`, `counters_test`, `sheet_sync_failures`, `daily_summaries`, `order_archives`, `receipts`（旧activeドキュメントを含む）を全件リセット対象に追加。
+  - **自動検証アサーションの追加**: `verifyAll()` 内で Firestore（店舗=1件 [301], 商品=3件, 注文=0件, カウンター=0件）、Cloud Storage（残存=0件）、ローカル画像（`101.png`, `101.webp`, `original/101.png` 不在）を自動判定し、不整合時は即時例外送出する自己検証機構を配備。
+- **実行導線の整備 (`package.json`)**:
+  - `"cleanup-sync": "node scripts/cleanupAndSyncOfficialData.js"` を npm scripts に追加し、`npm run cleanup-sync` で一発同期・検証が可能に。
+
 ## [0.5.236] Firestore・Cloud Storage本番クリーンアップ＆公式データ同期（3年1組アキコのカステラ単独運用化・旧オーダー全削除・カウンター初期化） - 2026-09-06
 
 ### メタ情報

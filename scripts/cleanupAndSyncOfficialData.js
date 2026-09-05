@@ -1,27 +1,30 @@
 /**
  * scripts/cleanupAndSyncOfficialData.js
  *
- * 南陵祭2026 本番マスターデータ完全移行に伴う Firestore クリーンアップ＆同期スクリプト
- * - stores: 301（アキコのひとくちカステラ）のみ残し他を削除、301を本番情報で更新
+ * 南陵祭2026 本番マスターデータ完全移行に伴う Firestore & Cloud Storage クリーンアップ＆同期スクリプト
+ * - stores: 301（アキコのひとくちカステラ）のみ残し他を削除、301を公式本番情報で更新
  * - items: 他店舗の商品および旧商品を全削除し、301の正式3商品（プレーン, チョコソース, 抹茶）を登録
- * - stores_test, items_test: 全件削除
- * - orders: 全件削除
+ * - stores_test, items_test, orders_test, counters_test: 全件削除
+ * - orders, order_counters, daily_summaries, order_archives, sheet_sync_failures: 全件削除
  * - counters: 全件削除（POS: 100, モバイル: 7000, SOK: 2000 からの自動初期化用）
- * - receipts/active: activeNumbers を初期化
+ * - receipts: 全件削除（旧activeドキュメント等含む）
+ * - Cloud Storage: nanryosai-2026-a4091.firebasestorage.app 内の旧商品画像・テストアップロードファイルを全件パージ
+ * - ローカル画像存在確認: images/101.png, 101.webp, original/101.png の不在を自動検証
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const p = process.env.USERPROFILE + '/.config/configstore/firebase-tools.json';
-if (!fs.existsSync(p)) {
-  console.error('firebase-tools.json not found at', p);
+const configPath = process.env.USERPROFILE + '/.config/configstore/firebase-tools.json';
+if (!fs.existsSync(configPath)) {
+  console.error('firebase-tools.json not found at', configPath);
   process.exit(1);
 }
 
-const config = JSON.parse(fs.readFileSync(p, 'utf8'));
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const token = config.tokens.access_token;
 const projectId = 'nanryosai-2026-a4091';
+const storageBucket = 'nanryosai-2026-a4091.firebasestorage.app';
 const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
 async function fetchJson(url, options = {}) {
@@ -60,11 +63,15 @@ async function deleteDocument(docPath) {
 
 async function deleteCollection(collectionPath) {
   const docs = await listAllDocuments(collectionPath);
-  console.log(`Deleting ${docs.length} documents from ${collectionPath}...`);
-  for (const doc of docs) {
-    await deleteDocument(doc.name);
+  if (docs.length > 0) {
+    console.log(`Deleting ${docs.length} documents from ${collectionPath}...`);
+    for (const doc of docs) {
+      await deleteDocument(doc.name);
+    }
+    console.log(`Successfully cleared ${collectionPath}.`);
+  } else {
+    console.log(`Collection ${collectionPath} is already empty (0 documents).`);
   }
-  console.log(`Successfully cleared ${collectionPath}.`);
 }
 
 async function syncStore301() {
@@ -180,30 +187,40 @@ async function syncItems301() {
 }
 
 async function resetOrdersAndCounters() {
-  console.log('Deleting all orders...');
+  console.log('Resetting orders and counters...');
   await deleteCollection('orders');
-
-  console.log('Resetting counters...');
   await deleteCollection('counters');
-
-  console.log('Resetting receipts/active numbers...');
-  const receiptsUrl = `${baseUrl}/receipts/active`;
-  await fetchJson(receiptsUrl, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      fields: {
-        numbers: {
-          arrayValue: { values: [] },
-        },
-      },
-    }),
-  });
+  await deleteCollection('order_counters');
+  await deleteCollection('orders_test');
+  await deleteCollection('counters_test');
+  await deleteCollection('daily_summaries');
+  await deleteCollection('order_archives');
+  await deleteCollection('sheet_sync_failures');
+  await deleteCollection('receipts');
 }
 
 async function cleanupTestCollections() {
   console.log('Cleaning test collections...');
   await deleteCollection('stores_test');
   await deleteCollection('items_test');
+}
+
+async function cleanupCloudStorage() {
+  console.log(`Checking Cloud Storage bucket (${storageBucket})...`);
+  const listUrl = `https://storage.googleapis.com/storage/v1/b/${storageBucket}/o`;
+  const data = await fetchJson(listUrl);
+  if (!data.items || data.items.length === 0) {
+    console.log('Cloud Storage bucket is already clean (0 objects).');
+    return;
+  }
+
+  console.log(`Found ${data.items.length} objects in Cloud Storage bucket. Deleting...`);
+  for (const item of data.items) {
+    const deleteUrl = `https://storage.googleapis.com/storage/v1/b/${storageBucket}/o/${encodeURIComponent(item.name)}`;
+    await fetchJson(deleteUrl, { method: 'DELETE' });
+    console.log(` - Deleted storage object: ${item.name}`);
+  }
+  console.log('Cloud Storage bucket cleanup complete.');
 }
 
 async function verifyAll() {
@@ -237,6 +254,35 @@ async function verifyAll() {
 
   const itemsTest = await listAllDocuments('items_test');
   console.log(`items_test count: ${itemsTest.length}`);
+
+  // Cloud Storage Verification
+  const storageListUrl = `https://storage.googleapis.com/storage/v1/b/${storageBucket}/o`;
+  const storageData = await fetchJson(storageListUrl);
+  const storageCount = storageData.items ? storageData.items.length : 0;
+  console.log(`Cloud Storage (${storageBucket}) objects count: ${storageCount}`);
+
+  // Local images verification
+  const rootDir = path.resolve(__dirname, '..');
+  const check101png = fs.existsSync(path.join(rootDir, 'images', '101.png'));
+  const check101webp = fs.existsSync(path.join(rootDir, 'images', '101.webp'));
+  const check101orig = fs.existsSync(path.join(rootDir, 'images', 'original', '101.png'));
+  console.log(`Local 101 images exist: 101.png=${check101png}, 101.webp=${check101webp}, original/101.png=${check101orig}`);
+
+  if (
+    stores.length === 1 &&
+    stores[0].name.split('/').pop() === '301' &&
+    items.length === 3 &&
+    orders.length === 0 &&
+    counters.length === 0 &&
+    storageCount === 0 &&
+    !check101png &&
+    !check101webp &&
+    !check101orig
+  ) {
+    console.log('\n>>> All verification checks PASSED successfully! <<<');
+  } else {
+    throw new Error('Verification checks failed! Database or Storage state does not match expected clean state.');
+  }
 }
 
 async function main() {
@@ -247,6 +293,7 @@ async function main() {
     await syncItems301();
     await resetOrdersAndCounters();
     await cleanupTestCollections();
+    await cleanupCloudStorage();
     await verifyAll();
     console.log('\nAll operations completed successfully!');
   } catch (err) {
