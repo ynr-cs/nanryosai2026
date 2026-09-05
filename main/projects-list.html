@@ -1005,9 +1005,7 @@
             }
           }
           isAuthResolved = true;
-          if (isStoresLoaded) {
-            applyFiltersAndSort(false);
-          }
+          applyFiltersAndSort(false);
         });
 
         // Skeleton Generation
@@ -1042,7 +1040,7 @@
             .map((project, index) => {
               const groupName =
                 project.groupName || project.groupId || "参加団体";
-              const imgSrc = `../images/${project.id}.png`;
+              const imgSrc = `../images/${project.id}.webp`;
               const catchphrase =
                 project.catchphrase || project.description || "";
               const place = project.place || "会場未定";
@@ -1125,7 +1123,7 @@
               return `
                     <div class="project-card" style="animation-delay: ${index * 0.02}s">
                         <div class="card-image">
-                            <img src="${imgSrc}" alt="${project.name}" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                            <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="this.onerror=null;this.src='../images/noimage.png'">
                         </div>
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>
@@ -1192,16 +1190,7 @@
         // Filter & Sort Logic
         function applyFiltersAndSort(useLoading = false) {
           if (typeof projectData === "undefined") return;
-
-          if (useLoading) {
-            renderSkeletons(9); // Show skeleton while processing/filtering
-            // Simulate subtle delay for UX (and ensures render loop clear)
-            setTimeout(() => {
-              processDataAndRender();
-            }, 400);
-          } else {
-            processDataAndRender();
-          }
+          processDataAndRender();
 
           function processDataAndRender() {
             // 1. 基本的な除外
@@ -1375,9 +1364,10 @@
           gridBtn.classList.remove("active");
         });
 
-        // Initial Render
-        renderSkeletons(12);
+        // 1. 即時先行描画（0ms: data.js の企画データを即時表示）
+        applyFiltersAndSort(false);
         
+        // 2. 店舗営業ステータスを非同期取得して差分反映
         try {
           const snap = await getDocs(collection(db, "stores"));
           snap.forEach(doc => {
@@ -1389,13 +1379,10 @@
               isTestStore: data.isTestStore
             };
           });
+          isStoresLoaded = true;
+          applyFiltersAndSort(false);
         } catch (e) {
           console.error("Firestore status fetch error:", e);
-        }
-
-        isStoresLoaded = true;
-        if (isAuthResolved) {
-          applyFiltersAndSort(false);
         }
       });
     </script>
