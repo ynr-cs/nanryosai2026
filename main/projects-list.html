@@ -597,7 +597,14 @@
       }
 
       .list-view .card-catchphrase {
-        display: none; /* Hide catchphrase in list view for compactness */
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 0.74rem;
+        margin-top: 1px;
+        margin-bottom: 2px;
       }
 
       .card-button-wrapper {
@@ -641,7 +648,8 @@
         font-size: 0.95rem;
         margin-left: auto !important;
         margin-right: 0 !important;
-        justify-content: flex-end;
+        align-self: flex-end;
+        justify-content: center;
       }
 
       .btn-favorite-star.active {
@@ -1153,8 +1161,10 @@
               const groupName =
                 project.groupName || project.groupId || "参加団体";
               const imgSrc = `../images/${project.id}.webp`;
-              const catchphrase =
-                project.catchphrase || project.description || "";
+              const catchphrase = project.catchphrase || "";
+              const catchphraseHTML = catchphrase
+                ? `<p class="card-catchphrase">${catchphrase}</p>`
+                : "";
               const place = project.place || "会場未定";
               const tags = (project.tags || []).filter((tag) =>
                 ["食品", "展示", "ゲーム", "アトラクション", "体験"].includes(
@@ -1180,7 +1190,7 @@
                             <span class="card-group-name">${groupName}</span>
                             <a href="${detailUrl}" class="card-project-title" data-track="click_project" data-track-project-id="${project.id}">${project.name}</a>
                             <div class="card-status-badge-container">${statusBadge}</div>
-                            <p class="card-catchphrase">${catchphrase}</p>
+                            ${catchphraseHTML}
                             <div class="card-place">
                                 <i class="bi bi-geo-alt-fill"></i> ${place}
                             </div>

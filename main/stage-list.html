@@ -406,10 +406,12 @@
         margin-bottom: 1px;
       }
 
-      .list-desc {
-        font-size: 0.75rem;
+      .list-desc,
+      .list-catchphrase {
+        font-size: 0.76rem;
         color: var(--text-sub);
         margin-top: 2px;
+        line-height: 1.35;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -468,11 +470,12 @@
         cursor: pointer;
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
         transition: transform 0.2s, color 0.2s;
         padding: 0;
         margin-left: auto;
         margin-right: 0;
+        align-self: flex-end;
       }
 
       .btn-favorite-star.active {
@@ -777,8 +780,12 @@
                 const left = ((startMinutes - startHour * 60) / totalMinutes) * 100;
                 const width = ((endMinutes - startMinutes) / totalMinutes) * 100;
                 if (width > 0) {
+                  const relatedProject = typeof projectData !== "undefined" ? projectData.find((p) => p.groupName === event.groupName) : null;
+                  const catchphrase = event.catchphrase || (relatedProject ? relatedProject.catchphrase : "") || "";
+                  const barTitle = catchphrase ? `${event.groupName}「${event.name}」\n${catchphrase}` : `${event.groupName}「${event.name}」`;
                   html += `<div class="gantt-event-bar" 
                                 style="left: ${left}%; width: ${width}%" 
+                                title="${barTitle}"
                                 data-target-id="list-${event.id}" 
                                 data-id="${event.id}"
                                 data-track="click_gantt_event"
@@ -864,6 +871,9 @@
               const isFavorite = userFavorites.includes(linkId);
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
 
+              const catchphrase = event.catchphrase || (relatedProject ? relatedProject.catchphrase : "") || "";
+              const catchphraseHTML = catchphrase ? `<div class="list-catchphrase">${catchphrase}</div>` : "";
+
               const timeParts = (event.time || "").split("-").map(s => s.trim());
               const timeHTML = timeParts.length === 2
                 ? `<div class="list-time"><span class="time-start">${timeParts[0]}</span><span class="time-sep">〜</span><span class="time-end">${timeParts[1]}</span></div>`
@@ -875,7 +885,7 @@
                     <div class="list-details">
                         <div class="list-name">${event.groupName}</div>
                         <div class="list-perf-name">${event.name}</div>
-                        ${event.description ? `<div class="list-desc">${event.description}</div>` : ''}
+                        ${catchphraseHTML}
                         <div class="list-place"><i class="bi bi-geo-alt-fill"></i> ${event.place}</div>
                     </div>
                     <div class="list-button-wrapper">

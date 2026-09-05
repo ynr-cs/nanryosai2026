@@ -1598,12 +1598,16 @@
                     }
                     
                     const trackEventName = containerId.includes('stage') ? 'click_stage_highlight' : 'click_project_highlight';
+                    const catchphrase = item.catchphrase || (matchedProject ? matchedProject.catchphrase : '') || '';
+                    const catchphraseHTML = catchphrase ? `<p class="highlight-catchphrase">${catchphrase}</p>` : '';
+
                     return `
                     <a href="detail.html?id=${linkId}" class="highlight-card" data-track="${trackEventName}" data-track-id="${linkId}">
                         <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
                             <h3 class="highlight-project-name">${item.name}</h3>
+                            ${catchphraseHTML}
                             <div class="highlight-place">
                                 <i class="bi bi-geo-alt-fill"></i> ${item.place}
                             </div>
@@ -1783,8 +1787,12 @@
                 const left = ((startMinutes - startHour * 60) / totalMinutes) * 100;
                 const width = ((endMinutes - startMinutes) / totalMinutes) * 100;
                 if (width > 0) {
+                  const relatedProject = typeof projectData !== "undefined" ? projectData.find((p) => p.groupName === event.groupName) : null;
+                  const catchphrase = event.catchphrase || (relatedProject ? relatedProject.catchphrase : "") || "";
+                  const barTitle = catchphrase ? `${event.groupName}「${event.name}」\n${catchphrase}` : `${event.groupName}「${event.name}」`;
                   html += `<div class="gantt-event-bar" 
                                 style="left: ${left}%; width: ${width}%" 
+                                title="${barTitle}"
                                 data-target-id="list-${event.id}" 
                                 data-id="${event.id}"
                                 data-track="click_gantt_event"

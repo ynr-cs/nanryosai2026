@@ -13,6 +13,43 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.234] お気に入り星アイコンと円形背景のセンタリング整合性修正 - 2026-09-06
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: リスト表示において、お気に入りボタン（`.btn-favorite-star`）を右端に寄せるために指定した `justify-content: flex-end` がボタン内部の星アイコン（`i.bi-star`）にも作用し、円形背景（丸いグレー背景）の中央から星アイコンが右上にズレて表示されていた問題を解消するため。
+
+### 修正 (Fixed)
+
+- **企画一覧 (`main/projects-list.html`) & ステージ一覧 (`main/stage-list.html`)**:
+  - `.btn-favorite-star` の `justify-content` を `center` に戻し、星アイコンが円形背景の完全な中心に配置されるよう修正。
+  - ボタン全体の右揃えは、親ラッパー内での右配置（`align-self: flex-end` および `margin-left: auto; margin-right: 0`）により担保。
+
+## [0.5.233] 企画展示ハイライト・企画一覧・ステージ一覧へのキャッチコピー表示統一と紹介文の役割分離 - 2026-09-06
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 来場者が各企画・ステージ発表の魅力を一目で把握できるよう、トップページの企画展示ハイライト、企画一覧、ステージ一覧のすべてで各団体のキャッチコピー（`catchphrase`）を表示し、長文の紹介文（`description`）は詳細画面（`detail.html`）でのみ閲覧する明確なUI責務の分離を実現するため。
+
+### 変更 (Changed) / 追加 (Added)
+
+- **企画展示ハイライト (`main/index.html`, `main/style.css`)**:
+  - 各カード内にキャッチコピーを表示する `.highlight-catchphrase`（1行省略・ダークモード対応）スタイルを新設。
+  - `generateCardsHTML()` にて各出展の `catchphrase` を自動注入。
+  - トップページのガントチャートバー（`.gantt-event-bar`）に、ホバー時ツールチップとしてキャッチコピー付きの `title` 属性を付与。
+- **企画一覧 (`main/projects-list.html`)**:
+  - `renderCards()` での `catchphrase` 取得ロジックから `description` へのフォールバックを廃止し、純粋なキャッチコピー表示に整理。
+  - リストビュー（`.list-view .card-catchphrase`）で `display: none` となっていた設定を解除し、リスト表示でも1行でコンパクトにキャッチコピーが表示されるよう改善。
+- **ステージ一覧 (`main/stage-list.html`)**:
+  - タイムラインリストカード内のテキスト表示を従来の `description` から、`projectData` と紐づけたキャッチコピー（`.list-catchphrase`）へ移行。
+  - ガントチャートのイベントバーに、ホバー時に団体名・演目名・キャッチコピーを表示する `title` 属性を付与。
+- **ドキュメント (`antigravity/main/index_CONTEXT.md`, `antigravity/main/list_pages_CONTEXT.md`)**:
+  - 一覧系画面（企画・ステージ・ハイライト）は `catchphrase`、詳細画面は `description` を表示するという表示責務の仕様を追記・永続化。
+
 ## [0.5.232] 企画一覧画面（projects-list.html）の読み込み・表示時スタッガーフェードアップアニメーション実装 - 2026-09-06
 
 ### メタ情報

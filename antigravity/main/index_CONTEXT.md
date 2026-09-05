@@ -54,7 +54,14 @@ last_updated: 2026-06-22
 - **ステージ**: タイムテーブルへ遷移。
 - **モバイルオーダー**: 模擬店の注文ページへ遷移。
 
-### 2.5 モバイルオーダー推奨 (Mobile Order Promo)
+### 2.5 企画・展示 ハイライト (Projects Highlight)
+
+- **役割**: 出展企画をカルーセル形式で自動縦スクロール表示し、来場者の興味を惹きつける。
+- **表示内容**: サムネイル画像、団体名、企画名、**キャッチコピー (`catchphrase`)**、場所、タグ。
+- **テキスト仕様**: `.highlight-catchphrase`（1行省略）としてキャッチコピーを表示。紹介文 (`description`) は `detail.html` のみ。
+- **無限ループ制御**: `setupHighlightAutoScroll` によりシームレスな自動スクロールループを実現。
+
+### 2.6 モバイルオーダー推奨 (Mobile Order Promo)
 
 - **役割**: モバイルオーダー機能（`pos/mobile-order.html`）への誘導。
 - **デザイン**: 鮮やかなグラデーションと Glassmorphism を用いた強調カード。
