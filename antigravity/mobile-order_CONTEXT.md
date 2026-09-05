@@ -133,3 +133,14 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
 ### 5.2 安全性の確保
 - **フロントエンドのエラー耐性**: `pos/status.html` は `status: null` や `sokStatus: expired` などの一時的・失効ステータスのオーダーを受け取ってもクラッシュしないよう、エラーハンドリング（nullチェック）が実装されている。
 - **タイムアウト処理**: Firebase側の Scheduled Function (`expireSokOrders`) により、作成から5分経過した仮注文は自動的に `expired` になり無効化される。QRコードスキャンの遅延や放置による不正注文を防ぐ。
+
+## 6. 公式利用ガイド・安心解説 (`main/mobile-order-guide.html`) (2026-09-05 更新)
+
+来場者および生徒向けに、オーダーシステムの利用手順と安心・安全の仕組みを分かりやすく解説する公式ページ。
+従来の論文調（技術コード掲載中心）から、`main/privacy.html` と同一のデザインシステム（カードUI、ヘッダーグラデーション、Bootstrap Icons、完全レスポンシブ・ダークモード対応）を採用した親しみやすいガイドに全面改訂された。
+
+- **構成**:
+  1. **第1部：一般来場者向け（SOKキオスク）**: 店頭iPad（`pos/sok.html`）での選択・自動リセット、スマホ（`pos/sok-to.html`）での未ログイン確認、一般Googleアカウントログインと二重読み取り防止クレーム（`claimSokOrder`）、放置QRの自動失効（5分タイマー）。
+  2. **第2部：在校生向け（モバイルオーダー）**: スマホ最適化 Fluid CSS Layout（`pos/mobile-order.html`）、アクティブ注文検知による二重注文防止、直前リアルタイム営業・在庫再検証、メモリ完結カートとACIDトランザクション決済（`createOrder`）。
+  3. **第3部：共通の安心・安全設計**: 個人情報ゼロ設計（不可逆暗号HMAC-SHA256ハッシュ匿名ID、`main/auth.js`）、電波切れ・画面スリープからの多層防御自動同期リカバリ（`pos/status.html`）、受取呼出モニター（`pos/monitor.html`）と5分タイマー、Firebase App Check & 厳格なセキュリティルールによる不正排除。
+

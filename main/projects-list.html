@@ -163,61 +163,142 @@
         gap: 6px;
       }
 
-      .sort-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .sort-label {
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: var(--text-sub);
-        white-space: nowrap;
-      }
-
-      .sort-select-wrapper {
+      /* Custom Sort Dropdown */
+      .custom-sort-dropdown {
         position: relative;
         display: inline-flex;
         align-items: center;
       }
 
-      .sort-select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding: 3px 22px 3px 9px;
+      .sort-dropdown-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
         border-radius: 50px;
         border: 1px solid var(--border-color);
         background-color: var(--card-bg);
         color: var(--text-main);
         font-weight: 600;
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         height: 28px;
         cursor: pointer;
         outline: none;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         font-family: inherit;
+        user-select: none;
       }
 
-      .sort-select:hover {
+      .sort-dropdown-btn:hover {
         border-color: var(--primary-color);
+        color: var(--primary-color);
       }
 
-      .sort-select:focus {
+      .sort-dropdown-btn[aria-expanded="true"] {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.2);
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+        color: var(--primary-color);
       }
 
-      .sort-select-arrow {
-        position: absolute;
-        right: 7px;
-        pointer-events: none;
-        font-size: 0.62rem;
+      .sort-btn-icon {
+        font-size: 0.75rem;
         color: var(--text-sub);
+        transition: color 0.2s;
+      }
+
+      .sort-dropdown-btn:hover .sort-btn-icon,
+      .sort-dropdown-btn[aria-expanded="true"] .sort-btn-icon {
+        color: var(--primary-color);
+      }
+
+      .sort-current-text {
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .sort-btn-arrow {
+        font-size: 0.65rem;
+        color: var(--text-sub);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sort-dropdown-btn[aria-expanded="true"] .sort-btn-arrow {
+        transform: rotate(180deg);
+        color: var(--primary-color);
+      }
+
+      /* Dropdown Menu Popup */
+      .sort-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        min-width: 175px;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        padding: 6px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                    visibility 0.2s;
+        pointer-events: none;
+      }
+
+      .sort-dropdown-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .sort-option {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        transition: all 0.15s ease;
+      }
+
+      .sort-option:hover {
+        background: var(--item-fill);
+      }
+
+      .sort-option.active {
+        color: var(--primary-color);
+        font-weight: 700;
+        background: rgba(var(--primary-rgb), 0.08);
+      }
+
+      .sort-option .check-icon {
+        font-size: 0.85rem;
+        color: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+      }
+
+      .sort-option.active .check-icon {
+        opacity: 1;
       }
 
       .card-button-wrapper .btn-favorite-star {
@@ -262,22 +343,22 @@
         box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.3);
       }
 
-      /* iOS Style Toggle Switch */
+      /* Toggle Switch (Harmonized with stage-list.html & style.css) */
       .toggle-switch-label {
         display: inline-flex;
         align-items: center;
         cursor: pointer;
-        font-size: 0.78rem;
+        font-size: 0.88rem;
         font-weight: 700;
         color: var(--text-main);
-        gap: 6px;
+        gap: 8px;
         user-select: none;
       }
 
       .toggle-switch {
         position: relative;
-        width: 34px;
-        height: 18px;
+        width: 44px;
+        height: 24px;
         flex-shrink: 0;
       }
 
@@ -300,25 +381,29 @@
         border-radius: 24px;
       }
 
+      .toggle-switch .slider::before,
       .slider::before {
         position: absolute;
         content: "";
-        height: 12px;
-        width: 12px;
+        height: 18px;
+        width: 18px;
         left: 3px;
         top: 3px;
+        bottom: auto;
         background-color: white;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border-radius: 50%;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
 
+      .toggle-switch input:checked + .slider,
       input:checked + .slider {
         background: var(--primary-gradient);
       }
 
+      .toggle-switch input:checked + .slider::before,
       input:checked + .slider::before {
-        transform: translateX(16px);
+        transform: translateX(20px);
       }
 
       /* Projects Grid / List Containers */
@@ -622,13 +707,16 @@
           padding: 0 8px 4px;
           gap: 6px;
         }
-        .sort-label {
-          display: none;
-        }
-        .sort-select {
-          padding: 3px 20px 3px 8px;
-          font-size: 0.72rem;
+        .sort-dropdown-btn {
+          padding: 3px 10px;
+          font-size: 0.74rem;
           height: 26px;
+        }
+        .sort-current-text {
+          font-size: 0.74rem;
+        }
+        .sort-dropdown-menu {
+          min-width: 160px;
         }
         .projects-grid-container {
           padding: 0 8px 80px;
@@ -807,25 +895,44 @@
 
       <!-- Control Row -->
       <div class="control-row">
-        <!-- お気に入りトグルを追加 -->
-        <label class="toggle-switch-label" style="margin-right: auto; gap: 8px;">
+        <!-- お気に入りトグル (stage-list.html と統一) -->
+        <label class="toggle-switch-label" style="margin-right: auto;">
           <div class="toggle-switch">
             <input type="checkbox" id="show-favorites-toggle" />
             <span class="slider"></span>
           </div>
-          <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-main);"><i class="bi bi-star-fill text-warning"></i> お気に入りのみ</span>
+          <span style="color: var(--text-main);"><i class="bi bi-star-fill text-warning"></i> お気に入り</span>
         </label>
 
-        <div class="sort-wrapper">
-          <span class="sort-label">並び替え:</span>
-          <div class="sort-select-wrapper">
-            <select id="sort-select" class="sort-select" aria-label="並び替え">
-              <option value="id-asc">クラス・団体順</option>
-              <option value="name-asc">五十音順 (昇順)</option>
-              <option value="floor-asc">場所・階数順</option>
-            </select>
-            <i class="bi bi-chevron-down sort-select-arrow"></i>
+        <!-- カスタム並び替えドロップダウン -->
+        <div class="custom-sort-dropdown" id="custom-sort-dropdown">
+          <button
+            type="button"
+            class="sort-dropdown-btn"
+            id="sort-dropdown-btn"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-label="並び替え"
+          >
+            <i class="bi bi-arrow-down-up sort-btn-icon"></i>
+            <span class="sort-current-text" id="sort-current-text">クラス・団体順</span>
+            <i class="bi bi-chevron-down sort-btn-arrow"></i>
+          </button>
+          <div class="sort-dropdown-menu" id="sort-dropdown-menu" role="listbox">
+            <button type="button" class="sort-option active" data-value="id-asc" role="option" aria-selected="true">
+              <span>クラス・団体順</span>
+              <i class="bi bi-check2 check-icon"></i>
+            </button>
+            <button type="button" class="sort-option" data-value="name-asc" role="option" aria-selected="false">
+              <span>五十音順 (昇順)</span>
+              <i class="bi bi-check2 check-icon"></i>
+            </button>
+            <button type="button" class="sort-option" data-value="floor-asc" role="option" aria-selected="false">
+              <span>場所・階数順</span>
+              <i class="bi bi-check2 check-icon"></i>
+            </button>
           </div>
+          <input type="hidden" id="sort-select" value="id-asc" />
         </div>
 
         <div class="view-toggle-wrapper">
@@ -1177,14 +1284,64 @@
           });
         });
 
-          const sortSelect = document.getElementById("sort-select");
-          if (sortSelect) {
-            sortSelect.addEventListener("change", (e) => {
-              activeFilters.sort = e.target.value;
-              logEvent(analytics, "change_sort", { sort_type: e.target.value });
+          // カスタム並び替えドロップダウンの制御
+          const sortDropdownBtn = document.getElementById("sort-dropdown-btn");
+          const sortDropdownMenu = document.getElementById("sort-dropdown-menu");
+          const sortCurrentText = document.getElementById("sort-current-text");
+          const sortOptions = document.querySelectorAll(".sort-option");
+          const sortSelectHidden = document.getElementById("sort-select");
+
+          function closeSortDropdown() {
+            if (sortDropdownMenu && sortDropdownMenu.classList.contains("show")) {
+              sortDropdownMenu.classList.remove("show");
+              sortDropdownBtn?.setAttribute("aria-expanded", "false");
+            }
+          }
+
+          sortDropdownBtn?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = sortDropdownMenu?.classList.toggle("show");
+            sortDropdownBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          });
+
+          sortOptions.forEach((option) => {
+            option.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const val = option.dataset.value;
+              const text = option.querySelector("span")?.textContent || "";
+
+              // UI更新
+              sortOptions.forEach((opt) => {
+                opt.classList.remove("active");
+                opt.setAttribute("aria-selected", "false");
+              });
+              option.classList.add("active");
+              option.setAttribute("aria-selected", "true");
+              if (sortCurrentText) sortCurrentText.textContent = text;
+              if (sortSelectHidden) sortSelectHidden.value = val;
+
+              closeSortDropdown();
+
+              // フィルタ & ソート適用
+              activeFilters.sort = val;
+              logEvent(analytics, "change_sort", { sort_type: val });
               applyFiltersAndSort(true);
             });
-          }
+          });
+
+          // メニュー外クリックで閉じる
+          document.addEventListener("click", (e) => {
+            if (!sortDropdownMenu?.contains(e.target) && !sortDropdownBtn?.contains(e.target)) {
+              closeSortDropdown();
+            }
+          });
+
+          // Escキーで閉じる
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+              closeSortDropdown();
+            }
+          });
 
           if (showFavoritesToggle) {
             showFavoritesToggle.addEventListener("change", (e) => {
