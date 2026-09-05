@@ -2,7 +2,7 @@
 title: Firebase アーキテクチャ コンテキスト
 tags: [infra, context]
 status: active
-last_updated: 2026-05-07
+last_updated: 2026-09-06
 ---
 
 # Firebase アーキテクチャ コンテキスト
@@ -202,13 +202,13 @@ last_updated: 2026-05-07
 - **ステータス確認**: 1 Read (+更新ごとに1).
 - **備考**: 店舗・商品全件取得のためRead数が多め。規模拡大時はクライアントキャッシュ推奨。
 
-## 8. 現在のデータ量 (2026-02-02 時点)
+## 8. 本番運用データ状態 (2026-09-06 時点)
 
-- **合計ドキュメント数**: 42 (Stores 7, Items 19, Orders 6, Users 10)
-- **推定データサイズ**: 約 84 KB (0.00008 GiB)
-- **算出根拠**:
-  - 各ドキュメント(インデックス込)を平均 2KB と仮定。
-  - 開発環境のテストデータのみであるため、課金発生ライン (1GiB/日) には遠く及ばない。
+- **公式移行完了**: 2026-09-06 の本番マスターデータ移行に伴い、テスト用注文・旧店舗・旧商品を一括パージ。
+- **稼働中店舗**: `stores/301`（3年1組「アキコのひとくちカステラ」）のみ。合意済みの先行モバイルオーダー運用を実施。他店舗は `useMobileOrder: false`（店頭販売・展示）。
+- **登録商品**: 3年1組の公式3商品（プレーン 100円、チョコソース 100円、抹茶 110円）のみ。
+- **注文・カウンター**: `orders` は本番開始前クリーンアップにより 0 件。`counters`（`receipt_mobile`, `receipt_pos`, `receipt_sok`）は初期化され、初回注文時にそれぞれ 7000番, 100番, 2000番から自動発番される構成。
+- **Cloud Storage**: テスト時の商品画像（101等）を全件パージ済み（バケット内残存 0 件）。
 
 ## 9. 関連ファイル構造
 
@@ -220,4 +220,5 @@ last_updated: 2026-05-07
 - **主要な利用ページ**:
   - `main/`: `index.html`, `account.html`, `login.html`, `admin/venue.html`, `admin_sync.html`
   - `pos/`: `mobile-order.html`, `portal.html`, `pos.html`, `kitchen.html`, `monitor.html`, `status.html`, `presenter.html`, `training/pos.html`
-- **開発・同期スクリプト**: `admin-server.js`, `debug_firestore_custom.js`, `generate_hash.js`
+- **開発・同期スクリプト**: `scripts/cleanupAndSyncOfficialData.js`, `scripts/resetTestData.js`, `scripts/grantSuperAdmin.js`, `scripts/wipeAuthUsers.js`, `admin-server.js`
+

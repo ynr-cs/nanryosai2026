@@ -13,6 +13,34 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.236] Firestore・Cloud Storage本番クリーンアップ＆公式データ同期（3年1組アキコのカステラ単独運用化・旧オーダー全削除・カウンター初期化） - 2026-09-06
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 本番マスターデータ移行完了に伴い、開発・テスト段階でFirestoreおよびFirebase Cloud Storageに蓄積されていた旧1年1組等のテスト注文データ、旧商品画像、旧店舗ドキュメント（101, 102, 302, 303, _smoketest, bijutsu, sado）、テストコレクション（stores_test, items_test）を一括完全パージし、合意済みの先行モバイルオーダー運用店舗である3年1組「アキコのひとくちカステラ」のみを正式同期してクリーンな本番稼働状態を確立するため。
+
+### 修正 (Fixed) / 変更 (Changed) / 削除 (Deleted)
+
+- **ローカルアセット削除 (`images/`)**:
+  - `images/101.png`, `images/101.webp`, `images/original/101.png` を完全削除し、Gitから除外。
+- **Firebase Cloud Storage (`nanryosai-2026-a4091.firebasestorage.app`)**:
+  - 過去のテストアップロード画像（`product_images/101/`, `products/101/` 配下の計9ファイル）をストレージバケットから全件削除（残存0件）。
+- **Firestore `stores` コレクション**:
+  - `stores/301`（3年1組 アキコのひとくちカステラ）のみを保持し、本番データ（`name: "3年1組"`, `teamName: "アキコのひとくちカステラ"`, `loginId: "class301"`, `operationStatus: "open"`, `isAutoSuspended: false`, `totalItemCount: 3`, `availableItemCount: 3`）に同期。
+  - 旧店舗ドキュメント（`101`, `102`, `302`, `303`, `_smoketest`, `bijutsu`, `sado`）を完全削除。
+- **Firestore `items` コレクション**:
+  - 旧商品データ（全18件）を全削除。
+  - 3年1組の公式3商品（プレーン 100円, チョコソース 100円, 抹茶 110円）を登録（各商品にアレルギー情報 `["卵", "小麦", "乳", "はちみつ"]`、`isAvailable: true` を設定）。
+- **Firestore 注文・カウンター・テストコレクション初期化**:
+  - `orders`: 旧テスト注文（計10件）を全件削除（残存0件）。
+  - `counters`: 受付番号カウンタ（`receipt_mobile`, `receipt_pos`, `receipt_sok`）を完全削除・リセット（Functionsのトランザクションにより、次回の新規注文時に POS: 100番〜, モバイル: 7000番〜, SOK: 2000番〜 から自己初期化発番される状態に整備）。
+  - `receipts/active`: active numbers を空配列に初期化。
+  - `stores_test`, `items_test`: テスト用コレクション内の全ドキュメント（計25件）を完全削除。
+- **運用スクリプト (`scripts/cleanupAndSyncOfficialData.js`)**:
+  - 今後も本番公式データへの同期やテストデータの全件リセットを安全・再現可能に行える管理者向けスクリプトを新設。
+
 ## [0.5.235] 本番マスターデータ（data.js）完全移行（全21クラス・部活動・ステージ連動・価格非表示対応） - 2026-09-06
 
 ### メタ情報
