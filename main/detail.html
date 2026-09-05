@@ -76,6 +76,11 @@
           black 70%,
           transparent 100%
         );
+        transition: opacity 0.3s ease;
+      }
+
+      .detail-header-bg.no-image {
+        display: none;
       }
 
       /* Dark Overlay only on the image itself to make text pop */
@@ -147,10 +152,23 @@
         background: var(--bg-color);
         border-radius: 20px 20px 0 0;
         box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.04);
+        transition: margin-top 0.25s ease;
+      }
+
+      /* 画像未登録時のクリーンレイアウト（無駄な余白・不気味なグラデーションの排除） */
+      .detail-content-wrapper.no-image {
+        margin: 0 auto;
+        padding-top: 20px;
+        border-radius: 0;
+        box-shadow: none;
       }
 
       [data-theme="dark"] .detail-content-wrapper {
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      [data-theme="dark"] .detail-content-wrapper.no-image {
+        box-shadow: none;
       }
 
       /* Glassmorphism Card Base - Adaptive to Theme */
@@ -887,17 +905,41 @@
         // Set page title
         document.title = `${project.name} | 南陵祭'26`;
 
-        // Header Background with fallback
+        // Header Background with fallback (WebP -> PNG -> none)
         const headerBg = document.getElementById("detail-header-bg");
-        const imgSrc = `../images/${project.id}.png`;
-        const testImg = new Image();
-        testImg.onload = () => {
-          headerBg.style.backgroundImage = `url(${imgSrc})`;
+        const contentWrapper = document.querySelector(".detail-content-wrapper");
+
+        function applyHasImage(url) {
+          if (headerBg) {
+            headerBg.style.backgroundImage = `url(${url})`;
+            headerBg.classList.remove("no-image");
+          }
+          if (contentWrapper) {
+            contentWrapper.classList.remove("no-image");
+          }
+        }
+
+        function applyNoImage() {
+          if (headerBg) {
+            headerBg.style.backgroundImage = "none";
+            headerBg.classList.add("no-image");
+          }
+          if (contentWrapper) {
+            contentWrapper.classList.add("no-image");
+          }
+        }
+
+        const webpSrc = `../images/${project.id}.webp`;
+        const testWebp = new Image();
+        testWebp.onload = () => applyHasImage(webpSrc);
+        testWebp.onerror = () => {
+          const pngSrc = `../images/${project.id}.png`;
+          const testPng = new Image();
+          testPng.onload = () => applyHasImage(pngSrc);
+          testPng.onerror = () => applyNoImage();
+          testPng.src = pngSrc;
         };
-        testImg.onerror = () => {
-          headerBg.style.backgroundImage = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
-        };
-        testImg.src = imgSrc;
+        testWebp.src = webpSrc;
 
         // Title section
         document.getElementById("detail-group-name").textContent =
