@@ -849,21 +849,12 @@ const AppShell = {
   },
 
   initAuth: function () {
-    const guestIcon = document.getElementById("nav-icon-guest");
-
-    // Watch for auth changes and update BOTTOM NAV icon
+    // Watch for auth changes and check active orders
     watchUser((user) => {
       if (user) {
-        if (guestIcon) {
-          guestIcon.style.color = "var(--primary-color)";
-        }
-
         // Check for active orders after auth is confirmed
         this.checkActiveOrder(user);
       } else {
-        if (guestIcon) {
-          guestIcon.style.color = "";
-        }
         // Hide badge if logged out
         const badge = document.getElementById("order-nav-badge");
         if (badge) badge.style.display = "none";
