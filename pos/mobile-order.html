@@ -2036,16 +2036,12 @@
             permissionStatus: currentPerm,
           }).catch((e) => console.error("Profile update failed", e));
 
-          // Notification Check: Skip if iOS or already decided
-          if (!isIOS && Notification.permission === "default") {
-            showScreen("step-notification");
-          } else {
-            // Grant or Deny or iOS -> Terms
-            if (!isIOS && Notification.permission === "granted") {
-              saveToken().catch((e) => console.warn("FCM Token save failed", e));
-            }
-            proceedToTerms();
+          if (!isIOS && Notification.permission === "granted") {
+            saveToken().catch((e) => console.warn("FCM Token save failed", e));
           }
+
+          // 最初は必ずウォークスルー（利用規約）へ進む
+          proceedToTerms();
         } catch (e) {
           console.error("checkFlow failed", e);
           alert("初期化中にエラーが発生しました。ページを再読み込みしてください。");
@@ -2107,15 +2103,7 @@
       // 先行プリロード用Promise（ユーザーがスライドを読んでいる間に裏で取得）
       let storesPreloadPromise = null;
 
-      async function completeWalkthroughAndProceed() {
-        const wt = document.getElementById("walkthrough");
-        if (wt) {
-          wt.classList.add("closing");
-          setTimeout(() => {
-            wt.classList.remove("active", "closing");
-          }, 380);
-        }
-        
+      async function proceedToStores() {
         // プリロードが完了していれば0秒、未完了の場合のみスピナーを出して完了を待機
         if (storesPreloadPromise) {
           await storesPreloadPromise;
@@ -2128,6 +2116,27 @@
           showScreen("step-stores");
         }
         loader.style.display = "none";
+      }
+
+      async function completeWalkthroughAndProceed() {
+        const wt = document.getElementById("walkthrough");
+        if (wt) {
+          wt.classList.add("closing");
+          setTimeout(() => {
+            wt.classList.remove("active", "closing");
+          }, 380);
+        }
+
+        const isIOS =
+          /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          /Macintosh/i.test(navigator.userAgent);
+
+        // ウォークスルーで規約同意した後に通知許可画面を判定
+        if (!isIOS && Notification.permission === "default") {
+          showScreen("step-notification");
+        } else {
+          await proceedToStores();
+        }
       }
 
       function proceedToTerms() {
@@ -2202,8 +2211,8 @@
 
           try {
             const permission = await Notification.requestPermission();
-            // ユーザーが許可/拒否を押した瞬間に次のステップ（ウォークスルーまたは規約）へ進む
-            proceedToTerms();
+            // ユーザーが許可/拒否を押した瞬間に次のステップ（店舗選択）へ進む
+            proceedToStores();
 
             // UIをブロックせずバックグラウンドでFCMトークン保存・更新
             if (permission === "granted") {
@@ -2216,7 +2225,7 @@
             }
           } catch (e) {
             console.warn("Notification request error:", e);
-            proceedToTerms();
+            proceedToStores();
           } finally {
             btnReqNotification.disabled = false;
             btnReqNotification.innerHTML = originalText;
@@ -2225,7 +2234,7 @@
       }
 
       window.skipNotification = () => {
-        proceedToTerms();
+        proceedToStores();
         updateUserProfile({
           notificationEnabled: false,
           permissionStatus: "skipped",
@@ -2237,12 +2246,15 @@
       };
 
       document.getElementById("btn-agree-terms").onclick = async () => {
-        loader.style.display = "flex";
-        await loadStores();
-        if (!currentStoreId) {
-          showScreen("step-stores");
+        const isIOS =
+          /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          /Macintosh/i.test(navigator.userAgent);
+
+        if (!isIOS && Notification.permission === "default") {
+          showScreen("step-notification");
+        } else {
+          await proceedToStores();
         }
-        loader.style.display = "none";
       };
 
       async function updateUserProfile(additionalData = {}) {
