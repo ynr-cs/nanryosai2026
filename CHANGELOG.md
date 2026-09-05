@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.229] 企画・ステージ一覧のリスト表示におけるお気に入り星マークの右揃え修正 - 2026-09-06
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 企画一覧（`projects-list.html`）のリストビューにおいて、PC表示時に `.card-button-wrapper .btn-favorite-star` に対する `margin-right: auto` が誤適用され、星マークがボタンラッパー内で左端に押し出されて右揃えになっていなかった問題を解消するため。
+
+### 修正 (Fixed)
+
+- **企画一覧画面 (`main/projects-list.html`)**:
+  - `margin-right: auto` のセレクタを `.projects-grid-container:not(.list-view)` に限定し、グリッド表示時のみに適用されるよう修正。
+  - `.list-view .btn-favorite-star` に `margin-left: auto !important; margin-right: 0 !important; justify-content: flex-end;` を追加し、星アイコン自体が詳細ボタン等の右端ラインにピタッと揃うよう改善。
+- **ステージ発表一覧画面 (`main/stage-list.html`)**:
+  - `.list-button-wrapper` を `align-items: flex-end`、`.btn-favorite-star` を `justify-content: flex-end; margin-left: auto; margin-right: 0;` に設定し、詳細ボタンの右端との整列を統一。
+
 ## [0.5.228] ボトムナビゲーションのアカウントアイコン常時紫色表示の解消 - 2026-09-06
 
 ### メタ情報
