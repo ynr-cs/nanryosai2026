@@ -60,7 +60,6 @@ const AppShell = {
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
     this.initGlobalOrderWatcher(); // 注文ステータスのグローバル監視
-    this.updateVersionDisplay(); // Fetch and display version from CHANGELOG
     this.initGlobalAlert();
   },
 
@@ -794,27 +793,37 @@ const AppShell = {
 
   toggleMenu: function (show) {
     const overlay = document.getElementById("app-menu-overlay");
-    if (show) overlay.classList.add("active");
-    else overlay.classList.remove("active");
+    if (show) {
+      overlay.classList.add("active");
+      this.updateVersionDisplay();
+    } else {
+      overlay.classList.remove("active");
+    }
   },
 
   updateVersionDisplay: async function () {
     try {
-      // Fetch CHANGELOG.md from the root directory
-      const response = await fetch(this.resolvePath("../CHANGELOG.md"));
+      const versionEl = document.getElementById("app-version-display");
+      if (!versionEl) return;
+
+      const cachedVersion = sessionStorage.getItem("app_version");
+      if (cachedVersion) {
+        versionEl.textContent = `v${cachedVersion}`;
+        versionEl.style.display = "block";
+        return;
+      }
+
+      // Fetch lightweight version.json from root directory
+      const response = await fetch(this.resolvePath("../version.json"));
       if (!response.ok) return;
-      const text = await response.text();
-      // Match the first version pattern: ## [x.y.z]
-      const match = text.match(/## \[([\d\.]+)\]/);
-      if (match && match[1]) {
-        const versionEl = document.getElementById("app-version-display");
-        if (versionEl) {
-          versionEl.textContent = `v${match[1]}`;
-          versionEl.style.display = "block";
-        }
+      const data = await response.json();
+      if (data && data.version) {
+        sessionStorage.setItem("app_version", data.version);
+        versionEl.textContent = `v${data.version}`;
+        versionEl.style.display = "block";
       }
     } catch (e) {
-      console.warn("Failed to fetch version from CHANGELOG.md", e);
+      console.warn("Failed to fetch version from version.json", e);
     }
   },
 

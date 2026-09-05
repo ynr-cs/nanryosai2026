@@ -1,9 +1,13 @@
 {
   "dependencies": {
-    "firebase": "^12.7.0",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "firebase": "^12.7.0"
   },
   "scripts": {
-    "admin": "node admin-server.js"
+    "admin": "node admin-server.js",
+    "process-assets": "node scripts/process-assets.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
   }
 }
