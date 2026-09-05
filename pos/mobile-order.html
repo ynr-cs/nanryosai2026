@@ -1882,8 +1882,14 @@
         </div>
       </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
-    <script src="../config.local.js"></script>
+    <!-- ローカル開発用環境変数（ローカル環境のみ動的読み込み） -->
+    <script>
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        const s = document.createElement("script");
+        s.src = "../config.local.js";
+        document.head.appendChild(s);
+      }
+    </script>
     <script src="../main/data/data.js"></script>
     <script type="module">
       // 確実なスタッキングコンテキスト解消のため、モーダルをbody直下へ移動
@@ -2022,17 +2028,13 @@
             /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
             /Macintosh/i.test(navigator.userAgent);
 
-          // Initial status save
+          // Initial status save (非同期でバックグラウンド保存し、画面表示をブロックしない)
           const currentPerm = !isIOS ? Notification.permission : "unsupported";
-          try {
-            await updateUserProfile({
-              deviceType: isIOS ? "ios_or_mac" : "other",
-              notificationEnabled: currentPerm === "granted",
-              permissionStatus: currentPerm,
-            });
-          } catch (e) {
-            console.error("Profile update failed", e);
-          }
+          updateUserProfile({
+            deviceType: isIOS ? "ios_or_mac" : "other",
+            notificationEnabled: currentPerm === "granted",
+            permissionStatus: currentPerm,
+          }).catch((e) => console.error("Profile update failed", e));
 
           // Notification Check: Skip if iOS or already decided
           if (!isIOS && Notification.permission === "default") {
@@ -2040,11 +2042,7 @@
           } else {
             // Grant or Deny or iOS -> Terms
             if (!isIOS && Notification.permission === "granted") {
-              try {
-                await saveToken();
-              } catch (e) {
-                console.warn("FCM Token save failed", e);
-              }
+              saveToken().catch((e) => console.warn("FCM Token save failed", e));
             }
             proceedToTerms();
           }
@@ -2106,6 +2104,9 @@
         }
       }
 
+      // 先行プリロード用Promise（ユーザーがスライドを読んでいる間に裏で取得）
+      let storesPreloadPromise = null;
+
       async function completeWalkthroughAndProceed() {
         const wt = document.getElementById("walkthrough");
         if (wt) {
@@ -2114,9 +2115,15 @@
             wt.classList.remove("active", "closing");
           }, 380);
         }
-        // 二重表示を解消し、直接店舗・メニューへ進む
-        loader.style.display = "flex";
-        await loadStores();
+        
+        // プリロードが完了していれば0秒、未完了の場合のみスピナーを出して完了を待機
+        if (storesPreloadPromise) {
+          await storesPreloadPromise;
+        } else {
+          loader.style.display = "flex";
+          await loadStores();
+        }
+
         if (!currentStoreId) {
           showScreen("step-stores");
         }
@@ -2126,6 +2133,12 @@
       function proceedToTerms() {
         // ウォークスルーを開く
         openWalkthrough();
+        // ユーザーがスライドを読んでいる間に裏で店舗・メニューを先行プリロードしておく
+        if (!storesPreloadPromise) {
+          storesPreloadPromise = loadStores().catch((err) => {
+            console.error("Preload loadStores error:", err);
+          });
+        }
       }
 
       const wtCheckTerms = document.getElementById("wt-check-terms");
@@ -2395,10 +2408,10 @@
             offlineProjects.forEach(p => {
               const card = document.createElement("div");
               card.className = "offline-store-card";
-              const imgSrc = `../images/${p.id}.png`;
+              const imgSrc = `../images/${p.id}.webp`;
 
               card.innerHTML = `
-                <img src="${imgSrc}" class="store-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                <img src="${imgSrc}" class="store-img" loading="lazy" onerror="this.onerror=null;this.src='../images/noimage.png'">
                 <div class="offline-store-info">
                   <h3>${p.groupName}「${p.name}」</h3>
                   <div class="offline-badge-group">
