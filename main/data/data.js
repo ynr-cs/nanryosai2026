@@ -711,7 +711,7 @@ const stageData = [
   {
     id: "keion_av_d1",
     day: 1,
-    time: "10:45 - 15:00",
+    time: "11:00 - 13:30",
     groupName: "軽音楽部",
     name: "NANRYOFES (視聴覚)",
     place: "視聴覚室",
@@ -818,11 +818,11 @@ const stageData = [
   {
     id: "keion_av_d2",
     day: 2,
-    time: "10:00 - 15:00",
+    time: "11:00 - 13:30",
     groupName: "軽音楽部",
-    name: "NANRYOFES (視聴覚全日)",
+    name: "NANRYOFES (視聴覚)",
     place: "視聴覚室",
-    description: "視聴覚室にて全日ライブを開催！多彩なバンドが登場します。",
+    description: "視聴覚室にて部員バンドが熱いライブをお届けします！",
     tags: ["Day2", "音楽"],
   },
 
