@@ -1620,7 +1620,7 @@ window.stageData = stageData;
       async function importGeneric(storesCol, itemsCol, sourceLabel) {
         if (
           !confirm(
-            `${sourceLabel} からデータをこれを読み込み、現在の編集内容とマージしますか？`,
+            `${sourceLabel} からデータを読み込み、現在の編集内容とマージしますか？`,
           )
         )
           return;
@@ -1629,13 +1629,23 @@ window.stageData = stageData;
         document.body.style.cursor = "wait";
 
         try {
+          if (!Array.isArray(window.localData) || window.localData.length === 0) {
+            throw new Error("ローカル企画データ (window.localData) が読み込まれていません。");
+          }
+
           // 1. Fetch Stores
           const storesSnap = await getDocs(collection(db, storesCol));
           const storesMap = {};
           log(`Fetched ${storesSnap.size} docs from ${storesCol}`);
 
+          if (storesSnap.size === 0) {
+            log(`⚠️ No stores found in ${storesCol}.`);
+            alert(`${storesCol} に店舗データが見つかりませんでした。マージを中止します。`);
+            return;
+          }
+
           storesSnap.forEach((doc) => {
-            storesMap[doc.id] = { id: doc.id, ...doc.data() };
+            storesMap[doc.id] = { ...doc.data(), id: doc.id };
             // Debug: Log basic info
             if (document.getElementById("test-mode-check").checked) {
               console.log("Store Doc:", doc.id, doc.data());
@@ -1648,66 +1658,157 @@ window.stageData = stageData;
 
           const itemsMap = {}; // storeId -> [items]
           itemsSnap.forEach((doc) => {
-            const item = doc.data();
+            const item = { ...doc.data(), id: doc.id };
             const sId = (item.storeId || "") + ""; // Ensure string key
             if (!itemsMap[sId]) itemsMap[sId] = [];
             itemsMap[sId].push(item);
           });
 
-          // 3. Build Project Data (Merge)
-          const currentDataMap = new Map(
-            window.localData.map((p) => [p.id, p]),
-          );
-          const mergedData = [];
+          // 3. Build Project Data (Merge based on window.localData)
+          const mergedData = window.localData.map((existing) => {
+            const s = storesMap[String(existing.id)];
+            if (!s) {
+              // 企画データ保持: 展示・ステージ・部活など非モバイルオーダー企画 (全26企画) をそのまま維持
+              return existing;
+            }
 
-          // Process Firestore stores
-          for (const storeId in storesMap) {
-            const s = storesMap[storeId];
-            const existing = currentDataMap.get(s.id) || {};
-            const storeItems = itemsMap[storeId] || []; // storeId is key from storesMap (doc.id)
+            const storeItems = itemsMap[String(existing.id)] || [];
+            log(
+              `Store [${existing.id}] found in Firestore. Items: ${storeItems.length}`,
+            );
 
-            log(`Store [${s.id}] found. Items: ${storeItems.length}`);
+            // メニューの安全なマージ: storeItems をマッピングし、既存メニューと id または name で照合
+            let menuList = existing.menu || [];
+            if (storeItems.length > 0) {
+              const existingMenu = Array.isArray(existing.menu)
+                ? existing.menu
+                : [];
+              menuList = storeItems.map((i) => {
+                const staticItem = existingMenu.find(
+                  (m) =>
+                    (m.id && i.id && m.id === i.id) ||
+                    (m.name && i.name && m.name.trim() === i.name.trim()),
+                );
+                const { storeId, ...rest } = i;
+                const priceFormatted =
+                  typeof i.price === "number"
+                    ? i.price + "円"
+                    : i.price
+                      ? String(i.price).includes("円")
+                        ? i.price
+                        : i.price + "円"
+                      : staticItem && staticItem.price
+                        ? staticItem.price
+                        : "0円";
 
-            const menuList = storeItems.map((i) => {
-              const { storeId, ...rest } = i;
-              return {
-                ...rest,
-                price: typeof i.price === "number" ? i.price + "円" : i.price,
-              };
-            });
+                return {
+                  ...(staticItem || {}),
+                  ...rest,
+                  id: i.id, // FirestoreのドキュメントIDを保持
+                  name: i.name || (staticItem && staticItem.name) || "",
+                  price: priceFormatted,
+                  description:
+                    i.description || (staticItem && staticItem.description) || "",
+                  // 既存のアップロード済み写真が空文字で上書きされないよう保護
+                  imageUrl:
+                    i.imageUrl || (staticItem && staticItem.imageUrl) || "",
+                  isRecommended:
+                    i.isRecommended !== undefined
+                      ? !!i.isRecommended
+                      : staticItem
+                        ? !!staticItem.isRecommended
+                        : false,
+                  isAvailable:
+                    i.isAvailable !== undefined
+                      ? i.isAvailable
+                      : staticItem && staticItem.isAvailable !== undefined
+                        ? staticItem.isAvailable
+                        : true,
+                  allowedToppings:
+                    (i.allowedToppings && i.allowedToppings.length > 0)
+                      ? i.allowedToppings
+                      : (staticItem && staticItem.allowedToppings) || [],
+                };
+              });
+            }
 
-            mergedData.push({
-              id: s.id,
+            return {
+              ...existing, // category, roomId, useMobileOrder, floor, tags などの全属性を維持
               loginId: s.loginId || existing.loginId || "",
               groupName: s.name || existing.groupName || "",
               name: s.teamName || existing.name || "",
               place: s.place || existing.place || "",
-              floor: s.floor || existing.floor || 1,
+              floor: s.floor !== undefined ? s.floor : existing.floor || 1,
               description: s.description || existing.description || "",
-              catchphrase: existing.catchphrase || "",
-              tags: existing.tags || [],
               contentType:
                 menuList.length > 0
                   ? "menu"
                   : existing.contentType || "gallery",
               menu: menuList,
-              gallery: existing.gallery || [],
-            });
+            };
+          });
+
+          // Firestoreにのみ存在する新規店舗があれば追加
+          const localIds = new Set(window.localData.map((p) => String(p.id)));
+          for (const storeId in storesMap) {
+            if (!localIds.has(String(storeId))) {
+              const s = storesMap[storeId];
+              const storeItems = itemsMap[storeId] || [];
+              const menuList = storeItems.map((i) => {
+                const { storeId: _sId, ...rest } = i;
+                const priceFormatted =
+                  typeof i.price === "number"
+                    ? i.price + "円"
+                    : i.price
+                      ? String(i.price).includes("円")
+                        ? i.price
+                        : i.price + "円"
+                      : "0円";
+                return {
+                  ...rest,
+                  id: i.id,
+                  price: priceFormatted,
+                  imageUrl: i.imageUrl || "",
+                  isAvailable:
+                    i.isAvailable !== undefined ? i.isAvailable : true,
+                  allowedToppings: i.allowedToppings || [],
+                };
+              });
+              mergedData.push({
+                id: s.id,
+                loginId: s.loginId || "",
+                groupName: s.name || "",
+                name: s.teamName || "",
+                place: s.place || "",
+                floor: s.floor !== undefined ? s.floor : 1,
+                category: "food",
+                useMobileOrder: true,
+                description: s.description || "",
+                catchphrase: "",
+                tags: ["食品"],
+                contentType: menuList.length > 0 ? "menu" : "gallery",
+                menu: menuList,
+                gallery: [],
+              });
+              log(`🆕 Firestoreから新規企画 [${s.id}] を追加しました`);
+            }
           }
 
-          if (mergedData.length === 0) {
-            log(`⚠️ No stores found in ${storesCol}.`);
-            alert(`${storesCol} にデータが見つかりませんでした`);
-          } else {
-            window.localData = mergedData;
-            window.markGuiModified();
-            renderTable();
-            window.generateJSON();
-            log(`✅ Merged ${mergedData.length} projects from ${storesCol}.`);
-            alert(
-              `読み込み完了！(${storesCol})\n${mergedData.length}件のデータをマージしました。`,
+          // セーフガード: マージ後件数が元データ件数未満の場合は即座に例外をスローし window.localData を汚染しない
+          if (mergedData.length < window.localData.length) {
+            throw new Error(
+              `マージ後の企画件数 (${mergedData.length}) が元の企画件数 (${window.localData.length}) より少なくなっています。安全のためマージ処理を中断しました。`,
             );
           }
+
+          window.localData = mergedData;
+          window.markGuiModified();
+          renderTable();
+          window.generateJSON();
+          log(`✅ Merged ${mergedData.length} projects from ${storesCol}.`);
+          alert(
+            `読み込み完了！(${storesCol})\n${mergedData.length}件のデータをマージしました。`,
+          );
         } catch (e) {
           console.error(e);
           log(`❌ Error: ${e.message}`);
@@ -1800,43 +1901,133 @@ window.stageData = stageData;
 
             log(`Processing ${p.groupName}...`);
 
-            // 1. Delete existing items for this store
+            const storeIdStr = String(p.id);
+
+            // 1. Fetch current Firestore items for this store
             const q = query(
               collection(db, itemsCol),
-              where("storeId", "==", p.id),
+              where("storeId", "==", storeIdStr),
             );
             const snapshot = await getDocs(q);
 
-            const deleteBatch = writeBatch(db);
-            snapshot.forEach((doc) => {
-              deleteBatch.delete(doc.ref);
+            const idMap = new Map();
+            const nameMap = new Map();
+            snapshot.forEach((d) => {
+              idMap.set(d.id, d);
+              const data = d.data();
+              if (data && data.name) {
+                nameMap.set(data.name.trim(), d);
+              }
             });
-            await deleteBatch.commit();
 
-            // 2. Add new items
-            const addBatch = writeBatch(db);
+            const matchedDocIds = new Set();
+            const batch = writeBatch(db);
+
+            // 2. Diff-Sync / Upsert each item
             p.menu.forEach((item) => {
-              const newRef = doc(collection(db, itemsCol));
+              const itemNameTrimmed = (item.name || "").trim();
+              let matchedDoc = null;
 
-              const priceStr = item.price + "";
-              const priceVal = parseInt(priceStr.replace(/[^\d]/g, "")) || 0;
+              if (item.id && idMap.has(item.id) && !matchedDocIds.has(item.id)) {
+                matchedDoc = idMap.get(item.id);
+              } else if (itemNameTrimmed && nameMap.has(itemNameTrimmed)) {
+                const candidate = nameMap.get(itemNameTrimmed);
+                if (!matchedDocIds.has(candidate.id)) {
+                  matchedDoc = candidate;
+                }
+              }
 
-              const payload = {
-                ...item,
-                storeId: p.id,
-                price: priceVal,
-                isRecommended: !!item.isRecommended,
-                isAvailable:
-                  item.isAvailable !== undefined ? item.isAvailable : true,
-                allowedToppings: item.allowedToppings || [],
-              };
+              const priceStr = (item.price || "0") + "";
+              const priceVal =
+                parseInt(priceStr.replace(/[^\d]/g, ""), 10) || 0;
 
-              addBatch.set(newRef, payload);
+              let targetRef;
+              let itemData;
+
+              if (matchedDoc) {
+                // 既存商品ドキュメントを更新 (IDを不変に維持)
+                matchedDocIds.add(matchedDoc.id);
+                targetRef = doc(db, itemsCol, matchedDoc.id);
+                item.id = matchedDoc.id; // ローカル配列にも doc.id を反映
+                const existingData = matchedDoc.data() || {};
+
+                // 画像保護: null(明示的削除)なら空文字、ローカル指定があればそれを、ローカル空ならFirestore既存画像を保持
+                let finalImageUrl;
+                if (item.imageUrl === null) {
+                  finalImageUrl = "";
+                } else if (item.imageUrl && item.imageUrl !== "") {
+                  finalImageUrl = item.imageUrl;
+                } else {
+                  finalImageUrl = existingData.imageUrl || "";
+                }
+                item.imageUrl = finalImageUrl;
+
+                // 営業時間中の安全確保: Firestore上で店舗が売切設定(false)している場合はそれを最優先で保持
+                const finalIsAvailable =
+                  existingData.isAvailable !== undefined
+                    ? existingData.isAvailable
+                    : (item.isAvailable !== undefined ? item.isAvailable : true);
+                item.isAvailable = finalIsAvailable;
+
+                const { id: _ignoredId, ...restItem } = item;
+                itemData = {
+                  ...restItem,
+                  storeId: storeIdStr,
+                  name: item.name,
+                  price: priceVal,
+                  description:
+                    item.description || existingData.description || "",
+                  imageUrl: finalImageUrl,
+                  isRecommended: !!item.isRecommended,
+                  isAvailable: finalIsAvailable,
+                  allowedToppings:
+                    (item.allowedToppings && item.allowedToppings.length > 0)
+                      ? item.allowedToppings
+                      : (existingData.allowedToppings || []),
+                };
+
+                batch.set(targetRef, itemData, { merge: true });
+              } else {
+                // 新規商品ドキュメントを採番して追加
+                targetRef = doc(collection(db, itemsCol));
+                item.id = targetRef.id;
+
+                const { id: _ignoredId, ...restItem } = item;
+                itemData = {
+                  ...restItem,
+                  storeId: storeIdStr,
+                  name: item.name,
+                  price: priceVal,
+                  description: item.description || "",
+                  imageUrl: item.imageUrl || "",
+                  isRecommended: !!item.isRecommended,
+                  isAvailable:
+                    item.isAvailable !== undefined ? item.isAvailable : true,
+                  allowedToppings: item.allowedToppings || [],
+                };
+
+                batch.set(targetRef, itemData);
+              }
             });
-            await addBatch.commit();
+
+            // Firestoreにのみ存在する商品を警告表示 (削除せず安全のため保持)
+            snapshot.forEach((d) => {
+              if (!matchedDocIds.has(d.id)) {
+                const dData = d.data() || {};
+                const dName = dData.name || d.id;
+                log(
+                  `⚠️ Firestoreにのみ存在する商品 [${dName}] を検出しました (安全のため保持)`,
+                );
+              }
+            });
+
+            await batch.commit();
             log(`  -> Synced ${p.menu.length} items to ${itemsCol}.`);
           }
 
+          window.markGuiModified();
+          renderTable();
+          window.generateJSON();
           log(`✅ All items synced successfully to ${itemsCol}.`);
           alert(`${itemsCol} への同期が完了しました`);
         } catch (e) {
