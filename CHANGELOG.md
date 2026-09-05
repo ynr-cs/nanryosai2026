@@ -13,6 +13,38 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.195] アクセスアコーディオンアイコン表示修正・モバイルオーダー浮遊カートバー重複解消・最下部余白確保・Androidステータス自動同期リカバリ - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Antigravity
+- **筆者**: AI
+- **変更理由**:
+  1. アクセス案内（`main/access.html`）で未読み込みの Font Awesome 参照によりアコーディオンアイコンが表示されていなかった不具合の修正。
+  2. モバイルオーダー（`pos/mobile-order.html`）でカートに商品がある状態で商品詳細モーダルを開くと、下部浮遊カートバーとモーダルの「カートに追加」ボタンが重複する不具合の解消。
+  3. モバイルオーダー全体で最下部固定ナビ（`.app-bottom-nav`）に注文確定ボタン等の重要UIが潜り込むのを防ぐため、下部余白（`--mobile-bottom-clearance`）を体系化・スペーサー配置。
+  4. 注文ステータス画面（`pos/status.html`）において、Android Chrome 端末等の画面スリープ・バックグラウンド移行に伴う WebSocket 切断後、画面復帰時に「調理中」のまま自動更新されずフリーズする不具合を解決するための多層防御同期リカバリ機構（復帰同期・15秒ポーリング・手動更新UI）の実装。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **アクセス案内 (`main/access.html`)**:
+  - CSSの `.modern-accordion summary::after` において、未読み込みの Font Awesome 参照（`font-family: 'Font Awesome 6 Free'` / `\f078`）を完全撤廃。
+  - プロジェクト全体で標準採用されている Bootstrap Icons（`font-family: 'bootstrap-icons' !important;` / `content: '\f282';`）へ切り替え、開閉時の180度回転アニメーションとともに安定表示を実現。
+- **モバイルオーダー (`pos/mobile-order.html`)**:
+  - `:root` に `--mobile-bottom-clearance: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom, 20px) + 50px);` を定義。
+  - `.screen` や `#app-container` のスクロール余白を `--mobile-bottom-clearance` で体系化。
+  - `body.modal-open #bottom-bar { display: none !important; }` を追加し、モーダル展開中は浮遊カートバーを強制非表示化。
+  - 商品詳細モーダル（`#itemModal`）およびカートモーダル（`#cartModal`）の `show.bs.modal` / `hidden.bs.modal` イベントと連動させ、JS側でもモーダル展開中の非表示とモーダル閉鎖時の安全な復元制御を二重化。
+  - 注文確認画面（`#step-checkout`）の末尾にスペーサー要素を配置し、注文商品点数が多い場合でも「注文を確定する」ボタンが最下部ナビに埋もれず確実にスクロールして操作できるように改善。
+- **注文ステータス (`pos/status.html`)**:
+  - `document.visibilitychange`（スリープ解除、タブ復帰）および `window.focus` 時に、明示的な `getDoc` による即時データ同期（`syncOrderStatus`）を実行する復帰トリガーを実装。
+  - `window.online` 時に最新データの即時フェッチおよびリスナーの再起動（`startListener`）を自動実行。
+  - 進行中の注文（調理中・準備中・呼出中）に限り、フォアグラウンド表示中に 15 秒間隔で最新データを取得するセーフティ・ポーリング（`startSafetyPolling`）を実装（終端ステータス遷移時は自動停止）。
+  - ステータスカード上部にリアルタイム同期インジケーター（パルスドット・最終更新時刻表示）と手動「更新」ボタン（回転アニメーション付き）を配置。
+  - リスナー多重登録を防ぐ `unsubscribeSnapshot` 管理ロジックを実装。
+- **ナレッジ同期**:
+  - `antigravity/main/info_pages_CONTEXT.md`、`antigravity/mobile-order_CONTEXT.md`、`antigravity/pos/mobile-order_status_CONTEXT.md` へ各仕様・実装詳細を永続化。
+
 ## [0.5.194] 学校住所表記の統一（横浜市港南区日野中央2-26-1）と誤表記修正 - 2026-09-04
 
 ### メタ情報

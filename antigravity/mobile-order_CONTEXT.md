@@ -39,6 +39,17 @@ body {
 - **ボタンサイズ**: `.btn-primary-custom`（`padding: 11px 18px; font-size: 0.92rem; border-radius: 12px;`）および注文確定ボタンのサイズを引き締め、操作性と視認性を両立。
 - **店舗カード & トッピング**: 店舗カード（`.store-card`）のパディング・アイコンサイズ、トッピングボタン（`.topping-btn` のフォント `0.85rem`、パディング `6px 12px`）をスリム化し、一覧性とスクロール体験を向上。
 
+### 1.6 最下部余白体系化とモーダル重複制御 (2026-09-05 更新)
+- **最下部クリアランス変数の導入**:
+  - `:root` に `--mobile-bottom-clearance: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom, 20px) + 50px);` を定義。
+  - `.screen` や `#app-container` の `padding-bottom` をこの変数で統一し、下部固定バー（`.app-bottom-nav`）の高さ変動やセーフエリアに対しても常にスクロール末尾の十分な余白を確保。
+- **大量注文時のボタン埋まり防止**:
+  - 注文確認画面（`#step-checkout`）末尾に `height: var(--mobile-bottom-clearance)` を持つ不可視スペーサー要素を配置。注文アイテムが多数存在しスクロールが発生した場合でも、「注文を確定する」ボタンがボトムナビの真下に埋もれることなく確実にスクロールして押下可能。
+- **商品詳細・カートモーダル展開時の浮遊カートバー非表示制御**:
+  - メニュー画面でカートに商品が存在する状態で商品詳細モーダル（`#itemModal`）を開いた際、浮遊カートバー（`#bottom-bar`）がモーダル下部に居座り、「カートに追加」ボタンと衝突・重なってしまう問題を解決。
+  - CSS: `body.modal-open #bottom-bar { display: none !important; }` を適用。
+  - JS: `itemModal` および `cartModal` の `show.bs.modal` / `hidden.bs.modal` イベントと連動させ、モーダル表示中は `#bottom-bar` を確実に非表示化し、モーダルが閉じた際にカートが空でなければ復元する二重防御を実装。
+
 ## 2. 認証とセッション管理 (Authentication)
 `mobile-order.html` の認証フローは `main/auth.js` と `main/login.html` に完全統合されています（SSOT: Single Source of Truth）。
 

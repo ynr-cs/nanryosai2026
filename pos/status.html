@@ -511,6 +511,74 @@
       [data-theme="dark"] .order-item-row { border-bottom-color: #334155; }
       [data-theme="dark"] .total-price-row { border-top-color: #334155; }
 
+      /* Sync Status Bar & Live Indicator */
+      .sync-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 90%;
+        margin-top: 0px;
+        margin-bottom: 10px;
+        padding: 8px 14px;
+        border-radius: var(--radius-md);
+        background: var(--card-bg);
+        box-shadow: var(--shadow-card);
+        font-size: 0.8rem;
+        color: var(--text-sub);
+      }
+      .sync-indicator-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sync-indicator-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-dot 2s infinite cubic-bezier(0.66, 0, 0, 1);
+        flex-shrink: 0;
+      }
+      .sync-indicator-dot.stale {
+        background-color: #f59e0b;
+        box-shadow: none;
+        animation: none;
+      }
+      .sync-indicator-dot.offline {
+        background-color: #ef4444;
+        box-shadow: none;
+        animation: none;
+      }
+      .btn-sync-manual {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color, rgba(0,0,0,0.1));
+        border-radius: 9999px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .btn-sync-manual:hover {
+        opacity: 0.85;
+      }
+      .btn-sync-manual:active {
+        transform: scale(0.95);
+      }
+      .spin-animation {
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
     </style>
   </head>
   <body data-status="waiting">
@@ -522,6 +590,19 @@
         
         <div class="status-header-message">
            ご注文ありがとうございます
+        </div>
+
+        <!-- Sync Status Bar -->
+        <div class="sync-status-bar" id="sync-status-bar">
+            <div class="sync-indicator-group">
+                <span class="sync-indicator-dot" id="sync-dot"></span>
+                <span id="sync-status-label" style="font-weight: 600;">自動更新中</span>
+                <span id="sync-time-label" style="font-size: 0.75rem; opacity: 0.8;">--:--</span>
+            </div>
+            <button id="btn-manual-sync" class="btn-sync-manual" type="button" title="最新の注文状況を取得">
+                <i class="bi bi-arrow-clockwise" id="icon-manual-sync"></i>
+                <span>更新</span>
+            </button>
         </div>
 
         <!-- Dynamic Status Card -->
@@ -678,9 +759,109 @@
         });
       }
 
+      // --- State Variables for Multi-tier Sync Recovery ---
+      let unsubscribeSnapshot = null;
+      let safetyPollingInterval = null;
+      let currentOrderData = null;
+      let isSyncing = false;
+
+      function updateSyncIndicator(state = "success") {
+        const dot = document.getElementById("sync-dot");
+        const label = document.getElementById("sync-status-label");
+        const timeLabel = document.getElementById("sync-time-label");
+        if (!dot || !label || !timeLabel) return;
+
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        timeLabel.textContent = `最終更新 ${timeStr}`;
+
+        dot.className = "sync-indicator-dot";
+        if (state === "offline") {
+          dot.classList.add("offline");
+          label.textContent = "オフライン";
+        } else if (state === "error") {
+          dot.classList.add("stale");
+          label.textContent = "同期確認中";
+        } else {
+          if (currentOrderData && ["completed", "cancelled", "abandoned"].includes(currentOrderData.status)) {
+            label.textContent = "注文確定済";
+          } else {
+            label.textContent = "自動更新中";
+          }
+        }
+      }
+
+      async function syncOrderStatus(isManual = false) {
+        if (!orderId || isSyncing) return;
+        isSyncing = true;
+        const icon = document.getElementById("icon-manual-sync");
+        if (icon) icon.classList.add("spin-animation");
+
+        try {
+          const docSnap = await getDoc(doc(db, "orders", orderId));
+          if (!docSnap.exists()) {
+            console.warn("Doc does not exist during sync");
+            document.getElementById("status-title").textContent = "Order Not Found";
+            return;
+          }
+          const data = docSnap.data();
+          console.log("Synced order data:", data);
+          currentOrderData = data;
+          updateUI(data);
+          fetchStoreName(data.storeId);
+          updateSyncIndicator("success");
+
+          // 終端ステータスの場合は安全のためポーリングを終了
+          if (["completed", "cancelled", "abandoned"].includes(data.status)) {
+            stopSafetyPolling();
+          }
+        } catch (error) {
+          console.warn("Manual/Lifecycle sync error:", error);
+          updateSyncIndicator(navigator.onLine ? "error" : "offline");
+        } finally {
+          isSyncing = false;
+          if (icon) {
+            setTimeout(() => {
+              icon.classList.remove("spin-animation");
+            }, 600);
+          }
+        }
+      }
+
+      function stopSafetyPolling() {
+        if (safetyPollingInterval) {
+          clearInterval(safetyPollingInterval);
+          safetyPollingInterval = null;
+        }
+      }
+
+      function startSafetyPolling() {
+        stopSafetyPolling();
+        // 15秒おきにフォアグラウンドかつ通信可能な場合に最新データを安全取得（スリープ復帰後のWebSocket不達対策）
+        safetyPollingInterval = setInterval(() => {
+          if (document.visibilityState === "visible" && navigator.onLine) {
+            if (currentOrderData && ["cooking", "ready_to_serve", "ready_for_pickup"].includes(currentOrderData.status)) {
+              console.log("Safety polling sync running...");
+              syncOrderStatus(false);
+            } else if (currentOrderData && ["completed", "cancelled", "abandoned"].includes(currentOrderData.status)) {
+              stopSafetyPolling();
+            }
+          }
+        }, 15000);
+      }
+
       function startListener() {
         console.log("Starting Firestore Listener for:", orderId);
-        onSnapshot(
+        if (unsubscribeSnapshot) {
+          try {
+            unsubscribeSnapshot();
+          } catch (e) {
+            console.warn("Error unsubscribing previous listener:", e);
+          }
+          unsubscribeSnapshot = null;
+        }
+
+        unsubscribeSnapshot = onSnapshot(
           doc(db, "orders", orderId),
           (docSnap) => {
             if (!docSnap.exists()) {
@@ -690,11 +871,20 @@
             }
             const data = docSnap.data();
             console.log("Order Data Update:", data); 
+            currentOrderData = data;
             updateUI(data);
             fetchStoreName(data.storeId);
+            updateSyncIndicator("success");
+
+            if (["completed", "cancelled", "abandoned"].includes(data.status)) {
+              stopSafetyPolling();
+            } else {
+              startSafetyPolling();
+            }
           },
           (error) => {
             console.error("Snapshot Error:", error);
+            updateSyncIndicator("error");
             if (error.code === 'permission-denied') {
                  document.getElementById("status-title").textContent = "アクセス権限がありません";
                  document.getElementById("status-desc").textContent = "再読み込みをお試しください";
@@ -704,7 +894,51 @@
             }
           }
         );
+
+        startSafetyPolling();
       }
+
+      // --- Multi-tier Sync Event Handlers ---
+      // 1. スリープ解除・バックグラウンドからの復帰時に即座にデータ同期
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          console.log("Visibility visible: syncing order status immediately...");
+          syncOrderStatus(false);
+        }
+      });
+
+      // 2. ウィンドウフォーカス復帰時
+      window.addEventListener("focus", () => {
+        if (document.visibilityState === "visible") {
+          syncOrderStatus(false);
+        }
+      });
+
+      // 3. ネットワーク復旧時
+      window.addEventListener("online", () => {
+        console.log("Network back online: syncing order status and restarting listener...");
+        updateSyncIndicator("success");
+        syncOrderStatus(false);
+        startListener();
+      });
+
+      window.addEventListener("offline", () => {
+        console.warn("Network offline");
+        updateSyncIndicator("offline");
+      });
+
+      // 4. 手動更新ボタンクリック
+      const bindManualSyncButton = () => {
+        const manualBtn = document.getElementById("btn-manual-sync");
+        if (manualBtn && !manualBtn.dataset.bound) {
+          manualBtn.dataset.bound = "true";
+          manualBtn.addEventListener("click", () => {
+            syncOrderStatus(true);
+          });
+        }
+      };
+      bindManualSyncButton();
+      document.addEventListener("DOMContentLoaded", bindManualSyncButton);
 
       let countdownInterval = null;
 

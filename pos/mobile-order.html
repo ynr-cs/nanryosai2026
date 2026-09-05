@@ -97,6 +97,9 @@
         --radius-sm: 10px;
         --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
         --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        /* Bottom Nav Clearance: ボトムナビ(70px) + SafeArea + 確実な余白(50px) */
+        --mobile-bottom-clearance: calc(var(--bottom-nav-height, 80px) + env(safe-area-inset-bottom, 20px) + 50px);
       }
 
       /* Dark Mode Overrides (System Setting) */
@@ -768,6 +771,12 @@
         padding: 10px 14px;
       }
 
+      /* モーダル表示中は浮遊カートバーを確実に非表示にして「カートに追加」ボタンとの被りを解消 */
+      body.modal-open .bottom-cart-bar,
+      body.modal-open #bottom-bar {
+        display: none !important;
+      }
+
       /* =========================================
          8. Layout Overrides for App Shell Integration
          ========================================= */
@@ -808,13 +817,14 @@
         border-right: 1px solid var(--border-color);
         border-left: 1px solid var(--border-color);
         /* Ensure bottom content isn't covered by nav */
-        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 20px);
+        padding-bottom: var(--mobile-bottom-clearance);
       }
 
       /* Screens take full available height of the container */
       .screen {
         padding: 20px; /* Standard internal padding */
-        /* Padding handled by app-container for consistent scrolling */
+        padding-bottom: var(--mobile-bottom-clearance) !important;
+        box-sizing: border-box;
       }
 
       /* Menu Screen specific: Remove default padding to allow sticky header to hit top edge of container */
@@ -1135,6 +1145,8 @@
         >
           メニューに戻る
         </button>
+        <!-- 大量オーダー時のボトムナビ被り防止スペーサー -->
+        <div style="height: var(--mobile-bottom-clearance); min-height: 80px;" aria-hidden="true"></div>
       </div>
     </div>
     <!-- End App Container -->
@@ -1914,7 +1926,17 @@
         if (!itemModal) {
           const el = document.getElementById("itemModal");
           itemModal = new bootstrap.Modal(el);
+          el.addEventListener("show.bs.modal", () => {
+            const bar = document.getElementById("bottom-bar");
+            if (bar) bar.style.display = "none";
+          });
+          el.addEventListener("hidden.bs.modal", () => {
+            updateBottomBar();
+          });
         }
+
+        const barEl = document.getElementById("bottom-bar");
+        if (barEl) barEl.style.display = "none";
 
         itemModal.show();
       };
@@ -2067,8 +2089,15 @@
 
       window.openCart = () => {
         renderCartList();
-        if (!cartModal)
-          cartModal = new bootstrap.Modal(document.getElementById("cartModal"));
+        if (!cartModal) {
+          const cartModalEl = document.getElementById("cartModal");
+          cartModal = new bootstrap.Modal(cartModalEl);
+          cartModalEl.addEventListener("hidden.bs.modal", () => {
+            updateBottomBar();
+          });
+        }
+        const barEl = document.getElementById("bottom-bar");
+        if (barEl) barEl.style.display = "none";
         cartModal.show();
       };
 
