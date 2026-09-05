@@ -2,7 +2,7 @@
 title: データ同期アーキテクチャ分析レポート
 tags: [infra, context, spec]
 status: active
-last_updated: 2026-07-09
+last_updated: 2026-09-05
 ---
 
 # データ同期アーキテクチャ分析レポート
@@ -170,9 +170,28 @@ async function init() {
 
 - **解決策**: `isListenersAttached` 等のフラグ変数を導入し、一度登録したら二度目はスキップするガード節を設けること。
 
+---
+
+## 8. stageData の完全保持・消失防止仕様 (2026-09-05 改修)
+
+`data.js` 保存時および JSON 出力時における `stageData`（ステージ出演枠マスタ）の消失事故を防止するため、以下の防護機構が実装されています。
+
+### 改修の背景
+従来の `admin-server.js` および `admin_sync.html` の `generateJSON` / `saveAllWithSync` では、`const stageData = [];` と空配列がハードコードされていたため、管理画面から保存・出力を行うと手動登録されたステージマスタ（全25枠）が空で上書きされる致命的な問題がありました。
+
+### 実装された二重防護機構
+1. **クライアント側 (`admin_sync.html`)**:
+   - `saveAllWithSync`: `window.stageData` を取得し、`/api/save-data` への POST リクエストペイロードに `stageData` として含めて送信する。
+   - `generateJSON`: `window.stageData` をシリアライズして出力コードに埋め込み、末尾に `window.stageData = stageData;` も含める。
+2. **サーバー側 (`admin-server.js`)**:
+   - リクエストボディに `stageData` が配列として存在すればそれを優先保存する。
+   - 万が一リクエストに含まれない、または空配列だった場合でも、サーバー上の既存 `main/data/data.js` から正規表現で既存の `stageData` を抽出し、空で上書きせず維持する（二重フェイルセーフ）。
+   - 末尾に `window.projectData = projectData; window.stageData = stageData;` を確実に書き出す。
+
 ## 参照ファイル
 
 - `main/data/data.js`
 - `main/admin_sync.html`
+- `admin-server.js`
 - `pos/mobile-order.html`
 - `pos/portal.html` (商品画像アップロード)

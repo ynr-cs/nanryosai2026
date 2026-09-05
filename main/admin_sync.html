@@ -1252,6 +1252,8 @@
 
       window.generateJSON = () => {
         const jsonData = JSON.stringify(window.localData, null, 4);
+        const currentStageData = window.stageData || (typeof stageData !== "undefined" ? stageData : []);
+        const stageJsonData = JSON.stringify(currentStageData, null, 2);
         const newVersion = Date.now().toString();
         const fullFileContent = `// =======================================================
 // ★★★ 2026年度南陵祭 公式企画データ (Synced from Firebase/Admin) ★★★
@@ -1265,12 +1267,15 @@ const dataVersion = "${newVersion}";
 // 企画の名簿データ
 const projectData = ${jsonData};
 
-// ステージデータ (空でも定義が必要)
-const stageData = [
-  // 必要に応じてここに追加
-];
+// ステージデータ (出演スケジュール)
+const stageData = ${stageJsonData};
 
 console.log("data.js loaded: projectData count =", projectData.length);
+console.log("data.js loaded: stageData count =", stageData.length);
+
+// グローバルアクセス用に window オブジェクトに紐付け
+window.projectData = projectData;
+window.stageData = stageData;
 `;
         document.getElementById("json-result").value = fullFileContent;
         log(
@@ -1296,13 +1301,15 @@ console.log("data.js loaded: projectData count =", projectData.length);
         const syncVersion = Date.now().toString();
 
         try {
-          // 1. Save to data.js via Admin Server (バージョンも渡す)
+          // 1. Save to data.js via Admin Server (バージョンとstageDataも渡す)
           log("Step 1: Saving to data.js via local server...");
+          const currentStageData = window.stageData || (typeof stageData !== "undefined" ? stageData : []);
           const saveRes = await fetch("/api/save-data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               projectData: window.localData,
+              stageData: currentStageData,
               version: syncVersion,
             }),
           });

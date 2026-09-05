@@ -24,13 +24,14 @@ app.use(
 // data.js 保存用API
 app.post("/api/save-data", (req, res) => {
   try {
-    const { projectData } = req.body;
+    const { projectData, stageData } = req.body;
     console.log("RECEIVED BODY VERSION:", req.body.version);
 
     if (!projectData) {
       return res.status(400).json({ error: "projectData is required" });
     }
 
+    const filePath = path.join(__dirname, "main", "data", "data.js");
     const jsonData = JSON.stringify(projectData, null, 2);
     let dataVersion = req.body.version;
     if (!dataVersion) {
@@ -38,6 +39,24 @@ app.post("/api/save-data", (req, res) => {
       dataVersion = Date.now().toString();
     } else {
       console.log("✅ Using provided version:", dataVersion);
+    }
+
+    // stageDataの安全化（リクエスト優先、未指定・空なら既存data.jsから抽出して保持）
+    let stageDataString = "[]";
+    if (Array.isArray(stageData) && stageData.length > 0) {
+      stageDataString = JSON.stringify(stageData, null, 2);
+      console.log(`✅ Using provided stageData (${stageData.length} items)`);
+    } else if (fs.existsSync(filePath)) {
+      try {
+        const existingContent = fs.readFileSync(filePath, "utf8");
+        const match = existingContent.match(/(?:const|let|var)\s+stageData\s*=\s*(\[[\s\S]*?\]);/);
+        if (match && match[1].trim() !== "[]") {
+          stageDataString = match[1];
+          console.log("✅ Preserved existing stageData from data.js");
+        }
+      } catch (readErr) {
+        console.warn("⚠️ Failed to read existing stageData from data.js:", readErr);
+      }
     }
 
     const fileContent = `/**
@@ -58,15 +77,17 @@ const dataVersion = "${dataVersion}";
 // 企画の名簿データ
 const projectData = ${jsonData};
 
-// ステージデータ (空でも定義が必要)
-const stageData = [
-  // 必要に応じてここに追加
-];
+// ステージデータ (出演スケジュール)
+const stageData = ${stageDataString};
 
 console.log("data.js loaded: projectData count =", projectData.length, "version =", dataVersion);
+console.log("data.js loaded: stageData count =", stageData.length);
+
+// グローバルアクセス用に window オブジェクトに紐付け
+window.projectData = projectData;
+window.stageData = stageData;
 `;
 
-    const filePath = path.join(__dirname, "main", "data", "data.js");
     fs.writeFileSync(filePath, fileContent, "utf8");
 
     console.log(

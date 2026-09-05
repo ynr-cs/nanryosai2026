@@ -13,6 +13,77 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.206] stageData 保持・データ消失防止安全化改修（admin-server & admin_sync 二重防護） - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: `main/admin_sync.html` の「一括保存＆同期」および「data.js 出力コード」、ならびにローカル開発サーバー（`admin-server.js`）の `/api/save-data` において、`const stageData = [];` と空配列がハードコードされていたため、保存やJSON生成を行うと `data.js` 内の手動登録されたステージマスタ全25枠が消去されてしまう重大なデータ消失リスクを解消・恒久安全化するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **管理用ローカルサーバー (`admin-server.js`)**:
+  - `/api/save-data` API において、リクエストボディから `stageData` を受け取るように改修。
+  - リクエストに含まれない場合や空配列の場合でも、サーバー上の既存 `main/data/data.js` から正規表現で既存の `stageData` 定義を抽出し、フォールバックとして保持する二重フェイルセーフを実装。
+  - 出力コードの末尾に `console.log` および `window.projectData = projectData; window.stageData = stageData;` を確実に含めるよう修正。
+- **マスター同期管理画面 (`main/admin_sync.html`)**:
+  - `saveAllWithSync`: `/api/save-data` への送信ペイロードに `stageData: window.stageData || []` を含めるよう改修。
+  - `generateJSON`: `window.stageData` をシリアライズして出力し、コピー＆ペースト時にもステージデータが失われないよう改修。
+- **プロジェクト知識ベース (`antigravity/data_sync_CONTEXT.md`)**:
+  - セクション8を新設し、`stageData` の完全保持・消失防止仕様と二重防護機構を記録・同期。
+
+## [0.5.205] オーダー・厨房・提供フローチャート詳細化（モバイル・SOK・POS全網羅・キッチン/プレゼンター分離） - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ユーザーからの指示に基づき、注文エントリー（モバイルオーダー、店頭SOKキオスク、対面POSレジ）を完全網羅し、厨房オペレーション（キッチンの調理完了とプレゼンターのトッピング盛り付け・配膳・呼出）を現場の実態に合わせて詳細化するため。また、不要な一時ファイルを整理・削除。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **フローチャート詳細化 (`mobile_order_flowchart.md`, `.mmd`, `.puml`)**:
+  - 3大オーダー経路（モバイル、SOK、POS）を明示し、Firestoreでの一元管理と受付番号発番の連動を体系化。
+  - 厨房オペレーションを「キッチン（`kitchen.html`、調理完了ボタン）」と「プレゼンター（`presenter.html`、トッピング盛り付け・袋詰め配膳・呼出ボタン）」に明確に分離。
+  - 店頭呼出モニター（`monitor.html`）およびお客様スマホ（`status.html`）への呼出、受取カウンターでの商品引渡し・受取完了までの全工程を完全記述。
+  - 余計な説明文や一時Webファイルを削除し、純粋なフローチャート資料に一本化。
+- **プロジェクト知識ベース (`antigravity/mobile-order_CONTEXT.md`)**:
+  - フローチャートの3系統受付および厨房分離（キッチン・プレゼンター）の仕様を更新・同期。
+
+## [0.5.204] モバイルオーダー公式フローチャート作成（Mermaid・PlantUML対応・スイムレーン図備付） - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: モバイルオーダーの全体像（在校生スマホ直接注文＆一般来場者向け店頭キオスクSOK）を直感的かつ構造的に把握・ダウンロードできるよう、Mermaid（`.mmd`）およびPlantUML（`.puml`）形式の公式フローチャートを整備するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **フローチャート資産作成**:
+  - `mobile_order_flowchart.mmd` / `設計図/mobile_order_flowchart.mmd`: 直感的に上から下へ流れるMermaidフローチャート（カラーパレット・角丸・装飾定義済み）。
+  - `mobile_order_flowchart.puml` / `設計図/mobile_order_flowchart.puml`: 利用者、スマホ/店頭iPad、バックエンド(Firebase)、店舗スタッフ(厨房・受取口)の4者連動を示すスイムレーン形式PlantUMLアクティビティ図。
+  - `mobile_order_flowchart.md` / `設計図/mobile_order_flowchart.md`: Mermaid図とPlantUMLコードを統合したMarkdownドキュメント。
+- **プロジェクト知識ベース (`antigravity/mobile-order_CONTEXT.md`)**:
+  - セクション7を新設し、整備したフローチャート資産の概要・役割を追記・同期。
+
+## [0.5.203] 軽音楽部・視聴覚室タイムスケジュール調整（両日11:00〜13:30への統一） - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ユーザーからの最新指示に基づき、軽音楽部の視聴覚室におけるライブ開催時間をDAY 1およびDAY 2ともに「11:00〜13:30」に統一・修正するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **マスターデータ (`main/data/data.js`)**:
+  - `stageData` における軽音楽部の視聴覚室出演枠（`keion_av_d1`, `keion_av_d2`）の時間を、両日ともに `11:00 - 13:30` へ更新。
+  - DAY 2 側の企画名を `NANRYOFES (視聴覚)` に統一。
+- **プロジェクト知識ベース (`antigravity/main/data_CONTEXT.md`)**:
+  - 視聴覚室の軽音ライブ仕様を最新の時間割に更新。
+
 ## [0.5.202] ステージタイムスケジュール公式データ完全反映（data.js・全25枠・有志個別化・NANRYOFES統合） - 2026-09-05
 
 ### メタ情報
