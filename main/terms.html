@@ -16,6 +16,15 @@
         } catch (e) {}
       })();
     </script>
+    <!-- Prevent Dark Mode Flicker (FOUC) -->
+    <style>
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>利用規約 | 南陵祭'26</title>
@@ -27,117 +36,150 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
     <style>
-      .page-header {
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-      }
-      .back-btn {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: transform 0.2s;
-      }
-      .back-btn:active {
-        transform: scale(0.95);
-      }
-
-      .terms-container {
-        padding: 0 20px 60px;
-        max-width: 700px;
+      .terms-wrapper {
+        padding: 0 20px 80px;
+        max-width: 900px;
         margin: 0 auto;
-      }
-
-      .term-section {
-        margin-bottom: 30px;
-        padding: 20px;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      }
-
-      .term-title {
-        font-weight: 800;
-        font-size: 1.1rem;
-        margin-bottom: 15px;
         color: var(--text-main);
+        line-height: 1.6;
+      }
+
+      .page-header {
+        padding: 40px 20px 20px;
+        text-align: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .terms-content {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px var(--card-shadow);
+      }
+
+      .terms-content h2 {
+        font-size: 1.4rem;
+        margin-top: 32px;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 8px;
         display: flex;
         align-items: center;
         gap: 8px;
-        border-bottom: 2px solid var(--border-color);
-        padding-bottom: 8px;
       }
 
-      .term-section ul,
-      .term-section ol {
+      .terms-content h2:first-of-type {
+        margin-top: 0;
+      }
+
+      .terms-content p {
+        margin-bottom: 15px;
+        color: var(--text-sub);
+      }
+
+      .terms-content ul,
+      .terms-content ol {
         padding-left: 20px;
-        margin-bottom: 0;
+        margin-bottom: 15px;
         color: var(--text-sub);
         font-size: 0.95rem;
         line-height: 1.7;
       }
 
-      .term-section li {
+      .terms-content li {
         margin-bottom: 8px;
       }
 
-      .term-section p {
-        color: var(--text-sub);
-        font-size: 0.95rem;
-        line-height: 1.7;
-        margin-bottom: 10px;
-      }
-      .term-section p:last-child {
-        margin-bottom: 0;
+      .terms-content a {
+        color: var(--primary-color);
+        text-decoration: underline;
       }
 
       /* Danger / Warning Styles */
       .text-danger {
-        color: #ff4757 !important;
+        color: #ef4444 !important;
       }
+
       .highlight-danger {
-        color: #ff4757;
+        color: #ef4444;
         font-weight: 800;
-        background: rgba(255, 71, 87, 0.1);
+        background: rgba(239, 68, 68, 0.1);
         padding: 2px 6px;
         border-radius: 4px;
       }
 
       .ban-box {
-        background: rgba(255, 71, 87, 0.1); /* Red tint */
-        border: 1px solid rgba(255, 71, 87, 0.3);
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
         border-radius: 12px;
-        padding: 15px;
-        color: #ff4757;
+        padding: 16px 20px;
+        margin-top: 12px;
+        color: #dc2626;
       }
 
       .ban-box ul {
         list-style-type: none;
         padding-left: 0;
         font-weight: 700;
+        color: #dc2626;
       }
 
       .ban-box ul li::before {
         content: "⚠️ ";
       }
 
-      /* Dark mode tweaks handled by variables primarily, but explicit text checks */
       @media (prefers-color-scheme: dark) {
         .ban-box {
-          background: rgba(255, 71, 87, 0.15);
-          color: #ff6b81;
+          background: rgba(239, 68, 68, 0.15);
+          border-color: rgba(239, 68, 68, 0.4);
+          color: #fca5a5;
+        }
+        .ban-box ul {
+          color: #fca5a5;
+        }
+      }
+
+      [data-theme="dark"] .ban-box {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+      }
+      [data-theme="dark"] .ban-box ul {
+        color: #fca5a5;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .terms-wrapper {
+          padding: 0 14px 60px;
+        }
+        .terms-content {
+          padding: 20px 16px;
+          border-radius: 16px;
+        }
+        .terms-content h2 {
+          font-size: 1.25rem;
         }
       }
     </style>
@@ -145,169 +187,128 @@
   <body>
     <main>
       <div class="page-header">
-        <a href="account.html" class="back-btn">
-          <i class="bi bi-chevron-left"></i>
-        </a>
-        <h2 style="margin: 0; font-weight: 800; font-size: 1.5rem">利用規約</h2>
+        <h1 class="page-title">利用規約</h1>
       </div>
 
-      <div class="terms-container">
-        <div class="text-center mt-3 mb-5">
-          <i
-            class="bi bi-file-earmark-text tr-icon-glow"
-            style="font-size: 3rem; color: var(--accent-color)"
-          ></i>
-          <h3 class="fw-bold mt-2 mb-0">利用規約</h3>
-          <p
-            style="color: var(--text-sub); font-size: 0.9rem; margin-top: 10px"
-          >
-            本サービス「南陵祭モバイルオーダー」を利用することで、<br />以下の規約に同意したものとみなされます。
-          </p>
-        </div>
-
+      <div class="terms-wrapper">
         <div class="terms-content">
-          <!-- 第1条 -->
-          <section class="term-section">
-            <h4 class="term-title">第1条（総則）</h4>
-            <p>
-              本規約は、横浜南陵高校コンピュータ科学部（以下「当部」といいます）が運営する南陵祭モバイルオーダーシステム（以下「本サービス」といいます）の利用に関する条件を定めるものです。
-            </p>
-          </section>
+          <p>
+            横浜南陵高等学校 南陵祭2026 公式Webサイト（以下「当サイト」）における、モバイルオーダーシステム等の利用に関する条件を以下の通り定めます。<br />
+            本サービスを利用することで、以下の規約に同意したものとみなされます。
+          </p>
 
-          <!-- 第2条 -->
-          <section class="term-section">
-            <h4 class="term-title">第2条（利用資格）</h4>
-            <p>
-              本サービスは、南陵祭期間中に来場された以下の利用者を対象とします。
+          <h2>第1条（総則）</h2>
+          <p>
+            本規約は、横浜南陵高校コンピュータ科学部（以下「当部」といいます）が運営する南陵祭モバイルオーダーシステム（以下「本サービス」といいます）の利用に関する条件を定めるものです。
+          </p>
+
+          <h2>第2条（利用資格）</h2>
+          <p>
+            本サービスは、南陵祭期間中に来場された以下の利用者を対象とします。
+          </p>
+          <ul>
+            <li>当校の在校生（事前モバイルオーダーおよび店頭注文がご利用いただけます）</li>
+            <li>一般来場者（保護者、中学生、地域の方等：店頭注文および企画閲覧がご利用いただけます）</li>
+            <li>教職員および関係者</li>
+          </ul>
+
+          <h2>第3条（注文と契約成立）</h2>
+          <ol>
+            <li>
+              利用者が本サービス上で注文を確定し、サーバーがこれを受理した時点で、当該商品の予約契約が成立するものとします。
+            </li>
+            <li>
+              在庫状況等の理由により、注文成立後であっても当部または各出店団体が注文を取り消す場合があります。
+            </li>
+          </ol>
+
+          <h2 class="text-danger">
+            <i class="bi bi-clock-history"></i>第4条（商品受取と期限）
+          </h2>
+          <p class="fw-bold text-danger">
+            商品の受け取り期限は極めて重要です。
+          </p>
+          <ol>
+            <li>
+              利用者は、調理完了通知（「呼出」ステータス）または指定された受け取り時刻から<span
+                class="highlight-danger"
+                >5分以内</span
+              >に店舗へ受け取りに行くものとします。
+            </li>
+            <li>
+              5分を経過しても受け取りがない場合、食品衛生上の観点および運営の円滑化のため、<span
+                class="highlight-danger"
+                >注文は自動的にキャンセル扱いとなり、商品は廃棄処分されます。</span
+              >
+            </li>
+            <li>前項の場合、代金の返金義務は発生しないものとします。</li>
+          </ol>
+
+          <h2>第5条（キャンセル・変更）</h2>
+          <p>
+            注文確定後の利用者都合によるキャンセル、商品内容の変更は原則として認められません。ただし、商品に瑕疵（不良品等）がある場合は、店頭にて交換対応を行います。
+          </p>
+
+          <h2 class="text-danger">
+            <i class="bi bi-slash-circle"></i>第6条（禁止事項）
+          </h2>
+          <p>利用者は以下の行為を行ってはなりません。</p>
+          <ul>
+            <li>虚偽の情報（ニックネーム等）を登録する行為</li>
+            <li>転売または営利を目的として商品を注文する行為</li>
+            <li>同一人物による過度な大量注文や買い占め行為</li>
+            <li>
+              自動化ツール（ボット、スクリプト等）を用いて本サービスにアクセスする行為
+            </li>
+            <li>
+              本サービスのサーバーやネットワークに過度な負荷をかける行為
+            </li>
+            <li>他の利用者、出店団体、または当部の運営を妨害する行為</li>
+          </ul>
+
+          <h2 class="text-danger">第7条（利用制限・BAN）</h2>
+          <div class="ban-box">
+            <p class="mb-2 fw-bold" style="color: inherit;">違反者への措置</p>
+            <p class="mb-0" style="color: inherit;">
+              本規約に違反したと当部が判断した場合、当該利用者に対して事前の通知なく以下の措置を講じることができます。
             </p>
-            <ul>
-              <li>当校の在校生（事前モバイルオーダーおよび店頭注文がご利用いただけます）</li>
-              <li>一般来場者（保護者、中学生、地域の方等：店頭注文および企画閲覧がご利用いただけます）</li>
-              <li>教職員および関係者</li>
+            <ul class="mt-2 mb-0">
+              <li>本サービスの利用停止</li>
+              <li>
+                今後当部が開発・運営する一切のサービス（次年度以降含む）の利用永久停止（BAN）
+              </li>
+              <li>悪質な場合は学校側への通報</li>
             </ul>
-          </section>
+          </div>
 
-          <!-- 第3条 -->
-          <section class="term-section">
-            <h4 class="term-title">第3条（注文と契約成立）</h4>
-            <ol>
-              <li>
-                利用者が本サービス上で注文を確定し、サーバーがこれを受理した時点で、当該商品の予約契約が成立するものとします。
-              </li>
-              <li>
-                在庫状況等の理由により、注文成立後であっても当部または各出店団体が注文を取り消す場合があります。
-              </li>
-            </ol>
-          </section>
+          <h2>第8条（免責事項）</h2>
+          <ol>
+            <li>
+              当部は、本サービスの利用により利用者に生じた損害について、一切の責任を負いません。
+            </li>
+            <li>
+              システム障害、通信回線の混雑、天災等により本サービスが一時停止した場合に生じた損害についても同様とします。
+            </li>
+            <li>
+              提供される商品情報（価格、アレルギー情報、在庫等）の正確性については各出店団体が責任を負うものとし、当部はこれを保証しません。
+            </li>
+          </ol>
 
-          <!-- 第4条 -->
-          <section class="term-section">
-            <h4 class="term-title text-danger">
-              <i class="bi bi-clock-history"></i> 第4条（商品受取と期限）
-            </h4>
-            <p class="fw-bold text-danger">
-              商品の受け取り期限は極めて重要です。
-            </p>
-            <ol>
-              <li>
-                利用者は、調理完了通知（「呼出」ステータス）または指定された受け取り時刻から<span
-                  class="highlight-danger"
-                  >5分以内</span
-                >に店舗へ受け取りに行くものとします。
-              </li>
-              <li>
-                5分を経過しても受け取りがない場合、食品衛生上の観点および運営の円滑化のため、<span
-                  class="highlight-danger"
-                  >注文は自動的にキャンセル扱いとなり、商品は廃棄処分されます。</span
-                >
-              </li>
-              <li>前項の場合、代金の返金義務は発生しないものとします。</li>
-            </ol>
-          </section>
+          <h2>第9条（個人情報の取扱い）</h2>
+          <p>
+            当システムは、利用者のメールアドレス、氏名、プロフィール画像等の個人情報をデータベース上に一切保持いたしません。<br />
+            一方向ハッシュ関数により生成された匿名の識別子（UID）によって安全に注文の紐付けが行われます。詳細は<a href="privacy.html">プライバシーポリシー</a>をご確認ください。
+          </p>
 
-          <!-- 第5条 -->
-          <section class="term-section">
-            <h4 class="term-title">第5条（キャンセル・変更）</h4>
-            <p>
-              注文確定後の利用者都合によるキャンセル、商品内容の変更は原則として認められません。ただし、商品に瑕疵（不良品等）がある場合は、店頭にて交換対応を行います。
-            </p>
-          </section>
+          <h2>第10条（規約の変更）</h2>
+          <p>
+            当部は、必要と判断した場合には、利用者に通知することなくいつでも本規約を変更することができるものとします。
+          </p>
 
-          <!-- 第6条 -->
-          <section class="term-section">
-            <h4 class="term-title text-danger">
-              <i class="bi bi-slash-circle"></i> 第6条（禁止事項）
-            </h4>
-            <p>利用者は以下の行為を行ってはなりません。</p>
-            <ul>
-              <li>虚偽の情報（ニックネーム等）を登録する行為</li>
-              <li>転売または営利を目的として商品を注文する行為</li>
-              <li>同一人物による過度な大量注文や買い占め行為</li>
-              <li>
-                自動化ツール（ボット、スクリプト等）を用いて本サービスにアクセスする行為
-              </li>
-              <li>
-                本サービスのサーバーやネットワークに過度な負荷をかける行為
-              </li>
-              <li>他の利用者、出店団体、または当部の運営を妨害する行為</li>
-            </ul>
-          </section>
-
-          <!-- 第7条 -->
-          <section class="term-section">
-            <h4 class="term-title damage-text">第7条（利用制限・BAN）</h4>
-            <div class="ban-box">
-              <p class="mb-2 fw-bold">違反者への措置</p>
-              <p class="mb-0">
-                本規約に違反したと当部が判断した場合、当該利用者に対して事前の通知なく以下の措置を講じることができます。
-              </p>
-              <ul class="mt-2 mb-0">
-                <li>本サービスの利用停止</li>
-                <li>
-                  今後当部が開発・運営する一切のサービス（次年度以降含む）の利用永久停止（BAN）
-                </li>
-                <li>悪質な場合は学校側への通報</li>
-              </ul>
-            </div>
-          </section>
-
-          <!-- 第8条 -->
-          <section class="term-section">
-            <h4 class="term-title">第8条（免責事項）</h4>
-            <ol>
-              <li>
-                当部は、本サービスの利用により利用者に生じた損害について、一切の責任を負いません。
-              </li>
-              <li>
-                システム障害、通信回線の混雑、天災等により本サービスが一時停止した場合に生じた損害についても同様とします。
-              </li>
-              <li>
-                提供される商品情報（価格、アレルギー情報、在庫等）の正確性については各出店団体が責任を負うものとし、当部はこれを保証しません。
-              </li>
-            </ol>
-          </section>
-
-          <!-- 第9条 -->
-          <section class="term-section">
-            <h4 class="term-title">第9条（個人情報の取扱い）</h4>
-            <p>
-              当システムは、利用者のメールアドレス、氏名、プロフィール画像等の個人情報をデータベース上に一切保持いたしません。<br />
-              一方向ハッシュ関数により生成された匿名の識別子（UID）によって安全に注文の紐付けが行われます。詳細は<a href="privacy.html" style="color: var(--primary-color); text-decoration: underline;">プライバシーポリシー</a>をご確認ください。
-            </p>
-          </section>
-
-          <!-- 第10条 -->
-          <section class="term-section">
-            <h4 class="term-title">第10条（規約の変更）</h4>
-            <p>
-              当部は、必要と判断した場合には、利用者に通知することなくいつでも本規約を変更することができるものとします。
-            </p>
-          </section>
-        </div>
-
-        <div class="mt-5 text-end text-muted" style="font-size: 0.8rem">
-          <p>制定日：2025年12月31日<br />最終改定日：2026年8月30日</p>
-          <p>横浜南陵高校 コンピュータ科学部</p>
+          <div class="mt-5 text-end" style="font-size: 0.85rem; color: var(--text-sub);">
+            <p style="margin-bottom: 4px;">制定日：2025年12月31日<br />最終改定日：2026年9月5日</p>
+            <p style="margin-bottom: 0; font-weight: 700;">横浜南陵高校 コンピュータ科学部</p>
+          </div>
         </div>
       </div>
     </main>
