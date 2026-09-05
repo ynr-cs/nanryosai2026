@@ -32,6 +32,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {
   getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   doc,
   getDoc,
   setDoc,
@@ -118,7 +121,18 @@ getAppCheckToken(appCheck, false).catch((e) => {
    各サービスからのリクエストに自動的に App Check トークンが付与される。
    ============================== */
 const auth = getAuth(app);
-const db = getFirestore(app);
+// Firestore with IndexedDB Persistence (Multi-tab support)
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    }),
+  });
+} catch (e) {
+  console.warn("[Auth] Firestore persistence initialization fallback:", e);
+  db = getFirestore(app);
+}
 const storage = getStorage(app);
 const functions = getFunctions(app, "asia-northeast1");
 const analytics = getAnalytics(app);

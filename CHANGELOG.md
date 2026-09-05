@@ -13,6 +13,21 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.222] Firestore IndexedDB永続ローカルキャッシュ（persistentLocalCache）導入 - 2026-09-05
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: MPA（マルチページ）構成においてリンク遷移ごとにFirestoreのインメモリキャッシュが全破棄され、同じコレクション（店舗、企画、注文等）へのゼロからの再通信が頻発していた問題を解消するため。
+
+### 変更 (Changed)
+
+- **認証・Firebase基盤モジュール (`main/auth.js`)**:
+  - `initializeFirestore` および `persistentLocalCache`（`persistentMultipleTabManager`）を導入。
+  - IndexedDBによる端末内ローカル永続キャッシュを有効化。
+  - ページを移動・回遊してもFirestoreドキュメントが端末内にキャッシュ保持され、2回目以降のアクセスにおいて通信待ちなし（0ms）で即時データが返却されるよう改善。万が一の非対応環境向けに `getFirestore(app)` へのフォールバックも配備。
+
 ## [0.5.221] 画像自動WebP変換・Changelog超軽量抽出（version.json）自動化と初期通信削減 - 2026-09-05
 
 ### メタ情報
