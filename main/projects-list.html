@@ -756,6 +756,23 @@
       }
 
       /* Animations */
+      .fade-up {
+        opacity: 0;
+        transform: translateY(15px);
+        transition:
+          opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+          transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .fade-up.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .fade-up.is-visible:hover {
+        transform: translateY(-2px);
+      }
+
       @keyframes fadeInDown {
         from {
           opacity: 0;
@@ -1155,7 +1172,7 @@
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
 
               return `
-                    <div class="project-card" data-project-id="${project.id}" style="animation-delay: ${index * 0.02}s">
+                    <div class="project-card fade-up" data-project-id="${project.id}">
                         <div class="card-image">
                             <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="if(this.src!=='../images/noimage.png'){this.onerror=null;this.src='../images/noimage.png';}">
                         </div>
@@ -1218,6 +1235,14 @@
                      AppShell.showToast("お気に入りの更新に失敗しました", true);
                  }
              });
+          });
+
+          // stage-listと同様の滑らかなスタッガーフェードアップアニメーション
+          const newCards = gridContainer.querySelectorAll(".fade-up");
+          newCards.forEach((card, index) => {
+            setTimeout(() => {
+              card.classList.add("is-visible");
+            }, Math.min(index * 35, 350));
           });
         }
 
