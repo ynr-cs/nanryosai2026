@@ -60,3 +60,12 @@
 ### (6) Firestore IndexedDB 永続キャッシュ (`main/auth.js`)
 - `initializeFirestore` ＋ `persistentLocalCache`（`persistentMultipleTabManager`）を有効化。
 - これにより、ブラウザをリロードしたり別ページへ遷移したりしても、一度取得した Firestore ドキュメント（`stores`, `orders`, `system_alerts` 等）が端末内の IndexedDB に残り、2回目以降のアクセスでは通信待ちなし（0ms）で即時データが返却される。
+
+### (7) 画像WebP変換のピクセル制限撤廃とDOM差分パッチ化（v0.5.226）
+- **ピクセル制限の撤廃**:
+  - `scripts/process-assets.js` で `.resize()` を削除。元画像の解像度・アスペクト比を100%完全維持したまま高効率WebP圧縮を実施。
+- **DOM差分パッチ化によるnoimage点滅解消**:
+  - 初期化時（`applyFiltersAndSort`）で一度カードをDOM生成した後は、Firestoreの `stores` 取得や `watchUser` 解決時に `innerHTML` を全再生成するのを廃止。
+  - `updateStoreStatusesDOM()` および `updateFavoritesDOM()` により、営業バッジとお気に入り星マークのみを差分パッチ。
+  - カード画像要素（`<img>`）が再生成されず維持されるため、初期表示後の noimage 点滅（フリッカー）を100%根絶。
+
