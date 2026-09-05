@@ -462,7 +462,7 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
       }
 
       .project-card:hover .card-image img {
@@ -1005,7 +1005,11 @@
             }
           }
           isAuthResolved = true;
-          applyFiltersAndSort(false);
+          if (activeFilters.favoritesOnly) {
+            applyFiltersAndSort(false);
+          } else {
+            updateFavoritesDOM();
+          }
         });
 
         // Skeleton Generation
@@ -1025,6 +1029,94 @@
                     `;
           }
           gridContainer.innerHTML = html;
+        }
+
+        function getStoreBadgeAndButton(project) {
+          const useMobileOrder = project.useMobileOrder === true;
+          let statusBadge = "";
+          let isOrderable = useMobileOrder;
+          const storeData = storeStatuses[project.id];
+
+          if (useMobileOrder) {
+            if (storeData) {
+              const op = storeData.op;
+              const available = storeData.available;
+              const total = storeData.total;
+
+              let text = "準備中";
+              let color = "#d97706";
+              let bg = "#fef3c7";
+
+              if (op === "open") {
+                if (available !== undefined && total !== undefined) {
+                  if (available === 0 && total > 0) {
+                    text = "現在売切";
+                    color = "#dc2626";
+                    bg = "#fee2e2";
+                    isOrderable = false;
+                  } else if (available > 0 && available < total) {
+                    text = "一部売切";
+                    color = "#d97706";
+                    bg = "#fef3c7";
+                    isOrderable = true;
+                  } else {
+                    text = "営業中";
+                    color = "#10b981";
+                    bg = "#d1fae5";
+                    isOrderable = true;
+                  }
+                } else {
+                  text = "営業中";
+                  color = "#10b981";
+                  bg = "#d1fae5";
+                  isOrderable = true;
+                }
+              } else if (op === "closed") {
+                text = "本日の営業終了";
+                color = "#6b7280";
+                bg = "#f3f4f6";
+                isOrderable = false;
+              } else {
+                isOrderable = false;
+              }
+
+              statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${bg};color:${color};">${text}</span></div>`;
+            } else {
+              isOrderable = false;
+              statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
+            }
+          } else {
+            isOrderable = false;
+          }
+
+          const orderBtnHTML = isOrderable
+            ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order" data-track="click_order_from_list" data-track-project-id="${project.id}"><i class="bi bi-cart-fill"></i> オーダー</a>`
+            : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="bi bi-cart-fill"></i> 準備中</button>` : "");
+
+          return { statusBadge, orderBtnHTML };
+        }
+
+        function updateStoreStatusesDOM() {
+          document.querySelectorAll(".project-card").forEach((card) => {
+            const projectId = card.dataset.projectId;
+            if (!projectId || typeof projectData === "undefined") return;
+            const project = projectData.find((p) => p.id === projectId);
+            if (!project) return;
+            const { statusBadge, orderBtnHTML } = getStoreBadgeAndButton(project);
+            const badgeContainer = card.querySelector(".card-status-badge-container");
+            if (badgeContainer) badgeContainer.innerHTML = statusBadge;
+            const orderBtnContainer = card.querySelector(".card-order-btn-container");
+            if (orderBtnContainer) orderBtnContainer.innerHTML = orderBtnHTML;
+          });
+        }
+
+        function updateFavoritesDOM() {
+          document.querySelectorAll(".btn-favorite-star").forEach((btn) => {
+            const projectId = btn.dataset.projectId;
+            if (!projectId) return;
+            const isFavorite = userFavorites.includes(projectId);
+            btn.classList.toggle("active", isFavorite);
+          });
         }
 
         function renderCards(projects) {
@@ -1054,81 +1146,20 @@
                 .map((tag) => `<span class="card-tag">${tag}</span>`)
                 .join("");
 
-              const useMobileOrder = project.useMobileOrder === true;
-                
-              let statusBadge = "";
-              let isOrderable = useMobileOrder;
-              const storeData = storeStatuses[project.id];
-              
-              if (useMobileOrder) {
-                if (storeData) {
-                  const op = storeData.op;
-                  const available = storeData.available;
-                  const total = storeData.total;
-                  
-                  let text = "準備中";
-                  let color = "#d97706";
-                  let bg = "#fef3c7";
-                  
-                  if (op === "open") {
-                    if (available !== undefined && total !== undefined) {
-                      if (available === 0 && total > 0) {
-                        text = "現在売切";
-                        color = "#dc2626";
-                        bg = "#fee2e2";
-                        isOrderable = false;
-                      } else if (available > 0 && available < total) {
-                        text = "一部売切";
-                        color = "#d97706";
-                        bg = "#fef3c7";
-                        isOrderable = true;
-                      } else {
-                        text = "営業中";
-                        color = "#10b981";
-                        bg = "#d1fae5";
-                        isOrderable = true;
-                      }
-                    } else {
-                      text = "営業中";
-                      color = "#10b981";
-                      bg = "#d1fae5";
-                      isOrderable = true;
-                    }
-                  } else if (op === "closed") {
-                    text = "本日の営業終了";
-                    color = "#6b7280";
-                    bg = "#f3f4f6";
-                    isOrderable = false;
-                  } else {
-                    isOrderable = false;
-                  }
-                  
-                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:${bg};color:${color};">${text}</span></div>`;
-                } else {
-                  isOrderable = false;
-                  statusBadge = `<div style="margin-bottom:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;background:#fef3c7;color:#d97706;">準備中</span></div>`;
-                }
-              } else {
-                isOrderable = false;
-              }
-
-              const orderBtnHTML = isOrderable
-                ? `<a href="../pos/mobile-order.html?store=${project.id}" class="btn-action btn-order" data-track="click_order_from_list" data-track-project-id="${project.id}"><i class="bi bi-cart-fill"></i> オーダー</a>`
-                : (useMobileOrder ? `<button class="btn-action btn-order" style="background:#ccc;box-shadow:none;cursor:not-allowed;" disabled><i class="bi bi-cart-fill"></i> 準備中</button>` : "");
-
+              const { statusBadge, orderBtnHTML } = getStoreBadgeAndButton(project);
               const detailUrl = project.linkUrl ? project.linkUrl : `detail.html?id=${project.id}`;
               const isFavorite = userFavorites.includes(project.id);
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
 
               return `
-                    <div class="project-card" style="animation-delay: ${index * 0.02}s">
+                    <div class="project-card" data-project-id="${project.id}" style="animation-delay: ${index * 0.02}s">
                         <div class="card-image">
-                            <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                            <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="if(this.src!=='../images/noimage.png'){this.onerror=null;this.src='../images/noimage.png';}">
                         </div>
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>
                             <a href="${detailUrl}" class="card-project-title" data-track="click_project" data-track-project-id="${project.id}">${project.name}</a>
-                            ${statusBadge}
+                            <div class="card-status-badge-container">${statusBadge}</div>
                             <p class="card-catchphrase">${catchphrase}</p>
                             <div class="card-place">
                                 <i class="bi bi-geo-alt-fill"></i> ${place}
@@ -1139,7 +1170,7 @@
                             <button class="${favBtnClass}" data-project-id="${project.id}" aria-label="Favorite" data-track="click_favorite" data-track-project-id="${project.id}">
                                 <i class="bi bi-star"></i>
                             </button>
-                            ${orderBtnHTML}
+                            <span class="card-order-btn-container">${orderBtnHTML}</span>
                             <a href="${detailUrl}" class="btn-action btn-details" data-track="click_detail" data-track-project-id="${project.id}">詳細</a>
                         </div>
                     </div>
@@ -1380,7 +1411,7 @@
             };
           });
           isStoresLoaded = true;
-          applyFiltersAndSort(false);
+          updateStoreStatusesDOM();
         } catch (e) {
           console.error("Firestore status fetch error:", e);
         }

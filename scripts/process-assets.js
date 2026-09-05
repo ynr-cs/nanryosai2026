@@ -39,15 +39,9 @@ async function convertImages() {
         }
       }
 
-      console.log(`[process-assets] Converting: ${file} -> ${baseName}.webp...`);
+      console.log(`[process-assets] Converting: ${file} -> ${baseName}.webp (original resolution/ratio preserved)...`);
       await sharp(srcPath)
-        .resize({
-          width: 800,
-          height: 800,
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality: 82, effort: 4 })
+        .webp({ quality: 85, effort: 4 })
         .toFile(destPath);
 
       const destStat = fs.statSync(destPath);
