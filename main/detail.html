@@ -1118,7 +1118,7 @@
                                 <div class="menu-item-name">${item.name}</div>
                                 ${recommendBadge}
                                 <div class="menu-item-desc">${item.description || ""}</div>
-                                <div class="menu-item-price">${item.price} ${soldOutText}</div>
+                                ${item.price ? `<div class="menu-item-price">${item.price} ${soldOutText}</div>` : (soldOutText ? `<div class="menu-item-price">${soldOutText}</div>` : "")}
                                 ${allergenHTML}
                                 ${noteHTML}
                             </div>
