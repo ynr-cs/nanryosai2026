@@ -72,7 +72,7 @@ const projectData = [
     floor: 1,
     roomId: "spot_entrance",
     category: "food",
-    useMobileOrder: true,
+    useMobileOrder: false,
     description:
       "もちもち食感がたまらない！究極のタピオカドリンク専門店。インスタ映え間違いなし。",
     catchphrase: "極上のモチモチ体験",
@@ -117,7 +117,7 @@ const projectData = [
     floor: 1,
     roomId: "tent_b",
     category: "food",
-    useMobileOrder: true,
+    useMobileOrder: false,
     description:
       "テーマパークのあの味を再現！サクサク揚げたてのロングチュロス。",
     catchphrase: "カリッ、サクッ、甘〜い幸せ",

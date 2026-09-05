@@ -368,6 +368,115 @@
         color: var(--text-main);
       }
 
+      /* オフライン（店頭注文）店舗セクション・案内ボックス */
+      .offline-stores-section {
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px dashed var(--border-color, rgba(0, 0, 0, 0.12));
+      }
+      .offline-stores-notice {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+      }
+      [data-theme="dark"] .offline-stores-notice {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.25);
+      }
+      .offline-notice-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #d97706;
+        font-weight: 800;
+        font-size: 0.92rem;
+        margin-bottom: 6px;
+      }
+      [data-theme="dark"] .offline-notice-header {
+        color: #fbbf24;
+      }
+      .offline-notice-desc {
+        font-size: 0.82rem;
+        line-height: 1.6;
+        color: var(--text-sub);
+        margin: 0;
+      }
+      .offline-notice-desc strong {
+        color: var(--text-main);
+      }
+
+      /* 店頭注文団体カード */
+      .offline-store-card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-card);
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        position: relative;
+      }
+      .offline-store-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .offline-store-card:active {
+        transform: scale(0.98);
+      }
+      .offline-store-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .offline-store-info h3 {
+        font-size: 0.92rem;
+        font-weight: 800;
+        margin: 0 0 2px 0;
+        color: var(--text-main);
+      }
+      .offline-badge-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        margin-top: 4px;
+      }
+      .offline-badge-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+      }
+      [data-theme="dark"] .offline-badge-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+      }
+      .offline-badge-place {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text-sub);
+      }
+      [data-theme="dark"] .offline-badge-place {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
       /* Menu Cards */
       .menu-card {
         background: var(--card-bg);
@@ -964,6 +1073,253 @@
       #bottom-bar {
         width: 95% !important; /* Width correction for zoom */
       }
+
+      /* =========================================
+         11. Onboarding Walkthrough (sok-to style)
+         ========================================= */
+      #walkthrough {
+        position: fixed;
+        top: calc(var(--header-height, 60px) + env(safe-area-inset-top, 0px));
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 500px;
+        background: var(--bg-color);
+        z-index: 950; /* .app-header (1000) や .app-bottom-nav (1000) より背面にして共存 */
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+      }
+      #walkthrough.active { display: flex; }
+      #walkthrough.closing { opacity: 0; transform: translateX(-50%) scale(1.04); pointer-events: none; }
+
+      .wt-top {
+        display: flex;
+        justify-content: flex-end; /* 右寄せ（スキップボタンのみ） */
+        align-items: center;
+        max-width: 500px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 12px 20px 0;
+        box-sizing: border-box;
+      }
+      .wt-skip {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--text-sub);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 6px 14px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+      }
+      .wt-skip:hover, .wt-skip:active {
+        background: rgba(0, 0, 0, 0.08);
+        color: var(--text-main);
+        transform: scale(0.96);
+      }
+      [data-theme="dark"] .wt-skip {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: var(--text-sub);
+      }
+      [data-theme="dark"] .wt-skip:hover, [data-theme="dark"] .wt-skip:active {
+        background: rgba(255, 255, 255, 0.15);
+        color: var(--text-main);
+      }
+
+      /* スライド本体 */
+      .wt-viewport {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+      .wt-track {
+        display: flex;
+        width: 100%;
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .wt-slide {
+        flex: 0 0 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px 32px;
+        opacity: 0.25;
+        transform: scale(0.92);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+      }
+      .wt-slide.current { opacity: 1; transform: scale(1); }
+
+      .wt-illust {
+        width: 100px; height: 100px;
+        border-radius: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.8rem;
+        color: #fff;
+        background: linear-gradient(135deg, #7c3aed, #d946ef);
+        box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
+        margin-bottom: 24px;
+      }
+      .wt-slide.current .wt-illust {
+        animation: wtBounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+      }
+      @keyframes wtBounceIn {
+        0% { transform: scale(0.7); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .wt-step-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(124, 58, 237, 0.12);
+        color: #7c3aed;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+      [data-theme="dark"] .wt-step-chip {
+        color: #c084fc;
+        background: rgba(192, 132, 252, 0.15);
+      }
+      .wt-title {
+        font-size: 1.25rem;
+        font-weight: 900;
+        margin: 0 0 10px;
+        line-height: 1.4;
+        color: var(--text-main);
+      }
+      .wt-desc {
+        font-size: 0.86rem;
+        color: var(--text-sub);
+        line-height: 1.7;
+        margin: 0;
+        max-width: 320px;
+      }
+      .wt-desc strong { color: var(--text-main); }
+
+      /* Slide 5: 規約カード＆同意チェックボックス */
+      .wt-terms-card {
+        width: 100%;
+        max-width: 340px;
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 16px;
+        padding: 12px 14px;
+        margin-top: 6px;
+        box-sizing: border-box;
+        text-align: left;
+      }
+      [data-theme="dark"] .wt-terms-card {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+      .wt-terms-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 10px 0;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--text-main);
+      }
+      .wt-terms-list li {
+        margin-bottom: 5px;
+        display: flex;
+        align-items: flex-start;
+      }
+      .wt-terms-list li strong {
+        color: #ef4444;
+      }
+      .wt-check-wrap {
+        border-top: 1px dashed rgba(239, 68, 68, 0.3);
+        padding-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .wt-terms-checkbox {
+        width: 18px;
+        height: 18px;
+        accent-color: #ef4444;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .wt-terms-label {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--text-main);
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+      }
+
+      /* 下部: ドット + 次へボタン */
+      .wt-bottom {
+        max-width: 500px;
+        width: 100%;
+        margin: 0 auto;
+        /* ボトムナビ(70px) + 余白の上に配置して被りを防止 */
+        padding: 0 24px calc(var(--bottom-nav-height, 70px) + env(safe-area-inset-bottom, 20px) + 24px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        box-sizing: border-box;
+      }
+      .wt-dots { display: flex; gap: 8px; align-items: center; }
+      .wt-dot {
+        width: 8px; height: 8px;
+        border-radius: 999px;
+        background: rgba(150, 150, 150, 0.3);
+        transition: width 0.3s ease, background 0.3s ease;
+      }
+      .wt-dot.on {
+        width: 24px;
+        background: #7c3aed;
+      }
+      [data-theme="dark"] .wt-dot.on {
+        background: #a855f7;
+      }
+      .wt-next {
+        border: none;
+        border-radius: 999px;
+        background: #7c3aed;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 800;
+        padding: 12px 24px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+        transition: transform 0.2s, background 0.2s, opacity 0.2s;
+      }
+      .wt-next:active { transform: scale(0.97); }
+      .wt-next:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+        box-shadow: none;
+        background: var(--text-sub) !important;
+      }
     </style>
   </head>
   <body>
@@ -979,6 +1335,83 @@
         >
       </div>
     </div>
+    <!-- ============================================
+         オンボーディング・ウォークスルー
+         （タップで進めるフルスクリーン型）
+         ============================================ -->
+    <div id="walkthrough" role="dialog" aria-modal="true" aria-label="モバイルオーダーのご利用手順">
+      <div class="wt-top">
+        <button class="wt-skip" id="wt-skip">スキップ <i class="bi bi-chevron-right"></i></button>
+      </div>
+
+      <div class="wt-viewport">
+        <div class="wt-track" id="wt-track">
+          <!-- Slide 1: ようこそ -->
+          <div class="wt-slide current">
+            <div class="wt-illust"><i class="bi bi-phone"></i></div>
+            <div class="wt-step-chip">NEW STYLE</div>
+            <h2 class="wt-title">並ばずにスマホで注文！<br>できたてを受け取り</h2>
+            <p class="wt-desc">在校生限定モバイルオーダーへようこそ！<br>スマホから注文して、できたてをスマートに受け取れる新システムです。</p>
+          </div>
+
+          <!-- Slide 2: メニュー選択 -->
+          <div class="wt-slide">
+            <div class="wt-illust" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="bi bi-cart-check-fill"></i></div>
+            <div class="wt-step-chip">STEP 1</div>
+            <h2 class="wt-title">メニューを選んで<br>カートに追加</h2>
+            <p class="wt-desc">今年度の対象店舗は<strong>3年1組「アキコのひとくちカステラ」</strong>！<br>お好きなカステラやトッピングを選んで注文に進みます。</p>
+          </div>
+
+          <!-- Slide 3: 注文確定後は団体の前へ -->
+          <div class="wt-slide">
+            <div class="wt-illust" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="wt-step-chip" style="background: rgba(59, 130, 246, 0.15); color: #2563eb;">STEP 2</div>
+            <h2 class="wt-title">注文確定したら<br>団体の前へ移動！</h2>
+            <p class="wt-desc">注文を確定したら、<strong>3年1組の教室（店舗前）</strong>へ向かってください。<br>焼き上がりを見逃さないよう近くでお待ちください！</p>
+          </div>
+
+          <!-- Slide 4: 受取＆お支払い -->
+          <div class="wt-slide">
+            <div class="wt-illust" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="bi bi-credit-card-2-front-fill"></i></div>
+            <div class="wt-step-chip" style="background: rgba(16, 185, 129, 0.15); color: #059669;">STEP 3</div>
+            <h2 class="wt-title">番号提示で<br>受取＆お支払い</h2>
+            <p class="wt-desc">画面に呼び出しが表示されたら受取カウンターへ！<br>受付番号を見せて、<strong>Airペイ端末（キャッシュレス）</strong>でお支払いします。<br><strong style="color: #ef4444; display: inline-block; margin-top: 6px;">※完全キャッシュレスのため現金は使えません。</strong></p>
+          </div>
+
+          <!-- Slide 5: 規約同意・重要注意事項 -->
+          <div class="wt-slide">
+            <div class="wt-illust" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"><i class="bi bi-shield-exclamation"></i></div>
+            <div class="wt-step-chip" style="background: rgba(239, 68, 68, 0.15); color: #dc2626;">IMPORTANT</div>
+            <h2 class="wt-title">利用規約の確認</h2>
+            <div class="wt-terms-card">
+              <ul class="wt-terms-list">
+                <li><i class="bi bi-clock-history text-danger me-2"></i> 呼出から<strong>5分で自動廃棄</strong>（キャンセル・返金不可）</li>
+                <li><i class="bi bi-credit-card-fill text-danger me-2"></i> <strong>キャッシュレス限定</strong>（現金決済不可）</li>
+                <li><i class="bi bi-slash-circle-fill text-danger me-2"></i> 不正・迷惑行為は<strong>全サービスから永久BAN</strong></li>
+              </ul>
+              <div class="wt-check-wrap">
+                <input type="checkbox" id="wt-check-terms" class="wt-terms-checkbox" />
+                <label for="wt-check-terms" class="wt-terms-label">上記利用規約・注意事項を理解し、同意します</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wt-bottom">
+        <div class="wt-dots" id="wt-dots">
+          <div class="wt-dot on"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+          <div class="wt-dot"></div>
+        </div>
+        <button class="wt-next" id="wt-next">
+          <span id="wt-next-label">次へ</span> <i class="bi bi-arrow-right" id="wt-next-icon"></i>
+        </button>
+      </div>
+    </div>
+
     <main id="app-container">
       <!-- =========================================
            Screen 1: Loading
@@ -1030,6 +1463,17 @@
             style="font-size: 2.5rem"
           ></i>
           <h3 class="fw-bold mt-1 mb-0">利用規約の確認</h3>
+        </div>
+
+        <div class="text-center my-2">
+          <button
+            type="button"
+            id="btn-reopen-walkthrough"
+            class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold"
+            style="font-size: 0.78rem; border-color: rgba(124, 58, 237, 0.4); color: #7c3aed;"
+          >
+            <i class="bi bi-question-circle"></i> ご利用の流れをもう一度見る
+          </button>
         </div>
 
         <div class="terms-warning-box p-3 my-2">
@@ -1155,7 +1599,7 @@
         <!-- 大量オーダー時のボトムナビ被り防止スペーサー -->
         <div style="height: var(--mobile-bottom-clearance); min-height: 80px;" aria-hidden="true"></div>
       </div>
-    </div>
+    </main>
     <!-- End App Container -->
 
       <!-- =========================================
@@ -1435,6 +1879,7 @@
               </button>
             </div>
           </div>
+        </div>
       </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ローカル開発用環境変数 (本番環境では404になりますが無視されます) -->
@@ -1601,7 +2046,7 @@
                 console.warn("FCM Token save failed", e);
               }
             }
-            showScreen("step-terms");
+            proceedToTerms();
           }
         } catch (e) {
           console.error("checkFlow failed", e);
@@ -1610,6 +2055,128 @@
           isCheckingFlow = false;
           loader.style.display = "none";
         }
+      }
+
+      // ===========================================================
+      // ウォークスルー制御 (sok-to風オンボーディング・規約一体型)
+      // ===========================================================
+      const WT_COUNT = 5;
+      let wtIndex = 0;
+
+      function wtRender() {
+        const track = document.getElementById("wt-track");
+        if (track) track.style.transform = `translateX(-${wtIndex * 100}%)`;
+        document.querySelectorAll("#walkthrough .wt-slide").forEach((s, i) => {
+          s.classList.toggle("current", i === wtIndex);
+        });
+        document.querySelectorAll("#walkthrough .wt-dot").forEach((d, i) => {
+          d.classList.toggle("on", i === wtIndex);
+        });
+        const last = wtIndex === WT_COUNT - 1;
+        const nextBtn = document.getElementById("wt-next");
+        const nextLabel = document.getElementById("wt-next-label");
+        const nextIcon = document.getElementById("wt-next-icon");
+        const skipBtn = document.getElementById("wt-skip");
+        const checkTerms = document.getElementById("wt-check-terms");
+
+        if (last) {
+          if (nextLabel) nextLabel.textContent = "同意して注文へ進む";
+          if (nextIcon) nextIcon.className = "bi bi-check-circle-fill";
+          if (nextBtn) {
+            nextBtn.disabled = !checkTerms || !checkTerms.checked;
+          }
+          if (skipBtn) skipBtn.style.visibility = "hidden";
+        } else {
+          if (nextLabel) nextLabel.textContent = "次へ";
+          if (nextIcon) nextIcon.className = "bi bi-arrow-right";
+          if (nextBtn) nextBtn.disabled = false;
+          if (skipBtn) skipBtn.style.visibility = "visible";
+        }
+      }
+
+      function openWalkthrough() {
+        wtIndex = 0;
+        const checkTerms = document.getElementById("wt-check-terms");
+        if (checkTerms) checkTerms.checked = false;
+        wtRender();
+        const wt = document.getElementById("walkthrough");
+        if (wt) {
+          wt.classList.remove("closing");
+          wt.classList.add("active");
+        }
+      }
+
+      async function completeWalkthroughAndProceed() {
+        const wt = document.getElementById("walkthrough");
+        if (wt) {
+          wt.classList.add("closing");
+          setTimeout(() => {
+            wt.classList.remove("active", "closing");
+          }, 380);
+        }
+        // 二重表示を解消し、直接店舗・メニューへ進む
+        loader.style.display = "flex";
+        await loadStores();
+        if (!currentStoreId) {
+          showScreen("step-stores");
+        }
+        loader.style.display = "none";
+      }
+
+      function proceedToTerms() {
+        // ウォークスルーを開く
+        openWalkthrough();
+      }
+
+      const wtCheckTerms = document.getElementById("wt-check-terms");
+      if (wtCheckTerms) {
+        wtCheckTerms.addEventListener("change", (e) => {
+          const nextBtn = document.getElementById("wt-next");
+          if (nextBtn && wtIndex === WT_COUNT - 1) {
+            nextBtn.disabled = !e.target.checked;
+          }
+        });
+      }
+
+      const wtNext = document.getElementById("wt-next");
+      if (wtNext) {
+        wtNext.addEventListener("click", () => {
+          if (wtIndex < WT_COUNT - 1) {
+            wtIndex += 1;
+            wtRender();
+          } else {
+            const checkTerms = document.getElementById("wt-check-terms");
+            if (checkTerms && checkTerms.checked) {
+              completeWalkthroughAndProceed();
+            }
+          }
+        });
+      }
+
+      const wtSkip = document.getElementById("wt-skip");
+      if (wtSkip) {
+        wtSkip.addEventListener("click", () => {
+          // スキップ時は直接 Slide 5（規約同意）へジャンプ
+          wtIndex = WT_COUNT - 1;
+          wtRender();
+        });
+      }
+
+      const wtTrack = document.getElementById("wt-track");
+      if (wtTrack) {
+        wtTrack.addEventListener("click", (e) => {
+          // スライド内のテキスト選択やボタン誤爆を防ぐ
+          if (e.target.closest("button, a")) return;
+          if (wtIndex < WT_COUNT - 1) {
+            wtIndex += 1;
+            wtRender();
+          }
+        });
+      }
+
+      const btnReopenWalkthrough = document.getElementById("btn-reopen-walkthrough");
+      if (btnReopenWalkthrough) {
+        btnReopenWalkthrough.addEventListener("click", openWalkthrough);
       }
 
       // Handlers
@@ -1622,8 +2189,8 @@
 
           try {
             const permission = await Notification.requestPermission();
-            // ユーザーが許可/拒否を押した瞬間に即座に次の画面へ遷移
-            showScreen("step-terms");
+            // ユーザーが許可/拒否を押した瞬間に次のステップ（ウォークスルーまたは規約）へ進む
+            proceedToTerms();
 
             // UIをブロックせずバックグラウンドでFCMトークン保存・更新
             if (permission === "granted") {
@@ -1636,7 +2203,7 @@
             }
           } catch (e) {
             console.warn("Notification request error:", e);
-            showScreen("step-terms");
+            proceedToTerms();
           } finally {
             btnReqNotification.disabled = false;
             btnReqNotification.innerHTML = originalText;
@@ -1645,7 +2212,7 @@
       }
 
       window.skipNotification = () => {
-        showScreen("step-terms");
+        proceedToTerms();
         updateUserProfile({
           notificationEnabled: false,
           permissionStatus: "skipped",
@@ -1799,6 +2366,62 @@
             list.appendChild(el);
           });
 
+          // モバイルオーダー対象外の調理・食品団体（現地店頭注文）の一覧描画
+          const offlineProjects = (window.projectData || []).filter(
+            p => p.category === "food" && !p.useMobileOrder
+          );
+
+          if (offlineProjects.length > 0) {
+            const offlineSection = document.createElement("div");
+            offlineSection.className = "offline-stores-section animate__animated animate__fadeInUp";
+
+            offlineSection.innerHTML = `
+              <div class="offline-stores-notice">
+                <div class="offline-notice-header">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <span>その他の調理・食品団体について</span>
+                </div>
+                <p class="offline-notice-desc">
+                  今年度のモバイルオーダーは<strong>3年1組のみの先行試験導入</strong>となっております。<br />
+                  以下の団体はモバイルオーダーに対応しておりません。<br />
+                  大変恐れ入りますが、<strong>直接各店舗（店頭）までお越しいただき、ご注文</strong>をお願いいたします。
+                </p>
+              </div>
+              <h5 class="fw-bold mb-2" style="font-size: 0.95rem; color: var(--text-sub);">
+                <i class="bi bi-shop me-1"></i> 店頭注文の調理・食品団体一覧
+              </h5>
+            `;
+
+            offlineProjects.forEach(p => {
+              const card = document.createElement("div");
+              card.className = "offline-store-card";
+              const imgSrc = `../images/${p.id}.png`;
+
+              card.innerHTML = `
+                <img src="${imgSrc}" class="store-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                <div class="offline-store-info">
+                  <h3>${p.groupName}「${p.name}」</h3>
+                  <div class="offline-badge-group">
+                    <span class="offline-badge-danger">
+                      <i class="bi bi-x-circle-fill"></i> モバイルオーダー不可
+                    </span>
+                    <span class="offline-badge-place">
+                      <i class="bi bi-geo-alt-fill"></i> ${p.place || "店頭で注文"}
+                    </span>
+                  </div>
+                </div>
+                <i class="bi bi-chevron-right text-sub-custom" style="font-size: 0.85rem;"></i>
+              `;
+
+              card.onclick = () => {
+                window.location.href = `../main/detail.html?id=${encodeURIComponent(p.id)}`;
+              };
+
+              offlineSection.appendChild(card);
+            });
+
+            list.appendChild(offlineSection);
+          }
 
           // Auto Redirect if matched
           if (targetStoreId && targetStoreName) {
