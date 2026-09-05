@@ -200,3 +200,17 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
   - `#error-overlay`、`#walkthrough`、`<main id="app-container">` はそれぞれ独立した兄弟要素でなければならない。
   - `#error-overlay` は通常時 `display: none;` であるため、閉じタグが欠落して後続の `#walkthrough` や `#app-container` を内包してしまうとアプリ全画面が不可視化（真っ黒）になる。タグ整合性の維持を厳格に順守すること。
 
+---
+
+## 9. ウォークスルー裏先行プリロードと非同期最適化仕様 (v0.5.225)
+
+1. **先行プリロード設計**:
+   - 生徒認証判定（`getClaims`）とアクティブ注文チェック完了後、直ちに全画面ローダー（`global-loader`）を解除してウォークスルー（5画面）を表示。
+   - ウォークスルーが表示された瞬間に、裏側で `storesPreloadPromise = loadStores()` を非同期実行して店舗・メニューデータをあらかじめメモリに取得。
+   - スライド5で「同意して注文へ進む」を押した際には既にデータ取得が完了しているため、0秒で店舗・メニュー画面が即座に開く。
+2. **バックグラウンド処理の非同期化**:
+   - `updateUserProfile` および `saveToken`（FCMトークン取得・保存）は直列 await を解除し、Fire-and-forget で非同期実行。
+3. **安全なローカル設定ファイル読み込み**:
+   - `config.local.js` の直接読み込みを廃止し、`location.hostname === "localhost" || location.hostname === "127.0.0.1"` の場合のみ動的スクリプト読み込みに変更。本番GitHub Pages環境での404エラーを防止。
+
+
