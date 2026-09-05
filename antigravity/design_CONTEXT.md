@@ -285,4 +285,42 @@ const voteUrl = this.resolvePath("404.html");
 - **標準インタラクション**: アコーディオン（`<details>`, `.menu-accordion-toggle`, `data-bs-toggle="collapse"`）の開閉トリガーには `bi-chevron-down` を配置し、展開時に 180 度回転（`transform: rotate(180deg);`）させる視覚的フィードバックを必須とする。
 - **トランジション**: `transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);` を付与し、スムーズな開閉アニメーションを実現する。
 
+---
+
+## 17. カード一覧表示のフェードアップ・スタッガーアニメーション仕様 (v0.5.232)
+
+### 17.1 トランジション規約 (`.fade-up`)
+ステージ発表一覧（`stage-list.html`）および企画・展示一覧（`projects-list.html`）において、一覧描画時のカード登場アニメーションを共通の `.fade-up` パターンで統一する。
+- **CSS仕様**:
+  ```css
+  .fade-up {
+    opacity: 0;
+    transform: translateY(15px);
+    transition:
+      opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+      transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .fade-up.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fade-up.is-visible:hover {
+    transform: translateY(-2px);
+  }
+  ```
+- **イージング**: `cubic-bezier(0.23, 1, 0.32, 1)`（Ease-out Quint相当）を採用し、滑らかで心地よい減速感を演出する。
+
+### 17.2 スタッガー（時差表示）制御
+- レンダリング完了直後に各カードへ `.is-visible` を付与する際、大量のカードが描画される一覧画面では下部のカードの表示遅延が長くなりすぎないよう、最大遅延時間を制限（クランプ）する。
+  ```javascript
+  const newCards = container.querySelectorAll(".fade-up");
+  newCards.forEach((card, index) => {
+    setTimeout(() => {
+      card.classList.add("is-visible");
+    }, Math.min(index * 35, 350)); // 35ms刻み、最大遅延350ms
+  });
+  ```
+- 検索フィルター入力やタブ切り替え時にも同様に適用されるため、ページ全体で一貫したリッチかつ軽快なユーザー体験を提供する。
+
+
 
