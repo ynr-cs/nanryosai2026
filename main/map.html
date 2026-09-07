@@ -442,19 +442,25 @@
     /* ==========================================================================
        Custom Leaflet Map Pins (L.divIcon)
        ========================================================================== */
+    .custom-map-pin-container {
+      background: transparent !important;
+      border: none !important;
+    }
+
     .custom-map-pin {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      transform: translate(-50%, -100%);
       cursor: pointer;
       filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
       transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: 50% 100%;
     }
 
     .custom-map-pin:hover,
     .custom-map-pin.is-active {
-      transform: translate(-50%, -105%) scale(1.18);
+      transform: scale(1.2);
       z-index: 1000 !important;
     }
 
@@ -527,7 +533,11 @@
     }
 
     .pin-label {
-      font-size: 10.5px;
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
       font-weight: 800;
       color: var(--text-main);
       background: var(--glass-bg);
@@ -536,10 +546,69 @@
       padding: 2px 6px;
       border-radius: 4px;
       white-space: nowrap;
-      margin-top: 2px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       border: 0.5px solid var(--glass-border);
       pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    /* Zoom Low (Zoom <= 18): Prevent label overflow & collision */
+    .map-zoom-low .custom-map-pin:not(.is-active):not(:hover) .pin-label {
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 9px;
+      padding: 1px 4px;
+    }
+
+    /* Compact Facility Infrastructure Pins (AED, Vending, Trash, Restrooms) */
+    .custom-map-pin.is-facility {
+      transform-origin: 50% 50%;
+    }
+
+    .custom-map-pin.is-facility:hover,
+    .custom-map-pin.is-facility.is-active {
+      transform: scale(1.25);
+    }
+
+    .custom-map-pin.is-facility .pin-body {
+      width: 26px;
+      height: 26px;
+      font-size: 11px;
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-map-pin.is-facility .pin-arrow {
+      display: none !important;
+    }
+
+    .custom-map-pin.is-facility .pin-label {
+      display: none !important;
+    }
+
+    .custom-map-pin.is-facility.is-active .pin-label,
+    .custom-map-pin.is-facility:hover .pin-label {
+      display: block !important;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9.5px;
+      z-index: 1001;
+    }
+
+    /* Facility Tooltip */
+    .facility-tooltip {
+      background: var(--glass-bg) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      color: var(--text-main) !important;
+      border: 1px solid var(--glass-border) !important;
+      border-radius: 6px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      padding: 4px 8px !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
     }
 
     /* User Location Pulse Marker */
@@ -1759,8 +1828,10 @@
             if (floorData.rooms) {
               floorData.rooms.forEach(room => {
                 const linkedProjects = projectsByRoom.get(room.roomId) || [];
-                // Skip generating standalone pins for empty classrooms to keep map clean
-                if (linkedProjects.length === 0 && (room.category === 'classroom' || !room.category)) {
+                // Only generate map pins for rooms hosting active festival projects!
+                // Empty classrooms, prep rooms, and staff rooms remain interactive as vector polygons (sheet opens on tap)
+                // without cluttering the map with redundant pins.
+                if (linkedProjects.length === 0) {
                   return;
                 }
 
@@ -1779,12 +1850,13 @@
                   isMulti: linkedProjects.length > 1,
                   category: primaryCat,
                   hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
+                  isFacility: false,
                   rawRoom: room
                 });
               });
             }
 
-            // Toilets & Restrooms (Generated as Facility Pins)
+            // Toilets & Restrooms (Generated as Compact Facility Pins)
             if (floorData.toilets) {
               floorData.toilets.forEach((toilet, idx) => {
                 const coord = resolveSpotCoordinate(toilet, campus);
@@ -1800,6 +1872,7 @@
                   isMulti: false,
                   category: 'facility',
                   hasMobileOrder: false,
+                  isFacility: true,
                   rawSpot: { icon: 'fa-restroom', description: `${floorNum}F お手洗い`, ...toilet }
                 });
               });
@@ -1813,6 +1886,7 @@
             const linkedProjects = projectsByRoom.get(spot.id) || [];
             const coord = resolveSpotCoordinate(spot, campus);
             const primaryCat = determinePrimaryCategory(spot, linkedProjects);
+            const isFacility = (primaryCat === 'facility' && linkedProjects.length === 0);
 
             pins.push({
               id: `pin_${spot.id}`,
@@ -1826,6 +1900,7 @@
               isMulti: linkedProjects.length > 1,
               category: primaryCat,
               hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
+              isFacility: isFacility,
               rawSpot: spot
             });
           });
@@ -1914,6 +1989,21 @@
         photoTileLayer.on('tileload', () => {
           if (tileErrorCount > 0) tileErrorCount--;
         });
+
+        // Zoom Level Adaptive Optimization (Controls label compaction)
+        function updateMapZoomClasses() {
+          const z = map.getZoom();
+          const container = map.getContainer();
+          if (container) {
+            if (z <= 18) {
+              container.classList.add('map-zoom-low');
+            } else {
+              container.classList.remove('map-zoom-low');
+            }
+          }
+        }
+        map.on('zoomend', updateMapZoomClasses);
+        updateMapZoomClasses();
       }
 
       // ==========================================================================
@@ -2273,27 +2363,40 @@
             ? (pin.projects.length === 1 ? pin.projects[0].name : `${pin.name} (${pin.projects.length})`)
             : pin.name;
 
+          const isFacility = pin.isFacility === true;
+          const iconSize = isFacility ? [26, 26] : [36, 41];
+          const iconAnchor = isFacility ? [13, 13] : [18, 41];
+
           const customIcon = L.divIcon({
             className: 'custom-map-pin-container',
             html: `
-              <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}">
+              <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${isFacility ? 'is-facility' : ''} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}" title="${escapeHtml(labelText)}">
+                <div class="pin-label">${escapeHtml(labelText)}</div>
                 <div class="pin-body">
                   <i class="fas ${escapeHtml(iconClass)}"></i>
                   ${pin.hasMobileOrder ? '<span class="pin-badge-order" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
                   ${pin.isMulti ? `<span class="pin-badge-count" title="${pin.projects.length}企画">${pin.projects.length}</span>` : ''}
                 </div>
-                <div class="pin-arrow"></div>
-                <div class="pin-label">${escapeHtml(labelText)}</div>
+                ${!isFacility ? '<div class="pin-arrow"></div>' : ''}
               </div>
             `,
-            iconSize: [40, 56],
-            iconAnchor: [20, 56]
+            iconSize: iconSize,
+            iconAnchor: iconAnchor
           });
 
           const marker = L.marker(pin.coord, {
             icon: customIcon,
             pane: 'markerPane'
           });
+
+          // Facility pins show sleek tooltip on hover, keeping the main map free of text noise
+          if (isFacility) {
+            marker.bindTooltip(labelText, {
+              direction: 'top',
+              offset: [0, -14],
+              className: 'facility-tooltip'
+            });
+          }
 
           marker.on('click', () => {
             selectRoom(pin.roomId, true);

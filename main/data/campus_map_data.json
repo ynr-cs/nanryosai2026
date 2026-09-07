@@ -1383,8 +1383,8 @@
       "floor": 1,
       "buildingId": "体育館",
       "latlng": [
-        35.38655,
-        139.5855
+        35.38648,
+        139.58547
       ],
       "icon": "fa-music",
       "description": "体育館ステージ発表会場（演劇・ダンス・音楽・有志発表）"
@@ -1396,8 +1396,8 @@
       "floor": 1,
       "buildingId": "生徒棟",
       "latlng": [
-        35.38618,
-        139.58595
+        35.38617,
+        139.58604
       ],
       "icon": "fa-utensils",
       "description": "3年1組 アキコのひとくちカステラ 出店スペース（モバイルオーダー受取所）"
@@ -1409,8 +1409,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38605,
-        139.5854
+        35.38596,
+        139.58535
       ],
       "icon": "fa-utensils",
       "description": "3年2組 やきとり屋 出店テント"
@@ -1435,8 +1435,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38605,
-        139.5855
+        35.38595,
+        139.58546
       ],
       "icon": "fa-utensils",
       "description": "3年4組 千葉軒 出店テント"
@@ -1448,8 +1448,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38605,
-        139.5856
+        35.38595,
+        139.58557
       ],
       "icon": "fa-utensils",
       "description": "3年5組 ペッパーランチ藤本家 出店テント"
@@ -1461,8 +1461,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38605,
-        139.5857
+        35.38595,
+        139.58568
       ],
       "icon": "fa-utensils",
       "description": "3年6組 ナベが震えたケバブ 出店テント"
@@ -1474,8 +1474,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38605,
-        139.5858
+        35.38596,
+        139.58579
       ],
       "icon": "fa-utensils",
       "description": "3年7組 牛タン 出店テント"
@@ -1500,8 +1500,8 @@
       "floor": 1,
       "buildingId": "生徒棟",
       "latlng": [
-        35.38619,
-        139.58597
+        35.38623,
+        139.58598
       ],
       "icon": "fa-heart-pulse",
       "description": "生徒棟 1F 昇降口 自動体外式除細動器 (AED)"
@@ -1513,8 +1513,8 @@
       "floor": 1,
       "buildingId": "体育館",
       "latlng": [
-        35.3864,
-        139.58535
+        35.38636,
+        139.58530
       ],
       "icon": "fa-heart-pulse",
       "description": "体育館 入口エントランス 自動体外式除細動器 (AED)"
@@ -1540,7 +1540,7 @@
       "buildingId": "生徒棟",
       "latlng": [
         35.38615,
-        139.58588
+        139.58586
       ],
       "icon": "fa-circle-info",
       "description": "1F 昇降口前 総合案内所（パンフレット配布・落とし物・総合受付）"
@@ -1552,8 +1552,8 @@
       "floor": 1,
       "buildingId": "生徒棟",
       "latlng": [
-        35.3861,
-        139.58555
+        35.38614,
+        139.58545
       ],
       "icon": "fa-bottle-water",
       "description": "生徒棟 1F 食堂前・中庭出入口 自動販売機コーナー"
@@ -1565,8 +1565,8 @@
       "floor": 1,
       "buildingId": "体育館",
       "latlng": [
-        35.38638,
-        139.58545
+        35.38636,
+        139.58562
       ],
       "icon": "fa-bottle-water",
       "description": "体育館 入口横 自動販売機コーナー"
@@ -1578,8 +1578,8 @@
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
-        35.38608,
-        139.5854
+        35.38590,
+        139.58588
       ],
       "icon": "fa-trash-can",
       "description": "中庭模擬店エリア 集中分別ゴミステーション（燃えるゴミ・プラ・缶・ペットボトル）"
@@ -1591,8 +1591,8 @@
       "floor": 1,
       "buildingId": "生徒棟",
       "latlng": [
-        35.38614,
-        139.58598
+        35.38611,
+        139.58597
       ],
       "icon": "fa-trash-can",
       "description": "1F 昇降口前 分別ゴミステーション"
