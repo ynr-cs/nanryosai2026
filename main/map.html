@@ -135,8 +135,100 @@
       transition: fill-opacity 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
     }
 
+    .leaflet-container path.room-polygon.has-project:hover {
+      fill-opacity: 0.72 !important;
+      stroke-width: 2.5px !important;
+    }
+
+    .leaflet-container path.room-polygon.is-active {
+      fill-opacity: 0.85 !important;
+      stroke: #ff0080 !important;
+      stroke-width: 3.5px !important;
+      filter: drop-shadow(0 0 12px rgba(255, 0, 128, 0.85)) !important;
+    }
+
     [data-theme="dark"] .leaflet-interactive.room-polygon.is-active {
-      filter: drop-shadow(0 0 10px rgba(192, 132, 252, 0.95)) !important;
+      filter: drop-shadow(0 0 12px rgba(255, 0, 128, 0.95)) !important;
+    }
+
+    /* ==========================================================================
+       In-Room Floor Plan Badges (Room Centroid Labels)
+       ========================================================================== */
+    .in-room-badge-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+
+    .in-room-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      color: #ffffff;
+      white-space: nowrap;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+    }
+
+    [data-theme="light"] .in-room-badge {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      color: #1e293b;
+    }
+
+    .in-room-badge .badge-icon {
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .in-room-badge.cat-food .badge-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .in-room-badge.cat-exhibit .badge-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .in-room-badge.cat-shop .badge-icon { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .in-room-badge.cat-stage .badge-icon { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+    .in-room-badge.cat-facility .badge-icon { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+
+    .in-room-badge .badge-text {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .in-room-badge .badge-order-bolt {
+      color: #10b981;
+      font-size: 9px;
+      margin-left: -2px;
+    }
+
+    .in-room-badge.is-active {
+      transform: translate(-50%, -50%) scale(1.15);
+      border-color: #ff0080 !important;
+      box-shadow: 0 0 12px rgba(255, 0, 128, 0.6) !important;
+    }
+
+    /* Low zoom mode for in-room badges: compact */
+    .map-zoom-low .in-room-badge .badge-text {
+      max-width: 65px;
+      font-size: 9px;
     }
 
     [data-theme="dark"] .access-route-neon {
@@ -2302,25 +2394,27 @@
           });
         }
 
-        // Rooms & Classrooms (Only rooms with active projects are interactive)
+        // Rooms & Classrooms (Rooms with projects become vibrant highlighted areas with in-room badges)
         if (floorData.rooms) {
           floorData.rooms.forEach(room => {
             const pinModel = joinedPins.find(p => p.roomId === room.roomId);
             const hasProject = !!(pinModel && pinModel.projects && pinModel.projects.length > 0);
             const cat = pinModel ? pinModel.category : (room.category || 'facility');
-            const catColor = CATEGORY_META[cat] ? CATEGORY_META[cat].color : '#8b5cf6';
+            const catMeta = CATEGORY_META[cat] || CATEGORY_META.exhibit;
+            const catColor = catMeta.color;
+            const iconClass = (pinModel && pinModel.rawSpot && pinModel.rawSpot.icon) ? pinModel.rawSpot.icon : catMeta.icon;
 
-            const stroke = room.strokeColor || catColor;
-            const fill = room.color || catColor;
+            const stroke = hasProject ? catColor : (room.strokeColor || '#94a3b8');
+            const fill = hasProject ? catColor : (room.color || '#cbd5e1');
 
             const poly = L.polygon(room.polygon || room.coordinates, {
               pane: 'indoorPane',
               interactive: hasProject,
               color: stroke,
-              weight: hasProject ? 1.5 : 1,
+              weight: hasProject ? 2 : 1,
               fillColor: fill,
-              fillOpacity: hasProject ? 0.45 : 0.25,
-              className: `room-polygon ${hasProject ? 'has-project' : 'is-empty'}`
+              fillOpacity: hasProject ? 0.55 : 0.2,
+              className: `room-polygon ${hasProject ? `has-project cat-${cat}` : 'is-empty'}`
             });
 
             poly._origColor = stroke;
@@ -2333,6 +2427,33 @@
                 }
                 selectRoom(room.roomId, true);
               });
+
+              // Centroid In-Room Badge (Floor plan badge centered directly inside the classroom rectangle)
+              const centroid = calculatePolygonCentroid(room.polygon || room.coordinates);
+              const projectTitle = pinModel.projects.length === 1
+                ? pinModel.projects[0].name
+                : `${pinModel.name} (${pinModel.projects.length})`;
+
+              const badgeIcon = L.divIcon({
+                className: 'in-room-badge-container',
+                html: `
+                  <div class="in-room-badge cat-${escapeHtml(cat)} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(room.roomId)}">
+                    <span class="badge-icon"><i class="fas ${escapeHtml(iconClass)}"></i></span>
+                    <span class="badge-text">${escapeHtml(projectTitle)}</span>
+                    ${pinModel.hasMobileOrder ? '<span class="badge-order-bolt" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
+                  </div>
+                `,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              });
+
+              const badgeMarker = L.marker(centroid, {
+                icon: badgeIcon,
+                pane: 'markerPane',
+                interactive: false
+              });
+
+              floorVectorLayerGroup.addLayer(badgeMarker);
             }
 
             polygonLayerMap.set(room.roomId, poly);
@@ -2357,6 +2478,9 @@
           } else {
             const floorNum = parseInt(currentFloor, 10);
             if (pin.floor !== floorNum) return false;
+            // Indoor classrooms use in-room floor plan badges rendered directly on the polygon,
+            // so we skip generating external pins for 'room' type to avoid clutter!
+            if (pin.type === 'room') return false;
           }
 
           // Category check
@@ -2478,8 +2602,8 @@
           bottomSheet.snapTo('peek');
         }
 
-        // Refresh pin active classes
-        document.querySelectorAll('.custom-map-pin').forEach(el => {
+        // Refresh pin and in-room-badge active classes
+        document.querySelectorAll('.custom-map-pin, .in-room-badge').forEach(el => {
           const rId = el.getAttribute('data-room-id');
           el.classList.toggle('is-active', rId === roomId);
         });
@@ -2488,14 +2612,17 @@
       function unhighlightActivePolygon() {
         polygonLayerMap.forEach((poly) => {
           poly.setStyle({
-            weight: 1.5,
-            fillOpacity: 0.45,
+            weight: 2,
+            fillOpacity: 0.55,
             color: poly._origColor || '#7c5cff',
             fillColor: poly._origFillColor || '#7c5cff'
           });
           if (poly.getElement()) {
             poly.getElement().classList.remove('is-active');
           }
+        });
+        document.querySelectorAll('.in-room-badge.is-active').forEach(el => {
+          el.classList.remove('is-active');
         });
       }
 
