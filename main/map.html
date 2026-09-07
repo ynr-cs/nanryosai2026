@@ -117,10 +117,22 @@
       filter: brightness(0.65) contrast(1.15) saturate(0.85);
     }
 
-    /* Interactive vector elements & Neon Glow */
-    .leaflet-container path.room-polygon {
+    /* Vector elements pointer-events & Touch interaction control */
+    .leaflet-container path.outdoor-polygon,
+    .leaflet-container path.building-polygon,
+    .leaflet-container path.corridor-polygon,
+    .leaflet-container path.corridor-overpass,
+    .leaflet-container path.stairs-polygon,
+    .leaflet-container path.toilet-polygon,
+    .leaflet-container path.room-polygon.is-empty {
+      pointer-events: none !important;
+      cursor: default !important;
+    }
+
+    .leaflet-container path.room-polygon.has-project {
+      pointer-events: auto !important;
+      cursor: pointer !important;
       transition: fill-opacity 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
-      cursor: pointer;
     }
 
     [data-theme="dark"] .leaflet-interactive.room-polygon.is-active {
@@ -1932,7 +1944,7 @@
           maxBoundsViscosity: 0.2,
           zoomControl: false,
           attributionControl: false,
-          tap: true
+          tap: false
         });
 
         // 8-layer Custom Pane Architecture
@@ -2004,6 +2016,14 @@
         }
         map.on('zoomend', updateMapZoomClasses);
         updateMapZoomClasses();
+
+        // Tap empty map area to collapse bottom sheet and clear active highlights
+        map.on('click', () => {
+          if (bottomSheet && bottomSheet.currentState !== bottomSheet.STATES.COLLAPSED) {
+            bottomSheet.snapTo(bottomSheet.STATES.COLLAPSED);
+          }
+          unhighlightActivePolygon();
+        });
       }
 
       // ==========================================================================
@@ -2015,28 +2035,23 @@
         groundLayerGroup.clearLayers();
         buildingLayerGroup.clearLayers();
 
-        // 1. Outdoor Areas (Ground, Courtyard, Tennis)
+        // 1. Outdoor Areas (Ground, Courtyard, Tennis) - Non-interactive background
         if (campusData.outdoorAreas) {
           campusData.outdoorAreas.forEach(area => {
             const poly = L.polygon(area.polygon || area.coordinates, {
               pane: 'groundPane',
+              interactive: false,
               color: area.strokeColor || '#2e7d32',
               weight: 1.5,
               fillColor: area.color || '#a7f3d0',
               fillOpacity: 0.55,
               className: 'outdoor-polygon'
             });
-            poly.bindTooltip(area.name, {
-              pane: 'groundPane',
-              permanent: false,
-              direction: 'center',
-              className: 'pin-label'
-            });
             groundLayerGroup.addLayer(poly);
           });
         }
 
-        // 2. Buildings Base Outline (with 1F Piloti Exclusion for Student Bldg)
+        // 2. Buildings Base Outline (with 1F Piloti Exclusion for Student Bldg) - Non-interactive background
         if (campusData.buildings) {
           campusData.buildings.forEach(bldg => {
             const isStudentBldg = bldg.id === '生徒棟' || bldg.id === 'student_bldg' || (bldg.name && bldg.name.includes('生徒棟'));
@@ -2083,21 +2098,13 @@
             polyList.forEach(polyCoords => {
               const poly = L.polygon(polyCoords, {
                 pane: 'buildingPane',
+                interactive: false,
                 color: bldg.strokeColor || '#5e35b1',
                 weight: 2,
                 fillColor: bldg.color || '#7c5cff',
                 fillOpacity: isStudentBldg ? 0.15 : 0.65,
                 className: 'building-polygon'
               });
-
-              if (!bldg.hasIndoor) {
-                poly.bindTooltip(bldg.name, {
-                  pane: 'buildingPane',
-                  permanent: false,
-                  direction: 'center',
-                  className: 'pin-label'
-                });
-              }
               buildingLayerGroup.addLayer(poly);
             });
           });
@@ -2222,15 +2229,16 @@
         const floorData = campusData.indoorFloors[currentFloor];
         if (!floorData) return;
 
-        // Corridors & Hallways (Unified Seamless Merging for Connected Corridors)
+        // Corridors & Hallways (Unified Seamless Merging for Connected Corridors) - Non-interactive background
         if (floorData.corridors && floorData.corridors.length > 0) {
           const normalCorrs = floorData.corridors.filter(c => !c.id?.includes('overpass') && !c.isOverpass);
           const overpassCorrs = floorData.corridors.filter(c => c.id?.includes('overpass') || c.isOverpass);
 
-          // 1. Normal Corridors: Clean vector rendering
+          // 1. Normal Corridors: Clean vector rendering (non-interactive)
           normalCorrs.forEach(corr => {
             const poly = L.polygon(corr.polygon || corr.coordinates, {
               pane: 'indoorPane',
+              interactive: false,
               color: corr.strokeColor || '#64748b',
               weight: 1.5,
               fillColor: corr.color || '#cbd5e1',
@@ -2240,10 +2248,11 @@
             floorVectorLayerGroup.addLayer(poly);
           });
 
-          // 2. Overpasses
+          // 2. Overpasses (non-interactive)
           overpassCorrs.forEach(corr => {
             const poly = L.polygon(corr.polygon || corr.coordinates, {
               pane: 'overpassPane',
+              interactive: false,
               color: corr.strokeColor || '#7e22ce',
               weight: 1.5,
               fillColor: corr.color || '#a855f7',
@@ -2254,7 +2263,7 @@
           });
         }
 
-        // Stairs & Vertical Connectors (All-Floor Shared & Synced)
+        // Stairs & Vertical Connectors (non-interactive)
         const allStairs = [];
         Object.values(campusData.indoorFloors || {}).forEach(fl => {
           (fl.stairs || []).forEach(st => {
@@ -2267,6 +2276,7 @@
         stairsToRender.forEach(stair => {
           const poly = L.polygon(stair.polygon || stair.coordinates, {
             pane: 'indoorPane',
+            interactive: false,
             color: stair.strokeColor || '#c2410c',
             weight: 1.5,
             fillColor: stair.color || '#f97316',
@@ -2276,30 +2286,27 @@
           floorVectorLayerGroup.addLayer(poly);
         });
 
-        // Toilets & Restrooms
+        // Toilets & Restrooms (non-interactive background polygon; pins handle touch interaction)
         if (floorData.toilets) {
           floorData.toilets.forEach(toilet => {
             const poly = L.polygon(toilet.polygon || toilet.coordinates, {
               pane: 'indoorPane',
+              interactive: false,
               color: toilet.strokeColor || '#0284c7',
               weight: 1,
               fillColor: toilet.color || '#38bdf8',
               fillOpacity: 0.5,
               className: 'toilet-polygon'
             });
-            poly.bindTooltip(toilet.name || 'お手洗い', {
-              pane: 'indoorPane',
-              direction: 'center',
-              className: 'room-tooltip'
-            });
             floorVectorLayerGroup.addLayer(poly);
           });
         }
 
-        // Rooms & Classrooms
+        // Rooms & Classrooms (Only rooms with active projects are interactive)
         if (floorData.rooms) {
           floorData.rooms.forEach(room => {
             const pinModel = joinedPins.find(p => p.roomId === room.roomId);
+            const hasProject = !!(pinModel && pinModel.projects && pinModel.projects.length > 0);
             const cat = pinModel ? pinModel.category : (room.category || 'facility');
             const catColor = CATEGORY_META[cat] ? CATEGORY_META[cat].color : '#8b5cf6';
 
@@ -2308,19 +2315,25 @@
 
             const poly = L.polygon(room.polygon || room.coordinates, {
               pane: 'indoorPane',
+              interactive: hasProject,
               color: stroke,
-              weight: 1.5,
+              weight: hasProject ? 1.5 : 1,
               fillColor: fill,
-              fillOpacity: 0.45,
-              className: 'room-polygon'
+              fillOpacity: hasProject ? 0.45 : 0.25,
+              className: `room-polygon ${hasProject ? 'has-project' : 'is-empty'}`
             });
 
             poly._origColor = stroke;
             poly._origFillColor = fill;
 
-            poly.on('click', () => {
-              selectRoom(room.roomId, true);
-            });
+            if (hasProject) {
+              poly.on('click', (e) => {
+                if (e && e.originalEvent) {
+                  L.DomEvent.stopPropagation(e);
+                }
+                selectRoom(room.roomId, true);
+              });
+            }
 
             polygonLayerMap.set(room.roomId, poly);
             floorVectorLayerGroup.addLayer(poly);
@@ -2398,7 +2411,10 @@
             });
           }
 
-          marker.on('click', () => {
+          marker.on('click', (e) => {
+            if (e && e.originalEvent) {
+              L.DomEvent.stopPropagation(e);
+            }
             selectRoom(pin.roomId, true);
           });
 

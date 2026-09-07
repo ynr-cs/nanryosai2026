@@ -13,6 +13,32 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.241] 校内マップ（map.html）ポリゴンクリック干渉の完全解消・背景無効化・タッチ操作性最適化 - 2026-09-07
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ユーザー実機検証において、校舎外形ポリゴン・校庭・中庭・廊下・階段・空き教室等の全敷地ポリゴンがタッチイベント（クリック・ドラッグ・ピンチズーム）を横取り・吸収し、地図のスクロールが引っかかったり、不要なツールチップ（「生徒棟」「校庭」「体育館」等）や空き部屋のシートが勝手に誤爆してまともにタップ操作ができない不快感を根本解消するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **背景ポリゴンの完全非アクティブ化 (`main/map.html`)**:
+  - **校舎・屋外エリアの背景化**: `campusData.outdoorAreas`（中庭、外周）および `campusData.buildings`（生徒棟、体育館、管理棟、校庭等）に `interactive: false` を設定。勝手なポップアップを引き起こしていた `poly.bindTooltip` を撤去。
+  - **廊下・渡り廊下・階段・トイレの背景化**: 廊下（`corridor-polygon`）、渡り廊下（`corridor-overpass`）、階段（`stairs-polygon`）、トイレ（`toilet-polygon`）に `interactive: false` を設定し、タッチイベントを一切消費させず地図本体へ完全通過させるよう改修。
+- **企画のある教室のみクリッカブル化 (`main/map.html`)**:
+  - `floorData.rooms` において、文化祭企画が紐づいている部屋（`hasProject = true`）のみ `interactive: true` およびクリックイベントを設定。企画のない空き教室・諸室は `interactive: false` かつ背景化（`.is-empty`）とし、触っても誤爆しない快適なドラッグ移動を実現。
+  - 企画部屋のクリック時に `L.DomEvent.stopPropagation(e)` を適用し、不要なイベントバブリングを遮断。
+- **CSS `pointer-events` の厳格制御 (`main/map.html`)**:
+  - `.outdoor-polygon`, `.building-polygon`, `.corridor-polygon`, `.stairs-polygon`, `.toilet-polygon`, `.room-polygon.is-empty` に `pointer-events: none !important;` を指定。
+  - 企画のある部屋（`.room-polygon.has-project`）とピン（`.custom-map-pin`）のみ `pointer-events: auto !important;` とし、触りたいものだけが確実に反応するUIを実現。
+- **モバイルタッチ誤判定の解消 (`main/map.html`)**:
+  - `L.map` の初期化オプションで、現代のモバイルブラウザでドラッグ操作とタップの誤判定（ghost clicks）を引き起こす旧来の `tap: true` を `tap: false` に変更。
+- **マップ余白タップによるシート自動折りたたみ (`main/map.html`)**:
+  - `map.on('click')` を新設し、地図上の何もない場所をタップした際に開いているボトムシートを自動的に折りたたみ（`COLLAPSED`）、部屋のハイライトを解除するスマートな挙動を実装。
+- **ピンタップ伝播の遮断 (`main/map.html`)**:
+  - ピン（Marker）タップ時に `L.DomEvent.stopPropagation(e)` を実行し、背後の地図やポリゴンへの二重発火を防止。
+
 ## [0.5.240] 企画詳細画面（detail.html）未定義関数（escapeHtml）クラッシュ解消・XSSサニタイズ整備 - 2026-09-07
 
 ### メタ情報

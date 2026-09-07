@@ -418,5 +418,26 @@ Map Studio (`main/admin/map-editor.html`) は、親（建物）と子（教室�
 - `buildJoinedPinsModel` において、企画が紐づいていない特別教室・準備室（記念室、生徒会室、化学準備室など）のピン生成を停止。
 - 部屋ポリゴン自体のタップによる情報閲覧・立入禁止警告表示は維持しつつ、マップ上の無駄なピン群生を一掃。
 
+---
+
+## 11. ポリゴンクリック干渉解消 & タッチ操作性最適化 (v0.5.241)
+
+### 11.1 背景ポリゴンの完全非アクティブ化
+- **問題**: 校舎外枠ポリゴン（`buildings`）、屋外エリア（`outdoorAreas`）、廊下（`corridors`）、階段（`stairs`）、トイレ（`toilets`）が Leaflet のデフォルトで `interactive: true` になっており、画面全体がタッチイベントを吸収・横取りして地図のスクロールやピンチズームが引っかかっていた。また、触るたびに「生徒棟」「校庭」「体育館」などのツールチップが勝手にポップアップしていた。
+- **対策**:
+  - `buildings`, `outdoorAreas`, `corridors`, `stairs`, `toilets` の全レイヤーに `interactive: false` を指定。
+  - 不要なツールチップ（`poly.bindTooltip`）を完全撤去。
+  - CSS で `.outdoor-polygon, .building-polygon, .corridor-polygon, .stairs-polygon, .toilet-polygon` に `pointer-events: none !important;` を付与し、タッチイベントを地図本体へ 100% 透過。
+
+### 11.2 企画部屋のみの条件付きクリッカブル化
+- `rooms` のうち、文化祭企画が紐づいている部屋（`hasProject = true`）のみ `interactive: true` かつ `className: 'room-polygon has-project'` とし、クリックハンドラーをバインド。
+- 企画のない空き教室・準備室は `interactive: false` かつ `pointer-events: none` とし、触っても意図しないシートが立ち上がらないように制御。
+
+### 11.3 モバイルジェスチャ誤判定解消と余白タップによるシート閉鎖
+- Leaflet の `tap: true` によるスマホでの誤判定（ghost clicks）を避けるため、`tap: false` を設定。
+- `map.on('click')` を新設し、地図の余白をタップした際に開いているボトムシートを自動的に折りたたみ（`COLLAPSED`）、部屋のハイライトを解除する快適なUXを実装。
+- ピンや部屋のクリック時に `L.DomEvent.stopPropagation(e)` を適用し、不要なイベントバブリングを完全防止。
+
+
 
 
