@@ -1364,7 +1364,7 @@
         exhibit: { name: '展示', icon: 'fa-palette', color: '#8b5cf6', badgeClass: 'badge-exhibit' },
         shop: { name: '物販', icon: 'fa-bag-shopping', color: '#ec4899', badgeClass: 'badge-shop' },
         stage: { name: 'ステージ', icon: 'fa-music', color: '#ef4444', badgeClass: 'badge-stage' },
-        facility: { name: '施設', icon: 'fa-restroom', color: '#06b6d4', badgeClass: 'badge-facility' }
+        facility: { name: '施設', icon: 'fa-circle-info', color: '#06b6d4', badgeClass: 'badge-facility' }
       };
 
       // State
@@ -1753,28 +1753,57 @@
           Object.keys(campus.indoorFloors).forEach(floorKey => {
             const floorNum = parseInt(floorKey, 10);
             const floorData = campus.indoorFloors[floorKey];
-            if (!floorData || !floorData.rooms) return;
+            if (!floorData) return;
 
-            floorData.rooms.forEach(room => {
-              const linkedProjects = projectsByRoom.get(room.roomId) || [];
-              const coord = resolveSpotCoordinate(room, campus);
-              const primaryCat = determinePrimaryCategory(room, linkedProjects);
+            // Classrooms & Special Rooms
+            if (floorData.rooms) {
+              floorData.rooms.forEach(room => {
+                const linkedProjects = projectsByRoom.get(room.roomId) || [];
+                // Skip generating standalone pins for empty classrooms to keep map clean
+                if (linkedProjects.length === 0 && (room.category === 'classroom' || !room.category)) {
+                  return;
+                }
 
-              pins.push({
-                id: `pin_${room.roomId}`,
-                roomId: room.roomId,
-                name: room.name,
-                floor: floorNum,
-                type: 'room',
-                coord: coord,
-                polygon: room.polygon || room.coordinates,
-                projects: linkedProjects,
-                isMulti: linkedProjects.length > 1,
-                category: primaryCat,
-                hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
-                rawRoom: room
+                const coord = resolveSpotCoordinate(room, campus);
+                const primaryCat = determinePrimaryCategory(room, linkedProjects);
+
+                pins.push({
+                  id: `pin_${room.roomId}`,
+                  roomId: room.roomId,
+                  name: room.name,
+                  floor: floorNum,
+                  type: 'room',
+                  coord: coord,
+                  polygon: room.polygon || room.coordinates,
+                  projects: linkedProjects,
+                  isMulti: linkedProjects.length > 1,
+                  category: primaryCat,
+                  hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
+                  rawRoom: room
+                });
               });
-            });
+            }
+
+            // Toilets & Restrooms (Generated as Facility Pins)
+            if (floorData.toilets) {
+              floorData.toilets.forEach((toilet, idx) => {
+                const coord = resolveSpotCoordinate(toilet, campus);
+                pins.push({
+                  id: `pin_toilet_${floorNum}_${idx}`,
+                  roomId: toilet.id || `toilet_${floorNum}_${idx}`,
+                  name: toilet.name || 'お手洗い',
+                  floor: floorNum,
+                  type: 'facility',
+                  coord: coord,
+                  polygon: toilet.polygon || toilet.coordinates,
+                  projects: [],
+                  isMulti: false,
+                  category: 'facility',
+                  hasMobileOrder: false,
+                  rawSpot: { icon: 'fa-restroom', description: `${floorNum}F お手洗い`, ...toilet }
+                });
+              });
+            }
           });
         }
 
@@ -1807,7 +1836,7 @@
 
       function determinePrimaryCategory(roomOrSpot, projects) {
         if (!projects || projects.length === 0) {
-          return roomOrSpot.category || 'facility';
+          return 'facility';
         }
         if (projects.some(p => p.category === 'food')) return 'food';
         if (projects.some(p => p.category === 'stage')) return 'stage';
@@ -2168,7 +2197,11 @@
               fillOpacity: 0.5,
               className: 'toilet-polygon'
             });
-            toilet.bindTooltip = toilet.name;
+            poly.bindTooltip(toilet.name || 'お手洗い', {
+              pane: 'indoorPane',
+              direction: 'center',
+              className: 'room-tooltip'
+            });
             floorVectorLayerGroup.addLayer(poly);
           });
         }
@@ -2180,14 +2213,20 @@
             const cat = pinModel ? pinModel.category : (room.category || 'facility');
             const catColor = CATEGORY_META[cat] ? CATEGORY_META[cat].color : '#8b5cf6';
 
+            const stroke = room.strokeColor || catColor;
+            const fill = room.color || catColor;
+
             const poly = L.polygon(room.polygon || room.coordinates, {
               pane: 'indoorPane',
-              color: room.strokeColor || catColor,
+              color: stroke,
               weight: 1.5,
-              fillColor: room.color || catColor,
+              fillColor: fill,
               fillOpacity: 0.45,
               className: 'room-polygon'
             });
+
+            poly._origColor = stroke;
+            poly._origFillColor = fill;
 
             poly.on('click', () => {
               selectRoom(room.roomId, true);
@@ -2210,8 +2249,8 @@
         const filteredPins = joinedPins.filter(pin => {
           // Floor check
           if (currentFloor === 'outdoor') {
-            // Outdoor shows spots and ground floor pins
-            if (pin.type !== 'spot' && pin.floor !== 1) return false;
+            // Outdoor shows only spots and outdoor areas (not indoor classroom pins)
+            if (pin.type !== 'spot') return false;
           } else {
             const floorNum = parseInt(currentFloor, 10);
             if (pin.floor !== floorNum) return false;
@@ -2229,6 +2268,7 @@
 
         filteredPins.forEach(pin => {
           const meta = CATEGORY_META[pin.category] || CATEGORY_META.facility;
+          const iconClass = (pin.rawSpot && pin.rawSpot.icon) ? pin.rawSpot.icon : meta.icon;
           const labelText = pin.projects.length > 0
             ? (pin.projects.length === 1 ? pin.projects[0].name : `${pin.name} (${pin.projects.length})`)
             : pin.name;
@@ -2238,7 +2278,7 @@
             html: `
               <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}">
                 <div class="pin-body">
-                  <i class="fas ${meta.icon}"></i>
+                  <i class="fas ${escapeHtml(iconClass)}"></i>
                   ${pin.hasMobileOrder ? '<span class="pin-badge-order" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
                   ${pin.isMulti ? `<span class="pin-badge-count" title="${pin.projects.length}企画">${pin.projects.length}</span>` : ''}
                 </div>
@@ -2331,7 +2371,8 @@
           poly.setStyle({
             weight: 1.5,
             fillOpacity: 0.45,
-            color: '#7c5cff'
+            color: poly._origColor || '#7c5cff',
+            fillColor: poly._origFillColor || '#7c5cff'
           });
           if (poly.getElement()) {
             poly.getElement().classList.remove('is-active');
@@ -2348,13 +2389,33 @@
 
         const projects = pinModel.projects || [];
 
-        // If no projects (Facility POI)
+        // If no projects (Facility POI or Room without registered project)
         if (projects.length === 0) {
+          const roomName = pinModel.name || '';
+          const isRestricted = /(準備室|生徒会|進路|職員|倉庫|印刷|放送室|相談室)/.test(roomName);
+          let descText = '南陵祭当日の校内施設・共用スペースです。';
+          let badgeText = '施設・共用設備';
+          let badgeIcon = 'fa-circle-info';
+          let badgeClass = 'badge-facility';
+
+          if (isRestricted) {
+            descText = '※教職員・実行委員会関係者専用エリアです。一般来場者の方の立ち入りはご遠慮ください。';
+            badgeText = '関係者専用・立入禁止';
+            badgeIcon = 'fa-triangle-exclamation';
+            badgeClass = 'badge-stage'; // warning color
+          } else if (pinModel.rawSpot && pinModel.rawSpot.description) {
+            descText = pinModel.rawSpot.description;
+          } else if (/(トイレ|お手洗い)/.test(roomName)) {
+            descText = '来場者向けのお手洗いです。綺麗にご利用ください。';
+            badgeText = 'お手洗い';
+            badgeIcon = 'fa-restroom';
+          }
+
           container.innerHTML = `
             <div class="project-sheet-card">
               <div class="project-sheet-header">
                 <div class="project-tags-group">
-                  <span class="category-badge badge-facility"><i class="fas fa-circle-info"></i> 施設・共用設備</span>
+                  <span class="category-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${escapeHtml(badgeText)}</span>
                   <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}</span>
                 </div>
                 <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
@@ -2369,8 +2430,8 @@
 
               <div class="project-expanded-details">
                 <div class="project-description-section">
-                  <h3 class="section-subheading"><i class="fas fa-circle-info"></i> 施設情報</h3>
-                  <p class="project-description-text">南陵祭当日の来場者向け共用スペース・施設です。ご自由にご利用いただけます。</p>
+                  <h3 class="section-subheading"><i class="fas ${badgeIcon}"></i> 案内情報</h3>
+                  <p class="project-description-text" style="${isRestricted ? 'color: #ef4444; font-weight: 700;' : ''}">${escapeHtml(descText)}</p>
                 </div>
               </div>
             </div>
@@ -2557,7 +2618,8 @@
           btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
         });
 
-        renderCurrentFloorVectors();
+        renderStaticBaseLayers();
+        renderFloorPolygons();
       }
 
       function setCategory(cat) {
@@ -2769,8 +2831,13 @@
       // ==========================================================================
       function renderAccessRouteById(routeId) {
         if (!campusData || !campusData.accessRoutes) return;
-        const route = campusData.accessRoutes.find(r => r.id === routeId);
-        if (!route) return;
+        const route = campusData.accessRoutes.find(r => 
+          r.id === routeId || 
+          (routeId === 'route_yokodai' && (r.id === 'route_180112' || (r.name && r.name.includes('洋光台')))) ||
+          (routeId === 'route_hino_park' && (r.id === 'route_290409' || (r.name && r.name.includes('日野中央公園')))) ||
+          (routeId === 'route_hino_elem' && (r.id === 'route_875650' || (r.name && r.name.includes('日野小学校'))))
+        );
+        if (!route || !route.polyline || route.polyline.length === 0) return;
 
         activeRouteLayerGroup.clearLayers();
 
@@ -2798,30 +2865,40 @@
           className: 'access-route-neon'
         });
 
+        // Safe Start & End Point Resolution
+        const startPt = route.startPoint || {
+          name: route.name ? route.name.replace(/アクセスルート.*$/, '').trim() : '出発地',
+          latlng: route.polyline[0]
+        };
+        const endPt = route.endPoint || {
+          name: '南陵高校 正門',
+          latlng: route.polyline[route.polyline.length - 1]
+        };
+
         // 3. Start Point Badge
         const startIcon = L.divIcon({
           className: 'route-badge-marker',
           html: `<div class="route-badge start" style="border-color:${escapeHtml(route.color || '#eab308')}">
                    <i class="fas fa-bus"></i>
-                   <span>${escapeHtml(route.startPoint.name)}</span>
-                   <span class="route-min">${escapeHtml(route.timeMinutes)}分</span>
+                   <span>${escapeHtml(startPt.name || '出発地')}</span>
+                   <span class="route-min">${escapeHtml(route.timeMinutes || 10)}分</span>
                  </div>`,
           iconSize: [160, 32],
           iconAnchor: [80, 16]
         });
-        const startMarker = L.marker(route.startPoint.latlng, { icon: startIcon, pane: 'markerPane' });
+        const startMarker = L.marker(startPt.latlng, { icon: startIcon, pane: 'markerPane' });
 
         // 4. End Point Badge (Main Gate)
         const endIcon = L.divIcon({
           className: 'route-badge-marker',
           html: `<div class="route-badge end">
                    <i class="fas fa-school"></i>
-                   <span>${escapeHtml(route.endPoint.name)}</span>
+                   <span>${escapeHtml(endPt.name || '正門')}</span>
                  </div>`,
           iconSize: [130, 32],
           iconAnchor: [65, 16]
         });
-        const endMarker = L.marker(route.endPoint.latlng, { icon: endIcon, pane: 'markerPane' });
+        const endMarker = L.marker(endPt.latlng, { icon: endIcon, pane: 'markerPane' });
 
         activeRouteLayerGroup.addLayer(casing);
         activeRouteLayerGroup.addLayer(core);
@@ -2870,7 +2947,7 @@
 
         // Render Layers
         renderStaticBaseLayers();
-        renderCurrentFloorVectors();
+        renderFloorPolygons();
 
         // Check URL parameter (?room=... or ?project=...)
         const urlParams = new URLSearchParams(window.location.search);

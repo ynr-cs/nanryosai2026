@@ -13,6 +13,44 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.238] 2Dキャンパスマップ（map.html）全面復旧・全41企画完全リンク・UI/防犯安全化・ポータル導線刷新 - 2026-09-07
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: `main/map.html` において、未定義関数呼び出し（`renderCurrentFloorVectors`）による起動時およびフロア切替時のJavaScript致命的クラッシュ、登録済み41企画中26企画（63.4%）の非表示・脱落、空き教室がすべてトイレアイコン化するUIバグ、薬品室等の立入禁止エリアにおける誤進入リスク文言、アクセスルート機能のTypeErrorクラッシュ、および詳細画面（`detail.html`）の「3D近日公開」放置を解消し、来場者・生徒双方が安全かつ快適に利用できる本番マップシステムを確立するため。
+
+### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
+
+- **マップビューア致命的バグ修正 (`main/map.html`)**:
+  - **未定義関数呼び出し（ReferenceError）の解消**: 起動時（`bootstrap`）およびフロア切替時（`setFloor`）に未定義だった `renderCurrentFloorVectors()` を正規の `renderFloorPolygons()` に修正。さらにフロア切替時に `renderStaticBaseLayers()` も呼び出すよう同期。
+  - **ポリゴン色の一括紫化バグの修正**: 教室ポリゴン生成時に `_origColor` / `_origFillColor` を保持させ、ボトムシートクローズ時の `unhighlightActivePolygon()` で強制紫色化（`#7c5cff`）を廃止し、本来のカテゴリカラーへ復元するよう修正。
+  - **アクセスルート案内の堅牢化**: `renderAccessRouteById` において、データ側に `startPoint` / `endPoint` が存在しない場合でも `polyline` の始点・終点から安全にバッジを生成するフォールバックを実装。HTMLとJSON間のルートID不一致を吸収するエイリアス処理を追加。
+- **UI健全化・防犯安全対策 (`main/map.html`)**:
+  - **空き教室のトイレアイコン化の解消**: `CATEGORY_META.facility` のデフォルトアイコンを `fa-restroom` から `fa-circle-info` に変更。さらに `buildJoinedPinsModel` において、企画のない普通教室（`linkedProjects.length === 0 && room.category === 'classroom'`）はピン生成をスキップし、地図上のノイズを一掃。
+  - **立入禁止区域・管理諸室の防犯文言対応**: 企画のない部屋をタップした際、旧来の「ご自由にご利用いただけます」を完全撤廃。準備室（薬品保管室）、進路指導室、生徒会室等には「※関係者専用エリアです（立入禁止）」の警告文言とバッジを表示。
+  - **本物トイレの復旧**: 各階の `toilets` を `buildJoinedPinsModel` で施設ピンとして合流（`category: 'facility'`, `icon: 'fa-restroom'`）。`toilet.bindTooltip = toilet.name;` の代入ミスを `poly.bindTooltip(...)` に修正。
+  - **個別スポットアイコン描画**: `renderPins()` で `pin.rawSpot?.icon` を優先参照するよう改修し、AED（`fa-heart-pulse`）、自販機（`fa-bottle-water`）、ゴミ箱（`fa-trash-can`）等の個別ピクトグラムを忠実に描画。
+  - **屋外ビュー最適化**: 屋外タブ（樹木アイコン）選択時に1階屋内教室ピンが露出するバグを解消（`if (pin.type !== 'spot') return false;`）。
+- **校内幾何・スポットデータ拡充 (`main/data/campus_map_data.json`)**:
+  - **`spots` 配列の完全復元・新設 (計17件)**:
+    - 体育館メインアリーナ (`room_gym_main`): 体育館ステージ12企画の集約ピン
+    - 昇降口前 (`spot_entrance`): 3年1組「アキコのひとくちカステラ」（モバイルオーダー受取所）
+    - 中庭テントB〜F (`tent_b` 〜 `tent_f`): 3年生食品模擬店（3-2, 3-4, 3-5, 3-6, 3-7）
+    - 健康福祉棟 (`health_bldg`): 3年3組「おばけ屋敷」
+    - 北棟2F渡り廊下 (`spot_corridor_2f`): 写真部
+    - 校内安全インフラ: AED 3箇所（昇降口、体育館、保健室前）、総合案内所 1箇所、自動販売機 2箇所、集中エコステーション 2箇所
+  - **アクセスルート定義の完全復旧**: `sample.json` から `route_yokodai`、`route_hino_park`、`route_hino_elem` を完全移植。
+- **企画マスターデータ整合 (`main/data/data.js`)**:
+  - 全41企画の所在フロア・場所名・`roomId` を完全照合・統一。
+  - 華道部 (`special_room_188905`, 2F)、科学部 (`special_room_818121`, 1F)、音楽室3企画 (`special_room_337807_4f`, 4F)、軽音楽部 (`room_gym_main`, 1F)、美術部 (`floor: 3` 表記統一) の不整合を解消。
+  - コンピュータ科学部 (`cs`) はユーザー確認に基づき展示場所なし（`place: "オンライン / システム開発"`, `floor: null`, `roomId: null`）として整合。
+- **ポータル全体の回遊性強化 (`main/detail.html`, `main/projects-list.html`, `main/stage-list.html`)**:
+  - **企画詳細 (`detail.html`)**: マップタブの「3Dマップ機能 近日公開」プレースホルダーを完全撤去。企画の場所・フロアを表示し、「校内マップで場所を確認する（ピンへ直行）」リンクボタン（`map.html?project=${id}&room=${roomId}`）を実装。
+  - **企画一覧 (`projects-list.html`)**: 各カード内の開催場所表示をマップ直行リンク化し、タップするとマップ上のピンへ直接ジャンプする導線を整備。
+  - **タイムテーブル (`stage-list.html`)**: 各ステージ演目の開催場所表示（体育館・音楽室）をマップ直行リンク化。
+
 ## [0.5.237] 本番クリーンアップ運用スクリプト堅牢化（Cloud Storage完全パージ・全関連コレクション初期化・検証アサーション自動化） - 2026-09-06
 
 ### メタ情報

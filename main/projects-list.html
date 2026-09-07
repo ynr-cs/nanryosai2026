@@ -559,6 +559,20 @@
         color: var(--text-placeholder);
       }
 
+      .card-place.map-link {
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+
+      .card-place.map-link:hover {
+        color: var(--primary-color);
+      }
+
+      .card-place.map-link:hover i {
+        color: var(--primary-color);
+      }
+
       .card-tags {
         display: flex;
         flex-wrap: wrap;
@@ -1191,9 +1205,15 @@
                             <a href="${detailUrl}" class="card-project-title" data-track="click_project" data-track-project-id="${project.id}">${project.name}</a>
                             <div class="card-status-badge-container">${statusBadge}</div>
                             ${catchphraseHTML}
+                            ${(project.roomId && project.roomId !== 'null') ? `
+                            <a href="map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}" class="card-place map-link" title="校内マップで場所を見る" onclick="event.stopPropagation();">
+                                <i class="bi bi-geo-alt-fill"></i> ${place}
+                            </a>
+                            ` : `
                             <div class="card-place">
                                 <i class="bi bi-geo-alt-fill"></i> ${place}
                             </div>
+                            `}
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
                         <div class="card-button-wrapper">

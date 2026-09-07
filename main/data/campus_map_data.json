@@ -1375,8 +1375,375 @@
       ]
     }
   ],
-  "spots": [],
+  "spots": [
+    {
+      "id": "room_gym_main",
+      "name": "体育館 メインアリーナ",
+      "category": "stage",
+      "floor": 1,
+      "buildingId": "体育館",
+      "latlng": [
+        35.38655,
+        139.5855
+      ],
+      "icon": "fa-music",
+      "description": "体育館ステージ発表会場（演劇・ダンス・音楽・有志発表）"
+    },
+    {
+      "id": "spot_entrance",
+      "name": "生徒棟 昇降口前",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38618,
+        139.58595
+      ],
+      "icon": "fa-utensils",
+      "description": "3年1組 アキコのひとくちカステラ 出店スペース（モバイルオーダー受取所）"
+    },
+    {
+      "id": "tent_b",
+      "name": "中庭テントB",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38605,
+        139.5854
+      ],
+      "icon": "fa-utensils",
+      "description": "3年2組 やきとり屋 出店テント"
+    },
+    {
+      "id": "health_bldg",
+      "name": "健康福祉棟",
+      "category": "exhibit",
+      "floor": 1,
+      "buildingId": "健康福祉棟",
+      "latlng": [
+        35.385622,
+        139.585338
+      ],
+      "icon": "fa-ghost",
+      "description": "3年3組 おばけ屋敷 会場"
+    },
+    {
+      "id": "tent_c",
+      "name": "中庭テントC",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38605,
+        139.5855
+      ],
+      "icon": "fa-utensils",
+      "description": "3年4組 千葉軒 出店テント"
+    },
+    {
+      "id": "tent_d",
+      "name": "中庭テントD",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38605,
+        139.5856
+      ],
+      "icon": "fa-utensils",
+      "description": "3年5組 ペッパーランチ藤本家 出店テント"
+    },
+    {
+      "id": "tent_e",
+      "name": "中庭テントE",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38605,
+        139.5857
+      ],
+      "icon": "fa-utensils",
+      "description": "3年6組 ナベが震えたケバブ 出店テント"
+    },
+    {
+      "id": "tent_f",
+      "name": "中庭テントF",
+      "category": "food",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38605,
+        139.5858
+      ],
+      "icon": "fa-utensils",
+      "description": "3年7組 牛タン 出店テント"
+    },
+    {
+      "id": "spot_corridor_2f",
+      "name": "生徒棟 2F 渡り廊下",
+      "category": "exhibit",
+      "floor": 2,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38602,
+        139.58555
+      ],
+      "icon": "fa-camera",
+      "description": "写真部 Moment -瞬- 展示ギャラリー"
+    },
+    {
+      "id": "spot_aed_entrance",
+      "name": "AED (昇降口ピロティ)",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38619,
+        139.58597
+      ],
+      "icon": "fa-heart-pulse",
+      "description": "生徒棟 1F 昇降口 自動体外式除細動器 (AED)"
+    },
+    {
+      "id": "spot_aed_gym",
+      "name": "AED (体育館エントランス)",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "体育館",
+      "latlng": [
+        35.3864,
+        139.58535
+      ],
+      "icon": "fa-heart-pulse",
+      "description": "体育館 入口エントランス 自動体外式除細動器 (AED)"
+    },
+    {
+      "id": "spot_aed_nurse",
+      "name": "AED (保健室前)",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.386166,
+        139.586148
+      ],
+      "icon": "fa-heart-pulse",
+      "description": "生徒棟 1F 保健室前廊下 自動体外式除細動器 (AED)"
+    },
+    {
+      "id": "spot_info_entrance",
+      "name": "総合案内所・パンフレット配布",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38615,
+        139.58588
+      ],
+      "icon": "fa-circle-info",
+      "description": "1F 昇降口前 総合案内所（パンフレット配布・落とし物・総合受付）"
+    },
+    {
+      "id": "spot_vending_courtyard",
+      "name": "自動販売機 (食堂前)",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.3861,
+        139.58555
+      ],
+      "icon": "fa-bottle-water",
+      "description": "生徒棟 1F 食堂前・中庭出入口 自動販売機コーナー"
+    },
+    {
+      "id": "spot_vending_gym",
+      "name": "自動販売機 (体育館横)",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "体育館",
+      "latlng": [
+        35.38638,
+        139.58545
+      ],
+      "icon": "fa-bottle-water",
+      "description": "体育館 入口横 自動販売機コーナー"
+    },
+    {
+      "id": "spot_trash_courtyard",
+      "name": "中庭 集中エコステーション",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38608,
+        139.5854
+      ],
+      "icon": "fa-trash-can",
+      "description": "中庭模擬店エリア 集中分別ゴミステーション（燃えるゴミ・プラ・缶・ペットボトル）"
+    },
+    {
+      "id": "spot_trash_entrance",
+      "name": "昇降口前 分別ゴミステーション",
+      "category": "facility",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38614,
+        139.58598
+      ],
+      "icon": "fa-trash-can",
+      "description": "1F 昇降口前 分別ゴミステーション"
+    }
+  ],
   "accessRoutes": [
+    {
+      "id": "route_yokodai",
+      "name": "洋光台北口ルート",
+      "color": "#eab308",
+      "strokeWidth": 5,
+      "timeMinutes": 5,
+      "distanceMeters": 320,
+      "elevationGainMeters": 21,
+      "description": "JR洋光台駅北口バス停からの最寄アクセス。南陵名物の階段・坂道を登る王道ルート。",
+      "startPoint": {
+        "name": "洋光台北口バス停",
+        "latlng": [
+          35.3842,
+          139.5892
+        ]
+      },
+      "endPoint": {
+        "name": "南陵高校 正門",
+        "latlng": [
+          35.38545,
+          139.58575
+        ]
+      },
+      "polyline": [
+        [
+          35.3842,
+          139.5892
+        ],
+        [
+          35.38445,
+          139.5885
+        ],
+        [
+          35.3847,
+          139.5876
+        ],
+        [
+          35.385,
+          139.5868
+        ],
+        [
+          35.3852,
+          139.5862
+        ],
+        [
+          35.38545,
+          139.58575
+        ]
+      ],
+      "smooth": true
+    },
+    {
+      "id": "route_hino_park",
+      "name": "日野中央公園ルート",
+      "color": "#f97316",
+      "strokeWidth": 5,
+      "timeMinutes": 8,
+      "distanceMeters": 580,
+      "elevationGainMeters": 15,
+      "description": "上大岡駅・港南台駅方面からのバス本数が最も充実している安心ルート。",
+      "startPoint": {
+        "name": "日野中央公園入口",
+        "latlng": [
+          35.382,
+          139.582
+        ]
+      },
+      "endPoint": {
+        "name": "南陵高校 正門",
+        "latlng": [
+          35.38545,
+          139.58575
+        ]
+      },
+      "polyline": [
+        [
+          35.382,
+          139.582
+        ],
+        [
+          35.3828,
+          139.5832
+        ],
+        [
+          35.3837,
+          139.5843
+        ],
+        [
+          35.3846,
+          139.5852
+        ],
+        [
+          35.38545,
+          139.58575
+        ]
+      ],
+      "smooth": true
+    },
+    {
+      "id": "route_hino_elem",
+      "name": "日野小学校前ルート",
+      "color": "#ec4899",
+      "strokeWidth": 5,
+      "timeMinutes": 10,
+      "distanceMeters": 700,
+      "elevationGainMeters": 10,
+      "description": "日野小学校前バス停からのアクセス。混雑を避けてゆっくり来校したい方におすすめ。",
+      "startPoint": {
+        "name": "日野小学校前バス停",
+        "latlng": [
+          35.383,
+          139.58
+        ]
+      },
+      "endPoint": {
+        "name": "南陵高校 正門",
+        "latlng": [
+          35.38545,
+          139.58575
+        ]
+      },
+      "polyline": [
+        [
+          35.383,
+          139.58
+        ],
+        [
+          35.3838,
+          139.5815
+        ],
+        [
+          35.3845,
+          139.583
+        ],
+        [
+          35.3851,
+          139.5845
+        ],
+        [
+          35.38545,
+          139.58575
+        ]
+      ],
+      "smooth": true
+    },
     {
       "id": "route_180112",
       "name": "洋光台北口アクセスルート (上大岡・港南中央・上永谷方面)",

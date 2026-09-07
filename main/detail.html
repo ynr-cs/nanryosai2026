@@ -544,62 +544,89 @@
         gap: 6px;
       }
 
-      /* Map Tab (Placeholder) */
-      .map-placeholder {
+      /* Map Tab (Navigation Card) */
+      .map-navigation-card {
         background: linear-gradient(135deg, var(--card-bg), var(--bg-color));
         border-radius: 24px;
-        padding: 80px 24px;
+        padding: 40px 24px;
         text-align: center;
-        border: 2px dashed var(--border-color);
+        border: 1px solid var(--border-color);
         position: relative;
         overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       }
 
-      .map-placeholder::before {
-        content: "";
-        position: absolute;
-        width: 200px;
-        height: 200px;
+      .map-card-badge-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+
+      .map-floor-pill {
         background: var(--primary-color);
-        filter: blur(80px);
-        opacity: 0.08; /* Subtler */
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 9999px;
       }
 
-      .map-placeholder-icon {
-        font-size: 4rem;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 24px;
-        animation: float 6s ease-in-out infinite;
-      }
-
-      @keyframes float {
-        0% {
-          transform: translateY(0px);
-        }
-        50% {
-          transform: translateY(-15px);
-        }
-        100% {
-          transform: translateY(0px);
-        }
-      }
-
-      .map-placeholder-text {
-        font-size: 1.2rem;
-        color: var(--text-main);
+      .map-place-pill {
+        background: rgba(124, 92, 255, 0.12);
+        color: var(--primary-color);
+        font-size: 0.9rem;
         font-weight: 700;
-        margin-bottom: 8px;
+        padding: 4px 14px;
+        border-radius: 9999px;
+        border: 1px solid rgba(124, 92, 255, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
-      .map-placeholder-sub {
+      .map-card-title {
+        font-size: 1.35rem;
+        color: var(--text-main);
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+
+      .map-card-desc {
+        font-size: 0.95rem;
         color: var(--text-sub);
+        line-height: 1.6;
+        max-width: 520px;
+        margin: 0 auto 24px;
+      }
+
+      .map-direct-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: var(--primary-gradient);
+        color: #ffffff !important;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 16px 28px;
+        border-radius: 16px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        box-shadow: 0 8px 24px rgba(124, 92, 255, 0.35);
+      }
+
+      .map-direct-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(124, 92, 255, 0.45);
+      }
+
+      .map-direct-btn.secondary {
+        background: var(--border-color);
+        color: var(--text-main) !important;
+        box-shadow: none;
       }
 
       /* Responsive */
@@ -1303,15 +1330,39 @@
                 `;
         }
 
-        // Tab 5: Map (Placeholder)
+        // Tab 5: Map Navigation
         tabsHTML += `<button class="tab-button" data-tab="map" data-track="click_detail_tab" data-track-tab="map">マップ</button>`;
+        const hasMapLocation = project.roomId && project.roomId !== 'null';
+        const targetMapUrl = hasMapLocation 
+          ? `map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}`
+          : 'map.html';
+        const displayPlace = project.place || (project.floor ? `${project.floor}F` : '校内');
+
         contentsHTML += `
                 <div class="tab-content" id="tab-map">
-                    <h2 class="section-title"><i class="bi bi-map-fill"></i>マップ</h2>
-                    <div class="map-placeholder">
-                        <div class="map-placeholder-icon"><i class="bi bi-box"></i></div>
-                        <div class="map-placeholder-text">3Dマップ機能 近日公開</div>
-                        <div class="map-placeholder-sub">よりリアルな校内案内を準備中です。</div>
+                    <h2 class="section-title"><i class="bi bi-geo-alt-fill"></i>開催場所・マップ</h2>
+                    <div class="map-navigation-card">
+                        <div class="map-card-badge-row">
+                            ${project.floor ? `<span class="map-floor-pill">${escapeHtml(project.floor)}F</span>` : ''}
+                            <span class="map-place-pill"><i class="bi bi-pin-map-fill"></i> ${escapeHtml(displayPlace)}</span>
+                        </div>
+                        <div class="map-card-title">${escapeHtml(project.name)}</div>
+                        <p class="map-card-desc">
+                            ${hasMapLocation 
+                                ? '南陵祭2026の公式キャンパスマップで教室・テントの正確な位置や周辺設備（トイレ・AED等）を確認できます。'
+                                : '本企画はオンライン開催または特定展示教室なし（システム開発・運営等）の企画です。'
+                            }
+                        </p>
+                        ${hasMapLocation ? `
+                            <a href="${targetMapUrl}" class="map-direct-btn">
+                                <i class="bi bi-map-fill"></i> 校内マップで場所を確認する（ピンへ直行）
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        ` : `
+                            <a href="map.html" class="map-direct-btn secondary">
+                                <i class="bi bi-map"></i> 全体校内マップを開く
+                            </a>
+                        `}
                     </div>
                 </div>
             `;
