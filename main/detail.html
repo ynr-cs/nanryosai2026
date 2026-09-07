@@ -913,6 +913,18 @@
         renderDetail(project);
       });
 
+      // XSS Sanitization Helper
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+          .replace(/=/g, '&#061;');
+      }
+
       function showError(message) {
         document.getElementById("detail-title").innerHTML = `
                 <div class="error-container">
@@ -980,10 +992,10 @@
         const tagsStr = (project.tags || []).join("・");
         let chipsHTML = "";
         if (project.place) {
-          chipsHTML += `<div class="meta-chip"><i class="bi bi-geo-alt-fill"></i>${project.place}</div>`;
+          chipsHTML += `<div class="meta-chip"><i class="bi bi-geo-alt-fill"></i>${escapeHtml(project.place)}</div>`;
         }
         if (tagsStr) {
-          chipsHTML += `<div class="meta-chip"><i class="bi bi-tag-fill"></i>${tagsStr}</div>`;
+          chipsHTML += `<div class="meta-chip"><i class="bi bi-tag-fill"></i>${escapeHtml(tagsStr)}</div>`;
         }
         
         const useMobileOrder = project.useMobileOrder === true;
