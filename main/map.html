@@ -66,6 +66,8 @@
     :root {
       --map-bg-light: #cfe3d8;
       --map-bg-dark: #1a2e22;
+      --map-bg-indoor-light: #f8fafc;
+      --map-bg-indoor-dark: #0b0f19;
       --cat-food: #f59e0b;
       --cat-exhibit: #8b5cf6;
       --cat-shop: #ec4899;
@@ -93,11 +95,20 @@
       height: 100vh;
       overflow: hidden;
       background-color: var(--map-bg-light);
-      transition: background-color 0.3s ease;
+      transition: background-color 0.4s ease;
     }
 
     [data-theme="dark"] .map-app-container {
       background-color: var(--map-bg-dark);
+    }
+
+    /* 校舎内モード（インドアフロアマップ）時の背景コンテナ */
+    .map-app-container.mode-indoor {
+      background-color: var(--map-bg-indoor-light);
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor {
+      background-color: var(--map-bg-indoor-dark);
     }
 
     #map {
@@ -107,14 +118,184 @@
       background-color: transparent;
     }
 
-    /* GSI Aerial Photo Dark Mode Filter */
+    /* GSI Aerial Photo Dark Mode Filter & Indoor Whitewash/Blur */
     .leaflet-tile-pane {
       filter: brightness(1.0) contrast(1.0) saturate(1.0);
-      transition: filter 0.35s ease;
+      opacity: 1.0;
+      transition: filter 0.3s ease, opacity 0.3s ease;
     }
 
     [data-theme="dark"] .leaflet-tile-pane {
       filter: brightness(0.65) contrast(1.15) saturate(0.85);
+    }
+
+    /* 校舎内モード時の航空写真タイル：外の世界を薄く清潔な下地として配置（ノイズ化を完全防止） */
+    .map-app-container.mode-indoor .leaflet-tile-pane {
+      filter: blur(2px) brightness(1.05) saturate(0.25);
+      opacity: 0.16;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor .leaflet-tile-pane {
+      filter: blur(2px) brightness(0.35) saturate(0.15) !important;
+      opacity: 0.12 !important;
+    }
+
+    /* ==========================================================================
+       Floor Plan Architecture Design (Adaptive Light / Dark System)
+       ========================================================================== */
+    /* Light Mode Indoor Floor Plan */
+    .map-app-container.mode-indoor path.building-polygon {
+      fill: #ffffff !important;
+      fill-opacity: 0.9 !important;
+      stroke: #94a3b8 !important;
+      stroke-width: 2px !important;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+    }
+
+    .map-app-container.mode-indoor path.building-gym,
+    path.gym-polygon {
+      fill: #ede9fe !important;
+      fill-opacity: 0.85 !important;
+      stroke: #6366f1 !important;
+      stroke-width: 2.5px !important;
+      cursor: pointer;
+      filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.25));
+      transition: all 0.2s ease;
+    }
+
+    path.gym-polygon.is-active {
+      stroke: #ff0080 !important;
+      stroke-width: 3.5px !important;
+      fill-opacity: 0.9 !important;
+      filter: drop-shadow(0 0 14px rgba(255, 0, 128, 0.65)) !important;
+    }
+
+    .map-app-container.mode-indoor path.corridor-polygon {
+      fill: #f1f5f9 !important;
+      fill-opacity: 0.95 !important;
+      stroke: #cbd5e1 !important;
+      stroke-width: 1.5px !important;
+    }
+
+    .map-app-container.mode-indoor path.corridor-overpass {
+      fill: #f3e8ff !important;
+      fill-opacity: 0.9 !important;
+      stroke: #a855f7 !important;
+      stroke-width: 2px !important;
+    }
+
+    .map-app-container.mode-indoor path.stairs-polygon {
+      fill: #ffedd5 !important;
+      fill-opacity: 0.9 !important;
+      stroke: #ea580c !important;
+      stroke-width: 2px !important;
+    }
+
+    .map-app-container.mode-indoor path.toilet-polygon {
+      fill: #e0f2fe !important;
+      fill-opacity: 0.9 !important;
+      stroke: #0284c7 !important;
+      stroke-width: 1.5px !important;
+    }
+
+    .map-app-container.mode-indoor path.room-polygon.is-empty {
+      fill: #f8fafc !important;
+      fill-opacity: 0.7 !important;
+      stroke: #cbd5e1 !important;
+      stroke-width: 1.2px !important;
+    }
+
+    /* 敷地通路・中庭広場（ライトモード）: 地面の道がはっきり見える！ */
+    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard {
+      fill: #dcfce7 !important; /* 爽やかな中庭芝生グリーン */
+      fill-opacity: 0.75 !important;
+      stroke: #86efac !important;
+      stroke-width: 1.5px !important;
+    }
+
+    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway {
+      fill: #e2e8f0 !important; /* 清潔な舗装通路 */
+      fill-opacity: 0.85 !important;
+      stroke: #cbd5e1 !important;
+      stroke-width: 1.5px !important;
+    }
+
+    /* Dark Mode Indoor Floor Plan (Vibrant Architectural High-Contrast) */
+    [data-theme="dark"] .map-app-container.mode-indoor {
+      background-color: #0b0f19 !important; /* 洗練されたディープネイビー背景 */
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.building-polygon {
+      fill: #161e2e !important; /* 校舎床土台: 明瞭なスレートグレー！ */
+      fill-opacity: 0.95 !important;
+      stroke: #475569 !important;
+      stroke-width: 2px !important;
+      filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.building-gym,
+    [data-theme="dark"] path.gym-polygon {
+      fill: #1e1b4b !important; /* 体育館土台: ディープインディゴ */
+      fill-opacity: 0.92 !important;
+      stroke: #818cf8 !important;
+      stroke-width: 2.5px !important;
+      filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.corridor-polygon {
+      fill: #273549 !important; /* 廊下通路: 一段明るいスレートで導線が明確！ */
+      fill-opacity: 0.95 !important;
+      stroke: #64748b !important;
+      stroke-width: 1.5px !important;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.corridor-overpass {
+      fill: #581c87 !important; /* 渡り廊下: パープル */
+      fill-opacity: 0.85 !important;
+      stroke: #c084fc !important;
+      stroke-width: 2px !important;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.stairs-polygon {
+      fill: #7c2d12 !important; /* 階段: アンバー */
+      fill-opacity: 0.85 !important;
+      stroke: #f97316 !important;
+      stroke-width: 2px !important;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.toilet-polygon {
+      fill: #075985 !important; /* トイレ: スカイブルー */
+      fill-opacity: 0.85 !important;
+      stroke: #38bdf8 !important;
+      stroke-width: 1.5px !important;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.room-polygon.is-empty {
+      fill: #0f172a !important; /* 空き教室: 落ち着いたダーク */
+      fill-opacity: 0.75 !important;
+      stroke: #374151 !important; /* 部屋の仕切り壁がはっきり見える！ */
+      stroke-width: 1.2px !important;
+    }
+
+    /* 敷地通路・中庭広場（ダークモード）: 地面の道と中庭がクッキリ浮き上がる！ */
+    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard {
+      fill: #14281d !important; /* 深緑の中庭グリーン */
+      fill-opacity: 0.88 !important;
+      stroke: #166534 !important; /* 落ち着いたグリーン境界線 */
+      stroke-width: 1.5px !important;
+    }
+
+    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway {
+      fill: #1e293b !important; /* ダークスレート舗装通路 */
+      fill-opacity: 0.92 !important;
+      stroke: #475569 !important; /* 明瞭な通路の境界線 */
+      stroke-width: 1.5px !important;
+    }
+
+    /* 企画のある教室（ネオングローハイライト） */
+    [data-theme="dark"] .map-app-container.mode-indoor path.room-polygon.has-project {
+      fill-opacity: 0.65 !important;
+      stroke-width: 2.5px !important;
     }
 
     /* Vector elements pointer-events & Touch interaction control */
@@ -450,6 +631,14 @@
 
     .floor-pill-btn.floor-pill-outdoor i {
       font-size: 14px;
+    }
+
+    .floor-pill-divider {
+      width: 24px;
+      height: 1px;
+      background: var(--glass-border);
+      margin: 3px 0;
+      opacity: 0.8;
     }
 
     /* ==========================================================================
@@ -1305,42 +1494,49 @@
     }
 
     /* ==========================================================================
-       Toast Notification
+       Map Toast Pill Notification (Conflict-free Floating Badge)
        ========================================================================== */
-    .toast-container {
+    .map-toast-pill {
       position: fixed;
-      bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
+      top: calc(env(safe-area-inset-top, 12px) + 60px);
+      bottom: auto !important;
       left: 50%;
-      transform: translateX(-50%) translateY(30px);
+      transform: translateX(-50%) translateY(-8px) scale(0.95);
       z-index: 2500;
-      padding: 10px 18px;
+      padding: 6px 14px;
       border-radius: 20px;
       background: var(--glass-bg);
       backdrop-filter: blur(16px) saturate(180%);
       -webkit-backdrop-filter: blur(16px) saturate(180%);
       border: 1px solid var(--glass-border);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
       color: var(--text-main);
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px;
+      width: auto !important;
+      max-width: calc(100vw - 40px) !important;
+      box-sizing: border-box !important;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-      white-space: nowrap;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      white-space: nowrap !important;
+      line-height: 1.4;
     }
 
-    .toast-container.active {
-      transform: translateX(-50%) translateY(0);
+    .map-toast-pill.active {
+      transform: translateX(-50%) translateY(0) scale(1);
       opacity: 1;
       pointer-events: auto;
     }
   </style>
 </head>
 <body>
-  <div class="map-app-container">
+  <div class="map-app-container mode-indoor">
     <!-- Map Div -->
     <div id="map"></div>
 
@@ -1400,7 +1596,8 @@
       <button type="button" class="floor-pill-btn" data-floor="3" aria-label="3階" role="radio" aria-checked="false">3F</button>
       <button type="button" class="floor-pill-btn" data-floor="2" aria-label="2階" role="radio" aria-checked="false">2F</button>
       <button type="button" class="floor-pill-btn active" data-floor="1" aria-label="1階" role="radio" aria-checked="true">1F</button>
-      <button type="button" class="floor-pill-btn floor-pill-outdoor" data-floor="outdoor" aria-label="屋外・全体" role="radio" aria-checked="false">
+      <div class="floor-pill-divider" role="separator" aria-orientation="horizontal" title="校舎内 / 屋外切り替え"></div>
+      <button type="button" class="floor-pill-btn floor-pill-outdoor" data-floor="outdoor" aria-label="屋外・全体" role="radio" aria-checked="false" title="屋外・キャンパス全景">
         <i class="fas fa-tree"></i>
       </button>
     </div>
@@ -1488,9 +1685,8 @@
       </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast-container" id="toastBox">
-      <i class="fas fa-info-circle"></i>
+    <!-- Toast Notification (Floating Pill) -->
+    <div class="map-toast-pill" id="toastBox" role="status" aria-live="polite">
       <span id="toastMessage"></span>
     </div>
   </div>
@@ -2127,17 +2323,23 @@
         groundLayerGroup.clearLayers();
         buildingLayerGroup.clearLayers();
 
-        // 1. Outdoor Areas (Ground, Courtyard, Tennis) - Non-interactive background
+        const isIndoor = (currentFloor !== 'outdoor');
+
+        // 1. 敷地通路・中庭広場（outdoorAreas） - 校舎内モードでも地面の歩行通路や中庭を明瞭に表示
         if (campusData.outdoorAreas) {
           campusData.outdoorAreas.forEach(area => {
+            const isCourtyard = area.name && area.name.includes('中庭');
+            const stroke = isIndoor ? (isCourtyard ? '#86efac' : '#cbd5e1') : (area.strokeColor || '#5fa66f');
+            const fill = isIndoor ? (isCourtyard ? '#dcfce7' : '#e2e8f0') : (area.color || '#8fd19e');
+
             const poly = L.polygon(area.polygon || area.coordinates, {
               pane: 'groundPane',
               interactive: false,
-              color: area.strokeColor || '#2e7d32',
+              color: stroke,
               weight: 1.5,
-              fillColor: area.color || '#a7f3d0',
-              fillOpacity: 0.55,
-              className: 'outdoor-polygon'
+              fillColor: fill,
+              fillOpacity: isIndoor ? 0.75 : 0.65,
+              className: `outdoor-polygon ${isCourtyard ? 'outdoor-courtyard' : 'outdoor-pathway'}`
             });
             groundLayerGroup.addLayer(poly);
           });
@@ -2146,6 +2348,9 @@
         // 2. Buildings Base Outline (with 1F Piloti Exclusion for Student Bldg) - Non-interactive background
         if (campusData.buildings) {
           campusData.buildings.forEach(bldg => {
+            // 体育館は全フロア共通のインタラクティブ図形（renderFloorPolygons）として描画するためここではスキップ
+            if (bldg.id === '体育館' || bldg.id === 'gym_bldg') return;
+
             const isStudentBldg = bldg.id === '生徒棟' || bldg.id === 'student_bldg' || (bldg.name && bldg.name.includes('生徒棟'));
             let polyList = [bldg.polygon || bldg.coordinates];
 
@@ -2188,13 +2393,18 @@
             }
 
             polyList.forEach(polyCoords => {
+              const stroke = bldg.strokeColor || '#94a3b8';
+              const fill = bldg.color || '#cbd5e1';
+              const weight = 1.5;
+              const opacity = isStudentBldg ? (isIndoor ? 0.85 : 0.4) : (isIndoor ? 0.5 : 0.6);
+
               const poly = L.polygon(polyCoords, {
                 pane: 'buildingPane',
                 interactive: false,
-                color: bldg.strokeColor || '#5e35b1',
-                weight: 2,
-                fillColor: bldg.color || '#7c5cff',
-                fillOpacity: isStudentBldg ? 0.15 : 0.65,
+                color: stroke,
+                weight: weight,
+                fillColor: fill,
+                fillOpacity: opacity,
                 className: 'building-polygon'
               });
               buildingLayerGroup.addLayer(poly);
@@ -2307,11 +2517,61 @@
       }
 
       // ==========================================================================
-      // Vector Polygon Rendering (Filtered by Floor)
+      // Vector Polygon Rendering (Filtered by Floor + Persistent Gym)
       // ==========================================================================
       function renderFloorPolygons() {
         floorVectorLayerGroup.clearLayers();
         polygonLayerMap.clear();
+
+        // 1. 体育館（全フロア・屋外問わず常時表示される1つのインタラクティブ図形）
+        const gymBldg = campusData.buildings && campusData.buildings.find(b => b.id === '体育館' || b.id === 'gym_bldg');
+        if (gymBldg) {
+          const gymPolyCoords = gymBldg.polygon || gymBldg.coordinates;
+
+          const gymPoly = L.polygon(gymPolyCoords, {
+            pane: 'indoorPane',
+            interactive: true,
+            color: '#6366f1',
+            weight: 2.5,
+            fillColor: '#ede9fe',
+            fillOpacity: 0.85,
+            className: 'room-polygon gym-polygon has-project cat-stage'
+          });
+
+          gymPoly._origColor = '#6366f1';
+          gymPoly._origFillColor = '#ede9fe';
+
+          gymPoly.on('click', (e) => {
+            if (e && e.originalEvent) {
+              L.DomEvent.stopPropagation(e);
+            }
+            selectRoom('room_gym_main', true);
+          });
+
+          // 体育館の幾何学的重心に「🎭 体育館」インルームバッジを配置
+          const gymCentroid = calculatePolygonCentroid(gymPolyCoords);
+          const gymBadgeIcon = L.divIcon({
+            className: 'in-room-badge-container',
+            html: `
+              <div class="in-room-badge cat-stage ${activeSelectedRoomId === 'room_gym_main' ? 'is-active' : ''}" data-room-id="room_gym_main">
+                <span class="badge-icon"><i class="fas fa-theater-masks"></i></span>
+                <span class="badge-text">体育館</span>
+              </div>
+            `,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+          });
+
+          const gymBadgeMarker = L.marker(gymCentroid, {
+            icon: gymBadgeIcon,
+            pane: 'markerPane',
+            interactive: false
+          });
+
+          polygonLayerMap.set('room_gym_main', gymPoly);
+          floorVectorLayerGroup.addLayer(gymPoly);
+          floorVectorLayerGroup.addLayer(gymBadgeMarker);
+        }
 
         if (currentFloor === 'outdoor') {
           renderPins();
@@ -2319,7 +2579,10 @@
         }
 
         const floorData = campusData.indoorFloors[currentFloor];
-        if (!floorData) return;
+        if (!floorData) {
+          renderPins();
+          return;
+        }
 
         // Corridors & Hallways (Unified Seamless Merging for Connected Corridors) - Non-interactive background
         if (floorData.corridors && floorData.corridors.length > 0) {
@@ -2471,16 +2734,32 @@
         pinLayerGroup.clearLayers();
 
         const filteredPins = joinedPins.filter(pin => {
-          // Floor check
-          if (currentFloor === 'outdoor') {
-            // Outdoor shows only spots and outdoor areas (not indoor classroom pins)
+          const isIndoorMode = (currentFloor !== 'outdoor');
+
+          if (!isIndoorMode) {
+            // 屋外・全景モード: 体育館は常時ポリゴンとして描画されるため外部ピンはスキップ
+            if (pin.roomId === 'room_gym_main') return false;
+            // 屋外スポット（テント、インフラ設備）をすべて表示
             if (pin.type !== 'spot') return false;
           } else {
+            // 校舎内モード (1F〜5F)
             const floorNum = parseInt(currentFloor, 10);
-            if (pin.floor !== floorNum) return false;
-            // Indoor classrooms use in-room floor plan badges rendered directly on the polygon,
-            // so we skip generating external pins for 'room' type to avoid clutter!
+
+            // 1. 屋内教室: インルームバッジで直接描画されるため外部ピンはスキップ
             if (pin.type === 'room') return false;
+
+            // 2. 体育館: 全フロア常時ポリゴン＋インルームバッジで描画されるため外部ピンはスキップ
+            if (pin.roomId === 'room_gym_main') return false;
+
+            // 3. 外の販売団体（中庭模擬店テントB〜F・昇降口前など）: 校舎内モードでも常時表示！
+            const isOutdoorVendor = (pin.type === 'spot' && (pin.category === 'food' || pin.category === 'shop' || (pin.projects && pin.projects.length > 0)));
+
+            // 4. 各階のお手洗い（屋内設備）
+            const isIndoorToilet = (pin.type === 'facility' && pin.floor === floorNum);
+
+            if (!isOutdoorVendor && !isIndoorToilet) {
+              return false;
+            }
           }
 
           // Category check
@@ -2572,7 +2851,8 @@
         if (!targetPin) return;
 
         // Switch floor if not currently matching (handles indoor-to-indoor and outdoor-to-indoor)
-        if (targetPin.floor && currentFloor !== targetPin.floor.toString()) {
+        // 体育館 (room_gym_main) は全階共通オブジェクトのため閲覧中フロアを強制変更しない
+        if (roomId !== 'room_gym_main' && targetPin.floor && currentFloor !== targetPin.floor.toString()) {
           setFloor(targetPin.floor.toString());
         }
 
@@ -2657,12 +2937,13 @@
             badgeIcon = 'fa-restroom';
           }
 
+          const locLabel = (pinModel.roomId === 'room_gym_main' || pinModel.type === 'spot') ? escapeHtml(pinModel.name) : `${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}`;
           container.innerHTML = `
             <div class="project-sheet-card">
               <div class="project-sheet-header">
                 <div class="project-tags-group">
                   <span class="category-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${escapeHtml(badgeText)}</span>
-                  <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}</span>
+                  <span class="location-badge"><i class="fas fa-location-dot"></i> ${locLabel}</span>
                 </div>
                 <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
                   <i class="fas fa-times"></i>
@@ -2693,7 +2974,7 @@
           return;
         }
 
-        // Multi-Project in same room (e.g. 作法室: 華道部 + 茶道部)
+        // Multi-Project in same room (e.g. 体育館 / 作法室: 華道部 + 茶道部)
         let pillsHtml = `<div class="multi-project-pills-bar" id="multiProjectPills">`;
         projects.forEach((p, idx) => {
           pillsHtml += `<button type="button" class="multi-pill-btn ${idx === 0 ? 'active' : ''}" data-index="${idx}">${escapeHtml(p.groupName || p.name)}</button>`;
@@ -2708,12 +2989,13 @@
         });
         cardsHtml += `</div>`;
 
+        const multiLocLabel = (pinModel.roomId === 'room_gym_main' || pinModel.type === 'spot') ? escapeHtml(pinModel.name) : `${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}`;
         container.innerHTML = `
           <div class="multi-project-wrapper">
             <div class="project-sheet-header" style="margin-bottom: 8px;">
               <div class="project-tags-group">
-                <span class="category-badge badge-shop"><i class="fas fa-layer-group"></i> 同室 ${projects.length}企画 出店中</span>
-                <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}</span>
+                <span class="category-badge badge-shop"><i class="fas fa-layer-group"></i> ${escapeHtml(pinModel.name)} ${projects.length}企画 開催</span>
+                <span class="location-badge"><i class="fas fa-location-dot"></i> ${multiLocLabel}</span>
               </div>
               <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
                 <i class="fas fa-times"></i>
@@ -2856,6 +3138,13 @@
       // ==========================================================================
       function setFloor(floor) {
         currentFloor = floor;
+        const container = document.querySelector('.map-app-container');
+
+        const isIndoor = (floor !== 'outdoor');
+        if (container) {
+          container.classList.toggle('mode-indoor', isIndoor);
+          container.classList.toggle('mode-outdoor', !isIndoor);
+        }
 
         // Update Floor Switcher Buttons
         document.querySelectorAll('.floor-pill-btn').forEach(btn => {
@@ -2925,7 +3214,9 @@
             if (themeIcon) {
               themeIcon.className = nextTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
-            showToast(nextTheme === 'dark' ? '🌙 ダークモード' : '☀️ ライトモード');
+            renderStaticBaseLayers();
+            renderFloorPolygons();
+            showToast(nextTheme === 'dark' ? '🌙 ダークモード' : '☀️ ライトモード', 1200);
           });
 
           // Sync initial icon

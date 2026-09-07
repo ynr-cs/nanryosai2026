@@ -459,17 +459,11 @@
     {
       "id": "新体育館",
       "name": "新体育館",
-      "category": "gym",
-      "floors": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "hasIndoor": true,
-      "color": "#7c5cff",
-      "strokeColor": "#5e35b1",
+      "category": "building",
+      "floors": [],
+      "hasIndoor": false,
+      "color": "#94a3b8",
+      "strokeColor": "#64748b",
       "polygon": [
         [
           35.386785,
@@ -508,10 +502,10 @@
       ],
       "buildingId": "",
       "style": {
-        "fillColor": "#7c5cff",
-        "strokeColor": "#5e35b1",
+        "fillColor": "#94a3b8",
+        "strokeColor": "#64748b",
         "fillOpacity": 0.4,
-        "weight": 2
+        "weight": 1.5
       }
     },
     {
@@ -1378,7 +1372,7 @@
   "spots": [
     {
       "id": "room_gym_main",
-      "name": "体育館 メインアリーナ",
+      "name": "体育館",
       "category": "stage",
       "floor": 1,
       "buildingId": "体育館",
@@ -1386,7 +1380,7 @@
         35.38648,
         139.58547
       ],
-      "icon": "fa-music",
+      "icon": "fa-theater-masks",
       "description": "体育館ステージ発表会場（演劇・ダンス・音楽・有志発表）"
     },
     {
