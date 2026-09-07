@@ -253,6 +253,9 @@
       .screen.active {
         display: flex;
       }
+      .screen > * {
+        flex-shrink: 0;
+      }
 
       @keyframes fadeIn {
         from {
@@ -273,16 +276,24 @@
         background: var(--primary-color);
         color: white;
         border: none;
-        padding: 11px 18px;
+        padding: 12px 18px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         border-radius: 12px;
         font-weight: 700;
         width: 100%;
-        font-size: 0.92rem;
+        font-size: 0.95rem;
+        line-height: 1.4;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transition:
           transform 0.2s,
           box-shadow 0.2s;
         letter-spacing: 0.03em;
+        text-decoration: none;
+        box-sizing: border-box;
       }
       .btn-primary-custom:active:not(:disabled) {
         transform: scale(0.96);
@@ -302,9 +313,18 @@
         animation: pulse-glow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         position: relative;
         overflow: hidden;
-        padding: 11px 18px;
-        border-radius: 12px;
-        font-size: 0.92rem;
+        padding: 14px 20px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #fff !important;
+        box-sizing: border-box;
       }
       #btn-finalize-order::after {
         content: '';
@@ -1037,7 +1057,8 @@
       /* ボタンのレスポンシブ縮小 */
       @media (max-height: 700px) {
         .btn-primary-custom {
-          padding: 14px 18px !important;
+          padding: 12px 18px !important;
+          min-height: 46px !important;
           font-size: 0.95rem !important;
         }
         .btn.py-3 {
@@ -1048,7 +1069,8 @@
 
       @media (max-height: 600px) {
         .btn-primary-custom {
-          padding: 11px 16px !important;
+          padding: 10px 16px !important;
+          min-height: 44px !important;
           font-size: 0.9rem !important;
         }
         .btn.py-3 {

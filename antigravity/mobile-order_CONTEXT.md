@@ -50,6 +50,14 @@ body {
   - CSS: `body.modal-open #bottom-bar { display: none !important; }` を適用。
   - JS: `itemModal` および `cartModal` の `show.bs.modal` / `hidden.bs.modal` イベントと連動させ、モーダル表示中は `#bottom-bar` を確実に非表示化し、モーダルが閉じた際にカートが空でなければ復元する二重防御を実装。
 
+### 1.7 ボタン最小高保証とフレックス縮小防止 (2026-09-07 更新 / v0.5.243)
+- **`.screen` 子要素の縮小防止**:
+  - `.screen > *` に `flex-shrink: 0;` を設定。内部スクロール前提の画面内で、カードやアラートやボタンが親Flexboxによって縦方向に押しつぶされる事故を原理的に防止。
+- **注文確定ボタンのサイズ保証**:
+  - `#btn-finalize-order` に `min-height: 52px;`, `padding: 14px 20px;`, `display: flex; align-items: center; justify-content: center;`, `flex-shrink: 0;` を適用。
+- **全プライマリボタンの共通基準**:
+  - `.btn-primary-custom` は `min-height: 48px;`, `flex-shrink: 0;` をデフォルトとし、低画面高時（メディアクエリ）でも最低 `44px` のタップターゲット（Apple HIG / Material Design準拠）を維持。
+
 ## 2. 認証とセッション管理 (Authentication)
 `mobile-order.html` の認証フローは `main/auth.js` と `main/login.html` に完全統合されています（SSOT: Single Source of Truth）。
 

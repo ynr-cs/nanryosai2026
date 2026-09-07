@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.243] モバイルオーダー（mobile-order.html）注文確定ボタンのフレックス圧縮・高さ潰れバグ完全解消 - 2026-09-07
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: `pos/mobile-order.html` の注文確認画面（`#step-checkout`）において、親Flexboxコンテナ（`.screen`）のフレックス圧縮（`flex-shrink: 1`）およびボタンの高さ未確保により、「注文を確定する」ボタン（`#btn-finalize-order`）がスリット状に平たく潰れ、テキストが上下見切れてタップ領域が損なわれていた問題を根本解消するため。
+
+### 修正 (Fixed) / 改善 (Changed)
+
+- **ボタンのフレックス圧縮防止と最小高確保 (`pos/mobile-order.html`)**:
+  - **`.screen` 子要素の縮小防止**: `.screen > *` に `flex-shrink: 0;` を設定し、スクロール前提の画面内でカード、アラート、ボタン等のUIパーツが勝手に潰れる現象を原理的に遮断。
+  - **`#btn-finalize-order` のサイズ・視認性強化**: `min-height: 52px;`, `padding: 14px 20px;`, `display: flex; align-items: center; justify-content: center;`, `flex-shrink: 0;`, `box-sizing: border-box;` を適用し、どんな端末幅・画面高でもリッチでタップしやすいボタンサイズを恒久保証。
+  - **`.btn-primary-custom` の共通化**: 全プライマリボタンに `min-height: 48px;`, `flex-shrink: 0;` を適用し、通知許可ボタンや規約同意ボタン等も含めて一貫した操作性を確立。
+  - **メディアクエリ調整**: 画面高が低い端末（`max-height: 700px / 600px`）でも `min-height: 46px / 44px` を下限として保持。
+
 ## [0.5.242] 校内マップ（map.html）教室全体・区画ハイライト形式（インドアフロアマップUI）への刷新 - 2026-09-07
 
 ### メタ情報
