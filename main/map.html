@@ -449,110 +449,376 @@
     }
 
     /* ==========================================================================
-       Glassmorphism Top Navigation Bar
+       App-Shell Top Header Customization for Map Viewer
        ========================================================================== */
-    .map-top-bar {
-      position: fixed;
-      top: calc(env(safe-area-inset-top, 12px) + 8px);
-      left: 12px;
-      right: 12px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 48px;
-      padding: 0 12px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      gap: 8px;
-    }
-
-    .top-bar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .top-bar-btn {
+    .app-header .top-bar-btn {
       width: 36px;
       height: 36px;
       border-radius: 50%;
       border: none;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.05);
       color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       text-decoration: none;
       transition: background-color 0.2s ease, transform 0.15s ease;
     }
 
-    .top-bar-btn:hover {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    [data-theme="dark"] .top-bar-btn:hover {
+    [data-theme="dark"] .app-header .top-bar-btn {
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .top-bar-btn:active {
+    .app-header .top-bar-btn:active {
       transform: scale(0.92);
     }
 
-    .top-bar-title {
+    /* ==========================================================================
+       Spring Pop-up Floating Dock & Tray (下からひょんっと出せるフッター)
+       ========================================================================== */
+    .map-dock-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 980;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .map-dock-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .map-dock-container {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 990;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 常駐するトリガーピルボタン（下部中央） */
+    .dock-pill-trigger {
+      pointer-events: auto;
+      margin-bottom: calc(env(safe-area-inset-bottom, 16px) + 14px);
+      background: var(--glass-bg, rgba(255, 255, 255, 0.88));
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3));
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16);
+      border-radius: 30px;
+      padding: 8px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .dock-pill-trigger:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .dock-pill-trigger:active {
+      transform: scale(0.95);
+    }
+
+    .dock-pill-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dock-icon {
+      color: var(--primary-color, #7c5cff);
+      font-size: 14px;
+    }
+
+    .dock-badge-active {
+      font-size: 11px;
+      background: var(--primary-color, #7c5cff);
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dock-arrow {
+      font-size: 11px;
+      color: var(--text-sub, #64748b);
+      transition: transform 0.3s ease;
+    }
+
+    /* ひょんっと下からスライドアップするトレイ本体 */
+    .map-dock-tray {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 520px;
+      background: var(--glass-bg, rgba(255, 255, 255, 0.94));
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.35));
+      border-bottom: none;
+      box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22);
+      transform: translateY(105%);
+      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      opacity: 0;
+      pointer-events: none;
+      box-sizing: border-box;
+      padding: 12px 16px calc(env(safe-area-inset-bottom, 16px) + 12px) 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .map-dock-container.is-open .map-dock-tray {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .map-dock-container.is-open .dock-pill-trigger {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(24px) scale(0.9);
+    }
+
+    .dock-tray-handle-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 4px 0 6px 0;
+      cursor: pointer;
+    }
+
+    .dock-tray-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--text-sub, #94a3b8);
+      opacity: 0.4;
+    }
+
+    .dock-tray-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .dock-tray-title {
       font-size: 14px;
       font-weight: 800;
       color: var(--text-main);
       display: flex;
       align-items: center;
       gap: 6px;
-      white-space: nowrap;
     }
 
-    .top-bar-title .badge-year {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 6px;
-      background: var(--primary-gradient);
-      color: #fff;
-    }
-
-    .top-bar-right {
+    .dock-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-sub);
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    /* ==========================================================================
-       Horizontal Category Filter Chips
-       ========================================================================== */
-    .category-filter-bar {
-      position: fixed;
-      top: calc(env(safe-area-inset-top, 12px) + 64px);
-      left: 0;
-      right: 0;
-      z-index: 950;
+    [data-theme="dark"] .dock-close-btn {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .dock-close-btn:hover {
+      color: var(--text-main);
+      transform: scale(1.05);
+    }
+
+    .dock-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dock-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-left: 2px;
+    }
+
+    /* トレイ内のカテゴリフィルターバー */
+    .dock-category-bar {
       display: flex;
       gap: 8px;
-      padding: 4px 16px;
       overflow-x: auto;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
-      pointer-events: none;
+      padding: 2px 2px 6px 2px;
     }
 
-    .category-filter-bar::-webkit-scrollbar {
+    .dock-category-bar::-webkit-scrollbar {
       display: none;
     }
 
+    /* アクセスルート案内ボタン */
+    .dock-action-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg, rgba(255, 255, 255, 0.6));
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    [data-theme="dark"] .dock-action-btn {
+      background: rgba(30, 41, 59, 0.7);
+    }
+
+    .dock-action-btn:hover {
+      background: var(--hover-bg, rgba(124, 92, 255, 0.08));
+      border-color: var(--primary-color);
+    }
+
+    .dock-action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .dock-action-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dock-action-icon {
+      font-size: 16px;
+      color: var(--primary-color);
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: rgba(124, 92, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dock-action-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dock-action-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .dock-action-arrow {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* トレイ内の共通ナビゲーションバー (app-bottom-nav 互換) */
+    .dock-bottom-nav {
+      position: static !important;
+      transform: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 58px !important;
+      border-radius: 18px !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      background: rgba(0, 0, 0, 0.03) !important;
+      border: 1px solid var(--glass-border) !important;
+    }
+
+    [data-theme="dark"] .dock-bottom-nav {
+      background: rgba(255, 255, 255, 0.04) !important;
+    }
+
+    .dock-bottom-nav .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 700;
+      flex: 1;
+      transition: all 0.2s ease;
+    }
+
+    .dock-bottom-nav .nav-item i {
+      font-size: 18px;
+    }
+
+    .dock-bottom-nav .nav-item:hover,
+    .dock-bottom-nav .nav-item.active {
+      color: var(--primary-color);
+    }
+
+    .dock-bottom-nav .nav-item.core-button .icon-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-gradient, linear-gradient(135deg, #7c5cff, #3b82f6));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(124, 92, 255, 0.35);
+    }
+
+    .dock-bottom-nav .nav-item.core-button .icon-circle i {
+      font-size: 14px;
+      color: #fff;
+    }
+
+    /* カテゴリチップの基本定義 */
     .filter-chip {
       pointer-events: auto;
       flex-shrink: 0;
@@ -1572,54 +1838,24 @@
     <!-- Map Div -->
     <div id="map"></div>
 
-    <!-- Top Navigation Bar -->
-    <header class="map-top-bar" role="banner">
-      <div class="top-bar-left">
+    <!-- App-Shell Unified Header -->
+    <header class="app-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
         <a href="index.html" class="top-bar-btn" aria-label="トップへ戻る">
           <i class="fas fa-arrow-left"></i>
         </a>
-        <div class="top-bar-title">
-          <span>校内マップ</span>
-          <span class="badge-year">'26</span>
-        </div>
+        <a href="index.html" class="app-logo">南陵祭'26</a>
       </div>
-      <div class="top-bar-right">
-        <button type="button" class="top-bar-btn" id="routeModalBtn" aria-label="アクセスルート案内">
-          <i class="fas fa-route"></i>
-        </button>
+      <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
+        <div id="header-order-status-container"></div>
         <button type="button" class="top-bar-btn" id="themeToggleBtn" aria-label="テーマ切り替え">
           <i class="fas fa-moon" id="themeIcon"></i>
         </button>
+        <button class="menu-btn" id="header-menu-btn" aria-label="メニューを開く">
+          <i class="fas fa-bars" style="font-size: 1.3rem;"></i>
+        </button>
       </div>
     </header>
-
-    <!-- Horizontal Category Filter Chips -->
-    <nav class="category-filter-bar" id="categoryFilter" role="tablist" aria-label="企画カテゴリ絞り込み">
-      <button type="button" class="filter-chip active" data-category="all" role="tab" aria-selected="true">
-        <i class="fas fa-layer-group"></i>
-        <span>すべて</span>
-      </button>
-      <button type="button" class="filter-chip" data-category="food" role="tab" aria-selected="false">
-        <i class="fas fa-utensils"></i>
-        <span>模擬店</span>
-      </button>
-      <button type="button" class="filter-chip" data-category="exhibit" role="tab" aria-selected="false">
-        <i class="fas fa-palette"></i>
-        <span>展示</span>
-      </button>
-      <button type="button" class="filter-chip" data-category="shop" role="tab" aria-selected="false">
-        <i class="fas fa-bag-shopping"></i>
-        <span>物販</span>
-      </button>
-      <button type="button" class="filter-chip" data-category="stage" role="tab" aria-selected="false">
-        <i class="fas fa-music"></i>
-        <span>ステージ</span>
-      </button>
-      <button type="button" class="filter-chip" data-category="facility" role="tab" aria-selected="false">
-        <i class="fas fa-restroom"></i>
-        <span>施設</span>
-      </button>
-    </nav>
 
     <!-- Right Slim Vertical Floor Switcher Pill -->
     <div class="floor-pill-container" id="floorSwitcher" role="radiogroup" aria-label="フロア選択">
@@ -1653,6 +1889,117 @@
       <button type="button" class="map-control-btn" id="resetViewBtn" aria-label="キャンパス全体を表示">
         <i class="fas fa-compass"></i>
       </button>
+    </div>
+
+    <!-- Spring Pop-up Floating Dock & Tray (下からひょんっと出せる収納式フッター) -->
+    <div class="map-dock-backdrop" id="dockBackdrop"></div>
+    <div class="map-dock-container" id="mapDock">
+      <!-- 常駐するトリガーピル（下部中央） -->
+      <div class="dock-pill-trigger" id="dockTrigger" role="button" tabindex="0" aria-label="絞り込みとメニューを開く">
+        <div class="dock-pill-content">
+          <i class="fas fa-compass dock-icon"></i>
+          <span class="dock-label">絞り込み & メニュー</span>
+          <span class="dock-badge-active" id="dockCategoryActiveBadge">すべて</span>
+          <i class="fas fa-chevron-up dock-arrow" id="dockArrow"></i>
+        </div>
+      </div>
+
+      <!-- 下からひょんっと飛び出すドロワートレイ -->
+      <div class="map-dock-tray" id="dockTray">
+        <div class="dock-tray-handle-bar" id="dockTrayHandle">
+          <div class="dock-tray-handle"></div>
+        </div>
+
+        <div class="dock-tray-header">
+          <div class="dock-tray-title">
+            <i class="fas fa-compass" style="color: var(--primary-color);"></i>
+            <span>マップメニュー & 絞り込み</span>
+          </div>
+          <button type="button" class="dock-close-btn" id="dockCloseBtn" aria-label="閉じる">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- 1. 企画カテゴリ絞り込みチップ -->
+        <div class="dock-group">
+          <div class="dock-group-title">
+            <span><i class="fas fa-layer-group me-1"></i> 企画カテゴリ絞り込み</span>
+          </div>
+          <nav class="category-filter-bar dock-category-bar" id="categoryFilter" role="tablist" aria-label="企画カテゴリ絞り込み">
+            <button type="button" class="filter-chip active" data-category="all" role="tab" aria-selected="true">
+              <i class="fas fa-layer-group"></i>
+              <span>すべて</span>
+            </button>
+            <button type="button" class="filter-chip" data-category="food" role="tab" aria-selected="false">
+              <i class="fas fa-utensils"></i>
+              <span>模擬店</span>
+            </button>
+            <button type="button" class="filter-chip" data-category="exhibit" role="tab" aria-selected="false">
+              <i class="fas fa-palette"></i>
+              <span>展示</span>
+            </button>
+            <button type="button" class="filter-chip" data-category="shop" role="tab" aria-selected="false">
+              <i class="fas fa-bag-shopping"></i>
+              <span>物販</span>
+            </button>
+            <button type="button" class="filter-chip" data-category="stage" role="tab" aria-selected="false">
+              <i class="fas fa-music"></i>
+              <span>ステージ</span>
+            </button>
+            <button type="button" class="filter-chip" data-category="facility" role="tab" aria-selected="false">
+              <i class="fas fa-restroom"></i>
+              <span>施設</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- 2. アクセスルート案内ボタン -->
+        <div class="dock-group">
+          <button type="button" class="dock-action-btn" id="routeModalBtn">
+            <div class="dock-action-left">
+              <div class="dock-action-icon">
+                <i class="fas fa-route"></i>
+              </div>
+              <div>
+                <div class="dock-action-text">来場アクセスルート案内</div>
+                <div class="dock-action-sub">洋光台北口・日野中央公園・日野小前ルート</div>
+              </div>
+            </div>
+            <i class="fas fa-chevron-right dock-action-arrow"></i>
+          </button>
+        </div>
+
+        <!-- 3. アプリ共通ボトムナビゲーション (app-bottom-nav 互換) -->
+        <div class="dock-group">
+          <div class="dock-group-title">
+            <span><i class="fas fa-compass me-1"></i> ページ移動</span>
+          </div>
+          <nav class="app-bottom-nav dock-bottom-nav" aria-label="ページ移動">
+            <a href="index.html" class="nav-item">
+              <i class="fas fa-house"></i>
+              <span class="nav-label">ホーム</span>
+            </a>
+            <a href="projects-list.html" class="nav-item">
+              <i class="fas fa-table-cells-large"></i>
+              <span class="nav-label">企画</span>
+            </a>
+            <a href="mobile-order.html" class="nav-item core-button">
+              <div class="icon-circle">
+                <i class="fas fa-bag-shopping"></i>
+              </div>
+              <span class="nav-label" style="font-weight: 800; color: var(--primary-color)">オーダー</span>
+            </a>
+            <a href="stage-list.html" class="nav-item">
+              <i class="fas fa-microphone"></i>
+              <span class="nav-label">ステージ</span>
+            </a>
+            <a href="account.html" class="nav-item">
+              <i class="fas fa-circle-user"></i>
+              <span class="nav-label">アカウント</span>
+            </a>
+          </nav>
+        </div>
+      </div>
     </div>
 
     <!-- 3-Stage Snap Bottom Sheet -->
@@ -3198,10 +3545,69 @@
           chip.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
+        // Update Floating Dock Active Badge
+        const dockBadge = document.getElementById('dockCategoryActiveBadge');
+        if (dockBadge) {
+          const catNames = {
+            all: 'すべて',
+            food: '模擬店',
+            exhibit: '展示',
+            shop: '物販',
+            stage: 'ステージ',
+            facility: '施設'
+          };
+          dockBadge.textContent = catNames[cat] || 'すべて';
+        }
+
         renderPins();
       }
 
       function initUiControls() {
+        // Floating Dock & Tray (下からひょんっと出せる収納式フッター)
+        const mapDock = document.getElementById('mapDock');
+        const dockBackdrop = document.getElementById('dockBackdrop');
+        const dockTrigger = document.getElementById('dockTrigger');
+        const dockCloseBtn = document.getElementById('dockCloseBtn');
+        const dockTrayHandle = document.getElementById('dockTrayHandle');
+
+        function openDock() {
+          if (!mapDock) return;
+          mapDock.classList.add('is-open');
+          if (dockBackdrop) dockBackdrop.classList.add('active');
+          if (dockTrigger) dockTrigger.setAttribute('aria-expanded', 'true');
+          // 企画詳細ボトムシートが開いている場合は収納して被りを防止
+          if (bottomSheet && bottomSheet.currentState !== bottomSheet.STATES.COLLAPSED) {
+            bottomSheet.snapTo(bottomSheet.STATES.COLLAPSED);
+          }
+        }
+
+        function closeDock() {
+          if (!mapDock) return;
+          mapDock.classList.remove('is-open');
+          if (dockBackdrop) dockBackdrop.classList.remove('active');
+          if (dockTrigger) dockTrigger.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleDock() {
+          if (!mapDock) return;
+          if (mapDock.classList.contains('is-open')) {
+            closeDock();
+          } else {
+            openDock();
+          }
+        }
+
+        if (dockTrigger) dockTrigger.addEventListener('click', toggleDock);
+        if (dockCloseBtn) dockCloseBtn.addEventListener('click', closeDock);
+        if (dockTrayHandle) dockTrayHandle.addEventListener('click', closeDock);
+        if (dockBackdrop) dockBackdrop.addEventListener('click', closeDock);
+
+        // 地図タップ・ドラッグ開始で下部ドックを自動収納
+        if (map) {
+          map.on('click', closeDock);
+          map.on('dragstart', closeDock);
+        }
+
         // Floor Switcher
         document.querySelectorAll('.floor-pill-btn').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -3213,6 +3619,8 @@
         document.querySelectorAll('.filter-chip').forEach(chip => {
           chip.addEventListener('click', () => {
             setCategory(chip.getAttribute('data-category'));
+            // 選択後に自動収納（視界開放）
+            setTimeout(closeDock, 200);
           });
         });
 
@@ -3540,5 +3948,8 @@
       }
     })();
   </script>
+
+  <!-- App Shell Integration -->
+  <script type="module" src="app-shell.js"></script>
 </body>
 </html>
