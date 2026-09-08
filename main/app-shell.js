@@ -33,7 +33,6 @@ const AppShell = {
     "account.html",
     "detail.html",
     "index.html",
-    "map.html",
     "mobile-order-guide.html",
     "privacy.html",
     "projects-list.html",

@@ -15,7 +15,7 @@ const dataVersion = "2026_OFFICIAL_RELEASE_V1";
 
 // =======================================================
 // ★ 機能公開フラグ (Feature Flags)
-// ※ マップ完成時に true に変更するだけでサイト全体が一括有効化されます
+// ※ マップ機能本番公開フラグ: true (サイト全体で常時オン有効化)
 // =======================================================
 if (typeof window !== "undefined") {
   window.IS_MAP_ENABLED = true;
@@ -40,7 +40,9 @@ const projectData = [
     description: "銭天堂をモチーフにした駄菓子屋さん！懐かしいお菓子やワクワクするお菓子をたくさんご用意しています！",
     tags: ["販売", "駄菓子"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "懐かしの駄菓子セット", price: "100円〜", description: "銭天堂モチーフ！様々な駄菓子を取り揃えています。", isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -58,7 +60,9 @@ const projectData = [
     description: "ジューシーで香ばしいフランクフルトを焼き立てでご提供！外テントでお待ちしています！",
     tags: ["食品", "フランクフルト", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "焼き立てフランクフルト", price: "200円", description: "ジューシーで香ばしいフランクフルトを焼き立てでご提供！", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -76,7 +80,9 @@ const projectData = [
     description: "溶ける前に恋しよう！冷たくて美味しいアイスをご用意してお待ちしています。",
     tags: ["販売", "アイス", "カフェ"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "特製カップアイス", price: "200円", description: "溶ける前に恋しよう！ひんやり美味しいアイス。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -112,7 +118,9 @@ const projectData = [
     description: "お客様が小さくなる!? 不思議の国のアリスの世界観を再現したオシャレなカフェです。",
     tags: ["販売", "カフェ", "スイーツ"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "ティーパーティー特製ドリンク", price: "200円", description: "不思議の国のアリスの世界観を楽しめるオシャレなドリンク。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -131,7 +139,9 @@ const projectData = [
     instagram: "chikara_0809",
     tags: ["販売", "菓子", "スイーツ"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "特製焼き菓子セット（クッキー・バームクーヘン）", price: "150円", description: "ヨーロッパの街並みにあるようなお菓子屋さんテーマの焼き菓子。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -206,7 +216,9 @@ const projectData = [
     instagram: "@_aoi_m__",
     tags: ["販売", "カフェ", "メイド喫茶"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "萌え萌えオムライス風スナック＆ドリンク", price: "250円", description: "メイド喫茶特製！愛情込めたおもてなしメニュー。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -242,7 +254,9 @@ const projectData = [
     description: "アメリカンダイナーをテーマにしたオシャレなカフェ！キンキンに冷えたドリンクをご用意！",
     tags: ["販売", "カフェ", "ドリンク"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "アメリカンダイナードリンク＆スナック", price: "200円", description: "キンキンに冷えたドリンクとアメリカンスナックをご用意！", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -321,7 +335,9 @@ const projectData = [
     description: "香ばしいタレと炭火の香り！三年二組の絶品焼き鳥をぜひご賞味ください！",
     tags: ["食品", "焼き鳥", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "炭火焼き鳥（タレ・塩）", price: "300円", description: "やっぱ、焼き鳥でしょ！炭火で香ばしく焼き上げます。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -357,7 +373,9 @@ const projectData = [
     description: "特製ダレが絡む絶品油うどん！食べごたえ抜群の千葉軒自慢の一杯をどうぞ！",
     tags: ["食品", "うどん", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "特製 油うどん", price: "350円", description: "たべなきゃ損！もちもち麺に秘伝のタレが絡む絶品油うどん。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -376,7 +394,9 @@ const projectData = [
     instagram: "@chi_otm_0918",
     tags: ["食品", "ペッパーランチ", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "藤本屋のペッパーランチ", price: "400円", description: "スパイシーな味付け！あの伝説の味を3-5で熱々再現。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -394,7 +414,9 @@ const projectData = [
     description: "ジューシーなお肉と特製ソースが絶品のケバブ！一口食べればみんな笑顔に！",
     tags: ["食品", "ケバブ", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "本格ケバブサンド", price: "400円", description: "お肉たっぷり！特製ソースが絶品のケバブ。", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
   {
@@ -412,7 +434,9 @@ const projectData = [
     description: "旨味たっぷりの特製牛タン！塩野谷自慢の香ばしい焼き立て牛タンをご堪能あれ！",
     tags: ["食品", "牛タン", "外テント"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      { name: "極上 牛タン焼き", price: "450円", description: "香ばしくジューシー！おいしい塩野谷の牛タンです！", isRecommended: true, isAvailable: true },
+    ],
     gallery: [],
   },
 
@@ -487,7 +511,15 @@ const projectData = [
     description: "静かな空間で、湯気の向こうに広がるひと時の余白――。茶道部がお届けする、抹茶と和菓子のひととき。見た目の美しさだけでなく、季節の移ろいや、おもてなしの心もご堪能いただけるだろう。どうぞ、足をお運びいただきたい。",
     tags: ["販売", "お茶会", "和", "体験"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      {
+        name: "お抹茶とお茶菓子セット",
+        price: "200円",
+        description: "お茶とともに静かなひとときを。本格抹茶とお菓子のセット。",
+        isRecommended: true,
+        isAvailable: true,
+      },
+    ],
     gallery: [],
   },
   {
@@ -682,8 +714,8 @@ const projectData = [
     groupName: "コンピューター科学部",
     name: "南陵祭'26 Webサイト＆モバイルオーダー",
     place: "Web / 生徒会本部・総合案内",
-    floor: 1,
-    roomId: "spot_info_entrance",
+    floor: null,
+    roomId: null,
     category: "exhibit",
     votingCategory: "exhibit",
     useMobileOrder: false,
@@ -699,9 +731,10 @@ const projectData = [
     loginId: "bousai",
     groupName: "防災委員",
     name: "高めよう防災意識",
-    place: "生徒棟 2F 廊下",
-    floor: 2,
-    roomId: "spot_corridor_2f",
+    place: "生徒棟 2F 廊下（配置調整中）",
+    floor: null,
+    roomId: null,
+    hiddenOnMap: true,
     category: "exhibit",
     votingCategory: "exhibit",
     useMobileOrder: false,
@@ -854,7 +887,14 @@ const projectData = [
     description: "PTAによる特別販売コーナー。便利で嬉しい品々を取り揃えて皆様をお迎えします！",
     tags: ["販売", "PTA", "ショップ"],
     contentType: "menu",
-    menu: [],
+    menu: [
+      {
+        name: "冷たいお飲み物各種（お茶・スポーツドリンク）",
+        price: "100円〜",
+        description: "冷たいお飲み物各種を取り揃えています。",
+        isAvailable: true,
+      },
+    ],
     gallery: [],
   },
   {
@@ -862,9 +902,10 @@ const projectData = [
     loginId: "senkyo",
     groupName: "選挙コーナー",
     name: "選挙の投票体験",
-    place: "生徒棟 2F 廊下 / 特設スペース",
-    floor: 2,
-    roomId: "spot_corridor_2f",
+    place: "生徒棟 2F 廊下 / 特設スペース（配置調整中）",
+    floor: null,
+    roomId: null,
+    hiddenOnMap: true,
     category: "exhibit",
     votingCategory: "exhibit",
     useMobileOrder: false,

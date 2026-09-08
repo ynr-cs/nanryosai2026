@@ -210,10 +210,10 @@
     }
 
     .map-app-container.mode-indoor path.corridor-overpass {
-      fill: #f3e8ff !important;
-      fill-opacity: 0.9 !important;
-      stroke: #a855f7 !important;
-      stroke-width: 2px !important;
+      fill: #f1f5f9 !important;
+      fill-opacity: 0.95 !important;
+      stroke: #cbd5e1 !important;
+      stroke-width: 1.5px !important;
     }
 
     .map-app-container.mode-indoor path.stairs-polygon {
@@ -223,11 +223,28 @@
       stroke-width: 2px !important;
     }
 
+    /* トイレポリゴン基本（ライトモード） */
     .map-app-container.mode-indoor path.toilet-polygon {
       fill: #e0f2fe !important;
       fill-opacity: 0.9 !important;
       stroke: #0284c7 !important;
       stroke-width: 1.5px !important;
+    }
+
+    /* トイレ（女子・ライトモード）: 華やかなピンク */
+    .map-app-container.mode-indoor path.toilet-polygon.toilet-female {
+      fill: #fce7f3 !important;
+      fill-opacity: 0.9 !important;
+      stroke: #db2777 !important;
+      stroke-width: 2px !important;
+    }
+
+    /* トイレ（男子・ライトモード）: 爽やかなブルー */
+    .map-app-container.mode-indoor path.toilet-polygon.toilet-male {
+      fill: #dbeafe !important;
+      fill-opacity: 0.9 !important;
+      stroke: #2563eb !important;
+      stroke-width: 2px !important;
     }
 
     .map-app-container.mode-indoor path.room-polygon.is-empty {
@@ -237,19 +254,14 @@
       stroke-width: 1.2px !important;
     }
 
-    /* 敷地通路・中庭広場（ライトモード）: 地面の道がはっきり見える！ */
-    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard {
-      fill: #dcfce7 !important; /* 爽やかな中庭芝生グリーン */
+    /* 敷地通路・中庭広場（ライトモード）: 境界面・境界線なしで一体化 */
+    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard,
+    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway,
+    path.outdoor-polygon {
+      fill: #dcfce7 !important; /* 爽やかな中庭・通路グリーン */
       fill-opacity: 0.75 !important;
-      stroke: #86efac !important;
-      stroke-width: 1.5px !important;
-    }
-
-    .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway {
-      fill: #e2e8f0 !important; /* 清潔な舗装通路 */
-      fill-opacity: 0.85 !important;
-      stroke: #cbd5e1 !important;
-      stroke-width: 1.5px !important;
+      stroke: none !important;
+      stroke-width: 0 !important;
     }
 
     /* Dark Mode Indoor Floor Plan (Vibrant Architectural High-Contrast) */
@@ -282,10 +294,10 @@
     }
 
     [data-theme="dark"] .map-app-container.mode-indoor path.corridor-overpass {
-      fill: #581c87 !important; /* 渡り廊下: パープル */
-      fill-opacity: 0.85 !important;
-      stroke: #c084fc !important;
-      stroke-width: 2px !important;
+      fill: #1e293b !important; /* 渡り廊下: 通常廊下と統一 */
+      fill-opacity: 0.95 !important;
+      stroke: #475569 !important;
+      stroke-width: 1.5px !important;
     }
 
     [data-theme="dark"] .map-app-container.mode-indoor path.stairs-polygon {
@@ -295,11 +307,28 @@
       stroke-width: 2px !important;
     }
 
+    /* トイレポリゴン基本（ダークモード） */
     [data-theme="dark"] .map-app-container.mode-indoor path.toilet-polygon {
       fill: #075985 !important; /* トイレ: スカイブルー */
       fill-opacity: 0.85 !important;
       stroke: #38bdf8 !important;
       stroke-width: 1.5px !important;
+    }
+
+    /* トイレ（女子・ダークモード）: 深みのあるローズピンク */
+    [data-theme="dark"] .map-app-container.mode-indoor path.toilet-polygon.toilet-female {
+      fill: #831843 !important;
+      fill-opacity: 0.85 !important;
+      stroke: #f472b6 !important;
+      stroke-width: 2px !important;
+    }
+
+    /* トイレ（男子・ダークモード）: 深みのあるインディゴブルー */
+    [data-theme="dark"] .map-app-container.mode-indoor path.toilet-polygon.toilet-male {
+      fill: #1e3a8a !important;
+      fill-opacity: 0.85 !important;
+      stroke: #60a5fa !important;
+      stroke-width: 2px !important;
     }
 
     [data-theme="dark"] .map-app-container.mode-indoor path.room-polygon.is-empty {
@@ -309,19 +338,14 @@
       stroke-width: 1.2px !important;
     }
 
-    /* 敷地通路・中庭広場（ダークモード）: 地面の道と中庭がクッキリ浮き上がる！ */
-    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard {
-      fill: #14281d !important; /* 深緑の中庭グリーン */
+    /* 敷地通路・中庭広場（ダークモード）: 境界面・境界線なしで一体化 */
+    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-courtyard,
+    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway,
+    [data-theme="dark"] path.outdoor-polygon {
+      fill: #14281d !important; /* 深緑の中庭・通路グリーン */
       fill-opacity: 0.88 !important;
-      stroke: #166534 !important; /* 落ち着いたグリーン境界線 */
-      stroke-width: 1.5px !important;
-    }
-
-    [data-theme="dark"] .map-app-container.mode-indoor path.outdoor-polygon.outdoor-pathway {
-      fill: #1e293b !important; /* ダークスレート舗装通路 */
-      fill-opacity: 0.92 !important;
-      stroke: #475569 !important; /* 明瞭な通路の境界線 */
-      stroke-width: 1.5px !important;
+      stroke: none !important;
+      stroke-width: 0 !important;
     }
 
     /* 企画のある教室（ネオングローハイライト） */
@@ -411,9 +435,10 @@
       flex-shrink: 0;
     }
 
+    .in-room-badge.cat-cooking .badge-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .in-room-badge.cat-food .badge-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .in-room-badge.cat-exhibit .badge-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
     .in-room-badge.cat-shop .badge-icon { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .in-room-badge.cat-exhibit .badge-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
     .in-room-badge.cat-stage .badge-icon { background: linear-gradient(135deg, #ef4444, #b91c1c); }
     .in-room-badge.cat-facility .badge-icon { background: linear-gradient(135deg, #06b6d4, #0e7490); }
 
@@ -438,384 +463,651 @@
       box-shadow: 0 0 12px rgba(255, 0, 128, 0.6) !important;
     }
 
-    /* Low zoom mode for in-room badges: compact */
-    .map-zoom-low .in-room-badge .badge-text {
-      max-width: 65px;
-      font-size: 9px;
+    /* ==========================================================================
+       Stage Venues (Gymnasium & Music Room) - Prominent Label Styles
+       ========================================================================== */
+    /* 一般ステージ企画（.cat-stage）: 通常教室(10px)より一回り大きく強調 */
+    .in-room-badge.cat-stage {
+      padding: 4px 10px;
+      border-radius: 14px;
+    }
+    .in-room-badge.cat-stage .badge-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
+    }
+    .in-room-badge.cat-stage .badge-text {
+      font-size: 12px;
+      max-width: 140px;
+      letter-spacing: -0.1px;
+    }
+
+    /* 音楽室ステージ (.is-music-room / special_room_337807_4f): 特別棟4Fの大型音楽室に合わせてさらに拡大 */
+    .in-room-badge.is-music-room,
+    .in-room-badge[data-room-id="special_room_337807_4f"] {
+      padding: 5px 12px;
+      border-radius: 16px;
+      border-color: rgba(239, 68, 68, 0.45);
+    }
+    .in-room-badge.is-music-room .badge-icon,
+    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-icon {
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+    }
+    .in-room-badge.is-music-room .badge-text,
+    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-text {
+      font-size: 13.5px;
+      font-weight: 800;
+      max-width: 170px;
+    }
+
+    /* 体育館メインステージ (.is-gym): 巨大ポリゴンにふさわしい特大ランドマークサイズ */
+    .in-room-badge.is-gym {
+      padding: 7px 16px;
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid rgba(239, 68, 68, 0.6);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35), 0 2px 6px rgba(0, 0, 0, 0.3);
+      gap: 8px;
+    }
+    [data-theme="light"] .in-room-badge.is-gym {
+      background: rgba(255, 255, 255, 0.98);
+      border: 2px solid #ef4444;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .in-room-badge.is-gym .badge-icon {
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    }
+    .in-room-badge.is-gym .badge-text {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      max-width: none;
+    }
+    .in-room-badge.is-gym .badge-gym-sub {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(239, 68, 68, 0.18);
+      color: #ef4444;
+      margin-left: 2px;
+    }
+
+    /* 天空の図書館 (.is-library / room_501_library): 生徒棟最上階5Fのシンボル特別施設 */
+    .in-room-badge.is-library,
+    .in-room-badge[data-room-id="room_501_library"] {
+      padding: 5px 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+      border: 1.5px solid #ffffff !important;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
+      color: #ffffff !important;
+    }
+    [data-theme="light"] .in-room-badge.is-library,
+    [data-theme="light"] .in-room-badge[data-room-id="room_501_library"] {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+      border: 1.5px solid #ffffff !important;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+      color: #ffffff !important;
+    }
+    .in-room-badge.is-library .badge-icon,
+    .in-room-badge[data-room-id="room_501_library"] .badge-icon {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+    }
+    .in-room-badge.is-library .badge-text,
+    .in-room-badge[data-room-id="room_501_library"] .badge-text {
+      color: #ffffff !important;
+      font-size: 12.5px;
+      font-weight: 800;
+      max-width: 140px;
+    }
+
+    /* ==========================================================================
+       Zoom-Adaptive & Anti-Collision Hierarchy for In-Room Badges
+       ========================================================================== */
+
+    /* 1. Low Zoom (Zoom <= 19): 俯瞰モード - 通常教室は丸アイコンのみで整然と配置（重なり完全ゼロ） */
+    .map-zoom-low .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) {
+      padding: 2px !important;
+      border-radius: 50% !important;
+      gap: 0 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+    }
+    .map-zoom-low .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-icon {
+      width: 20px !important;
+      height: 20px !important;
+      font-size: 10px !important;
+      margin: 0 !important;
+    }
+    .map-zoom-low .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-text,
+    .map-zoom-low .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-order-bolt {
+      display: none !important;
+    }
+
+    /* 2. Mid Zoom (Zoom 20): フロア全体モード - 上下千鳥配置（Stagger）で水平被りを完全回避 */
+    .map-zoom-mid .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library).stagger-top {
+      transform: translate(-50%, -80%) !important;
+    }
+    .map-zoom-mid .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library).stagger-bottom {
+      transform: translate(-50%, -20%) !important;
+    }
+    .map-zoom-mid .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) {
+      padding: 2px 6px !important;
+      border-radius: 10px !important;
+      gap: 4px !important;
+    }
+    .map-zoom-mid .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-icon {
+      width: 16px !important;
+      height: 16px !important;
+      font-size: 9px !important;
+    }
+    .map-zoom-mid .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-text {
+      font-size: 9.5px !important;
+      max-width: 55px !important;
+      letter-spacing: -0.3px !important;
+    }
+
+    /* 3. High Zoom (Zoom >= 21): 教室拡大モード - 教室が十分広いためフルテキスト展開 */
+    .map-zoom-high .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) {
+      transform: translate(-50%, -50%) !important;
+      padding: 3px 8px !important;
+      border-radius: 12px !important;
+    }
+    .map-zoom-high .in-room-badge:not(.is-gym):not(.is-music-room):not(.is-library) .badge-text {
+      max-width: 120px !important;
+      font-size: 11px !important;
+    }
+
+    /* 4. タップされたアクティブ教室は常に最前面＆拡大表示 */
+    .in-room-badge.is-active {
+      transform: translate(-50%, -50%) scale(1.18) !important;
+      z-index: 500 !important;
+      border-color: #ff0080 !important;
+      box-shadow: 0 0 16px rgba(255, 0, 128, 0.7) !important;
+    }
+    .in-room-badge.is-active .badge-text {
+      display: inline-block !important;
+      max-width: 130px !important;
+      font-size: 11px !important;
+    }
+
+    /* 5. 体育館・音楽室・図書館のランドマーク保持 */
+    .map-zoom-low .in-room-badge.is-gym {
+      padding: 5px 12px;
+    }
+    .map-zoom-low .in-room-badge.is-gym .badge-icon {
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+    }
+    .map-zoom-low .in-room-badge.is-gym .badge-text {
+      display: inline-block !important;
+      font-size: 13px;
+    }
+    .map-zoom-low .in-room-badge.is-music-room {
+      padding: 3px 8px;
+    }
+    .map-zoom-low .in-room-badge.is-music-room .badge-text,
+    .map-zoom-low .in-room-badge[data-room-id="special_room_337807_4f"] .badge-text {
+      display: inline-block !important;
+      font-size: 11px;
+      max-width: 90px;
+    }
+    .map-zoom-low .in-room-badge.is-library {
+      padding: 4px 10px;
+    }
+    .map-zoom-low .in-room-badge.is-library .badge-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+    }
+    .map-zoom-low .in-room-badge.is-library .badge-text {
+      display: inline-block !important;
+      font-size: 11px;
+      max-width: 100px;
+    }
+
+    /* 5F 生徒棟 屋上ガイドバッジ */
+    .rooftop-guide-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+    .rooftop-guide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(148, 163, 184, 0.2);
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      pointer-events: none !important;
+      user-select: none;
+    }
+    [data-theme="light"] .rooftop-guide-badge {
+      background: rgba(100, 116, 139, 0.12);
+      border: 1px dashed rgba(100, 116, 139, 0.5);
+      color: #64748b;
+    }
+
+    /* Stairs Centroid Badge (階段マーク & テキスト) */
+    .stairs-badge-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+
+    .stairs-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1.5px solid #ea580c;
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+      color: #c2410c;
+      white-space: nowrap;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+      z-index: 450;
+    }
+
+    [data-theme="dark"] .stairs-badge {
+      background: rgba(30, 15, 5, 0.92);
+      border: 1.5px solid #f97316;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+      color: #fdba74;
+    }
+
+    .stairs-badge .stairs-icon {
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .stairs-badge .stairs-text {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+
+    /* ズームが低いときはテキストを隠してアイコンだけにし、地図をスッキリさせる */
+    .map-zoom-low .stairs-badge {
+      padding: 2px;
+      border-radius: 6px;
+      gap: 0;
+    }
+    .map-zoom-low .stairs-badge .stairs-text {
+      display: none;
+    }
+
+    /* Toilet Centroid Badge (トイレ マーク & テキスト) */
+    .toilet-badge-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+
+    .toilet-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      white-space: nowrap;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+      z-index: 450;
+    }
+
+    .toilet-badge.toilet-female {
+      border: 1.5px solid #db2777;
+      box-shadow: 0 2px 6px rgba(219, 39, 119, 0.25);
+      color: #be185d;
+    }
+    .toilet-badge.toilet-female .toilet-icon {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+    }
+
+    .toilet-badge.toilet-male {
+      border: 1.5px solid #2563eb;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+      color: #1d4ed8;
+    }
+    .toilet-badge.toilet-male .toilet-icon {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    [data-theme="dark"] .toilet-badge.toilet-female {
+      background: rgba(40, 10, 25, 0.92);
+      border: 1.5px solid #f472b6;
+      box-shadow: 0 2px 8px rgba(244, 114, 182, 0.35);
+      color: #fbcfe8;
+    }
+    [data-theme="dark"] .toilet-badge.toilet-male {
+      background: rgba(10, 20, 45, 0.92);
+      border: 1.5px solid #60a5fa;
+      box-shadow: 0 2px 8px rgba(96, 165, 250, 0.35);
+      color: #bfdbfe;
+    }
+
+    .toilet-badge .toilet-icon {
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .toilet-badge .toilet-text {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+
+    /* ズームが低いときはテキストを隠してアイコンだけにし、地図をスッキリさせる */
+    .map-zoom-low .toilet-badge {
+      padding: 2px;
+      border-radius: 6px;
+      gap: 0;
+    }
+    .map-zoom-low .toilet-badge .toilet-text {
+      display: none;
+    }
+
+    /* 昇降口バッジ（1階フロアポリゴン内クリーンラベル） */
+    .entrance-badge-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+    .entrance-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1.5px solid #059669;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+      color: #047857;
+      white-space: nowrap;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+      z-index: 450;
+    }
+    [data-theme="dark"] .entrance-badge {
+      background: rgba(6, 30, 20, 0.92);
+      border: 1.5px solid #10b981;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+      color: #a7f3d0;
+    }
+    .entrance-badge .entrance-icon {
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .entrance-badge .entrance-text {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+    .map-zoom-low .entrance-badge {
+      padding: 2px;
+      border-radius: 6px;
+      gap: 0;
+    }
+    .map-zoom-low .entrance-badge .entrance-text {
+      display: none;
+    }
+
+    /* Facility Map Pin Toilet Color Specialization (ピンの男女色分け) */
+    .custom-map-pin.cat-facility.is-toilet-female .pin-body {
+      background: linear-gradient(135deg, #ec4899, #db2777) !important;
+      box-shadow: 0 3px 10px rgba(236, 72, 153, 0.45) !important;
+    }
+    .custom-map-pin.cat-facility.is-toilet-male .pin-body {
+      background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+      box-shadow: 0 3px 10px rgba(59, 130, 246, 0.45) !important;
     }
 
     [data-theme="dark"] .access-route-neon {
       filter: drop-shadow(0 0 8px currentColor);
     }
 
-    /* ==========================================================================
-       App-Shell Top Header Customization for Map Viewer
-       ========================================================================== */
-    .app-header .top-bar-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background-color 0.2s ease, transform 0.15s ease;
-    }
-
-    [data-theme="dark"] .app-header .top-bar-btn {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .app-header .top-bar-btn:active {
-      transform: scale(0.92);
+    /* マップ全画面アプリのためサイトマップフッターを完全非表示 */
+    .app-footer {
+      display: none !important;
     }
 
     /* ==========================================================================
-       Spring Pop-up Floating Dock & Tray (下からひょんっと出せるフッター)
+       Building Landmark Badges (主要ランドマーク デカ文字看板バッジ)
        ========================================================================== */
-    .map-dock-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-      z-index: 980;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
+    .bldg-landmark-badge-container {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
     }
 
-    .map-dock-backdrop.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .map-dock-container {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      z-index: 990;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* 常駐するトリガーピルボタン（下部中央） */
-    .dock-pill-trigger {
-      pointer-events: auto;
-      margin-bottom: calc(env(safe-area-inset-bottom, 16px) + 14px);
-      background: var(--glass-bg, rgba(255, 255, 255, 0.88));
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3));
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16);
-      border-radius: 30px;
-      padding: 8px 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .dock-pill-trigger:hover {
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
-    }
-
-    .dock-pill-trigger:active {
-      transform: scale(0.95);
-    }
-
-    .dock-pill-content {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .dock-icon {
-      color: var(--primary-color, #7c5cff);
-      font-size: 14px;
-    }
-
-    .dock-badge-active {
-      font-size: 11px;
-      background: var(--primary-color, #7c5cff);
-      color: #ffffff;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 700;
-      max-width: 90px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .dock-arrow {
-      font-size: 11px;
-      color: var(--text-sub, #64748b);
-      transition: transform 0.3s ease;
-    }
-
-    /* ひょんっと下からスライドアップするトレイ本体 */
-    .map-dock-tray {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      margin: 0 auto;
-      width: 100%;
-      max-width: 520px;
-      background: var(--glass-bg, rgba(255, 255, 255, 0.94));
-      backdrop-filter: blur(28px) saturate(200%);
-      -webkit-backdrop-filter: blur(28px) saturate(200%);
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.35));
-      border-bottom: none;
-      box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22);
-      transform: translateY(105%);
-      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-      opacity: 0;
-      pointer-events: none;
-      box-sizing: border-box;
-      padding: 12px 16px calc(env(safe-area-inset-bottom, 16px) + 12px) 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .map-dock-container.is-open .map-dock-tray {
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .map-dock-container.is-open .dock-pill-trigger {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(24px) scale(0.9);
-    }
-
-    .dock-tray-handle-bar {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      padding: 4px 0 6px 0;
-      cursor: pointer;
-    }
-
-    .dock-tray-handle {
-      width: 40px;
-      height: 4px;
-      border-radius: 2px;
-      background: var(--text-sub, #94a3b8);
-      opacity: 0.4;
-    }
-
-    .dock-tray-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 4px;
-    }
-
-    .dock-tray-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text-main);
-      display: flex;
+    .bldg-landmark-badge {
+      display: inline-flex;
       align-items: center;
       gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+      z-index: 550;
     }
 
-    .dock-close-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-sub);
+    [data-theme="light"] .bldg-landmark-badge {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1.5px solid rgba(15, 23, 42, 0.2);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+      color: #0f172a;
+    }
+
+    .bldg-landmark-badge .landmark-icon {
+      font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      flex-shrink: 0;
     }
 
-    [data-theme="dark"] .dock-close-btn {
-      background: rgba(255, 255, 255, 0.1);
+    [data-theme="light"] .bldg-landmark-badge .landmark-icon {
+      background: rgba(15, 23, 42, 0.08);
+      color: #0f172a;
     }
 
-    .dock-close-btn:hover {
-      color: var(--text-main);
-      transform: scale(1.05);
+    .bldg-landmark-badge .landmark-text {
+      line-height: 1.2;
     }
 
-    .dock-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    /* 校庭: でっかく看板表示（工程 誤字対応） */
+    .bldg-landmark-badge.is-ground {
+      padding: 6px 18px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      border: 2px solid #10b981;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+      background: rgba(6, 78, 59, 0.9);
+      color: #ecfdf5;
+    }
+    .bldg-landmark-badge.is-ground .landmark-icon {
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      background: #10b981;
+      color: #ffffff;
+    }
+    [data-theme="light"] .bldg-landmark-badge.is-ground {
+      background: rgba(236, 253, 245, 0.96);
+      border: 2px solid #059669;
+      color: #065f46;
+      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.25);
+    }
+    [data-theme="light"] .bldg-landmark-badge.is-ground .landmark-icon {
+      background: #059669;
+      color: #ffffff;
     }
 
-    .dock-group-title {
+    /* プール */
+    .bldg-landmark-badge.is-pool {
+      border-color: #0284c7;
+    }
+    .bldg-landmark-badge.is-pool .landmark-icon {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* 新体育館（身体育館 誤字対応） */
+    .bldg-landmark-badge.is-new-gym {
+      border-color: #8b5cf6;
+    }
+    .bldg-landmark-badge.is-new-gym .landmark-icon {
+      background: #8b5cf6;
+      color: #ffffff;
+    }
+
+    /* 格技場（閣議上 誤字対応） */
+    .bldg-landmark-badge.is-martial {
+      border-color: #f59e0b;
+    }
+    .bldg-landmark-badge.is-martial .landmark-icon {
+      background: #f59e0b;
+      color: #ffffff;
+    }
+
+    /* 健康福祉棟（健康福祉党 誤字対応） */
+    .bldg-landmark-badge.is-welfare {
+      border-color: #ec4899;
+    }
+    .bldg-landmark-badge.is-welfare .landmark-icon {
+      background: #ec4899;
+      color: #ffffff;
+    }
+
+    /* 管理棟 */
+    .bldg-landmark-badge.is-admin {
+      border-color: #6366f1;
+    }
+    .bldg-landmark-badge.is-admin .landmark-icon {
+      background: #6366f1;
+      color: #ffffff;
+    }
+
+    /* 正門（校門） */
+    .bldg-landmark-badge.is-gate {
+      border-color: #0d9488;
+    }
+    .bldg-landmark-badge.is-gate .landmark-icon {
+      background: #0d9488;
+      color: #ffffff;
+    }
+
+
+    /* ズームレベルに応じたスケーリング */
+    .map-zoom-low .bldg-landmark-badge:not(.is-ground) {
+      padding: 3px 8px;
       font-size: 11px;
-      font-weight: 700;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding-left: 2px;
+    }
+    .map-zoom-low .bldg-landmark-badge:not(.is-ground) .landmark-icon {
+      width: 16px;
+      height: 16px;
+      font-size: 9px;
+    }
+    .map-zoom-low .bldg-landmark-badge.is-ground {
+      padding: 4px 12px;
+      font-size: 13px;
     }
 
-    /* トレイ内のカテゴリフィルターバー */
-    .dock-category-bar {
+
+    /* ==========================================================================
+       Horizontal Category Filter Chips (ヘッダー直下)
+       ========================================================================== */
+    .category-filter-bar {
+      position: fixed;
+      top: calc(var(--header-height, 60px) + env(safe-area-inset-top, 0px) + 8px);
+      left: 0;
+      right: 0;
+      z-index: 850;
       display: flex;
       gap: 8px;
+      padding: 6px 16px;
       overflow-x: auto;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
-      padding: 2px 2px 6px 2px;
+      pointer-events: none;
     }
 
-    .dock-category-bar::-webkit-scrollbar {
+    .category-filter-bar::-webkit-scrollbar {
       display: none;
-    }
-
-    /* アクセスルート案内ボタン */
-    .dock-action-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--card-bg, rgba(255, 255, 255, 0.6));
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 10px 14px;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    [data-theme="dark"] .dock-action-btn {
-      background: rgba(30, 41, 59, 0.7);
-    }
-
-    .dock-action-btn:hover {
-      background: var(--hover-bg, rgba(124, 92, 255, 0.08));
-      border-color: var(--primary-color);
-    }
-
-    .dock-action-btn:active {
-      transform: scale(0.98);
-    }
-
-    .dock-action-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .dock-action-icon {
-      font-size: 16px;
-      color: var(--primary-color);
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: rgba(124, 92, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .dock-action-text {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .dock-action-sub {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .dock-action-arrow {
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    /* トレイ内の共通ナビゲーションバー (app-bottom-nav 互換) */
-    .dock-bottom-nav {
-      position: static !important;
-      transform: none !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      height: 58px !important;
-      border-radius: 18px !important;
-      box-shadow: none !important;
-      margin: 0 !important;
-      background: rgba(0, 0, 0, 0.03) !important;
-      border: 1px solid var(--glass-border) !important;
-    }
-
-    [data-theme="dark"] .dock-bottom-nav {
-      background: rgba(255, 255, 255, 0.04) !important;
-    }
-
-    .dock-bottom-nav .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      color: var(--text-sub);
-      text-decoration: none;
-      font-size: 10px;
-      font-weight: 700;
-      flex: 1;
-      transition: all 0.2s ease;
-    }
-
-    .dock-bottom-nav .nav-item i {
-      font-size: 18px;
-    }
-
-    .dock-bottom-nav .nav-item:hover,
-    .dock-bottom-nav .nav-item.active {
-      color: var(--primary-color);
-    }
-
-    .dock-bottom-nav .nav-item.core-button .icon-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--primary-gradient, linear-gradient(135deg, #7c5cff, #3b82f6));
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 10px rgba(124, 92, 255, 0.35);
-    }
-
-    .dock-bottom-nav .nav-item.core-button .icon-circle i {
-      font-size: 14px;
-      color: #fff;
     }
 
     /* カテゴリチップの基本定義 */
@@ -1070,9 +1362,10 @@
       background: #7c5cff;
     }
 
+    .cat-cooking .pin-body { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .cat-food .pin-body { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .cat-exhibit .pin-body { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
     .cat-shop .pin-body { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .cat-exhibit .pin-body { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
     .cat-stage .pin-body { background: linear-gradient(135deg, #ef4444, #b91c1c); }
     .cat-facility .pin-body { background: linear-gradient(135deg, #06b6d4, #0e7490); }
 
@@ -1259,24 +1552,11 @@
     /* ==========================================================================
        3-Stage Snap Bottom Sheet UI
        ========================================================================== */
-    .bottom-sheet-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
-      z-index: 1050;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
+    /* ボトムシートのバックドロップ（地図操作を100%妨げないよう完全非表示・非干渉化） */
+    .bottom-sheet-backdrop,
     .bottom-sheet-backdrop.active {
-      opacity: 1;
-      pointer-events: auto;
+      display: none !important;
+      pointer-events: none !important;
     }
 
     .bottom-sheet {
@@ -1295,14 +1575,14 @@
       border-left: 1px solid var(--glass-border);
       border-right: 1px solid var(--glass-border);
       border-radius: 24px 24px 0 0;
-      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.18);
       z-index: 1100;
       transform: translateY(100%);
       transition: transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.05);
       will-change: transform;
       display: flex;
       flex-direction: column;
-      touch-action: none;
+      pointer-events: auto;
     }
 
     .bottom-sheet.dragging {
@@ -1334,23 +1614,41 @@
       width: 54px;
     }
 
-    .bottom-sheet-content {
+    /* ボトムシート内部スクロールエリア（下部固定ナビバー被り防止＆端末セーフエリア完全対応） */
+    .bottom-sheet-content,
+    .sheet-content,
+    #sheetContent,
+    #bottomSheetContent {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
-      padding: 0 16px calc(24px + env(safe-area-inset-bottom, 20px)) 16px;
+      /* 固定ナビバー（高70px + bottom:20px〜34px）を余裕をもってクリアするパディング（約128px〜138px）を確保 */
+      padding: 0 16px calc(104px + env(safe-area-inset-bottom, 24px)) 16px;
       touch-action: pan-y;
+      box-sizing: border-box;
+    }
+
+    /* ボトムナビゲーションバー（ボトムシート連動スライド退避） */
+    .app-bottom-nav {
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease !important;
+    }
+    .app-bottom-nav.nav-hidden-by-sheet {
+      transform: translateX(-50%) translateY(140%) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
 
     /* ==========================================================================
        Project Card & Multi-Project Tab/Carousel Inside Sheet
        ========================================================================== */
-    .project-sheet-card {
+    .project-sheet-card,
+    .project-card {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      padding-bottom: 8px;
     }
 
     .project-sheet-header {
@@ -1379,9 +1677,10 @@
       border-radius: 6px;
     }
 
+    .badge-cooking { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
     .badge-food { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
-    .badge-exhibit { background: rgba(139, 92, 246, 0.18); color: #8b5cf6; }
     .badge-shop { background: rgba(236, 72, 153, 0.18); color: #ec4899; }
+    .badge-exhibit { background: rgba(139, 92, 246, 0.18); color: #8b5cf6; }
     .badge-stage { background: rgba(239, 68, 68, 0.18); color: #ef4444; }
     .badge-facility { background: rgba(6, 182, 212, 0.18); color: #06b6d4; }
 
@@ -1607,6 +1906,29 @@
       margin-left: 10px;
     }
 
+    .badge-sold-out {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .project-menu-item.is-sold-out {
+      opacity: 0.6;
+    }
+
+    .project-menu-item.is-sold-out .menu-item-name span:first-child {
+      text-decoration: line-through;
+    }
+
+    .project-menu-item.is-sold-out .menu-item-price {
+      color: #ef4444;
+      font-weight: 800;
+      font-size: 12.5px;
+    }
+
     /* Stage Timetable items */
     .stage-schedule-badge {
       display: inline-flex;
@@ -1649,6 +1971,279 @@
       color: #fff;
       border-color: var(--primary-color);
       box-shadow: 0 2px 8px rgba(106, 17, 203, 0.3);
+    }
+
+    /* ==========================================================================
+       Stage Venue Timeline UI (Gym & Music Room Bottom Sheet)
+       ========================================================================== */
+    .stage-timeline-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+
+    .timeline-count-chip {
+      font-size: 10px;
+      font-weight: 800;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      padding: 2px 7px;
+      border-radius: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    [data-theme="dark"] .timeline-count-chip {
+      background: rgba(239, 68, 68, 0.22);
+      color: #f87171;
+    }
+
+    .stage-day-tabs-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .stage-day-tab-btn {
+      flex: 1;
+      min-height: 34px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    [data-theme="dark"] .stage-day-tab-btn {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .stage-day-tab-btn.active {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #ffffff;
+      border-color: #ef4444;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .tab-count-badge {
+      font-size: 10.5px;
+      opacity: 0.85;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+
+    .stage-timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      padding-left: 16px;
+      margin-top: 2px;
+    }
+
+    /* タイムラインの縦線 */
+    .stage-timeline-list::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, #ef4444, rgba(239, 68, 68, 0.25));
+      border-radius: 2px;
+    }
+
+    .stage-timeline-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    /* タイムラインのドット */
+    .stage-timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -14px;
+      top: 5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+      z-index: 1;
+    }
+
+    [data-theme="dark"] .stage-timeline-item::before {
+      border-color: #0f172a;
+    }
+
+    .timeline-time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    [data-theme="dark"] .timeline-time-badge {
+      background: rgba(239, 68, 68, 0.22);
+      color: #fca5a5;
+    }
+
+    .stage-timeline-card,
+    .timeline-card {
+      background: rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    [data-theme="dark"] .stage-timeline-card,
+    [data-theme="dark"] .timeline-card {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .stage-timeline-card.is-current-project,
+    .timeline-card.is-current-project {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.05);
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
+    }
+
+    [data-theme="dark"] .stage-timeline-card.is-current-project,
+    [data-theme="dark"] .timeline-card.is-current-project {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.65);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .timeline-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .timeline-group-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      line-height: 1.2;
+    }
+
+    .badge-current-highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      padding: 1px 6px;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+      white-space: nowrap;
+    }
+
+    .timeline-event-name {
+      margin: 0;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .timeline-event-desc {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--text-sub);
+      margin-top: 1px;
+    }
+
+    .timeline-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2px;
+      padding-top: 5px;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .timeline-detail-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .timeline-detail-link:hover,
+    .timeline-detail-link:active {
+      background: #ef4444;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(239, 68, 68, 0.35);
+      transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .timeline-detail-link {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+
+    [data-theme="dark"] .timeline-detail-link:hover,
+    [data-theme="dark"] .timeline-detail-link:active {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .timeline-empty-state {
+      padding: 16px 12px;
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 8px;
+      border: 1px dashed var(--border-color);
     }
 
     /* ==========================================================================
@@ -1838,24 +2433,29 @@
     <!-- Map Div -->
     <div id="map"></div>
 
-    <!-- App-Shell Unified Header -->
-    <header class="app-header">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="index.html" class="top-bar-btn" aria-label="トップへ戻る">
-          <i class="fas fa-arrow-left"></i>
-        </a>
-        <a href="index.html" class="app-logo">南陵祭'26</a>
-      </div>
-      <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
-        <div id="header-order-status-container"></div>
-        <button type="button" class="top-bar-btn" id="themeToggleBtn" aria-label="テーマ切り替え">
-          <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
-        <button class="menu-btn" id="header-menu-btn" aria-label="メニューを開く">
-          <i class="fas fa-bars" style="font-size: 1.3rem;"></i>
-        </button>
-      </div>
-    </header>
+    <!-- Horizontal Category Filter Chips (ヘッダー直下: 南陵祭 公式4大ジャンル) -->
+    <nav class="category-filter-bar" id="categoryFilter" role="tablist" aria-label="企画ジャンル絞り込み">
+      <button type="button" class="filter-chip active" data-category="all" role="tab" aria-selected="true">
+        <i class="fas fa-layer-group"></i>
+        <span>すべて</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="cooking" role="tab" aria-selected="false">
+        <i class="fas fa-utensils"></i>
+        <span>調理</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="shop" role="tab" aria-selected="false">
+        <i class="fas fa-store"></i>
+        <span>販売</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="exhibit" role="tab" aria-selected="false">
+        <i class="fas fa-palette"></i>
+        <span>展示</span>
+      </button>
+      <button type="button" class="filter-chip" data-category="stage" role="tab" aria-selected="false">
+        <i class="fas fa-microphone"></i>
+        <span>ステージ</span>
+      </button>
+    </nav>
 
     <!-- Right Slim Vertical Floor Switcher Pill -->
     <div class="floor-pill-container" id="floorSwitcher" role="radiogroup" aria-label="フロア選択">
@@ -1889,117 +2489,10 @@
       <button type="button" class="map-control-btn" id="resetViewBtn" aria-label="キャンパス全体を表示">
         <i class="fas fa-compass"></i>
       </button>
-    </div>
 
-    <!-- Spring Pop-up Floating Dock & Tray (下からひょんっと出せる収納式フッター) -->
-    <div class="map-dock-backdrop" id="dockBackdrop"></div>
-    <div class="map-dock-container" id="mapDock">
-      <!-- 常駐するトリガーピル（下部中央） -->
-      <div class="dock-pill-trigger" id="dockTrigger" role="button" tabindex="0" aria-label="絞り込みとメニューを開く">
-        <div class="dock-pill-content">
-          <i class="fas fa-compass dock-icon"></i>
-          <span class="dock-label">絞り込み & メニュー</span>
-          <span class="dock-badge-active" id="dockCategoryActiveBadge">すべて</span>
-          <i class="fas fa-chevron-up dock-arrow" id="dockArrow"></i>
-        </div>
-      </div>
-
-      <!-- 下からひょんっと飛び出すドロワートレイ -->
-      <div class="map-dock-tray" id="dockTray">
-        <div class="dock-tray-handle-bar" id="dockTrayHandle">
-          <div class="dock-tray-handle"></div>
-        </div>
-
-        <div class="dock-tray-header">
-          <div class="dock-tray-title">
-            <i class="fas fa-compass" style="color: var(--primary-color);"></i>
-            <span>マップメニュー & 絞り込み</span>
-          </div>
-          <button type="button" class="dock-close-btn" id="dockCloseBtn" aria-label="閉じる">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <!-- 1. 企画カテゴリ絞り込みチップ -->
-        <div class="dock-group">
-          <div class="dock-group-title">
-            <span><i class="fas fa-layer-group me-1"></i> 企画カテゴリ絞り込み</span>
-          </div>
-          <nav class="category-filter-bar dock-category-bar" id="categoryFilter" role="tablist" aria-label="企画カテゴリ絞り込み">
-            <button type="button" class="filter-chip active" data-category="all" role="tab" aria-selected="true">
-              <i class="fas fa-layer-group"></i>
-              <span>すべて</span>
-            </button>
-            <button type="button" class="filter-chip" data-category="food" role="tab" aria-selected="false">
-              <i class="fas fa-utensils"></i>
-              <span>模擬店</span>
-            </button>
-            <button type="button" class="filter-chip" data-category="exhibit" role="tab" aria-selected="false">
-              <i class="fas fa-palette"></i>
-              <span>展示</span>
-            </button>
-            <button type="button" class="filter-chip" data-category="shop" role="tab" aria-selected="false">
-              <i class="fas fa-bag-shopping"></i>
-              <span>物販</span>
-            </button>
-            <button type="button" class="filter-chip" data-category="stage" role="tab" aria-selected="false">
-              <i class="fas fa-music"></i>
-              <span>ステージ</span>
-            </button>
-            <button type="button" class="filter-chip" data-category="facility" role="tab" aria-selected="false">
-              <i class="fas fa-restroom"></i>
-              <span>施設</span>
-            </button>
-          </nav>
-        </div>
-
-        <!-- 2. アクセスルート案内ボタン -->
-        <div class="dock-group">
-          <button type="button" class="dock-action-btn" id="routeModalBtn">
-            <div class="dock-action-left">
-              <div class="dock-action-icon">
-                <i class="fas fa-route"></i>
-              </div>
-              <div>
-                <div class="dock-action-text">来場アクセスルート案内</div>
-                <div class="dock-action-sub">洋光台北口・日野中央公園・日野小前ルート</div>
-              </div>
-            </div>
-            <i class="fas fa-chevron-right dock-action-arrow"></i>
-          </button>
-        </div>
-
-        <!-- 3. アプリ共通ボトムナビゲーション (app-bottom-nav 互換) -->
-        <div class="dock-group">
-          <div class="dock-group-title">
-            <span><i class="fas fa-compass me-1"></i> ページ移動</span>
-          </div>
-          <nav class="app-bottom-nav dock-bottom-nav" aria-label="ページ移動">
-            <a href="index.html" class="nav-item">
-              <i class="fas fa-house"></i>
-              <span class="nav-label">ホーム</span>
-            </a>
-            <a href="projects-list.html" class="nav-item">
-              <i class="fas fa-table-cells-large"></i>
-              <span class="nav-label">企画</span>
-            </a>
-            <a href="mobile-order.html" class="nav-item core-button">
-              <div class="icon-circle">
-                <i class="fas fa-bag-shopping"></i>
-              </div>
-              <span class="nav-label" style="font-weight: 800; color: var(--primary-color)">オーダー</span>
-            </a>
-            <a href="stage-list.html" class="nav-item">
-              <i class="fas fa-microphone"></i>
-              <span class="nav-label">ステージ</span>
-            </a>
-            <a href="account.html" class="nav-item">
-              <i class="fas fa-circle-user"></i>
-              <span class="nav-label">アカウント</span>
-            </a>
-          </nav>
-        </div>
-      </div>
+      <button type="button" class="map-control-btn" id="routeModalBtn" aria-label="来場アクセスルート案内" title="来場アクセスルート案内">
+        <i class="fas fa-route"></i>
+      </button>
     </div>
 
     <!-- 3-Stage Snap Bottom Sheet -->
@@ -2027,35 +2520,7 @@
         </div>
 
         <div class="route-option-list" id="routeOptions">
-          <button type="button" class="route-option-card" data-route-id="route_yokodai">
-            <div class="route-icon-box" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
-              <i class="fas fa-train"></i>
-            </div>
-            <div class="route-info">
-              <div class="route-name">洋光台北口ルート (徒歩5分)</div>
-              <div class="route-sub">洋光台北口バス停 〜 正門 (320m)</div>
-            </div>
-          </button>
-
-          <button type="button" class="route-option-card" data-route-id="route_hino_park">
-            <div class="route-icon-box" style="background: linear-gradient(135deg, #f97316, #ea580c);">
-              <i class="fas fa-tree"></i>
-            </div>
-            <div class="route-info">
-              <div class="route-name">日野中央公園ルート (徒歩8分)</div>
-              <div class="route-sub">公園入口 〜 正門 (580m)</div>
-            </div>
-          </button>
-
-          <button type="button" class="route-option-card" data-route-id="route_hino_elem">
-            <div class="route-icon-box" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-              <i class="fas fa-bus"></i>
-            </div>
-            <div class="route-info">
-              <div class="route-name">日野小学校前ルート (徒歩10分)</div>
-              <div class="route-sub">日野小学校前バス停 〜 正門 (700m)</div>
-            </div>
-          </button>
+          <!-- campusData.accessRoutes から動的に生成されます -->
         </div>
 
         <button type="button" class="btn-clear-route" id="clearRouteBtn">
@@ -2106,12 +2571,23 @@
         [35.385000, 139.586200]  // 南端
       ];
 
-      // Category styling metadata
+      // Helper function to resolve project's official 4-genre category
+      function getProjectCategory(project) {
+        if (!project) return 'exhibit';
+        if (project.votingCategory === 'cooking' || project.category === 'cooking') return 'cooking';
+        if (project.votingCategory === 'shop' || project.category === 'shop') return 'shop';
+        if (project.category === 'stage' || project.votingCategory === 'stage') return 'stage';
+        return project.category || 'exhibit';
+      }
+
+      // Category styling metadata (南陵祭 公式4大ジャンル: 調理・販売・展示・ステージ)
       const CATEGORY_META = {
-        food: { name: '模擬店', icon: 'fa-utensils', color: '#f59e0b', badgeClass: 'badge-food' },
+        cooking: { name: '調理', icon: 'fa-utensils', color: '#f59e0b', badgeClass: 'badge-cooking' },
+        food: { name: '調理', icon: 'fa-utensils', color: '#f59e0b', badgeClass: 'badge-cooking' },
+        shop: { name: '販売', icon: 'fa-store', color: '#ec4899', badgeClass: 'badge-shop' },
         exhibit: { name: '展示', icon: 'fa-palette', color: '#8b5cf6', badgeClass: 'badge-exhibit' },
-        shop: { name: '物販', icon: 'fa-bag-shopping', color: '#ec4899', badgeClass: 'badge-shop' },
-        stage: { name: 'ステージ', icon: 'fa-music', color: '#ef4444', badgeClass: 'badge-stage' },
+        stage: { name: 'ステージ', icon: 'fa-microphone', color: '#ef4444', badgeClass: 'badge-stage' },
+        // 下位互換・フォールバック
         facility: { name: '施設', icon: 'fa-circle-info', color: '#06b6d4', badgeClass: 'badge-facility' }
       };
 
@@ -2228,6 +2704,7 @@
 
         return [cLat, cLng];
       }
+      const calcPolygonCentroid = calculatePolygonCentroid;
 
       function resolveSpotCoordinate(target, campusMeta) {
         // Level 1: explicit coordinate
@@ -2289,7 +2766,7 @@
       }
 
       // ==========================================================================
-      // Bottom Sheet Controller (3-Stage Snap Engine)
+      // Bottom Sheet Controller (3-Stage Snap Engine - Non-blocking Map Drag)
       // ==========================================================================
       class BottomSheetController {
         constructor() {
@@ -2311,6 +2788,15 @@
           this.startTime = 0;
           this.isDragging = false;
 
+          // コンテンツエリア最上部からの引き下げ検知用
+          this.contentTouchStartY = 0;
+          this.contentTouchStartX = 0;
+          this.isContentDragCandidate = false;
+
+          // 動的登録・解除用のバインド関数
+          this._boundOnMove = this.onMove.bind(this);
+          this._boundOnEnd = this.onEnd.bind(this);
+
           this.initEvents();
           this.snapTo(this.STATES.COLLAPSED, false);
         }
@@ -2319,128 +2805,168 @@
           const vh = window.innerHeight;
           return {
             [this.STATES.COLLAPSED]: vh,
-            [this.STATES.PEEK]: vh * (1 - 0.38),
+            [this.STATES.PEEK]: vh * (1 - 0.42),
             [this.STATES.EXPANDED]: vh * (1 - 0.88)
           };
         }
 
         initEvents() {
-          const onStart = (e) => {
-            const pageY = e.touches ? e.touches[0].pageY : e.pageY;
-            const target = e.target;
-            const isHandle = this.handle.contains(target);
-            const isContentAtTop = this.content.scrollTop <= 0;
+          // 1. ハンドルバー領域でのドラッグ開始
+          const dragHandle = this.handle ? this.handle.parentElement : this.sheet.querySelector('.bottom-sheet-handle-bar');
+          const target = dragHandle || this.handle || this.sheet;
 
-            if (isHandle || isContentAtTop) {
-              this.isDragging = true;
-              this.startY = pageY;
-              this.startTime = Date.now();
-              this.startTranslateY = this.currentTranslateY;
-              this.sheet.classList.add('dragging');
-            }
-          };
+          target.addEventListener('touchstart', (e) => this.onStart(e), { passive: true });
+          target.addEventListener('mousedown', (e) => this.onStart(e));
 
-          const onMove = (e) => {
-            if (!this.isDragging) return;
-            const pageY = e.touches ? e.touches[0].pageY : e.pageY;
-            const deltaY = pageY - this.startY;
-
-            if (this.currentState === this.STATES.EXPANDED && deltaY < 0 && !this.handle.contains(e.target)) {
-              return;
-            }
-
-            let newTranslateY = this.startTranslateY + deltaY;
-            const snapPoints = this.getSnapPoints();
-
-            // Rubber-band resistance at top limit
-            const minSnap = snapPoints[this.STATES.EXPANDED];
-            if (newTranslateY < minSnap) {
-              const overshoot = minSnap - newTranslateY;
-              newTranslateY = minSnap - Math.pow(overshoot, 0.75);
-            }
-
-            this.currentTranslateY = newTranslateY;
-            this.sheet.style.transform = `translateY(${newTranslateY}px)`;
-
-            const maxSnap = snapPoints[this.STATES.PEEK];
-            const progress = Math.max(0, Math.min(1, (maxSnap - newTranslateY) / (maxSnap - minSnap)));
-            this.backdrop.style.opacity = (progress * 0.4).toString();
-            this.backdrop.style.pointerEvents = progress > 0.5 ? 'auto' : 'none';
-          };
-
-          const onEnd = (e) => {
-            if (!this.isDragging) return;
-            this.isDragging = false;
-            this.sheet.classList.remove('dragging');
-
-            const endTime = Date.now();
-            const deltaTime = Math.max(1, endTime - this.startTime);
-            const pageY = e.changedTouches ? e.changedTouches[0].pageY : e.pageY;
-            const deltaY = pageY - this.startY;
-            const velocity = deltaY / deltaTime;
-
-            const snapPoints = this.getSnapPoints();
-
-            // Velocity flick evaluation
-            if (velocity < -0.35) {
-              this.snapTo(this.STATES.EXPANDED);
-            } else if (velocity > 0.35) {
-              if (this.currentState === this.STATES.EXPANDED) {
+          // ハンドルバータップで PEEK ⇔ EXPANDED トグル
+          target.addEventListener('click', () => {
+            if (Date.now() - this.startTime < 250) {
+              if (this.currentState === this.STATES.PEEK) {
+                this.snapTo(this.STATES.EXPANDED);
+              } else if (this.currentState === this.STATES.EXPANDED) {
                 this.snapTo(this.STATES.PEEK);
-              } else {
-                this.snapTo(this.STATES.COLLAPSED);
               }
-            } else {
-              // Distance-based snapping
-              let closestState = this.STATES.COLLAPSED;
-              let minDiff = Infinity;
-              for (const [state, snapY] of Object.entries(snapPoints)) {
-                const diff = Math.abs(this.currentTranslateY - snapY);
-                if (diff < minDiff) {
-                  minDiff = diff;
-                  closestState = state;
-                }
-              }
-              this.snapTo(closestState);
-            }
-          };
-
-          this.sheet.addEventListener('touchstart', onStart, { passive: true });
-          window.addEventListener('touchmove', onMove, { passive: false });
-          window.addEventListener('touchend', onEnd, { passive: true });
-
-          // Mouse dragging support
-          this.handle.addEventListener('mousedown', onStart);
-          window.addEventListener('mousemove', onMove);
-          window.addEventListener('mouseup', onEnd);
-
-          // Handle double tap/click toggle
-          this.handle.addEventListener('click', () => {
-            if (this.currentState === this.STATES.PEEK) {
-              this.snapTo(this.STATES.EXPANDED);
-            } else if (this.currentState === this.STATES.EXPANDED) {
-              this.snapTo(this.STATES.PEEK);
             }
           });
 
-          // Backdrop tap
-          this.backdrop.addEventListener('click', () => {
+          // 2. コンテンツエリアでの引き下げドラッグ処理（expanded状態で最上部にあるとき、下スワイプでシート引き下げ開始）
+          if (this.content) {
+            this.content.addEventListener('touchstart', (e) => this.onContentTouchStart(e), { passive: true });
+            this.content.addEventListener('touchmove', (e) => this.onContentTouchMove(e), { passive: false });
+            this.content.addEventListener('touchend', (e) => this.onContentTouchEnd(e), { passive: true });
+            this.content.addEventListener('touchcancel', (e) => this.onContentTouchEnd(e), { passive: true });
+          }
+
+          // Window Resize
+          window.addEventListener('resize', () => this.handleResize());
+          window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.handleResize(), 150);
+          });
+        }
+
+        onContentTouchStart(e) {
+          if (!e.touches || e.touches.length !== 1) return;
+          this.contentTouchStartY = e.touches[0].pageY;
+          this.contentTouchStartX = e.touches[0].pageX;
+
+          // expanded 状態かつコンテンツ最上部（scrollTop <= 0）の場合のみ引き下げドラッグの候補とする
+          if (this.currentState === this.STATES.EXPANDED && (!this.content || this.content.scrollTop <= 0)) {
+            this.isContentDragCandidate = true;
+          } else {
+            this.isContentDragCandidate = false;
+          }
+        }
+
+        onContentTouchMove(e) {
+          if (!e.touches || e.touches.length !== 1) return;
+
+          // すでにシートドラッグ中の場合、ネイティブスクロールを抑止
+          if (this.isDragging) {
+            if (e.cancelable) e.preventDefault();
+            return;
+          }
+
+          if (this.isContentDragCandidate) {
+            const pageY = e.touches[0].pageY;
+            const pageX = e.touches[0].pageX;
+            const deltaY = pageY - this.contentTouchStartY;
+            const deltaX = pageX - this.contentTouchStartX;
+
+            // 下向きスワイプ（deltaY > 6）かつ縦方向の移動が横方向より大きく、最上部にある場合
+            if (deltaY > 6 && Math.abs(deltaY) > Math.abs(deltaX) && (!this.content || this.content.scrollTop <= 0)) {
+              if (e.cancelable) e.preventDefault();
+              this.isContentDragCandidate = false;
+              // シート全体の引き下げドラッグを開始
+              this.onStart(e);
+            } else if (deltaY < -6 || Math.abs(deltaX) > Math.abs(deltaY)) {
+              // 上向き（コンテンツスクロール）または横スワイプの場合は候補から除外
+              this.isContentDragCandidate = false;
+            }
+          }
+        }
+
+        onContentTouchEnd(e) {
+          this.isContentDragCandidate = false;
+        }
+
+        onStart(e) {
+          const pageY = e.touches ? e.touches[0].pageY : e.pageY;
+          this.isDragging = true;
+          this.startY = pageY;
+          this.startTime = Date.now();
+          this.startTranslateY = this.currentTranslateY;
+          this.sheet.classList.add('dragging');
+
+          // ドラッグ中のみ一時的に window にイベントリスナーを登録
+          window.addEventListener('touchmove', this._boundOnMove, { passive: false });
+          window.addEventListener('touchend', this._boundOnEnd, { passive: true });
+          window.addEventListener('touchcancel', this._boundOnEnd, { passive: true });
+          window.addEventListener('mousemove', this._boundOnMove);
+          window.addEventListener('mouseup', this._boundOnEnd);
+        }
+
+        onMove(e) {
+          if (!this.isDragging) return;
+          if (e.cancelable) e.preventDefault();
+          const pageY = e.touches ? e.touches[0].pageY : e.pageY;
+          const deltaY = pageY - this.startY;
+
+          let newTranslateY = this.startTranslateY + deltaY;
+          const snapPoints = this.getSnapPoints();
+
+          // 上限ラバーバンド
+          const minSnap = snapPoints[this.STATES.EXPANDED];
+          if (newTranslateY < minSnap) {
+            const overshoot = minSnap - newTranslateY;
+            newTranslateY = minSnap - Math.pow(overshoot, 0.75);
+          }
+
+          this.currentTranslateY = newTranslateY;
+          this.sheet.style.transform = `translateY(${newTranslateY}px)`;
+        }
+
+        onEnd(e) {
+          if (!this.isDragging) return;
+          this.isDragging = false;
+          this.sheet.classList.remove('dragging');
+
+          // ドラッグ終了と同時に window リスナーを即時全解除（地図のドラッグに一切干渉させない）
+          window.removeEventListener('touchmove', this._boundOnMove);
+          window.removeEventListener('touchend', this._boundOnEnd);
+          window.removeEventListener('touchcancel', this._boundOnEnd);
+          window.removeEventListener('mousemove', this._boundOnMove);
+          window.removeEventListener('mouseup', this._boundOnEnd);
+
+          const endTime = Date.now();
+          const deltaTime = Math.max(1, endTime - this.startTime);
+          const pageY = (e && e.changedTouches) ? e.changedTouches[0].pageY : ((e && e.pageY !== undefined) ? e.pageY : this.startY);
+          const deltaY = pageY - this.startY;
+          const velocity = deltaY / deltaTime;
+
+          const snapPoints = this.getSnapPoints();
+
+          // 速度によるフリックスナップ
+          if (velocity < -0.3) {
+            this.snapTo(this.STATES.EXPANDED);
+          } else if (velocity > 0.3) {
             if (this.currentState === this.STATES.EXPANDED) {
               this.snapTo(this.STATES.PEEK);
             } else {
               this.snapTo(this.STATES.COLLAPSED);
             }
-          });
-
-          // Window Resize & Orientation Change Handling
-          window.addEventListener('resize', () => {
-            this.handleResize();
-          });
-          window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-              this.handleResize();
-            }, 150);
-          });
+          } else {
+            // 距離による最近傍スナップ
+            let closestState = this.STATES.COLLAPSED;
+            let minDiff = Infinity;
+            for (const [state, snapY] of Object.entries(snapPoints)) {
+              const diff = Math.abs(this.currentTranslateY - snapY);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestState = state;
+              }
+            }
+            this.snapTo(closestState);
+          }
         }
 
         handleResize() {
@@ -2449,9 +2975,34 @@
           }
         }
 
+        updateBottomNavVisibility(state) {
+          const targetState = state || this.currentState;
+          const bottomNav = document.querySelector('.app-bottom-nav');
+          if (!bottomNav) {
+            // app-shell.js の遅延マウント対策
+            requestAnimationFrame(() => {
+              const nav = document.querySelector('.app-bottom-nav');
+              if (nav) {
+                if (targetState === this.STATES.PEEK || targetState === this.STATES.EXPANDED) {
+                  nav.classList.add('nav-hidden-by-sheet');
+                } else {
+                  nav.classList.remove('nav-hidden-by-sheet');
+                }
+              }
+            });
+            return;
+          }
+          if (targetState === this.STATES.PEEK || targetState === this.STATES.EXPANDED) {
+            bottomNav.classList.add('nav-hidden-by-sheet');
+          } else {
+            bottomNav.classList.remove('nav-hidden-by-sheet');
+          }
+        }
+
         snapTo(state, animate = true) {
           this.currentState = state;
           this.sheet.setAttribute('data-state', state);
+          this.updateBottomNavVisibility(state);
           const snapPoints = this.getSnapPoints();
           this.currentTranslateY = snapPoints[state];
 
@@ -2462,13 +3013,6 @@
             this.sheet.classList.remove('dragging');
           } else {
             this.sheet.style.transform = `translateY(${this.currentTranslateY}px)`;
-          }
-
-          if (state === this.STATES.EXPANDED) {
-            this.backdrop.classList.add('active');
-          } else {
-            this.backdrop.classList.remove('active');
-            this.backdrop.style.opacity = '';
           }
 
           if (state === this.STATES.COLLAPSED) {
@@ -2488,6 +3032,8 @@
 
         validProjects.forEach(p => {
           if (!p.roomId) return;
+          // コンピューター科学部（Web/システム開発運用）、防災委員・選挙コーナー（現段階で未配置）はマップ上のピン生成から除外
+          if (p.id === 'cs' || p.id === 'bousai' || p.id === 'senkyo' || p.hiddenOnMap) return;
           if (!projectsByRoom.has(p.roomId)) {
             projectsByRoom.set(p.roomId, []);
           }
@@ -2510,12 +3056,13 @@
                 // Only generate map pins for rooms hosting active festival projects!
                 // Empty classrooms, prep rooms, and staff rooms remain interactive as vector polygons (sheet opens on tap)
                 // without cluttering the map with redundant pins.
-                if (linkedProjects.length === 0) {
+                const isSpecialFacility = (room.roomId === 'room_501_library') || (room.category === 'special_room' && room.floor === 5) || (room.name && room.name.includes('天空の図書館'));
+                if (linkedProjects.length === 0 && !isSpecialFacility) {
                   return;
                 }
 
                 const coord = resolveSpotCoordinate(room, campus);
-                const primaryCat = determinePrimaryCategory(room, linkedProjects);
+                const primaryCat = isSpecialFacility ? 'facility' : determinePrimaryCategory(room, linkedProjects);
 
                 pins.push({
                   id: `pin_${room.roomId}`,
@@ -2529,39 +3076,22 @@
                   isMulti: linkedProjects.length > 1,
                   category: primaryCat,
                   hasMobileOrder: linkedProjects.some(p => p.useMobileOrder === true),
-                  isFacility: false,
+                  isFacility: isSpecialFacility || false,
                   rawRoom: room
                 });
               });
             }
 
-            // Toilets & Restrooms (Generated as Compact Facility Pins)
-            if (floorData.toilets) {
-              floorData.toilets.forEach((toilet, idx) => {
-                const coord = resolveSpotCoordinate(toilet, campus);
-                pins.push({
-                  id: `pin_toilet_${floorNum}_${idx}`,
-                  roomId: toilet.id || `toilet_${floorNum}_${idx}`,
-                  name: toilet.name || 'お手洗い',
-                  floor: floorNum,
-                  type: 'facility',
-                  coord: coord,
-                  polygon: toilet.polygon || toilet.coordinates,
-                  projects: [],
-                  isMulti: false,
-                  category: 'facility',
-                  hasMobileOrder: false,
-                  isFacility: true,
-                  rawSpot: { icon: 'fa-restroom', description: `${floorNum}F お手洗い`, ...toilet }
-                });
-              });
-            }
+            // Toilets & Restrooms: renderFloorPolygons で .toilet-badge（男女別・多機能）として描画されるため、
+            // マーカーピン重複（ピンとバッジの重複表示）を完全防止するために pins 配列への追加は行わない
           });
         }
 
         // 2. Outdoor & Special Spots (spots)
         if (campus.spots) {
           campus.spots.forEach(spot => {
+            // 2F渡り廊下スポット（spot_corridor_2f）は現段階で企画配置未定のためピン非表示
+            if (spot.id === 'spot_corridor_2f') return;
             const linkedProjects = projectsByRoom.get(spot.id) || [];
             const coord = resolveSpotCoordinate(spot, campus);
             const primaryCat = determinePrimaryCategory(spot, linkedProjects);
@@ -2592,10 +3122,10 @@
         if (!projects || projects.length === 0) {
           return 'facility';
         }
-        if (projects.some(p => p.category === 'food')) return 'food';
-        if (projects.some(p => p.category === 'stage')) return 'stage';
-        if (projects.some(p => p.category === 'shop')) return 'shop';
-        return projects[0].category || 'exhibit';
+        if (projects.some(p => getProjectCategory(p) === 'cooking')) return 'cooking';
+        if (projects.some(p => getProjectCategory(p) === 'shop')) return 'shop';
+        if (projects.some(p => getProjectCategory(p) === 'stage')) return 'stage';
+        return getProjectCategory(projects[0]) || 'exhibit';
       }
 
       // ==========================================================================
@@ -2668,20 +3198,25 @@
           if (tileErrorCount > 0) tileErrorCount--;
         });
 
-        // Zoom Level Adaptive Optimization (Controls label compaction)
+        // Zoom Level Adaptive Optimization (Controls label compaction & staggering)
         function updateMapZoomClasses() {
           const z = map.getZoom();
           const container = map.getContainer();
           if (container) {
-            if (z <= 18) {
-              container.classList.add('map-zoom-low');
-            } else {
-              container.classList.remove('map-zoom-low');
-            }
+            container.classList.toggle('map-zoom-low', z <= 19);
+            container.classList.toggle('map-zoom-mid', z === 20);
+            container.classList.toggle('map-zoom-high', z >= 21);
           }
         }
         map.on('zoomend', updateMapZoomClasses);
         updateMapZoomClasses();
+
+        // 地図をドラッグ開始したら、EXPANDEDになっているシートをPEEKに縮小して視界を広げる
+        map.on('dragstart', () => {
+          if (bottomSheet && bottomSheet.currentState === bottomSheet.STATES.EXPANDED) {
+            bottomSheet.snapTo(bottomSheet.STATES.PEEK);
+          }
+        });
 
         // Tap empty map area to collapse bottom sheet and clear active highlights
         map.on('click', () => {
@@ -2703,21 +3238,19 @@
 
         const isIndoor = (currentFloor !== 'outdoor');
 
-        // 1. 敷地通路・中庭広場（outdoorAreas） - 校舎内モードでも地面の歩行通路や中庭を明瞭に表示
+        // 1. 敷地通路・中庭広場（outdoorAreas） - 境界面・境界線を作らずシームレスに一体化した道として表示
         if (campusData.outdoorAreas) {
           campusData.outdoorAreas.forEach(area => {
-            const isCourtyard = area.name && area.name.includes('中庭');
-            const stroke = isIndoor ? (isCourtyard ? '#86efac' : '#cbd5e1') : (area.strokeColor || '#5fa66f');
-            const fill = isIndoor ? (isCourtyard ? '#dcfce7' : '#e2e8f0') : (area.color || '#8fd19e');
+            const fill = isIndoor ? '#dcfce7' : (area.color || '#8fd19e');
 
             const poly = L.polygon(area.polygon || area.coordinates, {
               pane: 'groundPane',
               interactive: false,
-              color: stroke,
-              weight: 1.5,
+              stroke: false,
+              weight: 0,
               fillColor: fill,
               fillOpacity: isIndoor ? 0.75 : 0.65,
-              className: `outdoor-polygon ${isCourtyard ? 'outdoor-courtyard' : 'outdoor-pathway'}`
+              className: 'outdoor-polygon outdoor-courtyard'
             });
             groundLayerGroup.addLayer(poly);
           });
@@ -2759,14 +3292,64 @@
                 ];
                 polyList = [mainBldg, eastBldg];
               } else if (currentFloor === '5') {
-                polyList = [[
+                const libraryPoly = [
                   [35.386224, 139.585937],
                   [35.386229, 139.586080],
                   [35.386302, 139.586079],
                   [35.386305, 139.586211],
                   [35.386129, 139.586218],
                   [35.386123, 139.585940]
-                ]];
+                ];
+                polyList = [libraryPoly];
+
+                // 5F選択時: 4F以下の生徒棟メイン棟本体を「屋上（点線枠）」として薄く描画
+                const mainBldg = [
+                  [35.386522, 139.585021],
+                  [35.386520, 139.585153],
+                  [35.386245, 139.585142],
+                  [35.386230, 139.585545],
+                  [35.386229, 139.585608],
+                  [35.386226, 139.585734],
+                  [35.386484, 139.585749],
+                  [35.386478, 139.585877],
+                  [35.386240, 139.585871],
+                  [35.386243, 139.585794],
+                  [35.386224, 139.585793],
+                  [35.386222, 139.585911],
+                  [35.386118, 139.585915],
+                  [35.386144, 139.585004]
+                ];
+
+                const rooftopPoly = L.polygon(mainBldg, {
+                  pane: 'buildingPane',
+                  interactive: false,
+                  color: '#94a3b8',
+                  weight: 1.5,
+                  dashArray: '4, 4',
+                  fillColor: '#94a3b8',
+                  fillOpacity: 0.1,
+                  className: 'building-polygon rooftop-polygon'
+                });
+                buildingLayerGroup.addLayer(rooftopPoly);
+
+                // 重心位置に「生徒棟 屋上」のガイドバッジを表示
+                const rooftopCentroid = calcPolygonCentroid(mainBldg);
+                const rooftopBadge = L.divIcon({
+                  className: 'rooftop-guide-container',
+                  html: `
+                    <div class="rooftop-guide-badge">
+                      <i class="fas fa-layer-group"></i> 生徒棟 屋上
+                    </div>
+                  `,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                });
+                const rooftopMarker = L.marker(rooftopCentroid, {
+                  icon: rooftopBadge,
+                  pane: 'markerPane',
+                  interactive: false
+                });
+                buildingLayerGroup.addLayer(rooftopMarker);
               }
             }
 
@@ -2789,6 +3372,125 @@
             });
           });
         }
+
+        // 3. 校内主要ランドマークのデカ文字看板バッジ描画（校庭・プール・新体育館・格技場・健康福祉棟・管理棟・正門）
+        renderLandmarkBadges();
+      }
+
+      // ==========================================================================
+      // Building & Landmark High-Visibility Signboard Badges
+      // ==========================================================================
+      function renderLandmarkBadges() {
+        if (!campusData) return;
+
+        const badges = [];
+
+        // (1) 校庭: でっかく「校庭」と表示（ユーザー音声入力「工程」の誤字対応）
+        const groundBldg = campusData.buildings && campusData.buildings.find(b => b.id === '校庭' || b.name === '校庭');
+        if (groundBldg) {
+          badges.push({
+            id: 'landmark_ground',
+            coords: calcPolygonCentroid(groundBldg.polygon || groundBldg.coordinates),
+            className: 'bldg-landmark-badge is-ground',
+            icon: 'fas fa-futbol',
+            label: '校庭'
+          });
+        }
+
+        // (2) プール: 「プール」と表示
+        const poolBldg = campusData.buildings && campusData.buildings.find(b => b.id === 'プール' || b.name === 'プール');
+        if (poolBldg) {
+          badges.push({
+            id: 'landmark_pool',
+            coords: calcPolygonCentroid(poolBldg.polygon || poolBldg.coordinates),
+            className: 'bldg-landmark-badge is-pool',
+            icon: 'fas fa-swimming-pool',
+            label: 'プール'
+          });
+        }
+
+        // (3) 新体育館: 「新体育館」と表示（ユーザー音声入力「身体育館」の誤字対応）
+        const newGymBldg = campusData.buildings && campusData.buildings.find(b => b.id === '新体育館' || b.name === '新体育館');
+        if (newGymBldg) {
+          badges.push({
+            id: 'landmark_new_gym',
+            coords: calcPolygonCentroid(newGymBldg.polygon || newGymBldg.coordinates),
+            className: 'bldg-landmark-badge is-new-gym',
+            icon: 'fas fa-volleyball-ball',
+            label: '新体育館'
+          });
+        }
+
+        // (4) 格技場: 「格技場」と表示（ユーザー音声入力「閣議上」の誤字対応）
+        const martialBldg = campusData.buildings && campusData.buildings.find(b => b.id === '格技場' || b.name === '格技場');
+        if (martialBldg) {
+          badges.push({
+            id: 'landmark_martial',
+            coords: calcPolygonCentroid(martialBldg.polygon || martialBldg.coordinates),
+            className: 'bldg-landmark-badge is-martial',
+            icon: 'fas fa-shield-alt',
+            label: '格技場'
+          });
+        }
+
+        // (5) 健康福祉棟: 「健康福祉棟」と表示（ユーザー音声入力「健康福祉党」の誤字対応）
+        const welfareBldg = campusData.buildings && campusData.buildings.find(b => b.id === '健康福祉棟' || b.name === '健康福祉棟');
+        if (welfareBldg) {
+          badges.push({
+            id: 'landmark_welfare',
+            coords: calcPolygonCentroid(welfareBldg.polygon || welfareBldg.coordinates),
+            className: 'bldg-landmark-badge is-welfare',
+            icon: 'fas fa-heartbeat',
+            label: '健康福祉棟'
+          });
+        }
+
+        // (6) 管理棟: シンプルに「管理棟」と表示
+        const adminBldg = campusData.buildings && campusData.buildings.find(b => b.id === '管理棟' || b.name === '管理棟');
+        if (adminBldg) {
+          badges.push({
+            id: 'landmark_admin',
+            coords: calcPolygonCentroid(adminBldg.polygon || adminBldg.coordinates),
+            className: 'bldg-landmark-badge is-admin',
+            icon: 'fas fa-building',
+            label: '管理棟'
+          });
+        }
+
+        // (7) 正門（校門）: 屋外マップ表示時のみ描画
+        if (currentFloor === 'outdoor') {
+          badges.push({
+            id: 'landmark_gate',
+            coords: [35.385818, 139.586002],
+            className: 'bldg-landmark-badge is-gate',
+            icon: 'fas fa-archway',
+            label: '正門'
+          });
+        }
+        // (8) 管理棟・正門まで描画。昇降口は1階のフロアポリゴン（corridor_697524）内で1階表示時のみシンプルに描画
+
+        // バッジをマーカーとして buildingLayerGroup に追加
+        badges.forEach(b => {
+          const icon = L.divIcon({
+            className: 'bldg-landmark-badge-container',
+            html: `
+              <div class="${b.className}" id="${b.id}">
+                <span class="landmark-icon"><i class="${b.icon}"></i></span>
+                <span class="landmark-text">${escapeHtml(b.label)}</span>
+              </div>
+            `,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+          });
+
+          const marker = L.marker(b.coords, {
+            icon: icon,
+            pane: 'markerPane',
+            interactive: false
+          });
+
+          buildingLayerGroup.addLayer(marker);
+        });
       }
 
       // ==========================================================================
@@ -2926,14 +3628,15 @@
             selectRoom('room_gym_main', true);
           });
 
-          // 体育館の幾何学的重心に「🎭 体育館」インルームバッジを配置
+          // 体育館の幾何学的重心に「🎭 体育館ステージ」インルームバッジを配置
           const gymCentroid = calculatePolygonCentroid(gymPolyCoords);
           const gymBadgeIcon = L.divIcon({
             className: 'in-room-badge-container',
             html: `
-              <div class="in-room-badge cat-stage ${activeSelectedRoomId === 'room_gym_main' ? 'is-active' : ''}" data-room-id="room_gym_main">
+              <div class="in-room-badge cat-stage is-gym ${activeSelectedRoomId === 'room_gym_main' ? 'is-active' : ''}" data-room-id="room_gym_main">
                 <span class="badge-icon"><i class="fas fa-theater-masks"></i></span>
                 <span class="badge-text">体育館</span>
+                <span class="badge-gym-sub">ステージ</span>
               </div>
             `,
             iconSize: [0, 0],
@@ -2969,7 +3672,8 @@
 
           // 1. Normal Corridors: Clean vector rendering (non-interactive)
           normalCorrs.forEach(corr => {
-            const poly = L.polygon(corr.polygon || corr.coordinates, {
+            const coords = corr.polygon || corr.coordinates;
+            const poly = L.polygon(coords, {
               pane: 'indoorPane',
               interactive: false,
               color: corr.strokeColor || '#64748b',
@@ -2979,6 +3683,28 @@
               className: 'corridor-polygon'
             });
             floorVectorLayerGroup.addLayer(poly);
+
+            // 1階の昇降口ポリゴン（corridor_697524）にはシンプルに「昇降口」ラベルを配置
+            if (corr.name === '昇降口' || corr.id === 'corridor_697524') {
+              const pinPos = corr.pinCoord || calculatePolygonCentroid(coords);
+              const entranceIcon = L.divIcon({
+                className: 'entrance-badge-container',
+                html: `
+                  <div class="entrance-badge" title="昇降口">
+                    <span class="entrance-icon"><i class="fa-solid fa-door-open"></i></span>
+                    <span class="entrance-text">昇降口</span>
+                  </div>
+                `,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              });
+              const entranceMarker = L.marker(pinPos, {
+                icon: entranceIcon,
+                pane: 'markerPane',
+                interactive: false
+              });
+              floorVectorLayerGroup.addLayer(entranceMarker);
+            }
           });
 
           // 2. Overpasses (non-interactive)
@@ -2986,9 +3712,9 @@
             const poly = L.polygon(corr.polygon || corr.coordinates, {
               pane: 'overpassPane',
               interactive: false,
-              color: corr.strokeColor || '#7e22ce',
+              color: corr.strokeColor || '#64748b',
               weight: 1.5,
-              fillColor: corr.color || '#a855f7',
+              fillColor: corr.color || '#cbd5e1',
               fillOpacity: 0.7,
               className: 'corridor-overpass'
             });
@@ -3007,7 +3733,8 @@
         });
         const stairsToRender = (floorData.stairs && floorData.stairs.length > 0) ? floorData.stairs : allStairs;
         stairsToRender.forEach(stair => {
-          const poly = L.polygon(stair.polygon || stair.coordinates, {
+          const coords = stair.polygon || stair.coordinates;
+          const poly = L.polygon(coords, {
             pane: 'indoorPane',
             interactive: false,
             color: stair.strokeColor || '#c2410c',
@@ -3017,51 +3744,113 @@
             className: 'stairs-polygon'
           });
           floorVectorLayerGroup.addLayer(poly);
+
+          // 階段の幾何重心に「階段」マークとテキストのバッジを配置
+          const centroid = calculatePolygonCentroid(coords);
+          const stairIcon = L.divIcon({
+            className: 'stairs-badge-container',
+            html: `
+              <div class="stairs-badge" title="${escapeHtml(stair.name || '階段')}">
+                <span class="stairs-icon"><i class="fa-solid fa-stairs"></i></span>
+                <span class="stairs-text">階段</span>
+              </div>
+            `,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+          });
+          const stairMarker = L.marker(centroid, {
+            icon: stairIcon,
+            pane: 'markerPane',
+            interactive: false
+          });
+          floorVectorLayerGroup.addLayer(stairMarker);
         });
 
-        // Toilets & Restrooms (non-interactive background polygon; pins handle touch interaction)
+        // Toilets & Restrooms (Gender-differentiated polygons & centroid badges)
         if (floorData.toilets) {
           floorData.toilets.forEach(toilet => {
-            const poly = L.polygon(toilet.polygon || toilet.coordinates, {
+            const coords = toilet.polygon || toilet.coordinates;
+            const isFemale = (toilet.gender === 'female') || (toilet.name && toilet.name.includes('女子'));
+            const isMale = (toilet.gender === 'male') || (toilet.name && toilet.name.includes('男子'));
+            const genderClass = isFemale ? 'toilet-female' : (isMale ? 'toilet-male' : 'toilet-common');
+            const defaultStroke = isFemale ? '#db2777' : (isMale ? '#2563eb' : '#0284c7');
+            const defaultFill = isFemale ? '#fce7f3' : (isMale ? '#dbeafe' : '#e0f2fe');
+
+            const poly = L.polygon(coords, {
               pane: 'indoorPane',
               interactive: false,
-              color: toilet.strokeColor || '#0284c7',
-              weight: 1,
-              fillColor: toilet.color || '#38bdf8',
-              fillOpacity: 0.5,
-              className: 'toilet-polygon'
+              color: toilet.strokeColor || defaultStroke,
+              weight: 1.5,
+              fillColor: toilet.color || defaultFill,
+              fillOpacity: 0.7,
+              className: `toilet-polygon ${genderClass}`
             });
             floorVectorLayerGroup.addLayer(poly);
+
+            // トイレの幾何重心に男女別「トイレ」マークとテキストのバッジを配置
+            const centroid = calculatePolygonCentroid(coords);
+            const toiletIconClass = isFemale ? 'fa-solid fa-person-dress' : (isMale ? 'fa-solid fa-person' : 'fa-solid fa-restroom');
+            const toiletLabel = isFemale ? '女子トイレ' : (isMale ? '男子トイレ' : 'お手洗い');
+            const toiletBadgeIcon = L.divIcon({
+              className: 'toilet-badge-container',
+              html: `
+                <div class="toilet-badge ${escapeHtml(genderClass)}" title="${escapeHtml(toilet.name || toiletLabel)}">
+                  <span class="toilet-icon"><i class="${escapeHtml(toiletIconClass)}"></i></span>
+                  <span class="toilet-text">${escapeHtml(toiletLabel)}</span>
+                </div>
+              `,
+              iconSize: [0, 0],
+              iconAnchor: [0, 0]
+            });
+            const toiletBadgeMarker = L.marker(centroid, {
+              icon: toiletBadgeIcon,
+              pane: 'markerPane',
+              interactive: false
+            });
+            floorVectorLayerGroup.addLayer(toiletBadgeMarker);
           });
         }
 
         // Rooms & Classrooms (Rooms with projects become vibrant highlighted areas with in-room badges)
         if (floorData.rooms) {
-          floorData.rooms.forEach(room => {
+          floorData.rooms.forEach((room, roomIdx) => {
             const pinModel = joinedPins.find(p => p.roomId === room.roomId);
             const hasProject = !!(pinModel && pinModel.projects && pinModel.projects.length > 0);
-            const cat = pinModel ? pinModel.category : (room.category || 'facility');
+            const isLibrary = (room.roomId === 'room_501_library') || (room.name && room.name.includes('天空の図書館'));
+            const isInteractive = hasProject || isLibrary;
+            const cat = isLibrary ? 'facility' : (pinModel ? pinModel.category : (room.category || 'facility'));
             const catMeta = CATEGORY_META[cat] || CATEGORY_META.exhibit;
-            const catColor = catMeta.color;
-            const iconClass = (pinModel && pinModel.rawSpot && pinModel.rawSpot.icon) ? pinModel.rawSpot.icon : catMeta.icon;
+            const catColor = isLibrary ? '#0284c7' : catMeta.color;
+            const iconClass = isLibrary ? 'fa-book-open' : ((pinModel && pinModel.rawSpot && pinModel.rawSpot.icon) ? pinModel.rawSpot.icon : catMeta.icon);
 
-            const stroke = hasProject ? catColor : (room.strokeColor || '#94a3b8');
-            const fill = hasProject ? catColor : (room.color || '#cbd5e1');
+            let stroke = hasProject ? catColor : (room.strokeColor || '#94a3b8');
+            let fill = hasProject ? catColor : (room.color || '#cbd5e1');
+            let fillOpacity = hasProject ? 0.55 : 0.2;
+            let weight = hasProject ? 2 : 1;
+            let className = `room-polygon ${hasProject ? `has-project cat-${cat}` : 'is-empty'}`;
+
+            if (isLibrary) {
+              stroke = '#0284c7';
+              fill = '#38bdf8';
+              fillOpacity = 0.65;
+              weight = 2;
+              className = `room-polygon is-library has-project cat-facility`;
+            }
 
             const poly = L.polygon(room.polygon || room.coordinates, {
               pane: 'indoorPane',
-              interactive: hasProject,
+              interactive: isInteractive,
               color: stroke,
-              weight: hasProject ? 2 : 1,
+              weight: weight,
               fillColor: fill,
-              fillOpacity: hasProject ? 0.55 : 0.2,
-              className: `room-polygon ${hasProject ? `has-project cat-${cat}` : 'is-empty'}`
+              fillOpacity: fillOpacity,
+              className: className
             });
 
             poly._origColor = stroke;
             poly._origFillColor = fill;
 
-            if (hasProject) {
+            if (isInteractive) {
               poly.on('click', (e) => {
                 if (e && e.originalEvent) {
                   L.DomEvent.stopPropagation(e);
@@ -3070,18 +3859,26 @@
               });
 
               // Centroid In-Room Badge (Floor plan badge centered directly inside the classroom rectangle)
-              const centroid = calculatePolygonCentroid(room.polygon || room.coordinates);
-              const projectTitle = pinModel.projects.length === 1
-                ? pinModel.projects[0].name
-                : `${pinModel.name} (${pinModel.projects.length})`;
+              const centroid = (isLibrary && room.pinCoord) ? room.pinCoord : calculatePolygonCentroid(room.polygon || room.coordinates);
+              const isMusicRoom = room.roomId === 'special_room_337807_4f' || (room.name && room.name.includes('音楽室')) || (pinModel && pinModel.name && pinModel.name.includes('音楽室'));
+              const projectTitle = isLibrary
+                ? (room.name || '天空の図書館')
+                : (pinModel.projects.length === 1
+                  ? pinModel.projects[0].name
+                  : `${pinModel.name} (${pinModel.projects.length})`);
+
+              const staggerClass = (roomIdx % 2 === 0) ? 'stagger-top' : 'stagger-bottom';
+              const badgeClass = isLibrary
+                ? `in-room-badge is-library cat-facility ${staggerClass} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}`
+                : `in-room-badge cat-${escapeHtml(cat)} ${isMusicRoom ? 'is-music-room' : ''} ${staggerClass} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}`;
 
               const badgeIcon = L.divIcon({
                 className: 'in-room-badge-container',
                 html: `
-                  <div class="in-room-badge cat-${escapeHtml(cat)} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(room.roomId)}">
+                  <div class="${badgeClass}" data-room-id="${escapeHtml(room.roomId)}">
                     <span class="badge-icon"><i class="fas ${escapeHtml(iconClass)}"></i></span>
                     <span class="badge-text">${escapeHtml(projectTitle)}</span>
-                    ${pinModel.hasMobileOrder ? '<span class="badge-order-bolt" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
+                    ${(pinModel && pinModel.hasMobileOrder) ? '<span class="badge-order-bolt" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
                   </div>
                 `,
                 iconSize: [0, 0],
@@ -3130,7 +3927,7 @@
             if (pin.roomId === 'room_gym_main') return false;
 
             // 3. 外の販売団体（中庭模擬店テントB〜F・昇降口前など）: 校舎内モードでも常時表示！
-            const isOutdoorVendor = (pin.type === 'spot' && (pin.category === 'food' || pin.category === 'shop' || (pin.projects && pin.projects.length > 0)));
+            const isOutdoorVendor = (pin.type === 'spot' && (pin.category === 'cooking' || pin.category === 'food' || pin.category === 'shop' || (pin.projects && pin.projects.length > 0)));
 
             // 4. 各階のお手洗い（屋内設備）
             const isIndoorToilet = (pin.type === 'facility' && pin.floor === floorNum);
@@ -3140,10 +3937,10 @@
             }
           }
 
-          // Category check
+          // Category check (南陵祭 公式4大ジャンル: 模擬店・調理販売・展示・ステージ)
           if (currentCategory !== 'all') {
-            const matchPrimary = pin.category === currentCategory;
-            const matchProject = pin.projects && pin.projects.some(p => p.category === currentCategory);
+            const matchPrimary = pin.category === currentCategory || (currentCategory === 'cooking' && pin.category === 'food');
+            const matchProject = pin.projects && pin.projects.some(p => getProjectCategory(p) === currentCategory);
             if (!matchPrimary && !matchProject) return false;
           }
 
@@ -3161,10 +3958,12 @@
           const iconSize = isFacility ? [26, 26] : [36, 41];
           const iconAnchor = isFacility ? [13, 13] : [18, 41];
 
+          const toiletGenderClass = pin.toiletGender === 'female' ? 'is-toilet-female' : (pin.toiletGender === 'male' ? 'is-toilet-male' : '');
+
           const customIcon = L.divIcon({
             className: 'custom-map-pin-container',
             html: `
-              <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${isFacility ? 'is-facility' : ''} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}" title="${escapeHtml(labelText)}">
+              <div class="custom-map-pin cat-${escapeHtml(pin.category)} ${isFacility ? 'is-facility' : ''} ${toiletGenderClass} ${pin.isMulti ? 'is-multi' : ''} ${pin.hasMobileOrder ? 'has-order' : ''} ${activeSelectedRoomId === pin.roomId ? 'is-active' : ''}" data-room-id="${escapeHtml(pin.roomId)}" title="${escapeHtml(labelText)}">
                 <div class="pin-label">${escapeHtml(labelText)}</div>
                 <div class="pin-body">
                   <i class="fas ${escapeHtml(iconClass)}"></i>
@@ -3209,7 +4008,7 @@
 
           let matches = (currentCategory === 'all');
           if (!matches) {
-            matches = (pin.category === currentCategory || (pin.projects && pin.projects.some(p => p.category === currentCategory)));
+            matches = (pin.category === currentCategory || (currentCategory === 'cooking' && pin.category === 'food') || (pin.projects && pin.projects.some(p => getProjectCategory(p) === currentCategory)));
           }
 
           poly.setStyle({
@@ -3285,17 +4084,254 @@
       }
 
       // ==========================================================================
+      // Stage Venue & Timetable Helpers (Gym, Music Room, AV Room)
+      // ==========================================================================
+      function parseStartTime(timeStr) {
+        if (!timeStr) return 0;
+        const m = timeStr.match(/^(\d{1,2}):(\d{2})/);
+        if (m) {
+          return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+        }
+        return 0;
+      }
+
+      function getVenueStageEvents(pinModel, project = null) {
+        if (typeof stageData === 'undefined' || !Array.isArray(stageData)) return [];
+
+        const rId = (pinModel && pinModel.roomId) || (project && project.roomId) || '';
+        const pName = (pinModel && pinModel.name) || '';
+        const projPlace = (project && project.place) || '';
+        const projCat = (project && project.category) || '';
+
+        const isGym = rId === 'room_gym_main' || pName.includes('体育館') || projPlace.includes('体育館');
+        const isMusic = rId === 'special_room_337807_4f' || pName.includes('音楽室') || projPlace.includes('音楽室');
+        const isAv = pName.includes('視聴覚') || projPlace.includes('視聴覚') || rId.includes('av');
+
+        let matched = [];
+        if (isGym) {
+          matched = stageData.filter(s => s.place && s.place.includes('体育館'));
+        } else if (isMusic) {
+          matched = stageData.filter(s => s.place && s.place.includes('音楽室'));
+        } else if (isAv) {
+          matched = stageData.filter(s => s.place && s.place.includes('視聴覚'));
+        } else {
+          // 汎用マッチング（pinModel.name または project.place）
+          if (pName) {
+            matched = stageData.filter(s => s.place && (s.place.includes(pName) || pName.includes(s.place)));
+          }
+          if (matched.length === 0 && projPlace) {
+            matched = stageData.filter(s => s.place && (s.place.includes(projPlace) || projPlace.includes(s.place)));
+          }
+        }
+
+        // それでも該当なしでステージ企画の場合、その企画のグループ名やIDで出演枠を検索
+        if (matched.length === 0 && (projCat === 'stage' || (project && project.tags && project.tags.includes('ステージ')))) {
+          matched = stageData.filter(s => s.groupName === project.groupName || s.id === project.id || (project.name && s.name && (project.name.includes(s.name) || s.name.includes(project.name))));
+        }
+
+        // 時刻昇順にソート（同一日内で時系列）
+        return matched.slice().sort((a, b) => {
+          if (a.day !== b.day) return (a.day || 1) - (b.day || 1);
+          return parseStartTime(a.time) - parseStartTime(b.time);
+        });
+      }
+
+      function getVenueStageLabel(pinModel, project = null) {
+        const rId = (pinModel && pinModel.roomId) || (project && project.roomId) || '';
+        const pName = (pinModel && pinModel.name) || '';
+        const projPlace = (project && project.place) || '';
+
+        if (rId === 'room_gym_main' || pName.includes('体育館') || projPlace.includes('体育館')) {
+          return '体育館';
+        }
+        if (rId === 'special_room_337807_4f' || pName.includes('音楽室') || projPlace.includes('音楽室')) {
+          return '特別棟 4F 音楽室';
+        }
+        if (pName.includes('視聴覚') || projPlace.includes('視聴覚') || rId.includes('av')) {
+          return '特別棟 3F 視聴覚室';
+        }
+        if (projPlace) return projPlace;
+        if (pinModel) {
+          return (pinModel.roomId === 'room_gym_main' || pinModel.type === 'spot')
+            ? pinModel.name
+            : `${pinModel.floor}F ${pinModel.name}`;
+        }
+        return 'ステージ会場';
+      }
+
+      function renderTimelineListItems(events, currentProjectId = null) {
+        if (!events || events.length === 0) {
+          return '<div class="timeline-empty-state"><i class="fas fa-calendar-xmark" style="margin-right: 6px;"></i>本日の公演予定はありません</div>';
+        }
+
+        return events.map(ev => {
+          // 関連企画ID（detail.html用）
+          let linkId = ev.id;
+          let isCurrent = false;
+
+          if (typeof projectData !== 'undefined' && Array.isArray(projectData)) {
+            const matched = projectData.find(p => p.groupName === ev.groupName || (p.name && ev.name && (p.name.includes(ev.name) || ev.name.includes(p.name))));
+            if (matched) {
+              linkId = matched.id;
+              if (currentProjectId && matched.id === currentProjectId) {
+                isCurrent = true;
+              }
+            }
+          }
+          if (currentProjectId && (ev.id === currentProjectId || ev.groupName === currentProjectId)) {
+            isCurrent = true;
+          }
+
+          return `
+            <div class="stage-timeline-item">
+              <span class="timeline-time-badge"><i class="far fa-clock"></i> ${escapeHtml(ev.time || '')}</span>
+              <div class="stage-timeline-card timeline-card ${isCurrent ? 'is-current-project' : ''}">
+                <div class="timeline-card-header">
+                  <span class="timeline-group-name">${escapeHtml(ev.groupName || '')}</span>
+                  ${isCurrent ? '<span class="badge-current-highlight"><i class="fas fa-star"></i> この企画の出演枠</span>' : ''}
+                </div>
+                <h4 class="timeline-event-name">${escapeHtml(ev.name || '')}</h4>
+                ${ev.description ? `<p class="timeline-event-desc">${escapeHtml(ev.description)}</p>` : ''}
+                <div class="timeline-card-actions">
+                  <a href="detail.html?id=${encodeURIComponent(linkId)}" class="timeline-detail-link">
+                    <span>企画の詳細を見る</span>
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function generateStageTimelineHtml(events, options = {}) {
+        const {
+          showHeader = false,
+          venueLabel = 'ステージ会場',
+          currentProjectId = null,
+          prefix = 'stage_venue',
+          locLabel = ''
+        } = options;
+
+        const day1Events = events.filter(s => s.day == 1);
+        const day2Events = events.filter(s => s.day == 2);
+        const defaultDay = day1Events.length > 0 ? 1 : (day2Events.length > 0 ? 2 : 1);
+
+        const headerHtml = showHeader ? `
+          <div class="project-sheet-header" style="margin-bottom: 8px;">
+            <div class="project-tags-group">
+              <span class="category-badge badge-stage"><i class="fas fa-music"></i> ステージ会場</span>
+              <span class="location-badge"><i class="fas fa-location-dot"></i> ${escapeHtml(locLabel || venueLabel)}</span>
+            </div>
+            <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="project-sheet-title-group" style="margin-bottom: 8px;">
+            <div class="project-group-name" style="font-size: 11px; margin-bottom: 2px;">南陵祭2026 ステージプログラム</div>
+            <h2 class="project-sheet-title" style="font-size: 17px; margin-bottom: 2px;">${escapeHtml(venueLabel)} タイムテーブル</h2>
+            <p class="project-catchphrase" style="font-size: 11.5px; margin-bottom: 0;">全 ${events.length} 公演開催（Day 1: ${day1Events.length}件 / Day 2: ${day2Events.length}件）</p>
+          </div>
+        ` : `
+          <div class="timeline-section-heading">
+            <h3 class="section-subheading"><i class="fas fa-calendar-days"></i> ${escapeHtml(venueLabel)} 公演タイムテーブル</h3>
+            <span class="timeline-count-chip">全 ${events.length} 公演</span>
+          </div>
+        `;
+
+        return `
+          <div class="stage-timeline-wrapper">
+            ${headerHtml}
+
+            <div class="stage-day-tabs-bar" data-prefix="${escapeHtml(prefix)}">
+              <button type="button" class="stage-day-tab-btn ${defaultDay === 1 ? 'active' : ''}" data-day="1" data-prefix="${escapeHtml(prefix)}">
+                <i class="fas fa-calendar-day"></i> DAY 1 (9/11 金) <span class="tab-count-badge">[${day1Events.length}]</span>
+              </button>
+              <button type="button" class="stage-day-tab-btn ${defaultDay === 2 ? 'active' : ''}" data-day="2" data-prefix="${escapeHtml(prefix)}">
+                <i class="fas fa-calendar-day"></i> DAY 2 (9/12 土) <span class="tab-count-badge">[${day2Events.length}]</span>
+              </button>
+            </div>
+
+            <div class="stage-timeline-content">
+              <div class="stage-timeline-list" id="${prefix}_day1" style="display: ${defaultDay === 1 ? 'flex' : 'none'};">
+                ${renderTimelineListItems(day1Events, currentProjectId)}
+              </div>
+              <div class="stage-timeline-list" id="${prefix}_day2" style="display: ${defaultDay === 2 ? 'flex' : 'none'};">
+                ${renderTimelineListItems(day2Events, currentProjectId)}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ==========================================================================
       // Render Dynamic Bottom Sheet Content (Multi-Project Support)
       // ==========================================================================
+      let currentSelectedPin = null;
+
       function renderBottomSheetContent(pinModel) {
+        currentSelectedPin = pinModel;
         const container = document.getElementById('sheetContent');
         if (!container) return;
 
+        // 1. Stage Venue Check (最優先判定！音楽室、体育館、視聴覚室などステージ公演会場)
+        const venueStageEvents = getVenueStageEvents(pinModel);
+        if (venueStageEvents.length > 0) {
+          const venueLabel = getVenueStageLabel(pinModel);
+          const locLabel = (pinModel.roomId === 'room_gym_main' || pinModel.type === 'spot')
+            ? escapeHtml(pinModel.name)
+            : `${escapeHtml(pinModel.floor)}F ${escapeHtml(pinModel.name)}`;
+
+          container.innerHTML = generateStageTimelineHtml(venueStageEvents, {
+            showHeader: true,
+            venueLabel: venueLabel,
+            locLabel: locLabel,
+            prefix: 'main_venue_stage'
+          });
+
+          bindSheetEvents();
+          return;
+        }
+
         const projects = pinModel.projects || [];
 
-        // If no projects (Facility POI or Room without registered project)
+        // 2. If no projects (Facility POI or Room without registered project)
         if (projects.length === 0) {
           const roomName = pinModel.name || '';
+          const isLibrary = pinModel.roomId === 'room_501_library' || (pinModel.name && pinModel.name.includes('天空の図書館'));
+
+          if (isLibrary) {
+            container.innerHTML = `
+              <div class="project-sheet-card">
+                <div class="project-sheet-header">
+                  <div class="project-tags-group">
+                    <span class="category-badge badge-facility"><i class="fas fa-book-open"></i> 特別施設・図書室</span>
+                    <span class="location-badge"><i class="fas fa-location-dot"></i> 生徒棟 5F</span>
+                  </div>
+                  <button type="button" class="sheet-close-btn" id="closeDetailBtn" aria-label="閉じる">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <div class="project-sheet-title-group">
+                  <div class="project-group-name">南陵高校 シンボル特別施設</div>
+                  <h2 class="project-sheet-title">天空の図書館</h2>
+                  <p class="project-catchphrase">「南陵高校のシンボル、最上階に広がる開放的な読書・展望空間」</p>
+                </div>
+
+                <div class="project-expanded-details">
+                  <div class="project-description-section">
+                    <h3 class="section-subheading"><i class="fas fa-book-open"></i> 施設案内</h3>
+                    <p class="project-description-text">生徒棟最上階（5階）に位置する「天空の図書館」です。南陵祭の喧騒から離れて静かに読書を楽しめるほか、窓外のパノラマビューが広がる憩いのシンボルスポットです。休憩・鑑賞スペースとして一般開放されています。</p>
+                  </div>
+                </div>
+              </div>
+            `;
+            bindSheetEvents();
+            return;
+          }
+
           const isRestricted = /(準備室|生徒会|進路|職員|倉庫|印刷|放送室|相談室)/.test(roomName);
           let descText = '南陵祭当日の校内施設・共用スペースです。';
           let badgeText = '施設・共用設備';
@@ -3345,14 +4381,14 @@
           return;
         }
 
-        // Single Project
+        // 3. Single Project
         if (projects.length === 1) {
           container.innerHTML = generateProjectCardHtml(projects[0], pinModel);
           bindSheetEvents();
           return;
         }
 
-        // Multi-Project in same room (e.g. 体育館 / 作法室: 華道部 + 茶道部)
+        // 4. Multi-Project in same room (e.g. 作法室: 華道部 + 茶道部)
         let pillsHtml = `<div class="multi-project-pills-bar" id="multiProjectPills">`;
         projects.forEach((p, idx) => {
           pillsHtml += `<button type="button" class="multi-pill-btn ${idx === 0 ? 'active' : ''}" data-index="${idx}">${escapeHtml(p.groupName || p.name)}</button>`;
@@ -3400,7 +4436,8 @@
       }
 
       function generateProjectCardHtml(project, pinModel, showCloseBtn = true) {
-        const catMeta = CATEGORY_META[project.category] || CATEGORY_META.exhibit;
+        const catKey = getProjectCategory(project);
+        const catMeta = CATEGORY_META[catKey] || CATEGORY_META[project.category] || CATEGORY_META.exhibit;
         const placeStr = project.place || `${pinModel.floor}F ${pinModel.name}`;
 
         // Menu items HTML
@@ -3411,15 +4448,16 @@
               <h3 class="section-subheading"><i class="fas fa-book-open"></i> お品書き・メニュー</h3>
               <div class="project-menu-list">
                 ${project.menu.map(item => `
-                  <div class="project-menu-item">
+                  <div class="project-menu-item ${item.isAvailable === false ? 'is-sold-out' : ''}">
                     <div class="menu-item-info">
                       <div class="menu-item-name">
                         <span>${escapeHtml(item.name)}</span>
                         ${item.isRecommended ? '<span class="badge-recommend">おすすめ</span>' : ''}
+                        ${item.isAvailable === false ? '<span class="badge-sold-out">完売</span>' : ''}
                       </div>
                       ${item.description ? `<div class="menu-item-desc">${escapeHtml(item.description)}</div>` : ''}
                     </div>
-                    <div class="menu-item-price">${escapeHtml(item.price || '')}</div>
+                    <div class="menu-item-price">${item.isAvailable === false ? '完売' : escapeHtml(item.price || '')}</div>
                   </div>
                 `).join('')}
               </div>
@@ -3427,20 +4465,23 @@
           `;
         }
 
-        // Stage Schedule items HTML
+        // Stage Schedule items HTML (ステージ企画またはステージ会場の企画)
         let stageHtml = '';
-        if (project.category === 'stage' && typeof stageData !== 'undefined') {
-          const timetable = stageData.find(s => s.id === project.id || (s.stages && s.stages.some(st => st.id === project.id)));
-          if (timetable) {
-            stageHtml = `
-              <div class="project-description-section">
-                <h3 class="section-subheading"><i class="fas fa-clock"></i> 公演タイムテーブル</h3>
-                <div class="stage-schedule-badge">
-                  <i class="fas fa-microphone"></i> 本部ステージ・タイムテーブルにて配信中
-                </div>
-              </div>
-            `;
-          }
+        const isStageProject = (catKey === 'stage' || project.category === 'stage' || (project.tags && project.tags.includes('ステージ')));
+        const venueStageEvents = isStageProject ? getVenueStageEvents(pinModel, project) : [];
+
+        if (venueStageEvents.length > 0) {
+          const venueLabel = getVenueStageLabel(pinModel, project);
+          stageHtml = `
+            <div class="project-description-section" style="margin-top: 14px;">
+              ${generateStageTimelineHtml(venueStageEvents, {
+                showHeader: false,
+                venueLabel: venueLabel,
+                currentProjectId: project.id,
+                prefix: `proj_${project.id}`
+              })}
+            </div>
+          `;
         }
 
         return `
@@ -3509,6 +4550,36 @@
             bottomSheet.snapTo('collapsed');
           });
         }
+
+        // Stage Day Tabs Switcher (会場メインタイムライン＆個別企画カード両対応)
+        const container = document.getElementById('sheetContent');
+        if (container) {
+          const tabBtns = container.querySelectorAll('.stage-day-tab-btn');
+          tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const prefix = btn.getAttribute('data-prefix');
+              const selectedDay = btn.getAttribute('data-day');
+              const parentBar = btn.closest('.stage-day-tabs-bar');
+              if (parentBar) {
+                parentBar.querySelectorAll('.stage-day-tab-btn').forEach(b => {
+                  b.classList.toggle('active', b === btn);
+                });
+              }
+              const day1List = document.getElementById(`${prefix}_day1`);
+              const day2List = document.getElementById(`${prefix}_day2`);
+              if (day1List && day2List) {
+                if (selectedDay === '1') {
+                  day1List.style.display = 'flex';
+                  day2List.style.display = 'none';
+                } else {
+                  day1List.style.display = 'none';
+                  day2List.style.display = 'flex';
+                }
+              }
+            });
+          });
+        }
       }
 
       // ==========================================================================
@@ -3545,69 +4616,10 @@
           chip.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
-        // Update Floating Dock Active Badge
-        const dockBadge = document.getElementById('dockCategoryActiveBadge');
-        if (dockBadge) {
-          const catNames = {
-            all: 'すべて',
-            food: '模擬店',
-            exhibit: '展示',
-            shop: '物販',
-            stage: 'ステージ',
-            facility: '施設'
-          };
-          dockBadge.textContent = catNames[cat] || 'すべて';
-        }
-
         renderPins();
       }
 
       function initUiControls() {
-        // Floating Dock & Tray (下からひょんっと出せる収納式フッター)
-        const mapDock = document.getElementById('mapDock');
-        const dockBackdrop = document.getElementById('dockBackdrop');
-        const dockTrigger = document.getElementById('dockTrigger');
-        const dockCloseBtn = document.getElementById('dockCloseBtn');
-        const dockTrayHandle = document.getElementById('dockTrayHandle');
-
-        function openDock() {
-          if (!mapDock) return;
-          mapDock.classList.add('is-open');
-          if (dockBackdrop) dockBackdrop.classList.add('active');
-          if (dockTrigger) dockTrigger.setAttribute('aria-expanded', 'true');
-          // 企画詳細ボトムシートが開いている場合は収納して被りを防止
-          if (bottomSheet && bottomSheet.currentState !== bottomSheet.STATES.COLLAPSED) {
-            bottomSheet.snapTo(bottomSheet.STATES.COLLAPSED);
-          }
-        }
-
-        function closeDock() {
-          if (!mapDock) return;
-          mapDock.classList.remove('is-open');
-          if (dockBackdrop) dockBackdrop.classList.remove('active');
-          if (dockTrigger) dockTrigger.setAttribute('aria-expanded', 'false');
-        }
-
-        function toggleDock() {
-          if (!mapDock) return;
-          if (mapDock.classList.contains('is-open')) {
-            closeDock();
-          } else {
-            openDock();
-          }
-        }
-
-        if (dockTrigger) dockTrigger.addEventListener('click', toggleDock);
-        if (dockCloseBtn) dockCloseBtn.addEventListener('click', closeDock);
-        if (dockTrayHandle) dockTrayHandle.addEventListener('click', closeDock);
-        if (dockBackdrop) dockBackdrop.addEventListener('click', closeDock);
-
-        // 地図タップ・ドラッグ開始で下部ドックを自動収納
-        if (map) {
-          map.on('click', closeDock);
-          map.on('dragstart', closeDock);
-        }
-
         // Floor Switcher
         document.querySelectorAll('.floor-pill-btn').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -3619,8 +4631,6 @@
         document.querySelectorAll('.filter-chip').forEach(chip => {
           chip.addEventListener('click', () => {
             setCategory(chip.getAttribute('data-category'));
-            // 選択後に自動収納（視界開放）
-            setTimeout(closeDock, 200);
           });
         });
 
@@ -3639,31 +4649,17 @@
           });
         }
 
-        // Theme Toggle (Light / Dark)
-        const themeBtn = document.getElementById('themeToggleBtn');
-        const themeIcon = document.getElementById('themeIcon');
-        if (themeBtn) {
-          themeBtn.addEventListener('click', () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const nextTheme = isDark ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', nextTheme);
-            try {
-              localStorage.setItem('app-theme', nextTheme);
-            } catch (e) {}
-            if (themeIcon) {
-              themeIcon.className = nextTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        // Theme Change Observer (ハンバーガーメニュー等での切り替えを検知してマップ再描画)
+        const themeObserver = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            if (m.attributeName === 'data-theme') {
+              renderStaticBaseLayers();
+              renderFloorPolygons();
+              break;
             }
-            renderStaticBaseLayers();
-            renderFloorPolygons();
-            showToast(nextTheme === 'dark' ? '🌙 ダークモード' : '☀️ ライトモード', 1200);
-          });
-
-          // Sync initial icon
-          const currentIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (themeIcon) {
-            themeIcon.className = currentIsDark ? 'fas fa-sun' : 'fas fa-moon';
           }
-        }
+        });
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
         // Geolocation / MyLocation Button (Ray-Casting PIP)
         const myLocationBtn = document.getElementById('myLocationBtn');
@@ -3739,6 +4735,7 @@
 
         if (routeModalBtn && routeModal) {
           routeModalBtn.addEventListener('click', () => {
+            setFloor('outdoor');
             routeModal.classList.add('active');
           });
         }
@@ -3770,16 +4767,6 @@
           }
         });
 
-        document.querySelectorAll('.route-option-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const routeId = card.getAttribute('data-route-id');
-            document.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            renderAccessRouteById(routeId);
-            if (routeModal) routeModal.classList.remove('active');
-          });
-        });
-
         // Window Resize & Orientation Change Map Size Invalidation
         window.addEventListener('resize', () => {
           if (map) {
@@ -3803,25 +4790,69 @@
       }
 
       // ==========================================================================
-      // Access Route Rendering (Catmull-Rom Multi-Line & fitBounds)
+      // Dynamic Route Options Rendering in Modal
+      // ==========================================================================
+      function renderRouteOptionCards() {
+        const container = document.getElementById('routeOptions');
+        if (!container || !campusData || !Array.isArray(campusData.accessRoutes)) return;
+
+        if (campusData.accessRoutes.length === 0) {
+          container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-sub); font-size: 13px;">登録されたアクセスルートがありません</div>';
+          return;
+        }
+
+        const getRouteIcon = (route) => {
+          if (route.icon) return route.icon;
+          if (route.name.includes('日野中央公園')) return 'fas fa-tree';
+          if (route.name.includes('日野小学校')) return 'fas fa-graduation-cap';
+          return 'fas fa-bus';
+        };
+
+        container.innerHTML = campusData.accessRoutes.map(route => {
+          const iconClass = getRouteIcon(route);
+          const subText = route.subName || `${route.startPoint ? route.startPoint.name : '出発地'} 〜 正門 (${route.distanceMeters || ''}m)`;
+          return `
+            <button type="button" class="route-option-card" data-route-id="${escapeHtml(route.id)}">
+              <div class="route-icon-box" style="background: ${escapeHtml(route.color || '#3b82f6')};">
+                <i class="${escapeHtml(iconClass)}"></i>
+              </div>
+              <div class="route-info">
+                <div class="route-name">${escapeHtml(route.name)} (徒歩${escapeHtml(route.timeMinutes || 5)}分)</div>
+                <div class="route-sub">${escapeHtml(subText)}</div>
+              </div>
+            </button>
+          `;
+        }).join('');
+
+        // イベントリスナーの登録
+        container.querySelectorAll('.route-option-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const routeId = card.getAttribute('data-route-id');
+            container.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            renderAccessRouteById(routeId);
+            const routeModal = document.getElementById('routeModal');
+            if (routeModal) routeModal.classList.remove('active');
+          });
+        });
+      }
+
+      // ==========================================================================
+      // Access Route Rendering (Casing, Core, Correct Badges & fitBounds)
       // ==========================================================================
       function renderAccessRouteById(routeId) {
+        setFloor('outdoor');
         if (!campusData || !campusData.accessRoutes) return;
-        const route = campusData.accessRoutes.find(r => 
-          r.id === routeId || 
-          (routeId === 'route_yokodai' && (r.id === 'route_180112' || (r.name && r.name.includes('洋光台')))) ||
-          (routeId === 'route_hino_park' && (r.id === 'route_290409' || (r.name && r.name.includes('日野中央公園')))) ||
-          (routeId === 'route_hino_elem' && (r.id === 'route_875650' || (r.name && r.name.includes('日野小学校'))))
-        );
+        const route = campusData.accessRoutes.find(r => r.id === routeId);
         if (!route || !route.polyline || route.polyline.length === 0) return;
 
         activeRouteLayerGroup.clearLayers();
 
-        const smoothedCoords = route.smooth ? getCatmullRomSpline(route.polyline, 0.5, 15) : route.polyline;
+        const routeCoords = route.polyline;
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
-        // 1. Casing Outer Polyline
-        const casing = L.polyline(smoothedCoords, {
+        // 1. Casing Outer Polyline (Road highlight border)
+        const casing = L.polyline(routeCoords, {
           pane: 'routePane',
           weight: 8,
           color: isDarkMode ? '#0f172a' : '#ffffff',
@@ -3831,50 +4862,56 @@
         });
 
         // 2. Core Inner Polyline
-        const core = L.polyline(smoothedCoords, {
+        const core = L.polyline(routeCoords, {
           pane: 'routePane',
           weight: 5,
-          color: route.color || '#eab308',
+          color: route.color || '#3b82f6',
           opacity: 1.0,
           lineCap: 'round',
           lineJoin: 'round',
           className: 'access-route-neon'
         });
 
-        // Safe Start & End Point Resolution
-        const startPt = route.startPoint || {
-          name: route.name ? route.name.replace(/アクセスルート.*$/, '').trim() : '出発地',
-          latlng: route.polyline[0]
-        };
-        const endPt = route.endPoint || {
-          name: '南陵高校 正門',
-          latlng: route.polyline[route.polyline.length - 1]
-        };
+        // 3. 正門と出発地の厳密な判定とバッジ配置
+        // 南陵高校 正門の基準座標: [35.385818, 139.586002]
+        const MAIN_GATE_COORD = [35.385818, 139.586002];
+        const distToGate = (pt) => Math.hypot(pt[0] - MAIN_GATE_COORD[0], pt[1] - MAIN_GATE_COORD[1]);
 
-        // 3. Start Point Badge
+        const firstPt = routeCoords[0];
+        const lastPt = routeCoords[routeCoords.length - 1];
+        const firstIsGate = distToGate(firstPt) < distToGate(lastPt);
+
+        // 正門側とバス停側の座標を決定
+        const gateLatLng = (route.endPoint && route.endPoint.latlng) || (firstIsGate ? firstPt : lastPt);
+        const busLatLng = (route.startPoint && route.startPoint.latlng) || (firstIsGate ? lastPt : firstPt);
+
+        const startName = (route.startPoint && route.startPoint.name) || route.name.replace(/アクセスルート.*$/, '').trim() || '出発地';
+        const endName = (route.endPoint && route.endPoint.name) || '南陵高校 正門';
+
+        // 出発地（バス停）バッジ
         const startIcon = L.divIcon({
           className: 'route-badge-marker',
-          html: `<div class="route-badge start" style="border-color:${escapeHtml(route.color || '#eab308')}">
-                   <i class="fas fa-bus"></i>
-                   <span>${escapeHtml(startPt.name || '出発地')}</span>
-                   <span class="route-min">${escapeHtml(route.timeMinutes || 10)}分</span>
+          html: `<div class="route-badge start" style="border-color:${escapeHtml(route.color || '#3b82f6')}">
+                   <i class="fas fa-bus" style="color:${escapeHtml(route.color || '#3b82f6')}"></i>
+                   <span>${escapeHtml(startName)}</span>
+                   <span class="route-min">${escapeHtml(route.timeMinutes || 5)}分</span>
                  </div>`,
-          iconSize: [160, 32],
-          iconAnchor: [80, 16]
+          iconSize: [170, 32],
+          iconAnchor: [85, 16]
         });
-        const startMarker = L.marker(startPt.latlng, { icon: startIcon, pane: 'markerPane' });
+        const startMarker = L.marker(busLatLng, { icon: startIcon, pane: 'markerPane' });
 
-        // 4. End Point Badge (Main Gate)
+        // 到着地（正門）バッジ
         const endIcon = L.divIcon({
           className: 'route-badge-marker',
-          html: `<div class="route-badge end">
-                   <i class="fas fa-school"></i>
-                   <span>${escapeHtml(endPt.name || '正門')}</span>
+          html: `<div class="route-badge end" style="border-color:#ef4444">
+                   <i class="fas fa-school" style="color:#ef4444"></i>
+                   <span>${escapeHtml(endName)}</span>
                  </div>`,
           iconSize: [130, 32],
           iconAnchor: [65, 16]
         });
-        const endMarker = L.marker(endPt.latlng, { icon: endIcon, pane: 'markerPane' });
+        const endMarker = L.marker(gateLatLng, { icon: endIcon, pane: 'markerPane' });
 
         activeRouteLayerGroup.addLayer(casing);
         activeRouteLayerGroup.addLayer(core);
@@ -3882,15 +4919,95 @@
         activeRouteLayerGroup.addLayer(endMarker);
 
         // 5. Fit camera bounds
-        map.fitBounds(L.latLngBounds(route.polyline), {
-          paddingTopLeft: [80, 24],
-          paddingBottomRight: [24, 24],
+        map.fitBounds(L.latLngBounds(routeCoords), {
+          paddingTopLeft: [90, 30],
+          paddingBottomRight: [30, 30],
           maxZoom: 18,
           animate: true,
           duration: 0.8
         });
 
-        showToast(`🚩 ${escapeHtml(route.name)}を表示しました（${escapeHtml(route.timeMinutes)}分）`);
+        showToast(`🚩 ${escapeHtml(route.name)} を表示しました（徒歩${escapeHtml(route.timeMinutes)}分）`);
+      }
+
+      // ==========================================================================
+      // Firestore Realtime Menu Sync (Zero-Wait Hybrid Architecture)
+      // ==========================================================================
+      async function syncFirestoreMenuData() {
+        try {
+          const { db } = await import("./auth.js");
+          const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+
+          const itemsSnap = await getDocs(collection(db, "items"));
+          if (itemsSnap.empty) return;
+
+          const itemsByStore = new Map();
+          itemsSnap.forEach(d => {
+            const item = d.data();
+            if (item.storeId) {
+              if (!itemsByStore.has(item.storeId)) {
+                itemsByStore.set(item.storeId, new Map());
+              }
+              itemsByStore.get(item.storeId).set(item.name, item);
+            }
+          });
+
+          let updated = false;
+
+          // Update joinedPins model
+          if (Array.isArray(joinedPins)) {
+            joinedPins.forEach(pin => {
+              if (pin.projects && Array.isArray(pin.projects)) {
+                pin.projects.forEach(proj => {
+                  const storeItems = itemsByStore.get(proj.id);
+                  if (storeItems && proj.menu && Array.isArray(proj.menu)) {
+                    proj.menu = proj.menu.map(staticItem => {
+                      const dbItem = storeItems.get(staticItem.name);
+                      if (dbItem) {
+                        updated = true;
+                        return {
+                          ...staticItem,
+                          isAvailable: dbItem.isAvailable !== false,
+                          price: dbItem.price ? (typeof dbItem.price === 'number' ? `${dbItem.price}円` : dbItem.price) : staticItem.price,
+                          description: dbItem.description || staticItem.description
+                        };
+                      }
+                      return staticItem;
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          // Update global projectData cache
+          if (typeof projectData !== 'undefined' && Array.isArray(projectData)) {
+            projectData.forEach(proj => {
+              const storeItems = itemsByStore.get(proj.id);
+              if (storeItems && proj.menu && Array.isArray(proj.menu)) {
+                proj.menu = proj.menu.map(staticItem => {
+                  const dbItem = storeItems.get(staticItem.name);
+                  if (dbItem) {
+                    return {
+                      ...staticItem,
+                      isAvailable: dbItem.isAvailable !== false,
+                      price: dbItem.price ? (typeof dbItem.price === 'number' ? `${dbItem.price}円` : dbItem.price) : staticItem.price,
+                      description: dbItem.description || staticItem.description
+                    };
+                  }
+                  return staticItem;
+                });
+              }
+            });
+          }
+
+          // Re-render currently opened bottom sheet if active
+          if (updated && currentSelectedPin && bottomSheet && bottomSheet.currentState !== bottomSheet.STATES.COLLAPSED) {
+            renderBottomSheetContent(currentSelectedPin);
+          }
+        } catch (err) {
+          console.warn("Firestore menu sync notice:", err);
+        }
       }
 
       // ==========================================================================
@@ -3917,6 +5034,9 @@
           };
         }
 
+        // Access Route モーダルリストの動的生成
+        renderRouteOptionCards();
+
         // Build Client-Side Model (Zero-DB Principle)
         const rawProjects = (typeof projectData !== 'undefined' && Array.isArray(projectData)) ? projectData : [];
         joinedPins = buildJoinedPinsModel(campusData, rawProjects);
@@ -3938,6 +5058,9 @@
             selectRoom(foundPin.roomId, true);
           }
         }
+
+        // Non-blocking background sync with Firestore items
+        syncFirestoreMenuData();
       }
 
       // Start on DOMContentLoaded

@@ -1234,6 +1234,78 @@
       color: #4ade80;
       background: rgba(5, 46, 22, 0.95);
     }
+
+    /* Editor Spot Markers (Direct Draggable & Rich Visual) */
+    .leaflet-marker-icon.editor-spot-div-icon {
+      background: transparent !important;
+      border: none !important;
+      overflow: visible !important;
+    }
+    .editor-spot-marker-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: grab;
+      user-select: none;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .editor-spot-marker-container:hover {
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+    }
+    .editor-spot-marker-container:active,
+    .leaflet-drag-target .editor-spot-marker-container {
+      cursor: grabbing !important;
+      transform: scale(1.08);
+      z-index: 1000 !important;
+    }
+    .editor-spot-marker-container .spot-pin-badge {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .editor-spot-marker-container.is-cooking-tent .spot-pin-badge {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      box-shadow: 0 3px 10px rgba(249, 115, 22, 0.5), 0 2px 5px rgba(0, 0, 0, 0.3);
+      border: 2px solid #ffffff;
+    }
+    .editor-spot-marker-container .spot-label-badge {
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2.5px 7px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      white-space: nowrap;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      pointer-events: none;
+      line-height: 1.2;
+    }
+    .editor-spot-marker-container.is-cooking-tent .spot-label-badge {
+      border: 1.5px solid #fdba74;
+      background: #ffffff;
+      color: #7c2d12;
+    }
+    .editor-spot-marker-container.is-selected .spot-pin-badge {
+      outline: 3px solid #38bdf8;
+      outline-offset: 2px;
+      animation: spotPulse 1.5s infinite alternate;
+    }
+    @keyframes spotPulse {
+      0% { outline-color: #38bdf8; }
+      100% { outline-color: #0284c7; }
+    }
   </style>
 </head>
 <body>
@@ -1648,11 +1720,11 @@
             <label for="fieldLinkedProjects">連携企画ID (カンマ区切り)</label>
             <input type="text" id="fieldLinkedProjects" placeholder="例: 201, 301, stage_a">
           </div>
-          <div class="form-group">
-            <label>ピン配置座標 (Centroid)</label>
+          <div class="form-group" id="grpPinCentroid">
+            <label id="lblPinCentroid">ピン配置座標 (Centroid)</label>
             <div class="form-row">
-              <input type="text" id="fieldPinLat" placeholder="緯度" readonly class="flex-1">
-              <input type="text" id="fieldPinLng" placeholder="経度" readonly class="flex-1">
+              <input type="number" step="any" id="fieldPinLat" placeholder="緯度 (lat)" class="flex-1">
+              <input type="number" step="any" id="fieldPinLng" placeholder="経度 (lng)" class="flex-1">
               <button type="button" class="action-btn" id="btnRecalcCentroid" title="幾何重心を自動再計算">重心計算</button>
             </div>
           </div>
@@ -3154,20 +3226,147 @@ class MapStudioApp {
       });
     }
 
-    // 4. Spots
+    // 4. Spots (Direct Draggable & Rich Visual)
     (this.mapData.spots || []).forEach(s => {
       const latlng = s.latlng || s.coordinates;
       if (!latlng || latlng.length < 2) return;
-      const marker = L.circleMarker([latlng[0], latlng[1]], {
-        pane: 'spotPane',
-        radius: 7,
-        fillColor: '#10b981',
-        fillOpacity: 0.9,
-        color: '#ffffff',
-        weight: 2
+
+      // 種別判定（中庭・昇降口前テント・調理団体 / 一般スポット）
+      const isCookingTent = (
+        (s.id && (s.id.startsWith('tent_') || s.id.includes('food') || s.id.includes('cook'))) ||
+        s.icon === 'fa-utensils' ||
+        s.category === 'cooking' ||
+        (s.category === 'shop' && (s.id.startsWith('tent_') || (s.name && s.name.includes('テント')))) ||
+        (s.description && (
+          s.description.includes('出店テント') || s.description.includes('工房') ||
+          s.description.includes('カステラ') || s.description.includes('ソーセージ') ||
+          s.description.includes('ヤキトリ') || s.description.includes('ケバブ') ||
+          s.description.includes('牛タン') || s.description.includes('ペッパーランチ') ||
+          s.description.includes('千葉軒')
+        ))
+      );
+
+      // アイコンクラス選定
+      let iconClass = 'fa-solid fa-location-dot';
+      if (isCookingTent) {
+        iconClass = (s.icon && s.icon.includes('campground')) ? 'fa-solid fa-campground' : 'fa-solid fa-utensils';
+      } else if (s.icon) {
+        iconClass = s.icon.startsWith('fa-') ? `fa-solid ${s.icon}` : s.icon;
+      }
+
+      // 表示ラベルテキストのスマート生成
+      let labelText = s.name || s.id;
+      if (isCookingTent) {
+        const classMatch = (s.description || s.name || '').match(/([1-3])年([1-7])組/);
+        const tentMatch = (s.id || '').match(/tent_(\d)(\d{2})/);
+        const classCode = classMatch ? `${classMatch[1]}-${classMatch[2]}` : (tentMatch ? `${tentMatch[1]}-${parseInt(tentMatch[2], 10) % 100}` : '');
+
+        let menuName = '';
+        const desc = s.description || '';
+        if (desc.includes('カステラ')) menuName = 'カステラ';
+        else if (desc.includes('ソーセージ')) menuName = 'ソーセージ';
+        else if (desc.includes('ヤキトリ') || desc.includes('焼き鳥')) menuName = '焼き鳥';
+        else if (desc.includes('ケバブ')) menuName = 'ケバブ';
+        else if (desc.includes('牛タン')) menuName = '牛タン';
+        else if (desc.includes('ペッパーランチ')) menuName = 'ペッパーランチ';
+        else if (desc.includes('千葉軒')) menuName = '千葉軒(焼きそば)';
+        else if (desc.includes('お菓子')) menuName = 'お菓子';
+
+        if (classCode && menuName) {
+          labelText = `⛺ ${classCode} ${menuName}`;
+        } else if (menuName) {
+          labelText = `⛺ ${menuName}`;
+        } else if (s.name) {
+          labelText = `⛺ ${s.name.replace('中庭テント ', '').replace('昇降口前テント ', '')}`;
+        }
+      }
+
+      const spotIcon = L.divIcon({
+        className: 'editor-spot-div-icon',
+        html: `
+          <div class="editor-spot-marker-container ${isCookingTent ? 'is-cooking-tent' : ''}" data-spot-id="${escapeHtml(s.id || '')}">
+            <div class="spot-pin-badge">
+              <i class="${iconClass}"></i>
+            </div>
+            <div class="spot-label-badge">${escapeHtml(labelText)}</div>
+          </div>
+        `,
+        iconAnchor: [14, 14]
       });
+
+      const marker = L.marker([latlng[0], latlng[1]], {
+        pane: 'spotPane',
+        draggable: true,
+        icon: spotIcon
+      });
+
       marker.feature = { properties: { ...s, entityType: 'spot' }, _entityRef: s };
       marker._entityRef = s;
+
+      // マーカー直接ドラッグイベントのバインド
+      marker.on('dragstart', (e) => {
+        this.map.dragging.disable();
+        if (this.selectedLayer !== marker) {
+          this.selectFeature(marker);
+        }
+      });
+
+      marker.on('drag', (e) => {
+        let moveLatLng = marker.getLatLng();
+        if (this.isSnapEnabled) {
+          const snap = this.findNearestSnapVertex(moveLatLng);
+          if (snap) {
+            moveLatLng = snap.latlng;
+            marker.setLatLng(moveLatLng);
+          }
+        }
+        const newCoords = [
+          parseFloat(moveLatLng.lat.toFixed(6)),
+          parseFloat(moveLatLng.lng.toFixed(6))
+        ];
+        s.latlng = newCoords;
+        s.coordinates = newCoords;
+        if (marker.feature && marker.feature.properties) {
+          marker.feature.properties.latlng = newCoords;
+          marker.feature.properties.coordinates = newCoords;
+        }
+
+        // インスペクターの座標表示（updateCentroidDisplay、fieldPinLat, fieldPinLng）をリアルタイム追従更新
+        this.updateCentroidDisplay();
+
+        // 選択ハンドルが存在する場合はハンドルの位置も同期
+        if (this.vertexHandles && this.vertexHandles.length > 0) {
+          this.vertexHandles.forEach(h => {
+            if (typeof h.setLatLng === 'function') {
+              h.setLatLng(moveLatLng);
+            }
+          });
+        }
+      });
+
+      marker.on('dragend', (e) => {
+        this.map.dragging.enable();
+        const moveLatLng = marker.getLatLng();
+        const newCoords = [
+          parseFloat(moveLatLng.lat.toFixed(6)),
+          parseFloat(moveLatLng.lng.toFixed(6))
+        ];
+        s.latlng = newCoords;
+        s.coordinates = newCoords;
+        if (marker.feature && marker.feature.properties) {
+          marker.feature.properties.latlng = newCoords;
+          marker.feature.properties.coordinates = newCoords;
+        }
+
+        const labelName = s.name || s.id;
+        const msg = isCookingTent ? `📍 調理団体 [${labelName}] を移動しました` : `📍 スポット [${labelName}] を移動しました`;
+        this.history.pushState(this.mapData, 'スポット移動: ' + labelName);
+        this.triggerAutoSave();
+        this.updateCentroidDisplay();
+        this.showToast(msg, 'success');
+        this.attachVertexHandles(marker);
+      });
+
       this.bindLayerEvents(marker);
       this.layerGroups.spots.addLayer(marker);
     });
@@ -4676,8 +4875,103 @@ class MapStudioApp {
     if (!layer || !layer.feature) return;
 
     const feature = layer.feature.properties;
+
+    // スポット / 単一座標要素の移動ドラッグハンドル
+    const isSpot = feature.entityType === 'spot' || (
+      !feature.polygon && !feature.polyline && (
+        feature.latlng ||
+        (Array.isArray(feature.coordinates) && typeof feature.coordinates[0] === 'number')
+      )
+    );
+
+    if (isSpot) {
+      let spotLatLng = null;
+      if (typeof layer.getLatLng === 'function') {
+        spotLatLng = layer.getLatLng();
+      } else if (Array.isArray(feature.latlng) && feature.latlng.length >= 2) {
+        spotLatLng = L.latLng(feature.latlng[0], feature.latlng[1]);
+      } else if (Array.isArray(feature.coordinates) && feature.coordinates.length >= 2) {
+        spotLatLng = L.latLng(feature.coordinates[0], feature.coordinates[1]);
+      }
+      if (!spotLatLng) return;
+
+      const handle = L.marker(spotLatLng, {
+        pane: 'editorHandlePane',
+        draggable: true,
+        icon: L.divIcon({
+          className: 'spot-drag-handle-marker',
+          html: `<div style="width: 22px; height: 22px; border-radius: 50%; background: #f97316; border: 2.5px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 11px; cursor: move; transition: transform 0.1s;"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>`,
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        })
+      }).addTo(this.map);
+
+      handle.bindTooltip(`<b>${escapeHtml(feature.name || feature.id)}</b><br><span style="font-size:10.5px; color:#cbd5e1;">ドラッグしてスポット位置を移動</span>`, {
+        direction: 'top',
+        className: 'custom-map-tooltip'
+      });
+
+      handle.on('dragstart', () => {
+        this.map.dragging.disable();
+      });
+
+      handle.on('drag', () => {
+        let moveLatLng = handle.getLatLng();
+        if (this.isSnapEnabled) {
+          const snap = this.findNearestSnapVertex(moveLatLng);
+          if (snap) {
+            moveLatLng = snap.latlng;
+            handle.setLatLng(moveLatLng);
+          }
+        }
+        const newCoords = [
+          parseFloat(moveLatLng.lat.toFixed(6)),
+          parseFloat(moveLatLng.lng.toFixed(6))
+        ];
+        feature.latlng = newCoords;
+        feature.coordinates = newCoords;
+
+        if (typeof layer.setLatLng === 'function') {
+          layer.setLatLng(moveLatLng);
+        }
+
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          target.latlng = newCoords;
+          target.coordinates = newCoords;
+        }
+        this.updateCentroidDisplay();
+      });
+
+      handle.on('dragend', () => {
+        this.map.dragging.enable();
+        const target = layer._entityRef || this.findMapDataEntity(feature);
+        if (target) {
+          target.latlng = feature.latlng;
+          target.coordinates = feature.coordinates;
+        }
+        const isCook = (
+          (feature.id && (feature.id.startsWith('tent_') || feature.id.includes('food') || feature.id.includes('cook'))) ||
+          feature.icon === 'fa-utensils' ||
+          feature.category === 'cooking' ||
+          (feature.category === 'shop' && (feature.id.startsWith('tent_') || (feature.name && feature.name.includes('テント'))))
+        );
+        const label = isCook ? `調理団体 [${feature.name || feature.id}]` : `スポット [${feature.name || feature.id}]`;
+        this.history.pushState(this.mapData, `スポット移動: ${feature.name || feature.id}`);
+        this.triggerAutoSave();
+        this.updateCentroidDisplay();
+        this.showToast(`📍 ${label} を移動しました`, 'success');
+        this.attachVertexHandles(layer);
+      });
+
+      this.vertexHandles.push(handle);
+      const countEl = document.getElementById('lblVertexCount');
+      if (countEl) countEl.textContent = '1';
+      return;
+    }
+
     const coords = feature.polyline || feature.coordinates || feature.polygon;
-    if (!coords || !Array.isArray(coords) || coords.length === 0) return;
+    if (!coords || !Array.isArray(coords) || coords.length === 0 || !Array.isArray(coords[0])) return;
 
     const isPolygon = !feature.polyline && feature.entityType !== 'route';
 
@@ -4879,6 +5173,10 @@ class MapStudioApp {
     if (typeof layer.setStyle === 'function') {
       layer.setStyle({ weight: (this.selectedFeature.style?.weight || 2) + 2 });
     }
+    const spotEl = layer.getElement?.()?.querySelector?.('.editor-spot-marker-container');
+    if (spotEl) {
+      spotEl.classList.add('is-selected');
+    }
 
     this.attachVertexHandles(layer);
     this.populateInspector(this.selectedFeature);
@@ -4921,6 +5219,10 @@ class MapStudioApp {
         this.selectedLayer.setStyle({
           weight: st.weight || this.selectedFeature.strokeWidth || 2
         });
+      }
+      const prevSpotEl = this.selectedLayer.getElement?.()?.querySelector?.('.editor-spot-marker-container');
+      if (prevSpotEl) {
+        prevSpotEl.classList.remove('is-selected');
       }
     }
     this.clearVertexHandles();
@@ -4998,6 +5300,20 @@ class MapStudioApp {
 
     if (entityType === 'room' || entityType === 'spot') {
       document.getElementById('fieldLinkedProjects').value = (feat.linkedProjectIds || []).join(', ');
+      const isSpot = (entityType === 'spot');
+      const lblCentroid = document.getElementById('lblPinCentroid');
+      if (lblCentroid) {
+        lblCentroid.textContent = isSpot ? 'スポット座標 (緯度・経度) 📍' : 'ピン配置座標 (Centroid)';
+      }
+      const btnCentroid = document.getElementById('btnRecalcCentroid');
+      if (btnCentroid) {
+        btnCentroid.style.display = isSpot ? 'none' : 'inline-block';
+      }
+      const latInput = document.getElementById('fieldPinLat');
+      const lngInput = document.getElementById('fieldPinLng');
+      if (latInput) latInput.placeholder = isSpot ? '緯度 (例: 35.385960)' : '緯度 (lat)';
+      if (lngInput) lngInput.placeholder = isSpot ? '経度 (例: 139.585350)' : '経度 (lng)';
+
       this.updateCentroidDisplay();
     }
 
@@ -5022,14 +5338,76 @@ class MapStudioApp {
 
   updateCentroidDisplay() {
     if (!this.selectedFeature) return;
-    const coords = this.selectedFeature.polygon || this.selectedFeature.coordinates;
-    let pin = this.selectedFeature.pinCoord || this.selectedFeature.latlng;
-    if (!pin && coords && coords.length > 0) {
-      pin = GeometryEngine.computeCentroid(coords);
+    const f = this.selectedFeature;
+    let pin = f.latlng || f.pinCoord;
+    if (!pin) {
+      const coords = f.polygon || f.coordinates;
+      if (coords && Array.isArray(coords) && coords.length > 0) {
+        if (Array.isArray(coords[0])) {
+          pin = GeometryEngine.computeCentroid(coords);
+        } else if (typeof coords[0] === 'number') {
+          pin = coords;
+        }
+      }
     }
-    if (pin) {
-      document.getElementById('fieldPinLat').value = pin[0].toFixed(6);
-      document.getElementById('fieldPinLng').value = pin[1].toFixed(6);
+    if (pin && typeof pin[0] === 'number' && typeof pin[1] === 'number') {
+      const latEl = document.getElementById('fieldPinLat');
+      const lngEl = document.getElementById('fieldPinLng');
+      if (latEl && document.activeElement !== latEl) {
+        latEl.value = pin[0].toFixed(6);
+      }
+      if (lngEl && document.activeElement !== lngEl) {
+        lngEl.value = pin[1].toFixed(6);
+      }
+    }
+  }
+
+  applyCoordinateInputChanges(saveHistory = false) {
+    if (!this.selectedFeature || !this.selectedLayer) return;
+    const f = this.selectedFeature;
+    const latStr = document.getElementById('fieldPinLat')?.value?.trim();
+    const lngStr = document.getElementById('fieldPinLng')?.value?.trim();
+    if (!latStr || !lngStr) return;
+
+    const lat = parseFloat(latStr);
+    const lng = parseFloat(lngStr);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const newCoords = [
+      parseFloat(lat.toFixed(6)),
+      parseFloat(lng.toFixed(6))
+    ];
+
+    if (f.entityType === 'spot') {
+      f.latlng = newCoords;
+      f.coordinates = newCoords;
+
+      if (typeof this.selectedLayer.setLatLng === 'function') {
+        this.selectedLayer.setLatLng(newCoords);
+      }
+
+      const target = this.selectedLayer._entityRef || this.findMapDataEntity(f);
+      if (target) {
+        target.latlng = newCoords;
+        target.coordinates = newCoords;
+      }
+
+      this.attachVertexHandles(this.selectedLayer);
+
+      if (saveHistory) {
+        this.history.pushState(this.mapData, `スポット座標直接編集: ${f.name || f.id}`);
+        this.showToast(`📍 スポット [${f.name || f.id}] の座標を更新しました`, 'info');
+      }
+      this.triggerAutoSave();
+    } else if (f.entityType === 'room') {
+      f.pinCoord = newCoords;
+      const target = this.selectedLayer._entityRef || this.findMapDataEntity(f);
+      if (target) target.pinCoord = newCoords;
+      if (saveHistory) {
+        this.history.pushState(this.mapData, `重心ピン座標変更: ${f.name || f.id}`);
+        this.showToast(`📌 [${f.name || f.id}] のピン座標を更新しました`, 'info');
+      }
+      this.triggerAutoSave();
     }
   }
 
@@ -5099,6 +5477,9 @@ class MapStudioApp {
     } else if (f.entityType === 'room' || f.entityType === 'spot') {
       const pStr = document.getElementById('fieldLinkedProjects').value.trim();
       f.linkedProjectIds = pStr ? pStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+      if (f.entityType === 'spot') {
+        this.applyCoordinateInputChanges(false);
+      }
     } else if (f.entityType === 'corridor') {
       f.isOverpass = document.getElementById('fieldIsOverpass').checked;
       f.buildingFrom = document.getElementById('fieldBuildingFrom').value.trim();
@@ -6167,6 +6548,23 @@ class MapStudioApp {
         document.getElementById('lblWeightVal').textContent = e.target.value;
       }
       this.applyInspectorChanges();
+    });
+
+    // Inspector Direct Coordinate Inputs (Enter & Change)
+    ['fieldPinLat', 'fieldPinLng'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.applyCoordinateInputChanges(true);
+            el.blur();
+          }
+        });
+        el.addEventListener('change', () => {
+          this.applyCoordinateInputChanges(true);
+        });
+      }
     });
 
     // Centroid Recalc Button

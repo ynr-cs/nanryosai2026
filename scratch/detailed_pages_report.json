@@ -1,0 +1,2839 @@
+[
+  {
+    "file": "main/index.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_venue",
+        "params": "venue=gym",
+        "tag": "<div class=\"venue-card\" onclick=\"toggleVenueExpand(this)\" data-track=\"click_venu"
+      },
+      {
+        "eventName": "click_venue",
+        "params": "venue=music_room",
+        "tag": "<div class=\"venue-card\" onclick=\"toggleVenueExpand(this)\" data-track=\"click_venu"
+      },
+      {
+        "eventName": "click_venue",
+        "params": "venue=av_room",
+        "tag": "<div class=\"venue-card\" onclick=\"toggleVenueExpand(this)\" data-track=\"click_venu"
+      },
+      {
+        "eventName": "click_mop_promo",
+        "params": "section=index_hero",
+        "tag": "<a href=\"../pos/mobile-order.html\" class=\"promo-btn-white\" data-track=\"click_mop"
+      },
+      {
+        "eventName": "click_mop_safety",
+        "params": "",
+        "tag": "<a href=\"mobile-order-guide.html\" class=\"promo-link-sub\" data-track=\"click_mop_s"
+      },
+      {
+        "eventName": "click_section_more",
+        "params": "section=projects",
+        "tag": "<a href=\"projects-list.html\" class=\"highlight-link\" data-track=\"click_section_mo"
+      },
+      {
+        "eventName": "click_section_more",
+        "params": "section=stage",
+        "tag": "<a href=\"stage-list.html\" class=\"highlight-link\" data-track=\"click_section_more\""
+      },
+      {
+        "eventName": "click_stage_day_tab",
+        "params": "day=1",
+        "tag": "<button class=\"day-btn active\" data-day=\"1\" data-track=\"click_stage_day_tab\" dat"
+      },
+      {
+        "eventName": "click_stage_day_tab",
+        "params": "day=2",
+        "tag": "<button class=\"day-btn\" data-day=\"2\" data-track=\"click_stage_day_tab\" data-track"
+      },
+      {
+        "eventName": "close_gantt_popup",
+        "params": "",
+        "tag": "<button class=\"event-tooltip-close\" id=\"event-popup-close\" aria-label=\"閉じる\" data"
+      },
+      {
+        "eventName": "click_gantt_popup_detail",
+        "params": "",
+        "tag": "<a href=\"#\" id=\"event-popup-link\" class=\"event-tooltip-link\" data-track=\"click_g"
+      },
+      {
+        "eventName": "click_access_map",
+        "params": "",
+        "tag": "<a href=\"access.html\" class=\"overview-link\" data-track=\"click_access_map\">"
+      },
+      {
+        "eventName": "${trackEventName}",
+        "params": "id=${linkId}",
+        "tag": "<a href=\"detail.html?id=${linkId}\" class=\"highlight-card\" data-track=\"${trackEve"
+      },
+      {
+        "eventName": "click_gantt_event",
+        "params": "",
+        "tag": "<div class=\"gantt-event-bar\" style=\"left: ${left}%; width: ${width}%\" title=\"${b"
+      },
+      {
+        "eventName": "click_update_preview",
+        "params": "",
+        "tag": "<a href=\"updates.html?id=${update.id}\" class=\"update-preview-item\" data-track=\"c"
+      }
+    ],
+    "logEvents": [],
+    "buttonsCount": 16,
+    "trackedButtonsCount": 11,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "在校生はこちら（モバイルオーダー）",
+        "id": "",
+        "onclick": "",
+        "href": "../pos/mobile-order.html",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "試験運用の仕組み・店頭キオスクの使い方",
+        "id": "",
+        "onclick": "",
+        "href": "mobile-order-guide.html",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "すべて見る",
+        "id": "",
+        "onclick": "",
+        "href": "projects-list.html",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "すべて見る",
+        "id": "",
+        "onclick": "",
+        "href": "stage-list.html",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "DAY 1",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "DAY 2",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "event-popup-close",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "詳細",
+        "id": "event-popup-link",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "アクセス方法を見る",
+        "id": "",
+        "onclick": "",
+        "href": "access.html",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "学校案内パンフレット (PDF)",
+        "id": "",
+        "onclick": "",
+        "href": "https://qr.scan.page/uploads/pdf/G8p1C2_",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "公式 入学希望者向けページ",
+        "id": "",
+        "onclick": "",
+        "href": "https://www.pen-kanagawa.ed.jp/y-nanryo-",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "もっと見る",
+        "id": "",
+        "onclick": "",
+        "href": "updates.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "${groupName}\r\n                ",
+        "id": "${linkId}",
+        "onclick": "",
+        "href": "detail.html?id=${linkId}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "${badgeHtml}${update.title}",
+        "id": "",
+        "onclick": "",
+        "href": "updates.html?id=${update.id}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "${commonContent}",
+        "id": "",
+        "onclick": "event.stopPropagation()",
+        "href": "${linkUrl}",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "${commonContent}",
+        "id": "",
+        "onclick": "event.stopPropagation()",
+        "href": "${linkUrl}",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/projects-list.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_filter_grade",
+        "params": "grade=すべて",
+        "tag": "<button class=\"filter-btn active\" data-filter=\"すべて\" data-track=\"click_filter_gra"
+      },
+      {
+        "eventName": "click_filter_grade",
+        "params": "grade=1年生",
+        "tag": "<button class=\"filter-btn\" data-filter=\"1年生\" data-track=\"click_filter_grade\" dat"
+      },
+      {
+        "eventName": "click_filter_grade",
+        "params": "grade=2年生",
+        "tag": "<button class=\"filter-btn\" data-filter=\"2年生\" data-track=\"click_filter_grade\" dat"
+      },
+      {
+        "eventName": "click_filter_grade",
+        "params": "grade=3年生",
+        "tag": "<button class=\"filter-btn\" data-filter=\"3年生\" data-track=\"click_filter_grade\" dat"
+      },
+      {
+        "eventName": "click_filter_grade",
+        "params": "grade=部活動",
+        "tag": "<button class=\"filter-btn\" data-filter=\"部活動\" data-track=\"click_filter_grade\" dat"
+      },
+      {
+        "eventName": "click_filter_type",
+        "params": "type=すべて",
+        "tag": "<button class=\"filter-btn active\" data-filter=\"すべて\" data-track=\"click_filter_typ"
+      },
+      {
+        "eventName": "click_filter_type",
+        "params": "type=food",
+        "tag": "<button class=\"filter-btn\" data-filter=\"food\" data-track=\"click_filter_type\" dat"
+      },
+      {
+        "eventName": "click_filter_type",
+        "params": "type=shop",
+        "tag": "<button class=\"filter-btn\" data-filter=\"shop\" data-track=\"click_filter_type\" dat"
+      },
+      {
+        "eventName": "click_filter_type",
+        "params": "type=exhibit",
+        "tag": "<button class=\"filter-btn\" data-filter=\"exhibit\" data-track=\"click_filter_type\" "
+      },
+      {
+        "eventName": "click_order_from_list",
+        "params": "project-id=${project.id}",
+        "tag": "<a href=\"../pos/mobile-order.html?store=${project.id}\" class=\"btn-action btn-ord"
+      },
+      {
+        "eventName": "click_project",
+        "params": "project-id=${project.id}",
+        "tag": "<a href=\"${detailUrl}\" class=\"card-project-title\" data-track=\"click_project\" dat"
+      },
+      {
+        "eventName": "click_favorite",
+        "params": "project-id=${project.id}",
+        "tag": "<button class=\"${favBtnClass}\" data-project-id=\"${project.id}\" aria-label=\"Favor"
+      },
+      {
+        "eventName": "click_detail",
+        "params": "project-id=${project.id}",
+        "tag": "<a href=\"${detailUrl}\" class=\"btn-action btn-details\" data-track=\"click_detail\" "
+      },
+      {
+        "eventName": "click_floating_vote",
+        "params": "",
+        "tag": "<a href=\"https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy"
+      }
+    ],
+    "logEvents": [
+      {
+        "eventName": "\"search_project\"",
+        "params": "{ search_keyword: val }"
+      },
+      {
+        "eventName": "\"change_sort\"",
+        "params": "{ sort_type: val }"
+      },
+      {
+        "eventName": "\"toggle_favorites_filter\"",
+        "params": "{ status: e.target.checked ? \"on\" : \"off\" }"
+      }
+    ],
+    "buttonsCount": 22,
+    "trackedButtonsCount": 14,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "すべて",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "1年生",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "2年生",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "3年生",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "部活動",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "すべて",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "🍱 飲食",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "🛍️ 物販",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "🎨 展示・体験",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "クラス・団体順",
+        "id": "sort-dropdown-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "クラス・団体順",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "五十音順 (昇順)",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "場所・階数順",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "grid-view-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "list-view-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "オーダー",
+        "id": "${project.id}",
+        "onclick": "",
+        "href": "../pos/mobile-order.html?store=${project",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "準備中",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "${project.name}",
+        "id": "${project.id}",
+        "onclick": "",
+        "href": "${detailUrl}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "${place}",
+        "id": "",
+        "onclick": "event.stopPropagation();",
+        "href": "map.html?project=${encodeURIComponent(pr",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "${project.id}",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "詳細",
+        "id": "${project.id}",
+        "onclick": "",
+        "href": "${detailUrl}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "投票",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": true
+      }
+    ]
+  },
+  {
+    "file": "main/stage-list.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_stage_day",
+        "params": "day=1",
+        "tag": "<button class=\"day-btn active\" data-day=\"1\" data-track=\"click_stage_day\" data-tr"
+      },
+      {
+        "eventName": "click_stage_day",
+        "params": "day=2",
+        "tag": "<button class=\"day-btn\" data-day=\"2\" data-track=\"click_stage_day\" data-track-day"
+      },
+      {
+        "eventName": "click_gantt_event",
+        "params": "",
+        "tag": "<div class=\"gantt-event-bar\" style=\"left: ${left}%; width: ${width}%\" title=\"${b"
+      },
+      {
+        "eventName": "click_stage_detail",
+        "params": "event-id=${linkId}, event-name=${event.name || ",
+        "tag": "<a href=\"detail.html?id=${linkId}\" class=\"list-link-button\" data-track=\"click_st"
+      },
+      {
+        "eventName": "click_favorite_stage",
+        "params": "event-id=${linkId}",
+        "tag": "<button class=\"${favBtnClass}\" data-event-id=\"${linkId}\" aria-label=\"Favorite\" d"
+      },
+      {
+        "eventName": "click_floating_vote",
+        "params": "",
+        "tag": "<a href=\"https://docs.google.com/forms/d/e/1FAIpQLSfp5h3ff_OnUV_0zNVLEA7Efbd9Qyy"
+      }
+    ],
+    "logEvents": [
+      {
+        "eventName": "\"toggle_favorites_filter\"",
+        "params": "{ status: e.target.checked ? \"on\" : \"off\" }"
+      },
+      {
+        "eventName": "\"toggle_past_events\"",
+        "params": "{ status: e.target.checked ? \"on\" : \"off\" }"
+      }
+    ],
+    "buttonsCount": 7,
+    "trackedButtonsCount": 5,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "DAY 1",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "DAY 2",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "詳細",
+        "id": "${linkId}",
+        "onclick": "",
+        "href": "detail.html?id=${linkId}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "${event.place}",
+        "id": "",
+        "onclick": "",
+        "href": "${stageMapUrl}",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "${linkId}",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "投票",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": true
+      }
+    ]
+  },
+  {
+    "file": "main/detail.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_favorite_detail",
+        "params": "",
+        "tag": "<button id=\"btn-favorite-detail\" class=\"btn-favorite-star\" style=\"display: none;"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=info",
+        "tag": "<button class=\"tab-button active\" data-tab=\"info\" data-track=\"click_detail_tab\" "
+      },
+      {
+        "eventName": "click_detail_sns",
+        "params": "",
+        "tag": "<a href=\"${project.sns.instagram}\" target=\"_blank\" rel=\"noopener\" class=\"sns-lin"
+      },
+      {
+        "eventName": "click_detail_sns",
+        "params": "sns=twitter",
+        "tag": "<a href=\"${project.sns.twitter}\" target=\"_blank\" rel=\"noopener\" class=\"sns-link-"
+      },
+      {
+        "eventName": "click_detail_sns",
+        "params": "sns=tiktok",
+        "tag": "<a href=\"${project.sns.tiktok}\" target=\"_blank\" rel=\"noopener\" class=\"sns-link-b"
+      },
+      {
+        "eventName": "click_detail_sns",
+        "params": "sns=youtube",
+        "tag": "<a href=\"${project.sns.youtube}\" target=\"_blank\" rel=\"noopener\" class=\"sns-link-"
+      },
+      {
+        "eventName": "click_detail_vote",
+        "params": "",
+        "tag": "<a href=\"${voteUrl}\" target=\"_blank\" rel=\"noopener\" class=\"vote-btn\" style=\"disp"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=menu",
+        "tag": "<button class=\"tab-button\" data-tab=\"menu\" data-track=\"click_detail_tab\" data-tr"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=gallery",
+        "tag": "<button class=\"tab-button\" data-tab=\"gallery\" data-track=\"click_detail_tab\" data"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=performers",
+        "tag": "<button class=\"tab-button\" data-tab=\"performers\" data-track=\"click_detail_tab\" d"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=schedule",
+        "tag": "<button class=\"tab-button\" data-tab=\"schedule\" data-track=\"click_detail_tab\" dat"
+      },
+      {
+        "eventName": "click_detail_tab",
+        "params": "tab=map",
+        "tag": "<button class=\"tab-button\" data-tab=\"map\" data-track=\"click_detail_tab\" data-tra"
+      }
+    ],
+    "logEvents": [],
+    "buttonsCount": 16,
+    "trackedButtonsCount": 12,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "",
+        "id": "btn-favorite-detail",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "基本情報",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "Instagram",
+        "id": "",
+        "onclick": "",
+        "href": "${project.sns.instagram}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "Twitter",
+        "id": "",
+        "onclick": "",
+        "href": "${project.sns.twitter}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "TikTok",
+        "id": "",
+        "onclick": "",
+        "href": "${project.sns.tiktok}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "YouTube",
+        "id": "",
+        "onclick": "",
+        "href": "${project.sns.youtube}",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "${votingLabel}",
+        "id": "${project.id}",
+        "onclick": "",
+        "href": "${voteUrl}",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "メニュー",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "モバイルオーダーで注文する",
+        "id": "",
+        "onclick": "",
+        "href": "../pos/mobile-order.html?store=${project",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "現在注文できません",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ギャラリー",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "出演者",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "スケジュール",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "button",
+        "text": "マップ",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "校内マップで場所を確認する（ピンへ直行）",
+        "id": "",
+        "onclick": "",
+        "href": "${targetMapUrl}",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "全体校内マップを開く",
+        "id": "",
+        "onclick": "",
+        "href": "map.html",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/account.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_account_accordion",
+        "params": "section=favorites",
+        "tag": "<h3 class=\"section-title section-closed\" id=\"favorites-toggle\" data-track=\"click"
+      },
+      {
+        "eventName": "click_account_accordion",
+        "params": "section=order_history",
+        "tag": "<h3 class=\"section-title section-closed\" id=\"order-history-toggle\" data-track=\"c"
+      },
+      {
+        "eventName": "toggle_notification",
+        "params": "",
+        "tag": "<input type=\"checkbox\" id=\"notification-toggle\" data-track=\"toggle_notification\""
+      },
+      {
+        "eventName": "click_account_menu",
+        "params": "target=terms",
+        "tag": "<div class=\"menu-item\" onclick=\"window.location.href = 'terms.html'\" data-track="
+      },
+      {
+        "eventName": "click_account_menu",
+        "params": "target=logout",
+        "tag": "<div class=\"menu-item\" id=\"btn-logout\" data-track=\"click_account_menu\" data-trac"
+      },
+      {
+        "eventName": "click_account_menu",
+        "params": "",
+        "tag": "<div class=\"menu-item\" id=\"btn-delete-account\" style=\"border-bottom: none; curso"
+      }
+    ],
+    "logEvents": [],
+    "buttonsCount": 6,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "",
+        "id": "btn-edit-nickname",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "btn-cancel-nickname",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "保存",
+        "id": "btn-save-nickname",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "btn-cancel-delete",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "削除する",
+        "id": "btn-confirm-delete",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "${favId}",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/login.html",
+    "dataTrackDetails": [],
+    "logEvents": [
+      {
+        "eventName": "\"click_login\"",
+        "params": "{ method: \"Guest\" }"
+      }
+    ],
+    "buttonsCount": 12,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "はい（在校生）",
+        "id": "btn-student-yes",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "いいえ（一般のお客様）",
+        "id": "btn-student-no",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "理解しました（次へ）",
+        "id": "btn-confirm-next",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "戻る",
+        "id": "btn-confirm-back",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ログインして他の機能を使う",
+        "id": "btn-guest-login",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームに戻る",
+        "id": "",
+        "onclick": "",
+        "href": "./index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "不具合報告フォーム\r\n                までご",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "別のアカウントに切り替える",
+        "id": "btn-switch-account",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームに戻る",
+        "id": "",
+        "onclick": "",
+        "href": "./index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームに戻る",
+        "id": "",
+        "onclick": "",
+        "href": "./index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "南陵祭'26",
+        "id": "",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文をやめる",
+        "id": "btn-sok-cancel",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/map.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 38,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "南陵祭'26",
+        "id": "",
+        "onclick": "",
+        "href": "index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "themeToggleBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "header-menu-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "5F",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "4F",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "3F",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "2F",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "1F",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "zoomInBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "zoomOutBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "myLocationBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "resetViewBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "dockCloseBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "すべて",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "模擬店",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "展示",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "物販",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ステージ",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "施設",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "来場アクセスルート案内\r\n                洋",
+        "id": "routeModalBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホーム",
+        "id": "",
+        "onclick": "",
+        "href": "index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "企画",
+        "id": "",
+        "onclick": "",
+        "href": "projects-list.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "オーダー",
+        "id": "",
+        "onclick": "",
+        "href": "mobile-order.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ステージ",
+        "id": "",
+        "onclick": "",
+        "href": "stage-list.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "アカウント",
+        "id": "",
+        "onclick": "",
+        "href": "account.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "closeRouteModalBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "洋光台北口ルート (徒歩5分)\r\n             ",
+        "id": "route_yokodai",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "日野中央公園ルート (徒歩8分)\r\n            ",
+        "id": "route_hino_park",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "日野小学校前ルート (徒歩10分)\r\n           ",
+        "id": "route_hino_elem",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ルート表示を解除",
+        "id": "clearRouteBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "closeDetailBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "${escapeHtml(p.groupName || p.",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "closeDetailBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "closeDetailBtn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "並ばずに受け取り可能\r\n                  ",
+        "id": "",
+        "onclick": "",
+        "href": "../pos/mobile-order.html?store=${encodeU",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "企画の詳細情報を見る",
+        "id": "",
+        "onclick": "",
+        "href": "detail.html?id=${encodeURIComponent(proj",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/map3d.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 17,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "arrow_back",
+        "id": "",
+        "onclick": "history.back()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンパス全体",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "生徒棟",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "体育館",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "職員室",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "武道場",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "健康福祉棟",
+        "id": "",
+        "onclick": "selectBuilding(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "5F",
+        "id": "",
+        "onclick": "changeFloor(5)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "4F",
+        "id": "",
+        "onclick": "changeFloor(4)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "3F",
+        "id": "",
+        "onclick": "changeFloor(3)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "2F",
+        "id": "",
+        "onclick": "changeFloor(2)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "1F",
+        "id": "",
+        "onclick": "changeFloor(1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "add",
+        "id": "",
+        "onclick": "zoomIn()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "remove",
+        "id": "",
+        "onclick": "zoomOut()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "center_focus_strong",
+        "id": "",
+        "onclick": "resetView()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "close",
+        "id": "close-info",
+        "onclick": "hideInfo()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "詳細を見る",
+        "id": "info-link",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/access.html",
+    "dataTrackDetails": [
+      {
+        "eventName": "click_access_map",
+        "params": "app=apple",
+        "tag": "<a href=\"https://maps.apple.com/place?place-id=IDCEE73B74D8D9EB3\" class=\"app-lin"
+      },
+      {
+        "eventName": "click_access_map",
+        "params": "app=google",
+        "tag": "<a href=\"https://www.google.com/maps/search/?api=1&query=神奈川県立横浜南陵高等学校\" class=\"a"
+      }
+    ],
+    "logEvents": [],
+    "buttonsCount": 2,
+    "trackedButtonsCount": 2,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "Apple Maps",
+        "id": "",
+        "onclick": "",
+        "href": "https://maps.apple.com/place?place-id=ID",
+        "hasTrack": true
+      },
+      {
+        "type": "a",
+        "text": "Google Maps",
+        "id": "",
+        "onclick": "",
+        "href": "https://www.google.com/maps/search/?api=",
+        "hasTrack": true
+      }
+    ]
+  },
+  {
+    "file": "main/about.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 3,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "アクセス方法を見る",
+        "id": "",
+        "onclick": "",
+        "href": "access.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "学校案内パンフレット (PDF)",
+        "id": "",
+        "onclick": "",
+        "href": "https://qr.scan.page/uploads/pdf/G8p1C2_",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "公式 入学希望者向けページ",
+        "id": "",
+        "onclick": "",
+        "href": "https://www.pen-kanagawa.ed.jp/y-nanryo-",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/about-us.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 1,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "お問い合わせ",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/terms.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 1,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "プライバシーポリシー",
+        "id": "",
+        "onclick": "",
+        "href": "privacy.html",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/privacy.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 3,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "Googleアナリティクスサービス利用規約",
+        "id": "",
+        "onclick": "",
+        "href": "https://marketingplatform.google.com/abo",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "Googleポリシーと規約",
+        "id": "",
+        "onclick": "",
+        "href": "https://policies.google.com/technologies",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "お問い合わせフォームへ",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/updates.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 1,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "一覧に戻る",
+        "id": "mobile-back-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "main/mobile-order-guide.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 4,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "一般来場者の皆様\n                \n    ",
+        "id": "",
+        "onclick": "",
+        "href": "#visitors",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "在校生の皆さん\n                \n     ",
+        "id": "",
+        "onclick": "",
+        "href": "#students",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "共通の安心・安全設計\n                \n  ",
+        "id": "",
+        "onclick": "",
+        "href": "#security",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "お問い合わせ・不具合報告フォームへ",
+        "id": "",
+        "onclick": "",
+        "href": "https://docs.google.com/forms/d/e/1FAIpQ",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/mobile-order.html",
+    "dataTrackDetails": [],
+    "logEvents": [
+      {
+        "eventName": "\"select_store\"",
+        "params": "{ store_id: storeId, store_name: storeName }"
+      },
+      {
+        "eventName": "\"add_to_cart\"",
+        "params": "{ item_id: selectingProduct.id, item_name: selectingProduct.name, price: selecti"
+      },
+      {
+        "eventName": "\"purchase\"",
+        "params": "{ transaction_id: result.data.orderId, value: cart.reduce((sum, c"
+      },
+      {
+        "eventName": "screenEvents[id]",
+        "params": ""
+      }
+    ],
+    "buttonsCount": 20,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "スキップ",
+        "id": "wt-skip",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "次へ",
+        "id": "wt-next",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "通知を受け取る",
+        "id": "btn-req-notification",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "通知を受け取らない",
+        "id": "btn-skip-notification",
+        "onclick": "skipNotification()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ご利用の流れをもう一度見る",
+        "id": "btn-reopen-walkthrough",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "同意して次へ",
+        "id": "btn-agree-terms",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "backToStores()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文を確定する",
+        "id": "btn-finalize-order",
+        "onclick": "finalizeOrder()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "メニューに戻る",
+        "id": "",
+        "onclick": "backToMenu()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "レジへ",
+        "id": "",
+        "onclick": "\r\n            event.stopPropagation();\r\n            checkout();\r\n          ",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "抜き",
+        "id": "",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "追加",
+        "id": "",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "-",
+        "id": "",
+        "onclick": "adjustQty(-1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "+",
+        "id": "",
+        "onclick": "adjustQty(1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "カートに追加",
+        "id": "",
+        "onclick": "commitAddToCart()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "レジにすすむ",
+        "id": "",
+        "onclick": "checkout()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "カートを空にする",
+        "id": "",
+        "onclick": "clearCart()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "removeFromCart(${idx})",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/status.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 4,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "更新",
+        "id": "btn-manual-sync",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "詳細",
+        "id": "btn-store-link",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ログインする",
+        "id": "btn-login-status",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/pos.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 18,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "ポータルへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "portal.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "別のアカウントでログインする",
+        "id": "btn-domain-logout",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "../main/index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "全画面",
+        "id": "",
+        "onclick": "toggleFullScreen()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "No抜き",
+        "id": "",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "Add追加",
+        "id": "",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "－",
+        "id": "",
+        "onclick": "changeQuantity(-1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "＋",
+        "id": "",
+        "onclick": "changeQuantity(1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "削除",
+        "id": "",
+        "onclick": "deleteSelected()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "全消去",
+        "id": "",
+        "onclick": "openClearModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "お会計",
+        "id": "",
+        "onclick": "openCheckoutModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "",
+        "onclick": "closeAllModals()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "確定する",
+        "id": "",
+        "onclick": "processCheckout()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "",
+        "onclick": "closeAllModals()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "削除する",
+        "id": "",
+        "onclick": "processClearCart()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "次の注文へ",
+        "id": "",
+        "onclick": "closeAllModals()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "toggle-store-pass",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "認証する",
+        "id": "store-login-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/kitchen.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 13,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "👁️",
+        "id": "toggle-store-pass",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "認証する",
+        "id": "store-login-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "別のアカウントでログインする",
+        "id": "btn-domain-logout",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "../main/index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ポータルへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "portal.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "-",
+        "id": "",
+        "onclick": "adjustZoom(-0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "+",
+        "id": "",
+        "onclick": "adjustZoom(0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "全画面",
+        "id": "",
+        "onclick": "toggleFullScreen()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "履歴",
+        "id": "",
+        "onclick": "openHistory()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ログアウト",
+        "id": "",
+        "onclick": "logout()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "閉じる",
+        "id": "",
+        "onclick": "closeHistory()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "調理完了",
+        "id": "",
+        "onclick": "completeOrder(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ここをクリックしてインデックスを作成してください",
+        "id": "",
+        "onclick": "",
+        "href": "${link[0]}",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/portal.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 30,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "別のアカウントでログインする",
+        "id": "btn-domain-logout",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームへ戻る\r\n    \r\n    \r\n    \r\n    ",
+        "id": "auth-overlay",
+        "onclick": "logout()",
+        "href": "../main/index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "🪄\r\n                セルフオーダーキオス",
+        "id": "link-sok",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "👨‍🍳\r\n                キッチンモニタ",
+        "id": "link-kitchen",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "🎁\r\n                プレゼンターモニター",
+        "id": "link-presenter",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "📺\r\n                呼び出しモニター\r\n",
+        "id": "link-monitor",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "📈\r\n                売上スプレッドシート",
+        "id": "link-spreadsheet",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "🟢 営業開始",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "🟡 一時停止",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "⚫ 営業終了",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "＋ 新規商品を追加",
+        "id": "",
+        "onclick": "openItemModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "◀",
+        "id": "",
+        "onclick": "moveTimeline(-1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "➕ 拡大",
+        "id": "",
+        "onclick": "zoomTimeline(0.5)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "➖ 縮小",
+        "id": "",
+        "onclick": "zoomTimeline(2)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "▶",
+        "id": "",
+        "onclick": "moveTimeline(1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "リセット",
+        "id": "",
+        "onclick": "resetTimeline()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "トレーニングポータルへ移動",
+        "id": "",
+        "onclick": "openTraining()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "＋ オプションを追加",
+        "id": "",
+        "onclick": "addToppingInput()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "削除",
+        "id": "",
+        "onclick": "deleteItem()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "",
+        "onclick": "closeItemModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "保存",
+        "id": "btn-save-item",
+        "onclick": "saveItem()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "×",
+        "id": "",
+        "onclick": "closeOrderModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "変更を保存",
+        "id": "btn-save-status",
+        "onclick": "updateOrderStatus()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "編集",
+        "id": "",
+        "onclick": "openItemModal(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "${storeOperationStatus === \"op",
+        "id": "",
+        "onclick": "toggleItemStatus(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "削除",
+        "id": "",
+        "onclick": "this.parentElement.remove()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "✅ すべて選択",
+        "id": "",
+        "onclick": "selectAllItems(true)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "☐ すべて解除",
+        "id": "",
+        "onclick": "selectAllItems(false)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "🚀 営業開始する",
+        "id": "btn-confirm-open",
+        "onclick": "confirmOpenStore()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "キャンセル",
+        "id": "",
+        "onclick": "closeOpenModal()",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/monitor.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 9,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "👁️",
+        "id": "toggle-store-pass",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "認証する",
+        "id": "store-login-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "別のアカウントでログインする",
+        "id": "btn-domain-logout",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "../main/index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "☰",
+        "id": "",
+        "onclick": "app.toggleMenu()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "-",
+        "id": "",
+        "onclick": "app.adjustZoom(-0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "+",
+        "id": "",
+        "onclick": "app.adjustZoom(0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "全画面",
+        "id": "",
+        "onclick": "app.toggleFullScreen()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ログアウト",
+        "id": "",
+        "onclick": "app.logout()",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/presenter.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 14,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "👁️",
+        "id": "toggle-store-pass",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "認証する",
+        "id": "store-login-btn",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "別のアカウントでログインする",
+        "id": "btn-domain-logout",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ホームへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "../main/index.html",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "ポータルへ戻る",
+        "id": "",
+        "onclick": "",
+        "href": "portal.html",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "-",
+        "id": "",
+        "onclick": "adjustZoom(-0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "+",
+        "id": "",
+        "onclick": "adjustZoom(0.1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "全画面",
+        "id": "",
+        "onclick": "toggleFullScreen()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "ログアウト",
+        "id": "",
+        "onclick": "logout()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "詳細",
+        "id": "",
+        "onclick": "alert(",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "呼び出し (準備完了)",
+        "id": "",
+        "onclick": "callForPickup(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "受渡完了 (AirPay端末確認)",
+        "id": "",
+        "onclick": "completeOrder(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "確認・破棄する (表示から消去)",
+        "id": "",
+        "onclick": "dismissAbandoned(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "⋮",
+        "id": "",
+        "onclick": "toggleMenu(",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/sok.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 17,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "button",
+        "text": "再読み込み",
+        "id": "",
+        "onclick": "location.reload()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "SOKを起動する",
+        "id": "",
+        "onclick": "startKiosk()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "この内容で注文する",
+        "id": "btn-issue-qr",
+        "onclick": "issueQr()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "はじめから（次の方へ）",
+        "id": "",
+        "onclick": "resetToMenu()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "closeItemModal()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "抜き",
+        "id": "mode-btn-no",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "追加",
+        "id": "mode-btn-add",
+        "onclick": "setMode(",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "adjustQty(-1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "adjustQty(1)",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "カートに追加",
+        "id": "",
+        "onclick": "addToCart()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "まだ",
+        "id": "btn-confirm-still",
+        "onclick": "cancelConfirmReset()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "新しい注文",
+        "id": "btn-confirm-next",
+        "onclick": "resetToMenu()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文を続ける",
+        "id": "",
+        "onclick": "resumeFromIdle()",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "removeCartItem(${idx})",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "decCartQty(${idx})",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "",
+        "id": "",
+        "onclick": "incCartQty(${idx})",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "カスタマイズを変更",
+        "id": "",
+        "onclick": "openCustomizeModal(${idx})",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  },
+  {
+    "file": "pos/sok-to.html",
+    "dataTrackDetails": [],
+    "logEvents": [],
+    "buttonsCount": 13,
+    "trackedButtonsCount": 0,
+    "buttons": [
+      {
+        "type": "a",
+        "text": "南陵祭'26",
+        "id": "",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "スキップ",
+        "id": "wt-skip",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "次へ",
+        "id": "wt-next",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "a",
+        "text": "南陵祭'26",
+        "id": "",
+        "onclick": "",
+        "href": "#",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "この内容でOK・次へ",
+        "id": "btn-confirm-items",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文の流れをもう一度見る",
+        "id": "btn-show-onboarding",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "通知を許可する",
+        "id": "btn-notify",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "スキップ",
+        "id": "btn-notify-skip",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "続ける",
+        "id": "btn-next-step",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文をやめる",
+        "id": "",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "注文を確定する",
+        "id": "btn-confirm",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "戻る",
+        "id": "btn-back-to-step3",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      },
+      {
+        "type": "button",
+        "text": "再読み込み",
+        "id": "btn-reload",
+        "onclick": "",
+        "href": "",
+        "hasTrack": false
+      }
+    ]
+  }
+]
