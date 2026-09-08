@@ -4,9 +4,7 @@
   header: align(right)[
     #text(9pt, fill: luma(120))[南陵祭2026 POS・モバイルオーダーシステム 活動報告書]
   ],
-  footer: [
-    #align(center)[#counter(page).display()]
-  ]
+  footer: context align(center)[#counter(page).display()]
 )
 
 #set text(
