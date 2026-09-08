@@ -770,7 +770,7 @@
             <!-- Nickname Display & Edit Trigger -->
             <div class="nickname-wrap">
               <span id="display-nickname" class="profile-name" style="margin-bottom:0;">---</span>
-              <button id="btn-edit-nickname" class="btn-edit-nick" aria-label="ニックネーム編集" title="ニックネームを変更">
+              <button id="btn-edit-nickname" class="btn-edit-nick" aria-label="ニックネーム編集" title="ニックネームを変更" data-track="click_account_edit_nickname">
                 <i class="bi bi-pencil-fill"></i>
               </button>
             </div>
@@ -782,8 +782,8 @@
                 <span id="char-counter" class="char-counter">0/20</span>
               </div>
               <div class="nickname-action-row">
-                <button type="button" id="btn-cancel-nickname" class="btn-nick-cancel">キャンセル</button>
-                <button type="button" id="btn-save-nickname" class="btn-nick-save" disabled>
+                <button type="button" id="btn-cancel-nickname" class="btn-nick-cancel" data-track="click_account_cancel_nickname">キャンセル</button>
+                <button type="button" id="btn-save-nickname" class="btn-nick-save" disabled data-track="click_account_save_nickname">
                   <i class="bi bi-check2"></i> 保存
                 </button>
               </div>
@@ -796,7 +796,7 @@
 
             <!-- UID Badge (Copyable) -->
             <div style="margin-top:4px;">
-              <div class="user-uid-badge" id="user-uid-badge" title="タップしてUIDをコピー">
+              <div class="user-uid-badge" id="user-uid-badge" title="タップしてUIDをコピー" data-track="click_account_copy_uid">
                 <i class="bi bi-fingerprint" style="color:var(--primary-color);"></i>
                 <span id="display-uid" class="uid-text">UID: 読み込み中...</span>
                 <i class="bi bi-copy" id="icon-copy-uid" style="font-size:0.75rem; margin-left:2px; opacity:0.7;"></i>
@@ -922,8 +922,8 @@
           </p>
           <div id="delete-modal-error" class="alert alert-danger py-2 px-3 small text-start mb-3" style="display:none; font-size:0.8rem; border-radius:10px;"></div>
           <div class="delete-modal-actions">
-            <button type="button" id="btn-cancel-delete" class="btn-modal-cancel">キャンセル</button>
-            <button type="button" id="btn-confirm-delete" class="btn-modal-delete">削除する</button>
+            <button type="button" id="btn-cancel-delete" class="btn-modal-cancel" data-track="click_account_cancel_delete">キャンセル</button>
+            <button type="button" id="btn-confirm-delete" class="btn-modal-delete" data-track="click_account_confirm_delete">削除する</button>
           </div>
         </div>
       </div>
@@ -1343,7 +1343,7 @@
                  <div style="width: 50px; height: 50px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--item-fill); border: 1px solid var(--border-color);">
                      <img src="${imgPath}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='../images/noimage.png'">
                  </div>
-                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'" style="padding: 2px 0;">
+                 <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'" style="padding: 2px 0;" data-track="click_account_favorite_item" data-track-id="${favId}">
                      <div class="order-info-top" style="margin-bottom: 4px;">
                          <span class="store-name" style="font-size: 0.95rem; line-height: 1.2;">${item.name}</span>
                      </div>
@@ -1352,7 +1352,7 @@
                          ${detailsHTML}
                      </div>
                  </div>
-                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto;" aria-label="Remove Favorite">
+                 <button class="btn-favorite-star active" data-id="${favId}" style="margin-left: auto;" aria-label="Remove Favorite" data-track="click_account_remove_favorite" data-track-id="${favId}">
                      <i class="bi bi-star"></i>
                  </button>
              `;
@@ -1420,6 +1420,8 @@
 
             const el = document.createElement("div");
             el.className = "order-card";
+            el.setAttribute("data-track", "click_account_order_history_item");
+            el.setAttribute("data-track-order-id", orderId);
             el.onclick = () => {
               window.location.href = `../pos/status.html?orderId=${orderId}`;
             };

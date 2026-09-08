@@ -74,6 +74,7 @@ const firebaseConfig = {
   storageBucket: "nanryosai-2026-a4091.firebasestorage.app",
   messagingSenderId: "93228414556",
   appId: "1:93228414556:web:f64f90c13849fae9049899",
+  measurementId: "G-1M5G95EXF0",
 };
 
 /* ==============================

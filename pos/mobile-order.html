@@ -1363,7 +1363,7 @@
          ============================================ -->
     <div id="walkthrough" role="dialog" aria-modal="true" aria-label="モバイルオーダーのご利用手順">
       <div class="wt-top">
-        <button class="wt-skip" id="wt-skip">スキップ <i class="bi bi-chevron-right"></i></button>
+        <button class="wt-skip" id="wt-skip" data-track="click_mop_wt_skip">スキップ <i class="bi bi-chevron-right"></i></button>
       </div>
 
       <div class="wt-viewport">
@@ -1428,7 +1428,7 @@
           <div class="wt-dot"></div>
           <div class="wt-dot"></div>
         </div>
-        <button class="wt-next" id="wt-next">
+        <button class="wt-next" id="wt-next" data-track="click_mop_wt_next">
           <span id="wt-next-label">次へ</span> <i class="bi bi-arrow-right" id="wt-next-icon"></i>
         </button>
       </div>
@@ -1462,13 +1462,14 @@
           </p>
         </div>
         <div class="pb-2">
-          <button id="btn-req-notification" class="btn-primary-custom mb-3">
+          <button id="btn-req-notification" class="btn-primary-custom mb-3" data-track="click_mop_notification_allow">
             通知を受け取る
           </button>
           <button
             id="btn-skip-notification"
             class="btn btn-link text-sub-custom text-decoration-none"
             onclick="skipNotification()"
+            data-track="click_mop_notification_skip"
           >
             通知を受け取らない
           </button>
@@ -1493,6 +1494,7 @@
             id="btn-reopen-walkthrough"
             class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold"
             style="font-size: 0.78rem; border-color: rgba(124, 58, 237, 0.4); color: #7c3aed;"
+            data-track="click_mop_reopen_walkthrough"
           >
             <i class="bi bi-question-circle"></i> ご利用の流れをもう一度見る
           </button>
@@ -1526,7 +1528,7 @@
               >上記内容を理解し、同意します</label
             >
           </div>
-          <button id="btn-agree-terms" class="btn-primary-custom py-3" disabled>
+          <button id="btn-agree-terms" class="btn-primary-custom py-3" disabled data-track="click_mop_agree_terms">
             同意して次へ
           </button>
         </div>
@@ -1555,6 +1557,7 @@
           <button
             class="btn btn-sm btn-outline-secondary rounded-circle"
             onclick="backToStores()"
+            data-track="click_mop_back_to_stores"
           >
             <i class="bi bi-x-lg"></i>
           </button>
@@ -1609,12 +1612,13 @@
           <strong>確定後のキャンセル・返金はできません。</strong><br />
           調理完了通知が届いてから5分以内に受け取りに来てください。
         </div>
-        <button id="btn-finalize-order" class="btn-primary-custom mb-3" onclick="finalizeOrder()">
+        <button id="btn-finalize-order" class="btn-primary-custom mb-3" onclick="finalizeOrder()" data-track="click_mop_finalize_order">
           注文を確定する
         </button>
         <button
           class="btn btn-link text-secondary w-100"
           onclick="backToMenu()"
+          data-track="click_mop_back_to_menu"
         >
           メニューに戻る
         </button>
@@ -1627,7 +1631,7 @@
       <!-- =========================================
            Global Components: Bottom Bar
            ========================================= -->
-      <div id="bottom-bar" class="bottom-cart-bar" onclick="openCart()">
+      <div id="bottom-bar" class="bottom-cart-bar" onclick="openCart()" data-track="click_mop_open_cart_bar">
         <div class="cart-left-section">
           <div class="cart-icon-box">
             <i class="bi bi-cart-fill"></i>
@@ -1641,6 +1645,7 @@
             event.stopPropagation();
             checkout();
           "
+          data-track="click_mop_checkout_bar"
         >
           レジへ
           <i class="bi bi-arrow-right-short" style="font-size: 1.2rem"></i>
@@ -1671,6 +1676,7 @@
                 class="btn btn-link p-0 me-3"
                 data-bs-dismiss="modal"
                 style="font-size: 1.5rem; color: var(--text-main)"
+                data-track="click_mop_item_modal_close"
               >
                 <i class="bi bi-chevron-left"></i>
               </button>
@@ -1736,6 +1742,7 @@
                     aria-expanded="false"
                     aria-controls="customization-collapse"
                     style="cursor: pointer"
+                    data-track="click_mop_custom_toggle"
                   >
                     <div class="d-flex align-items-center">
                       <i class="bi bi-gear-fill me-2 text-primary"></i>
@@ -1752,6 +1759,7 @@
                         class="mode-btn w-100 py-2"
                         data-mode="NO"
                         onclick="setMode('NO')"
+                        data-track="click_mop_mode_no"
                       >
                         <i class="bi bi-dash-circle me-1"></i> 抜き
                       </button>
@@ -1759,6 +1767,7 @@
                         class="mode-btn w-100 py-2"
                         data-mode="ADD"
                         onclick="setMode('ADD')"
+                        data-track="click_mop_mode_add"
                       >
                         <i class="bi bi-plus-circle me-1"></i> 追加
                       </button>
@@ -1816,6 +1825,7 @@
                       width: 30px;
                       color: var(--text-sub);
                     "
+                    data-track="click_mop_qty_decrease"
                   >
                     -
                   </button>
@@ -1829,6 +1839,7 @@
                     class="btn btn-sm text-primary"
                     onclick="adjustQty(1)"
                     style="font-size: 1.2rem; width: 30px"
+                    data-track="click_mop_qty_increase"
                   >
                     +
                   </button>
@@ -1838,6 +1849,7 @@
                 <button
                   class="btn btn-warning w-100 py-3 rounded-pill fw-bold text-dark shadow-sm"
                   onclick="commitAddToCart()"
+                  data-track="click_mop_add_to_cart"
                 >
                   カートに追加
                 </button>
@@ -1868,6 +1880,7 @@
                 type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
+                data-track="click_mop_cart_modal_close"
               ></button>
             </div>
             <div class="modal-body p-3" style="background: var(--bg-color)">
@@ -1889,6 +1902,7 @@
                 class="btn-primary-custom"
                 style="background: var(--brand-color); margin-bottom: 10px"
                 onclick="checkout()"
+                data-track="click_mop_checkout_modal"
               >
                 レジにすすむ <i class="bi bi-chevron-right ms-1"></i>
               </button>
@@ -1896,6 +1910,7 @@
                 class="btn w-100 small"
                 style="font-size: 0.9rem; color: var(--text-sub)"
                 onclick="clearCart()"
+                data-track="click_mop_clear_cart"
               >
                 カートを空にする
               </button>
@@ -2119,6 +2134,7 @@
         if (wt) {
           wt.classList.remove("closing");
           wt.classList.add("active");
+          logEvent(analytics, "funnel_walkthrough");
         }
       }
 
@@ -2179,6 +2195,7 @@
           if (nextBtn && wtIndex === WT_COUNT - 1) {
             nextBtn.disabled = !e.target.checked;
           }
+          logEvent(analytics, "toggle_mop_wt_terms", { agreed: e.target.checked });
         });
       }
 
@@ -2232,7 +2249,9 @@
           btnReqNotification.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:14px; height:14px; border-width:2px; display:inline-block; vertical-align:-1px;"></span> 確認中...`;
 
           try {
+            logEvent(analytics, "request_notification_permission");
             const permission = await Notification.requestPermission();
+            logEvent(analytics, "notification_permission_result", { permission });
             // ユーザーが許可/拒否を押した瞬間に次のステップ（店舗選択）へ進む
             proceedToStores();
 
@@ -2256,6 +2275,7 @@
       }
 
       window.skipNotification = () => {
+        logEvent(analytics, "skip_notification");
         proceedToStores();
         updateUserProfile({
           notificationEnabled: false,
@@ -2265,6 +2285,7 @@
 
       document.getElementById("check-terms").onchange = (e) => {
         document.getElementById("btn-agree-terms").disabled = !e.target.checked;
+        logEvent(analytics, "toggle_mop_terms", { agreed: e.target.checked });
       };
 
       document.getElementById("btn-agree-terms").onclick = async () => {
@@ -2389,6 +2410,8 @@
             }
 
             el.className = "store-card animate__animated animate__fadeInUp";
+            el.setAttribute("data-track", "click_mop_store");
+            el.setAttribute("data-track-store-id", d.id);
 
             // 注文不可能な場合はグレーアウト
             if (!isOpen) {
@@ -2442,6 +2465,8 @@
             offlineProjects.forEach(p => {
               const card = document.createElement("div");
               card.className = "offline-store-card";
+              card.setAttribute("data-track", "click_mop_offline_store");
+              card.setAttribute("data-track-project-id", p.id);
               const imgSrc = `../images/${p.id}.webp`;
 
               card.innerHTML = `
@@ -2533,6 +2558,9 @@
             const isRec = p.isRecommended === true;
             const el = document.createElement("div");
             el.className = "menu-card animate__animated animate__fadeIn";
+            el.setAttribute("data-track", "click_mop_item");
+            el.setAttribute("data-track-item-id", p.id);
+            el.setAttribute("data-track-item-name", p.name);
             if (isSoldOut) el.style.opacity = "0.7";
             
             // おすすめ商品はカード自体を光らせる
@@ -2567,7 +2595,11 @@
             lazyLoadImage(imgEl, p);
 
             el.onclick = () => {
-              if (!isSoldOut) openItemModal(p);
+              if (!isSoldOut) {
+                openItemModal(p);
+              } else {
+                logEvent(analytics, "click_mop_soldout_item", { item_id: p.id, item_name: p.name });
+              }
             };
             grid.appendChild(el);
           });
@@ -2582,6 +2614,12 @@
 
       /* 7. Feature: Item Details (Modal) */
       window.openItemModal = (product) => {
+        // GA4: 商品詳細閲覧イベント (標準 e-commerce イベント view_item)
+        logEvent(analytics, "view_item", {
+          item_id: product.id,
+          item_name: product.name,
+          price: product.price,
+        });
         selectingProduct = product;
         selectingQty = 1;
         currentMode = null;
@@ -2801,7 +2839,7 @@
                 <div class="cart-item-price">¥${c.price} x ${c.quantity}</div>
                 <div class="cart-item-mods">${modsHtml}</div>
              </div>
-             <button class="cart-del-btn" onclick="removeFromCart(${idx})"><i class="bi bi-trash"></i></button>
+             <button class="cart-del-btn" onclick="removeFromCart(${idx})" data-track="click_mop_cart_del" data-track-item-id="${c.productId || c.id}"><i class="bi bi-trash"></i></button>
           `;
           list.appendChild(el);
         });
@@ -2812,6 +2850,16 @@
       }
 
       window.removeFromCart = (idx) => {
+        const removedItem = cart[idx];
+        if (removedItem) {
+          logEvent(analytics, "remove_from_cart", {
+            item_id: removedItem.productId || removedItem.id,
+            item_name: removedItem.name,
+            price: removedItem.price,
+            quantity: removedItem.quantity,
+            currency: "JPY",
+          });
+        }
         cart.splice(idx, 1);
         renderCartList();
         updateBottomBar();
@@ -2820,6 +2868,10 @@
 
       window.clearCart = () => {
         if (confirm("本当に削除しますか？")) {
+          logEvent(analytics, "clear_cart", {
+            item_count: cart.length,
+            value: cart.reduce((sum, c) => sum + c.price * c.quantity, 0),
+          });
           cart = [];
           renderCartList();
           updateBottomBar();
@@ -2882,6 +2934,13 @@
 
       window.finalizeOrder = async () => {
         if (!confirm("本当に注文を確定してよろしいですか？")) return;
+        const totalValue = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
+        logEvent(analytics, "begin_checkout_attempt", {
+          store_id: currentStoreId,
+          value: totalValue,
+          currency: "JPY",
+          item_count: cart.length,
+        });
         loader.style.display = "flex";
         try {
           // 注文送信直前に店舗ステータスを再確認
@@ -2919,7 +2978,7 @@
           // GA4: 注文確定イベント
           logEvent(analytics, "purchase", {
             transaction_id: result.data.orderId,
-            value: cart.reduce((sum, c) => sum + c.price * c.quantity, 0),
+            value: totalValue,
             currency: "JPY",
             items: cart.map(c => ({
               item_id: c.productId,
@@ -2932,6 +2991,10 @@
           window.location.href = `status.html?orderId=${result.data.orderId}`;
         } catch (e) {
           console.error(e);
+          logEvent(analytics, "checkout_error", {
+            error_message: e.message || "Unknown error",
+            store_id: currentStoreId,
+          });
           alert("注文処理に失敗しました: " + e.message);
           loader.style.display = "none";
         }

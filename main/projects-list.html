@@ -982,6 +982,8 @@
             class="view-toggle-btn"
             id="grid-view-btn"
             aria-label="Grid View"
+            data-track="click_project_view_mode"
+            data-track-mode="grid"
           >
             <i class="bi bi-grid-fill"></i>
           </button>
@@ -989,6 +991,8 @@
             class="view-toggle-btn active"
             id="list-view-btn"
             aria-label="List View"
+            data-track="click_project_view_mode"
+            data-track-mode="list"
           >
             <i class="bi bi-list-ul"></i>
           </button>
@@ -1207,7 +1211,7 @@
                             <div class="card-status-badge-container">${statusBadge}</div>
                             ${catchphraseHTML}
                             ${(isMapEnabled && project.roomId && project.roomId !== 'null') ? `
-                            <a href="map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}" class="card-place map-link" title="校内マップで場所を見る" onclick="event.stopPropagation();">
+                            <a href="map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}" class="card-place map-link" title="校内マップで場所を見る" onclick="event.stopPropagation();" data-track="click_project_card_map" data-track-project-id="${project.id}">
                                 <i class="bi bi-geo-alt-fill"></i> ${place}
                             </a>
                             ` : `

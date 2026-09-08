@@ -666,14 +666,14 @@
         <div class="timeline-controls" style="justify-content: space-between;">
           <label class="toggle-switch-label">
             <div class="toggle-switch">
-              <input type="checkbox" id="show-favorites-toggle" />
+              <input type="checkbox" id="show-favorites-toggle" data-track="toggle_stage_favorites" />
               <span class="slider"></span>
             </div>
             <span style="color: var(--text-main);"><i class="bi bi-star-fill text-warning"></i> お気に入り</span>
           </label>
           <label class="toggle-switch-label">
             <div class="toggle-switch">
-              <input type="checkbox" id="show-past-events-toggle" />
+              <input type="checkbox" id="show-past-events-toggle" data-track="toggle_stage_past_events" />
               <span class="slider"></span>
             </div>
             過去の発表も表示する
@@ -903,7 +903,7 @@
               }
 
               const placeHTML = (isMapEnabled && stageMapUrl) 
-                ? `<a href="${stageMapUrl}" class="list-place map-link" title="校内マップで場所を見る"><i class="bi bi-geo-alt-fill"></i> ${event.place}</a>`
+                ? `<a href="${stageMapUrl}" class="list-place map-link" title="校内マップで場所を見る" data-track="click_stage_card_map" data-track-event-id="${linkId}"><i class="bi bi-geo-alt-fill"></i> ${event.place}</a>`
                 : `<div class="list-place"><i class="bi bi-geo-alt-fill"></i> ${event.place}</div>`;
 
               listHTML += `

@@ -599,7 +599,7 @@
                 <span id="sync-status-label" style="font-weight: 600;">自動更新中</span>
                 <span id="sync-time-label" style="font-size: 0.75rem; opacity: 0.8;">--:--</span>
             </div>
-            <button id="btn-manual-sync" class="btn-sync-manual" type="button" title="最新の注文状況を取得">
+            <button id="btn-manual-sync" class="btn-sync-manual" type="button" title="最新の注文状況を取得" data-track="click_status_manual_sync">
                 <i class="bi bi-arrow-clockwise" id="icon-manual-sync"></i>
                 <span>更新</span>
             </button>
@@ -658,7 +658,7 @@
                          <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-bottom: 4px;">受け取り店舗</div>
                          <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);" id="store-name-display">読込中...</div>
                      </div>
-                     <button id="btn-store-link" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="display: none; border-width: 2px;">
+                     <button id="btn-store-link" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="display: none; border-width: 2px;" data-track="click_status_store_detail">
                          詳細 <i class="bi bi-chevron-right ms-1"></i>
                      </button>
                  </div>
@@ -701,7 +701,7 @@
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       /* Firebase インスタンス・認証監視は auth.js から import (Single Source of Truth) */
-      import { app, auth, db, watchUser } from "../main/auth.js";
+      import { app, auth, db, watchUser, analytics, logEvent } from "../main/auth.js";
 
       // --- Logic ---
       const params = new URLSearchParams(window.location.search);
@@ -749,7 +749,7 @@
             // Not logged in.
             document.getElementById("status-title").textContent = "認証が必要です";
             document.getElementById("status-desc").innerHTML =
-              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-dark mt-3 rounded-pill px-4">ログインする</button>';
+              '注文情報の表示にはログインが必要です。<br><button id="btn-login-status" class="btn btn-dark mt-3 rounded-pill px-4" data-track="click_status_login">ログインする</button>';
             document.querySelector(".spinner-border").style.display = "none";
 
             document.getElementById("btn-login-status").onclick = () => {
@@ -764,6 +764,7 @@
       let safetyPollingInterval = null;
       let currentOrderData = null;
       let isSyncing = false;
+      let lastRecordedStatus = null;
 
       function updateSyncIndicator(state = "success") {
         const dot = document.getElementById("sync-dot");
@@ -1048,6 +1049,13 @@
         };
 
         const status = data.status;
+        if (status && status !== lastRecordedStatus) {
+          lastRecordedStatus = status;
+          logEvent(analytics, "order_status_update", {
+            status: status,
+            order_id: orderId || "",
+          });
+        }
 
         // SOK假注文 (status = null) の特別処理 — 設計憲法§5.2準拠
         if (status === null) {

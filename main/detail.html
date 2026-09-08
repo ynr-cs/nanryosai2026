@@ -1174,6 +1174,9 @@
               orderButtonHTML = `
                 <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
                      <a href="../pos/mobile-order.html?store=${project.id}" 
+                        data-track="click_order_from_detail"
+                        data-track-project-id="${project.id}"
+                        data-track-project-name="${escapeHtml(project.name)}"
                         style="
                             background: linear-gradient(135deg, #ff0080 0%, #ff5e62 100%);
                             color: white;
@@ -1360,12 +1363,12 @@
             : '本企画はオンライン開催または特定展示教室なし（システム開発・運営等）の企画です。';
           
           mapActionHTML = hasMapLocation ? `
-            <a href="${targetMapUrl}" class="map-direct-btn">
+            <a href="${targetMapUrl}" class="map-direct-btn" data-track="click_detail_map_direct" data-track-project-id="${project.id}">
                 <i class="bi bi-map-fill"></i> 校内マップで場所を確認する（ピンへ直行）
                 <i class="bi bi-arrow-right"></i>
             </a>
           ` : `
-            <a href="map.html" class="map-direct-btn secondary">
+            <a href="map.html" class="map-direct-btn secondary" data-track="click_detail_map_general">
                 <i class="bi bi-map"></i> 全体校内マップを開く
             </a>
           `;

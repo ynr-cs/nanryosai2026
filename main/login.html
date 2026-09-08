@@ -452,10 +452,10 @@
               </p>
             </div>
             <div class="d-flex flex-column gap-2">
-              <button id="btn-student-yes" class="btn-primary-custom">
+              <button id="btn-student-yes" class="btn-primary-custom" data-track="click_login_student_yes">
                 はい（在校生）
               </button>
-              <button id="btn-student-no" class="btn-secondary-custom">
+              <button id="btn-student-no" class="btn-secondary-custom" data-track="click_login_student_no">
                 いいえ（一般のお客様）
               </button>
             </div>
@@ -482,10 +482,10 @@
               </div>
             </div>
             <div class="d-flex flex-column gap-2">
-              <button id="btn-confirm-next" class="btn-primary-custom">
+              <button id="btn-confirm-next" class="btn-primary-custom" data-track="click_login_student_confirm_next">
                 理解しました（次へ）
               </button>
-              <button id="btn-confirm-back" class="btn-secondary-custom">
+              <button id="btn-confirm-back" class="btn-secondary-custom" data-track="click_login_student_confirm_back">
                 戻る
               </button>
             </div>
@@ -509,10 +509,10 @@
               </div>
             </div>
             <div class="d-flex flex-column gap-2 mt-2">
-              <button id="btn-guest-login" class="btn-primary-custom">
+              <button id="btn-guest-login" class="btn-primary-custom" data-track="click_login_guest_login">
                 <i class="bi bi-google me-2"></i> ログインして他の機能を使う
               </button>
-              <a href="./index.html" class="btn-secondary-custom">
+              <a href="./index.html" class="btn-secondary-custom" data-track="click_login_guest_back_home">
                 ホームに戻る
               </a>
             </div>
@@ -568,7 +568,7 @@
 
             <!-- Home Link -->
             <div class="home-link">
-              <a href="./index.html">
+              <a href="./index.html" data-track="click_login_back_home">
                 <i class="bi bi-arrow-left"></i>
                 ホームへ戻る
               </a>
@@ -597,10 +597,10 @@
               </p>
             </div>
             <div class="d-flex flex-column gap-2 mt-2">
-              <button id="btn-switch-account" class="btn-primary-custom">
+              <button id="btn-switch-account" class="btn-primary-custom" data-track="click_login_switch_account">
                 別のアカウントに切り替える
               </button>
-              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;">
+              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;" data-track="click_login_unauthorized_back_home">
                 ホームに戻る
               </a>
             </div>
@@ -628,7 +628,7 @@
               </div>
             </div>
             <div class="d-flex flex-column gap-2 mt-4">
-              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;">
+              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;" data-track="click_login_welcome_back_home">
                 ホームに戻る
               </a>
             </div>
@@ -692,7 +692,7 @@
               うまくログインできない場合は、Safari または Chrome ブラウザをご利用ください。LINE等のアプリ内ブラウザでは動作しない場合があります。
             </div>
             
-            <button id="btn-sok-cancel" class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);">
+            <button id="btn-sok-cancel" class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);" data-track="click_login_sok_cancel">
               <i class="bi bi-x-circle"></i> 注文をやめる
             </button>
           </div>
