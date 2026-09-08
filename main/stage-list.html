@@ -894,6 +894,7 @@
                 ? `<div class="list-time"><span class="time-start">${timeParts[0]}</span><span class="time-sep">〜</span><span class="time-end">${timeParts[1]}</span></div>`
                 : `<div class="list-time"><span class="time-start">${event.time || ''}</span></div>`;
 
+              const isMapEnabled = (typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true);
               let stageMapUrl = null;
               if (event.place && event.place.includes('体育館')) {
                 stageMapUrl = 'map.html?room=room_gym_main';
@@ -901,7 +902,7 @@
                 stageMapUrl = 'map.html?room=special_room_337807_4f';
               }
 
-              const placeHTML = stageMapUrl 
+              const placeHTML = (isMapEnabled && stageMapUrl) 
                 ? `<a href="${stageMapUrl}" class="list-place map-link" title="校内マップで場所を見る"><i class="bi bi-geo-alt-fill"></i> ${event.place}</a>`
                 : `<div class="list-place"><i class="bi bi-geo-alt-fill"></i> ${event.place}</div>`;
 

@@ -13,6 +13,13 @@ console.log("data.js loading...");
 // バージョン情報 (admin_syncで同期状態を確認するために使用)
 const dataVersion = "PORT_3009_TEST";
 
+// =======================================================
+// ★ 機能公開フラグ (Feature Flags)
+// ※ マップ完成時に true に変更するだけでサイト全体が一括有効化されます
+// =======================================================
+window.IS_MAP_ENABLED = false;
+const IS_MAP_ENABLED = false;
+
 // 企画の名簿データ
 const projectData = [
   // ================= 1年生 (4F) =================

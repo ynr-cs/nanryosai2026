@@ -474,7 +474,10 @@ const AppShell = {
               <li><a href="${this.resolvePath("access.html")}" data-track="click_footer_link" data-track-target="access">アクセス</a></li>
               <li><a href="${this.resolvePath("projects-list.html")}" data-track="click_footer_link" data-track-target="projects">企画一覧</a></li>
               <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_footer_link" data-track-target="stage">ステージ発表</a></li>
-              <li><a href="${this.resolvePath("map.html")}" data-track="click_footer_link" data-track-target="map">校内マップ</a></li>
+              ${(typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true)
+                ? `<li><a href="${this.resolvePath("map.html")}" data-track="click_footer_link" data-track-target="map">校内マップ</a></li>`
+                : `<li><a href="javascript:void(0)" onclick="AppShell.showToast('校内マップは現在準備中です');" style="opacity: 0.65;" data-track="click_footer_link" data-track-target="map">校内マップ <span style="font-size:0.7rem;background:#fef3c7;color:#d97706;padding:1px 6px;border-radius:4px;">準備中</span></a></li>`
+              }
             </ul>
           </div>
 
@@ -689,9 +692,14 @@ const AppShell = {
                             <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_menu_link" data-track-target="stage">
                                 <span style="font-size: 1.15rem; margin-right: 10px;">🎤</span> ステージ発表
                             </a></li>
-                            <li><a href="${this.resolvePath("map.html")}" data-track="click_menu_link" data-track-target="map">
-                                <span style="font-size: 1.15rem; margin-right: 10px;">🗺️</span> 校内マップ
-                            </a></li>
+                            ${(typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true)
+                              ? `<li><a href="${this.resolvePath("map.html")}" data-track="click_menu_link" data-track-target="map">
+                                  <span style="font-size: 1.15rem; margin-right: 10px;">🗺️</span> 校内マップ
+                                 </a></li>`
+                              : `<li><a href="javascript:void(0)" onclick="AppShell.showToast('校内マップは現在準備中です');" data-track="click_menu_link" data-track-target="map" style="opacity: 0.75;">
+                                  <span style="font-size: 1.15rem; margin-right: 10px;">🗺️</span> 校内マップ <span style="font-size:0.75rem;background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:8px;">準備中</span>
+                                 </a></li>`
+                            }
                             <li><a href="${this.resolvePath("access.html")}" data-track="click_menu_link" data-track-target="access">
                                 <span style="font-size: 1.15rem; margin-right: 10px;">🚃</span> アクセス
                             </a></li>
@@ -1012,6 +1020,46 @@ const AppShell = {
       };
       document.addEventListener("click", clickOutside);
     }, 0);
+  },
+
+  showToast: function (message, duration = 3000) {
+    let toast = document.getElementById("app-global-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "app-global-toast";
+      toast.style.cssText = `
+        position: fixed;
+        bottom: calc(var(--bottom-nav-height, 60px) + env(safe-area-inset-bottom, 0px) + 24px);
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(15, 23, 42, 0.92);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        backdrop-filter: blur(8px);
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="bi bi-info-circle-fill" style="color: #3b82f6;"></i> <span>${message}</span>`;
+    toast.style.opacity = "1";
+    toast.style.transform = "translateX(-50%) translateY(0)";
+
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateX(-50%) translateY(20px)";
+    }, duration);
   }
 };
 

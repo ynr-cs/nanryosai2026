@@ -1344,11 +1344,39 @@
 
         // Tab 5: Map Navigation
         tabsHTML += `<button class="tab-button" data-tab="map" data-track="click_detail_tab" data-track-tab="map">マップ</button>`;
+        const isMapEnabled = (typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true);
         const hasMapLocation = project.roomId && project.roomId !== 'null';
         const targetMapUrl = hasMapLocation 
           ? `map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}`
           : 'map.html';
         const displayPlace = project.place || (project.floor ? `${project.floor}F` : '校内');
+
+        let mapActionHTML = "";
+        let mapDescHTML = "";
+
+        if (isMapEnabled) {
+          mapDescHTML = hasMapLocation 
+            ? '南陵祭2026の公式キャンパスマップで教室・テントの正確な位置や周辺設備（トイレ・AED等）を確認できます。'
+            : '本企画はオンライン開催または特定展示教室なし（システム開発・運営等）の企画です。';
+          
+          mapActionHTML = hasMapLocation ? `
+            <a href="${targetMapUrl}" class="map-direct-btn">
+                <i class="bi bi-map-fill"></i> 校内マップで場所を確認する（ピンへ直行）
+                <i class="bi bi-arrow-right"></i>
+            </a>
+          ` : `
+            <a href="map.html" class="map-direct-btn secondary">
+                <i class="bi bi-map"></i> 全体校内マップを開く
+            </a>
+          `;
+        } else {
+          mapDescHTML = '校内マップ機能は現在準備中です。文化祭当日までに公開予定ですので、今しばらくお待ちください。';
+          mapActionHTML = `
+            <div class="map-direct-btn disabled" style="background: var(--border-color); color: var(--text-sub); cursor: not-allowed; justify-content: center; box-shadow: none;">
+                <i class="bi bi-clock-history"></i> 校内マップは現在準備中です
+            </div>
+          `;
+        }
 
         contentsHTML += `
                 <div class="tab-content" id="tab-map">
@@ -1359,22 +1387,8 @@
                             <span class="map-place-pill"><i class="bi bi-pin-map-fill"></i> ${escapeHtml(displayPlace)}</span>
                         </div>
                         <div class="map-card-title">${escapeHtml(project.name)}</div>
-                        <p class="map-card-desc">
-                            ${hasMapLocation 
-                                ? '南陵祭2026の公式キャンパスマップで教室・テントの正確な位置や周辺設備（トイレ・AED等）を確認できます。'
-                                : '本企画はオンライン開催または特定展示教室なし（システム開発・運営等）の企画です。'
-                            }
-                        </p>
-                        ${hasMapLocation ? `
-                            <a href="${targetMapUrl}" class="map-direct-btn">
-                                <i class="bi bi-map-fill"></i> 校内マップで場所を確認する（ピンへ直行）
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
-                        ` : `
-                            <a href="map.html" class="map-direct-btn secondary">
-                                <i class="bi bi-map"></i> 全体校内マップを開く
-                            </a>
-                        `}
+                        <p class="map-card-desc">${mapDescHTML}</p>
+                        ${mapActionHTML}
                     </div>
                 </div>
             `;
