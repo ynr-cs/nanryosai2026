@@ -928,9 +928,9 @@
             <button class="filter-btn active" data-filter="すべて" data-track="click_filter_type" data-track-type="すべて">
               すべて
             </button>
-            <button class="filter-btn" data-filter="food" data-track="click_filter_type" data-track-type="food">🍱 飲食</button>
-            <button class="filter-btn" data-filter="shop" data-track="click_filter_type" data-track-type="shop">🛍️ 物販</button>
-            <button class="filter-btn" data-filter="exhibit" data-track="click_filter_type" data-track-type="exhibit">🎨 展示・体験</button>
+            <button class="filter-btn" data-filter="cooking" data-track="click_filter_type" data-track-type="cooking">🍳 調理</button>
+            <button class="filter-btn" data-filter="shop" data-track="click_filter_type" data-track-type="shop">🛍️ 販売</button>
+            <button class="filter-btn" data-filter="exhibit" data-track="click_filter_type" data-track-type="exhibit">🎨 展示</button>
           </div>
         </div>
       </div>
@@ -1305,7 +1305,7 @@
             }
             if (activeFilters.category !== "すべて") {
               result = result.filter(
-                (p) => p.category === activeFilters.category,
+                (p) => p.category === activeFilters.category || p.votingCategory === activeFilters.category,
               );
             }
             if (activeFilters.search) {
