@@ -13,6 +13,25 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.268] 来場者用マップ（main/map.html）のドラッグ＆ドロップ（パン移動・タッチスクロール）機能の完全有効化と多重ペイン透過制御 - 2026-09-09
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 来場者用マップ（`main/map.html`）において、ユーザーが地図画面自体をマウスやタッチ操作でドラッグ＆ドロップしてスクロール（パン移動）できない問題を解消するため。
+
+### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
+
+- **地図ドラッグ・タッチ操作の完全開放と多重ペイン透過スタイル最適化 (`main/map.html`)**:
+  - **背景/原因**: Leaflet の多重カスタムペイン構造（groundPane, buildingPane, indoorPane 等）において、ペイン要素（`.leaflet-pane`）および自動生成される SVG レンダラー（`<svg>`）が画面全体を覆い、ポインタイベントが Leaflet のドラッグハンドラに到達するのを阻害していた。また、モバイルブラウザ等でのタッチアクション（`touch-action`）指定やカーソル指定（`cursor: grab`）が不足していた。
+  - **解決策**:
+    1. CSS で `.leaflet-pane` および `.leaflet-pane svg` に `pointer-events: none !important` を適用し、地図ドラッグイベントを最下層の Leaflet マップコンテナまで完全に透過。
+    2. クリック・タップを受け付ける対話要素（`.leaflet-interactive`, `.custom-map-pin`, 企画付き部屋ポリゴン `path.room-polygon.has-project`, 体育館 `path.gym-polygon`）のみ明示的に `pointer-events: auto !important` を付与。
+    3. `#map` に `cursor: grab`, `#map:active` に `cursor: grabbing`、および `touch-action: none;` を明示設定。
+    4. `initMap()` 内で `dragging: true`, `touchZoom: true` を明示指定し、カスタムペイン初期化時に `p.style.pointerEvents = 'none'` を設定。
+  - **得られた知見**: Leaflet でカスタムペインを多数使用する高度なフロアマップでは、各ペインに生成される SVG コンテナが全画面に重なるため、ペインと SVG をポインタイベント透過にした上で、インタラクティブな図形・マーカーのみを `pointer-events: auto` に限定することが、安定したドラッグ（パン）操作の必須要件となる。
+
 ## [0.5.267] 3年1組モバイルオーダー導入具体案（main.typ）のPDFコンパイル出力（main.pdf生成） - 2026-09-09
 
 ### メタ情報

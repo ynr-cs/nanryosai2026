@@ -50,3 +50,12 @@ last_updated: 2026-09-09
    - 教室名・企画名ラベルの視認性向上（文字サイズ・背景コントラスト）。
 3. **運用・データ保守フローの検証**:
    - 企画の変更や追加が発生した際、生徒や管理者がスムーズにデータを更新できるかの実地検証。
+
+---
+
+## 4. UI操作感・操作性向上対応の知見 (v0.5.268)
+
+- **多重カスタムペイン構造における地図パン（ドラッグ）開放**:
+  - Leafletで多数のカスタムペイン（`groundPane`, `buildingPane`, `indoorPane`, `overpassPane`, `routePane`, `userLocationPane`）を作成すると、各ペインに全画面サイズのSVGコンテナが重なり、標準状態ではポインタイベントがブロックされて地図のドラッグやタッチスクロールが遮断される。
+  - **解決設計**: `.leaflet-pane` および `.leaflet-pane svg` に `pointer-events: none !important` を適用して完全透過化し、クリックを受け付けるインタラクティブ要素（`.custom-map-pin`, 企画室ポリゴン, 体育館等）のみ `pointer-events: auto !important` を明示指定。同時に `#map` に `touch-action: none; cursor: grab;` を設定し、`initMap()` で `dragging: true, touchZoom: true` を担保した。
+

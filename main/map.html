@@ -116,6 +116,38 @@
       height: 100%;
       z-index: 1;
       background-color: transparent;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #map:active {
+      cursor: grabbing;
+    }
+
+    /* 各カスタムペイン div および SVG コンテナはドラッグイベントを透過させる */
+    .leaflet-pane {
+      pointer-events: none !important;
+    }
+
+    .leaflet-pane svg {
+      pointer-events: none !important;
+    }
+
+    .leaflet-pane.leaflet-map-pane,
+    .leaflet-pane.leaflet-tile-pane {
+      pointer-events: auto !important;
+    }
+
+    /* クリック・タップを受け付ける対話要素のみ明示的に auto */
+    .leaflet-interactive,
+    .leaflet-marker-pane,
+    .custom-map-pin-container,
+    .custom-map-pin,
+    .leaflet-popup-pane,
+    .leaflet-container path.room-polygon.has-project,
+    .leaflet-container path.building-gym,
+    path.gym-polygon {
+      pointer-events: auto !important;
     }
 
     /* GSI Aerial Photo Dark Mode Filter & Indoor Whitewash/Blur */
@@ -2229,30 +2261,29 @@
           minZoom: MIN_ZOOM,
           maxZoom: MAX_ZOOM,
           maxBounds: MAX_BOUNDS,
-          maxBoundsViscosity: 0.2,
+          maxBoundsViscosity: 0.1,
           zoomControl: false,
           attributionControl: false,
-          tap: false
+          tap: false,
+          dragging: true,
+          touchZoom: true
         });
 
-        // 8-layer Custom Pane Architecture
-        map.createPane('groundPane');
-        map.getPane('groundPane').style.zIndex = 350;
+        // 8-layer Custom Pane Architecture with pointer-events transparency
+        const paneConfigs = [
+          { name: 'groundPane', zIndex: 350 },
+          { name: 'buildingPane', zIndex: 400 },
+          { name: 'indoorPane', zIndex: 450 },
+          { name: 'overpassPane', zIndex: 470 },
+          { name: 'routePane', zIndex: 500 },
+          { name: 'userLocationPane', zIndex: 650 }
+        ];
 
-        map.createPane('buildingPane');
-        map.getPane('buildingPane').style.zIndex = 400;
-
-        map.createPane('indoorPane');
-        map.getPane('indoorPane').style.zIndex = 450;
-
-        map.createPane('overpassPane');
-        map.getPane('overpassPane').style.zIndex = 470;
-
-        map.createPane('routePane');
-        map.getPane('routePane').style.zIndex = 500;
-
-        map.createPane('userLocationPane');
-        map.getPane('userLocationPane').style.zIndex = 650;
+        paneConfigs.forEach(cfg => {
+          const p = map.createPane(cfg.name);
+          p.style.zIndex = cfg.zIndex;
+          p.style.pointerEvents = 'none';
+        });
 
         // Layer Groups
         groundLayerGroup = L.layerGroup().addTo(map);
