@@ -16,6 +16,7 @@ last_updated: 2026-03-19
 - [[設計図/南陵祭2026 モバイルオーダー・POSシステム 導入提案書.md]]: 学校側への導入提案用ドキュメント
 - [[設計図/scrap/README]]: アイデア・備忘録 (scrap)
 - [[firebase_CONTEXT]]: データベース設計、認証、セキュリティルール、Functions
+- [[security_CONTEXT]]: セキュリティ監査結果 & 脆弱性防護ガイドライン (2026-09-09)
 - [[data_sync_CONTEXT]]: キャッシュ戦略、オフライン対応、データ同期機構
 - [[design_CONTEXT]]: デザインシステム、共通CSS、UIガイドライン
 - [[migration_CONTEXT]]: v0.1.0への移行や仕様変更のガイド

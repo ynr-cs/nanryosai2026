@@ -222,3 +222,23 @@ last_updated: 2026-09-06
   - `pos/`: `mobile-order.html`, `portal.html`, `pos.html`, `kitchen.html`, `monitor.html`, `status.html`, `presenter.html`, `training/pos.html`
 - **開発・同期スクリプト**: `scripts/cleanupAndSyncOfficialData.js`, `scripts/resetTestData.js`, `scripts/grantSuperAdmin.js`, `scripts/wipeAuthUsers.js`, `admin-server.js`
 
+## 10. バックエンドセキュリティ監査 & 仕様変更設計 (2026-09-09)
+
+- **詳細報告書**: `設計書/脆弱性/02_CloudFunctionsバックエンド脆弱性分析.md` (`設計図/data/脆弱性/02_CloudFunctionsバックエンド脆弱性分析.md`)
+- **仕様変更設計書**: `設計図/data/脆弱性/12_仕様変更_CloudFunctions及び注文決済ロジック.md`
+- **監査サマリー**: 全24エンドポイント・スクリプトに対する網羅的監査を実施（計25件の指摘: Critical 3件, High 11件, Medium 8件, Low 3件）。
+  - **P0最重要課題**:
+    1. `createOrder` の多重注文判定における TOCTOU レースコンディション（トランザクション外クエリによるチェック突破）
+    2. `setupVenueAdmin.js` の本番URLトークンおよびパスワードのハードコーディング
+    3. `package.json` の推移的依存関係における30件の既知脆弱性
+  - **P1重要課題**: `quantity` 上限値・`customizations` 型検証の欠如、SOK確定時の重複・緊急停止チェック欠落、現場ステータス遷移でのトランザクション非使用、会場管理の独自認証・ブルートフォース対策欠如、PBKDF2反復回数（10,000回）の不足、ウォームアップバイパスの外部乱用リスク。
+- **仕様変更確定概要**:
+  - `createOrder`: ユーザー排他ロック (`user_locks` / `users.{hasActiveOrder, activeOrderId}`) をトランザクション内で獲得し TOCTOU を完全解消。数量上限（1品10個、合計20個、合計1万円）およびカスタマイズスキーマ検証をサーバーサイドで強制。
+  - `confirmSokOrder`: トランザクション内でアクティブ注文重複および店舗営業状態（オーダーストップ・緊急停止）を再検証。
+  - `getNextReceiptNumber`: トランザクション内クエリを全廃し、日次循環カウンタードキュメントによる高速アトミック発番へ移行。
+  - ステータス遷移: `db.runTransaction` による事前条件アサートと、注文完了/キャンセル時のユーザーロック解放を不可分に実行。
+  - `abandonStaleOrders`: 呼出後5分での督促Push通知送信、15分超過時の `unclaimed` 遷移と未受取回数累計（2回以上で初めてBAN執行）による冤罪防止。
+  - 会場管理: PBKDF2 反復回数を 210,000回へ引き上げ、連続5回失敗での15分ロックアウト（レート制限）を導入。
+
+
+
