@@ -678,6 +678,27 @@
       max-width: 100px;
     }
 
+    /* 6. Zoom Min (Zoom <= 18): 極小縮小モード - 体育館・音楽室・図書館も含め全バッジを完全アイコン単体化 */
+    .map-zoom-min .in-room-badge:not(.is-active):not(:hover) {
+      padding: 2px !important;
+      border-radius: 50% !important;
+      gap: 0 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+    }
+    .map-zoom-min .in-room-badge:not(.is-active):not(:hover) .badge-text,
+    .map-zoom-min .in-room-badge:not(.is-active):not(:hover) .badge-order-bolt {
+      display: none !important;
+    }
+    .map-zoom-min .in-room-badge:not(.is-active):not(:hover) .badge-icon {
+      width: 20px !important;
+      height: 20px !important;
+      font-size: 10px !important;
+      margin: 0 !important;
+    }
+    .map-zoom-min .in-room-badge.is-active .badge-text {
+      display: inline-block !important;
+    }
+
     /* 5F 生徒棟 屋上ガイドバッジ */
     .rooftop-guide-container {
       background: transparent !important;
@@ -1086,6 +1107,22 @@
       font-size: 13px;
     }
 
+    /* 極小ズーム（Zoom <= 18）: 看板バッジもアイコン＋超スリム文字にコンパクト化 */
+    .map-zoom-min .bldg-landmark-badge:not(.is-ground) {
+      padding: 2px 6px;
+      font-size: 9.5px;
+      gap: 3px;
+    }
+    .map-zoom-min .bldg-landmark-badge:not(.is-ground) .landmark-icon {
+      width: 14px;
+      height: 14px;
+      font-size: 8px;
+    }
+    .map-zoom-min .bldg-landmark-badge.is-ground {
+      padding: 3px 8px;
+      font-size: 11px;
+    }
+
 
     /* ==========================================================================
        Horizontal Category Filter Chips (ヘッダー直下)
@@ -1237,11 +1274,12 @@
     .map-controls-group {
       position: fixed;
       left: 12px;
-      bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
+      bottom: calc(88px + env(safe-area-inset-bottom, 16px));
       z-index: 950;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .map-control-btn {
@@ -1436,13 +1474,20 @@
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
-    /* Zoom Low (Zoom <= 18): Prevent label overflow & collision */
+    /* Zoom Low (Zoom <= 19): 縮小時は文字ラベルを完全に隠し、丸アイコンピンのみで被りを完全ゼロ化 */
     .map-zoom-low .custom-map-pin:not(.is-active):not(:hover) .pin-label {
-      max-width: 80px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 9px;
-      padding: 1px 4px;
+      display: none !important;
+    }
+    .map-zoom-low .custom-map-pin:not(.is-active):not(:hover) {
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+    }
+    .custom-map-pin.is-active .pin-label,
+    .custom-map-pin:hover .pin-label {
+      display: block !important;
+      opacity: 1 !important;
+      transform: translateX(-50%) scale(1.08) !important;
+      z-index: 600 !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
     }
 
     /* Compact Facility Infrastructure Pins (AED, Vending, Trash, Restrooms) */
@@ -3203,6 +3248,7 @@
           const z = map.getZoom();
           const container = map.getContainer();
           if (container) {
+            container.classList.toggle('map-zoom-min', z <= 18);
             container.classList.toggle('map-zoom-low', z <= 19);
             container.classList.toggle('map-zoom-mid', z === 20);
             container.classList.toggle('map-zoom-high', z >= 21);

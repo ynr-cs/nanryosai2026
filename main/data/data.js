@@ -941,16 +941,6 @@ const stageData = [
   // ================= DAY 1 (9/11 金・校内公開) =================
   // --- 体育館 ---
   {
-    id: "opening_d1",
-    day: 1,
-    time: "10:00 - 11:00",
-    groupName: "生徒会執行部",
-    name: "開会式",
-    place: "体育館",
-    description: "南陵祭2026 オープニングセレモニー！",
-    tags: ["Day1", "式典"],
-  },
-  {
     id: "teacher_band_d1",
     day: 1,
     time: "10:45 - 10:55",
