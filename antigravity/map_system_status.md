@@ -2,7 +2,7 @@
 title: 🗺️ マップシステム 現状と歴史的変遷 (Status Report)
 tags: [map, context, status, v3, prototype]
 status: in-progress (試作・検証段階)
-last_updated: 2026-08-18
+last_updated: 2026-09-09
 ---
 
 # マップシステム 現状と歴史的変遷 (Status Report)
@@ -22,6 +22,7 @@ last_updated: 2026-08-18
      - 静的幾何データ（`campus_map_data.json`）、企画カタログ（`data.js`）とのCentroid Join、管理者エディタ（`main/admin/map-editor.html`）、来場者ビューア（`main/map.html`）の基礎実装およびE2Eテストスイート（全262件）を整備。
   3. **現在のステータス**:
      - **「基礎機能の実装と技術検証を完了した試作段階（プロトタイプ）」**。
+     - **公式全47企画のCentroid Join 100%結合を達成**。外テント・特別教室・体育館ステージ・生徒棟2F各室が地図上で完全連動。
      - 完成形ではなく、今後現地キャリブレーションやUI微調整など直すべき課題が多数存在。
 
 ---
@@ -32,8 +33,8 @@ last_updated: 2026-08-18
 | --- | --- | --- |
 | `main/map.html` | **【本番試作ビューア】** | Leaflet 1.9 + 国土地理院 航空写真。Glassmorphismボトムシート、縦型フロアピル、企画連携。 |
 | `main/admin/map-editor.html` | **【管理者用作図エディタ】** | 多角形・ポリライン作図、12pxスナップ、90度拘束、Catmull-Rom補間、JSONエクスポート。 |
-| `main/data/campus_map_data.json` | **【静的幾何データ】** | 南陵高校実測座標、1F〜5Fフロアプラン、スポット、アクセスルート。 |
-| `main/data/data.js` | **【企画カタログ】** | 全19企画に `roomId` を付与し、地図重心と動的結合。 |
+| `main/data/campus_map_data.json` | **【静的幾何データ】** | 南陵高校実測座標、1F〜5Fフロアプラン、中庭・昇降口前外テントスポット、アクセスルート。 |
+| `main/data/data.js` | **【企画カタログ】** | 全47企画に `roomId` を付与し、地図幾何重心・スポットと100%動的結合。 |
 | `antigravity/map_v3_records/` | **【開発マスターレコード】** | 試作開発の全経緯・全262テスト仕様・数学ロジック・今後の課題の完全記録。 |
 | `main/map3d.html`, `map_editor/`, `map_editor_v2/` | 破棄済み | 3D時代の実験残骸（制作コスパ不適合により破棄）。 |
 

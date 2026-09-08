@@ -87,7 +87,7 @@ last_updated: 2026-08-18
 
 ---
 
-## 第3章: 幾何データ完全カタログ (`campus_map_data.json` & 全19企画マッピング)
+## 第3章: 幾何データ完全カタログ (`campus_map_data.json` & 公式全47企画マッピング)
 
 ### 3.1 南陵高校キャンパスの主要施設座標定義
 南陵高校の中心座標 `[35.386167, 139.585500]`（EPSG:3857）を基準として、以下の施設が実測定義されています：
@@ -97,35 +97,63 @@ last_updated: 2026-08-18
 | `student_bldg` | 生徒棟 | building | 1F〜5F | L字型の12頂点多角形。1F〜5Fの屋内詳細フロアプランを内包。 |
 | `gym` | 体育館 | building | 1F | メインアリーナ。ステージ発表・展示会場。 |
 | `admin_bldg` | 管理棟 | building | 1F〜3F | 職員室・事務室・特別棟。 |
-| `health_bldg` | 健康福祉棟 | building | 1F〜2F | 保健室・作法室（茶道部・華道部）。 |
+| `health_bldg` | 健康福祉棟 | building | 1F〜2F | 保健室・作法室。 |
 | `martial_arts` | 武道場（格技場） | building | 1F | 室内競技場。 |
 | `schoolyard` | グラウンド | outdoorArea | - | 運動場エリア。 |
-| `courtyard` | 中庭 | outdoorArea | 1F | 模擬店テントエリア（テントA〜D）。 |
+| `courtyard` | 中庭 | outdoorArea | 1F | 模擬店テントエリア（テント1-2, 3-1, 3-2, 3-6）。 |
 | `archery_pool` | 弓道場 & プール | outdoorArea | - | 校舎東側の屋外施設。 |
 
-### 3.2 全19企画と `roomId` の完全照合マトリクス
+### 3.2 公式全47企画と `roomId` の完全照合マトリクス (Centroid Join 100%結合)
 
 | 企画ID | 団体名 | 企画名 / 店名 | `roomId` | 配置場所 | カテゴリ | モバイルオーダー |
 |---|---|---|---|---|---|:---:|
-| `301` | 3年1組 | やきそばスター | `tent_a` | 中庭テントA (1F) | food | ○ |
-| `302` | 3年2組 | タピオカヘブン | `tent_b` | 昇降口前テントB (1F) | food | ○ |
-| `303` | 3年3組 | 情熱のチュロス | `tent_c` | 中庭テントC (1F) | food | ○ |
-| `201` | 2年1組 | ホラーハウス「廃校舎」 | `room_201` | 生徒棟 2F 201教室 | exhibit | - |
-| `202` | 2年2組 | カジノ・ロワイヤル | `room_202` | 生徒棟 2F 202教室 | exhibit | - |
-| `203` | 2年3組 | VS 南陵 | `gym_sub` | 体育館サブアリーナ (1F) | exhibit | - |
-| `204` | 2年4組 | 縁日「夏祭り」 | `room_204` | 生徒棟 2F 204教室 | exhibit | - |
-| `101` | 1年1組 | めちゃうまポテイト | `room_301` | 生徒棟 3F 301教室 | food | ○ |
-| `102` | 1年2組 | フォトスポット「映えの森」 | `room_302` | 生徒棟 3F 302教室 | exhibit | - |
-| `103` | 1年3組 | 迷路「不思議の国」 | `room_303` | 生徒棟 3F 303教室 | exhibit | - |
-| `kado` | 華道部 | 「花・鳥・風・月」展示 | `room_sahou` | 健康福祉棟 1F 作法室 | exhibit | - |
-| `bijutsu` | 美術部 | Art Gallery 2026 | `room_art` | 特別棟 2F 美術室 | shop | - |
-| `sado` | 茶道部 | お茶会 | `room_sahou` | 健康福祉棟 1F 作法室 | food | - |
-| `shashin` | 写真部 | Moment -瞬- | `corridor_2f` | 生徒棟 2F 渡り廊下 | exhibit | - |
-| `science` | 科学部 | サイエンス・ラボ | `room_chem` | 特別棟 3F 化学室 | exhibit | - |
-| `keion` | 軽音楽部 | 南陵ライブ2026 | `room_audio` | 視聴覚室・体育館 (3F) | stage | - |
-| `brass` | 吹奏楽部 | Autumn Concert | `room_music` | 音楽室 (4F)・体育館 | stage | - |
-| `dance` | ダンス部 | Show Time!! | `gym_main` | 体育館メインアリーナ (1F) | stage | - |
-| `cs` | コンピュータ科学部 | Webサイト&モバイルオーダー | `room_cs` | 生徒棟 2F CS部室 | exhibit | - |
+| `101` | 1年1組 | 銭安藤 | `room_202_3256_4f` | 生徒棟 4F 1-1 | shop | - |
+| `102` | 1年2組 | あさくらソーセージ工房 | `tent_102` | 中庭 外テント | shop | - |
+| `103` | 1年3組 | Club13 | `room_204_3256_4f` | 生徒棟 4F 1-3 | shop | - |
+| `104` | 1年4組 | TOY MANIA | `room_205_3256_4f` | 生徒棟 4F 1-4 | exhibit | - |
+| `105` | 1年5組 | アリスのティーパーティー | `room_206_3256_4f` | 生徒棟 4F 1-5 | shop | - |
+| `106` | 1年6組 | マダムあつひろの甘い誘惑 | `special_room_203688_4f` | 生徒棟 4F 1-6 | shop | - |
+| `107` | 1年7組 | PINK★MONSTER | `special_room_188905_4f` | 生徒棟 4F 1-7 | exhibit | - |
+| `201` | 2年1組 | このサーカスからは帰れない | `room_202_3256_3f` | 生徒棟 3F 2-1 | exhibit | - |
+| `202` | 2年2組 | 前園の闇カジノ | `room_203_3256_3f` | 生徒棟 3F 2-2 | exhibit | - |
+| `203` | 2年3組 | 大関メイド始めました!! | `room_204_3256_3f` | 生徒棟 3F 2-3 | shop | - |
+| `204` | 2年4組 | 今日から俺は！ | `room_205_3256_3f` | 体育館ステージ (生徒棟 3F 2-4教室) | stage | - |
+| `205` | 2年5組 | Route25 Diner | `room_206_3256_3f` | 生徒棟 3F 2-5 | shop | - |
+| `206` | 2年6組 | 走れ！ | `room_206_2637_3f` | 生徒棟 3F 2-6 | exhibit | - |
+| `207` | 2年7組 | ７つ目のわら人形 | `room_207_2637_3f` | 生徒棟 3F 2-7 | exhibit | - |
+| `301` | 3年1組 | アキコのひとくちカステラ | `tent_301` | 中庭 外テント | shop | ○ |
+| `302` | 3年2組 | ヤキトリ・イイダ口 | `tent_302` | 中庭 外テント | shop | - |
+| `303` | 3年3組 | おばけやしき | `room_207_2637_4f` | 生徒棟 4F 選択教室1 | exhibit | - |
+| `304` | 3年4組 | 千葉軒 | `tent_304` | 昇降口前 外テント | shop | - |
+| `305` | 3年5組 | ペッパーランチ（藤本屋） | `tent_305` | 昇降口前 外テント | shop | - |
+| `306` | 3年6組 | みんな赤ちゃんになれるバブバブケバブ | `tent_306` | 中庭 外テント | shop | - |
+| `307` | 3年7組 | 牛タン「塩野谷」 | `tent_307` | 昇降口前 外テント | shop | - |
+| `keion` | 軽音楽部 | NANRYO FES | `room_gym_main` | 体育館・視聴覚室 | stage | - |
+| `game_club` | ゲーム同好会 | 南陵スマブラ王決定戦2026 | `room_203_3256` | 生徒棟 2F 3-2教室 | exhibit | - |
+| `chorus` | コーラス部 | コーラス部発表会!! | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
+| `sado` | 茶道部 | 抹茶ファースト | `special_room_188905` | 管理棟 2F 作法室 | shop | - |
+| `fukushi` | 社会福祉部 | 手話パフォーマンス | `room_gym_main` | 体育館ステージ | stage | - |
+| `brass` | 吹奏楽部 | 吹奏楽部 演奏会 | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
+| `science` | 生物部 | ミクロの生き物の世界 | `special_room_818121_3f` | 特別棟 3F 生物室 | exhibit | - |
+| `soukyoku` | 箏曲部 | 筝曲部発表会 | `room_gym_main` | 体育館ステージ | stage | - |
+| `dance` | モダンダンス部 | 超 cool sexy beautiful our TIME❢ | `room_gym_main` | 体育館ステージ | stage | - |
+| `bijutsu` | 美術部 | 美術部展示 | `special_room_337807_3f` | 特別棟 3F 美術室 | exhibit | - |
+| `bungei` | 文芸同好会 | ブンゲー！知恵袋 | `special_room_203688` | 管理棟 2F 被服室 | exhibit | - |
+| `homemaking` | ホームメイキング部 | 手作りお菓子の販売 | `piloti_1f` | 1F ピロティ (外) | shop | - |
+| `manga` | 漫画研究部 | 描かない漫研へようこそ！ | `special_room_203688` | 管理棟 2F 被服室 | exhibit | - |
+| `seitokai` | 生徒会執行部 | 南陵探偵俱楽部 | `room_202_3256` | 昇降口・生徒棟 2F 3-1 | exhibit | - |
+| `cs` | コンピューター科学部 | Webサイト＆モバイルオーダー | `spot_info_entrance` | 総合案内所 | exhibit | - |
+| `bousai` | 防災委員 | 高めよう防災意識 | `spot_corridor_2f` | 生徒棟 2F 渡り廊下 | exhibit | - |
+| `shodo` | 書道科 | 書道展２０２６ | `special_room_337807` | 管理棟 2F 書道室 | exhibit | - |
+| `bijutsuka` | 美術科 | 美術科 授業制作作品展示 | `special_room_337807_3f` | 特別棟 3F 美術室 | exhibit | - |
+| `unison` | The Unison. | 師弟のピアノパフォーマンス⁉ | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
+| `onebeat` | Onebeat | Onebeat～dance performance～ | `room_gym_main` | 体育館ステージ | stage | - |
+| `saitama` | さいたま・いばらき・千葉 | 千葉の下っぱ | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
+| `dance_3y` | ☆神seven☆ | 床と友達～向き合った３年間～ | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
+| `band_3y` | ちーむにこにこ | 3年バンド演奏 | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
+| `pta` | PTA | Nanryo Mart | `room_204_3256` | 生徒棟 2F 3-3教室 | shop | - |
+| `senkyo` | 選挙コーナー | 選挙の投票体験 | `spot_corridor_2f` | 生徒棟 2F 渡り廊下 | exhibit | - |
+| `megumi` | めぐみ | 拉致被害者 横田めぐみさんに関する展示 | `room_205_3256` | 生徒棟 2F 3-4教室 | exhibit | - |
 
 ### 3.3 生徒棟の階層別構造（1Fピロティ構造 & 5F天空の図書館）
 

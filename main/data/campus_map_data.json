@@ -1386,20 +1386,20 @@
     {
       "id": "spot_entrance",
       "name": "生徒棟 昇降口前",
-      "category": "food",
+      "category": "facility",
       "floor": 1,
       "buildingId": "生徒棟",
       "latlng": [
         35.38617,
         139.58604
       ],
-      "icon": "fa-utensils",
-      "description": "3年1組 アキコのひとくちカステラ 出店スペース（モバイルオーダー受取所）"
+      "icon": "fa-door-open",
+      "description": "生徒棟 1F 昇降口エントランス"
     },
     {
-      "id": "tent_b",
-      "name": "中庭テントB",
-      "category": "food",
+      "id": "tent_102",
+      "name": "中庭テント (1-2)",
+      "category": "shop",
       "floor": 1,
       "buildingId": "outdoor_994289",
       "latlng": [
@@ -1407,72 +1407,111 @@
         139.58535
       ],
       "icon": "fa-utensils",
-      "description": "3年2組 やきとり屋 出店テント"
+      "description": "1年2組 あさくらソーセージ工房 出店テント"
+    },
+    {
+      "id": "tent_301",
+      "name": "中庭テント (3-1)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38595,
+        139.58548
+      ],
+      "icon": "fa-utensils",
+      "description": "3年1組 アキコのひとくちカステラ 出店テント（モバイルオーダー受取所）"
+    },
+    {
+      "id": "tent_302",
+      "name": "中庭テント (3-2)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38595,
+        139.58561
+      ],
+      "icon": "fa-utensils",
+      "description": "3年2組 ヤキトリ・イイダ口 出店テント"
+    },
+    {
+      "id": "tent_306",
+      "name": "中庭テント (3-6)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "outdoor_994289",
+      "latlng": [
+        35.38596,
+        139.58574
+      ],
+      "icon": "fa-utensils",
+      "description": "3年6組 みんな赤ちゃんになれるバブバブケバブ 出店テント"
+    },
+    {
+      "id": "tent_304",
+      "name": "昇降口前テント (3-4)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38615,
+        139.58595
+      ],
+      "icon": "fa-utensils",
+      "description": "3年4組 千葉軒 出店テント"
+    },
+    {
+      "id": "tent_305",
+      "name": "昇降口前テント (3-5)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38615,
+        139.58602
+      ],
+      "icon": "fa-utensils",
+      "description": "3年5組 ペッパーランチ（藤本屋） 出店テント"
+    },
+    {
+      "id": "tent_307",
+      "name": "昇降口前テント (3-7)",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38615,
+        139.58609
+      ],
+      "icon": "fa-utensils",
+      "description": "3年7組 牛タン「塩野谷」 出店テント"
+    },
+    {
+      "id": "piloti_1f",
+      "name": "1F ピロティ",
+      "category": "shop",
+      "floor": 1,
+      "buildingId": "生徒棟",
+      "latlng": [
+        35.38622,
+        139.58592
+      ],
+      "icon": "fa-cookie-bite",
+      "description": "ホームメイキング部 手作りお菓子の販売スペース"
     },
     {
       "id": "health_bldg",
       "name": "健康福祉棟",
-      "category": "exhibit",
+      "category": "facility",
       "floor": 1,
       "buildingId": "健康福祉棟",
       "latlng": [
         35.385622,
         139.585338
       ],
-      "icon": "fa-ghost",
-      "description": "3年3組 おばけ屋敷 会場"
-    },
-    {
-      "id": "tent_c",
-      "name": "中庭テントC",
-      "category": "food",
-      "floor": 1,
-      "buildingId": "outdoor_994289",
-      "latlng": [
-        35.38595,
-        139.58546
-      ],
-      "icon": "fa-utensils",
-      "description": "3年4組 千葉軒 出店テント"
-    },
-    {
-      "id": "tent_d",
-      "name": "中庭テントD",
-      "category": "food",
-      "floor": 1,
-      "buildingId": "outdoor_994289",
-      "latlng": [
-        35.38595,
-        139.58557
-      ],
-      "icon": "fa-utensils",
-      "description": "3年5組 ペッパーランチ藤本家 出店テント"
-    },
-    {
-      "id": "tent_e",
-      "name": "中庭テントE",
-      "category": "food",
-      "floor": 1,
-      "buildingId": "outdoor_994289",
-      "latlng": [
-        35.38595,
-        139.58568
-      ],
-      "icon": "fa-utensils",
-      "description": "3年6組 ナベが震えたケバブ 出店テント"
-    },
-    {
-      "id": "tent_f",
-      "name": "中庭テントF",
-      "category": "food",
-      "floor": 1,
-      "buildingId": "outdoor_994289",
-      "latlng": [
-        35.38596,
-        139.58579
-      ],
-      "icon": "fa-utensils",
-      "description": "3年7組 牛タン 出店テント"
+      "icon": "fa-building",
+      "description": "健康福祉棟"
     },
     {
       "id": "spot_corridor_2f",
@@ -6802,7 +6841,7 @@
         {
           "id": "room_207_2637_4f",
           "roomId": "room_207_2637_4f",
-          "name": "選択教室11",
+          "name": "選択教室1",
           "category": "special_room",
           "floor": 4,
           "buildingId": "生徒棟",
