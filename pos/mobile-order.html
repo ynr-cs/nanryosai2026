@@ -1977,6 +1977,12 @@
       let products = [];
       let cart = [];
 
+      /* Big Data Tracking State */
+      const mopSessionStartTime = Date.now();
+      let itemModalOpenedAt = null;
+      let itemCustomizationCount = 0;
+      let itemQtyChangeCount = 0;
+
       // Modal State
       let selectingProduct = null;
       let selectingQty = 1;
@@ -2614,6 +2620,10 @@
 
       /* 7. Feature: Item Details (Modal) */
       window.openItemModal = (product) => {
+        itemModalOpenedAt = Date.now();
+        itemCustomizationCount = 0;
+        itemQtyChangeCount = 0;
+
         // GA4: 商品詳細閲覧イベント (標準 e-commerce イベント view_item)
         logEvent(analytics, "view_item", {
           item_id: product.id,
@@ -2709,6 +2719,7 @@
       }
 
       function toggleMod(target) {
+        itemCustomizationCount++;
         if (!currentMode) {
           const modeContainer = document.querySelector(".mode-toggle");
           const guideText = document.getElementById("topping-guide-text");
@@ -2755,6 +2766,7 @@
       }
 
       window.adjustQty = (delta) => {
+        itemQtyChangeCount++;
         selectingQty += delta;
         if (selectingQty < 1) selectingQty = 1;
         document.getElementById("modal-item-qty").textContent = selectingQty;
@@ -2790,13 +2802,18 @@
             allowedToppings: selectingProduct.allowedToppings || [],
           });
         }
-        // GA4: カート追加イベント
+        // GA4: カート追加イベント（検討時間・カスタマイズ回数付き）
+        const considerationSec = itemModalOpenedAt ? Math.round((Date.now() - itemModalOpenedAt) / 1000) : 0;
         logEvent(analytics, "add_to_cart", {
           item_id: selectingProduct.id,
           item_name: selectingProduct.name,
           price: selectingProduct.price,
           quantity: selectingQty,
           currency: "JPY",
+          consideration_sec: considerationSec,
+          customization_count: currentMods.length,
+          customization_toggle_count: itemCustomizationCount,
+          qty_change_count: itemQtyChangeCount,
         });
         updateBottomBar();
         itemModal.hide();
@@ -2975,11 +2992,13 @@
           if (!result.data.success)
             throw new Error(result.data.error || "Order Failed");
 
-          // GA4: 注文確定イベント
+          // GA4: 注文確定イベント（総検討時間付き）
+          const totalMopDurationSec = Math.round((Date.now() - mopSessionStartTime) / 1000);
           logEvent(analytics, "purchase", {
             transaction_id: result.data.orderId,
             value: totalValue,
             currency: "JPY",
+            total_duration_sec: totalMopDurationSec,
             items: cart.map(c => ({
               item_id: c.productId,
               item_name: c.name,

@@ -1350,7 +1350,11 @@
         searchInput?.addEventListener("change", (e) => {
           const val = e.target.value.trim();
           if (val) {
-            logEvent(analytics, "search_project", { search_keyword: val });
+            const resultCount = document.querySelectorAll("#projects-container .project-card").length;
+            logEvent(analytics, "search_project", {
+              search_keyword: val,
+              result_count: resultCount
+            });
           }
         });
 

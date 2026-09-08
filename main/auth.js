@@ -60,7 +60,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import {
   getAnalytics,
-  logEvent,
+  logEvent as firebaseLogEvent,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
 
 /* ==============================
@@ -472,28 +472,213 @@ async function getFavorites() {
 }
 
 /* ==============================
-   GA4 Universal Click Tracker
-   data-track 属性を持つ要素のクリックを自動でGA4に送信する。
-   HTML側は data-track="イベント名" を付けるだけでOK。
-   オプション: data-track-* 属性で追加パラメータを送信可能。
-   例: <button data-track="click_mop_promo" data-track-section="hero">...
+   GA4 Universal Analytics & Big Data Tracking System
+   全イベントへの自動メタデータ付与（端末・環境・ネットワーク・セッション）
+   および自動エンゲージメント計測（有効滞在時間、スクロール深度、通信検知、コピー検知）
    ============================== */
-document.addEventListener("click", (event) => {
-  const target = event.target.closest("[data-track]");
-  if (!target) return;
 
-  const eventName = target.getAttribute("data-track");
-
-  // data-track-* 属性を追加パラメータとして収集
-  const params = {};
-  for (const attr of target.attributes) {
-    if (attr.name.startsWith("data-track-")) {
-      const paramName = attr.name.replace("data-track-", "").replace(/-/g, "_");
-      params[paramName] = attr.value;
+// 1. Session ID Management (sessionStorage)
+function getOrCreateSessionId() {
+  try {
+    let sid = sessionStorage.getItem("nanryo_sid");
+    if (!sid) {
+      sid = (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID().slice(0, 18)
+        : (Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8));
+      sessionStorage.setItem("nanryo_sid", sid);
     }
+    return sid;
+  } catch (e) {
+    return "unknown";
   }
+}
 
-  logEvent(analytics, eventName, params);
+// 2. Client Environment Detection
+function detectEnvironment() {
+  try {
+    const ua = navigator.userAgent || "";
+    let os = "other";
+    if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
+    else if (/Android/i.test(ua)) os = "Android";
+    else if (/Win/i.test(ua)) os = "Windows";
+    else if (/Mac/i.test(ua)) os = "macOS";
+    else if (/Linux/i.test(ua)) os = "Linux";
+
+    let browser = "other";
+    if (/Line\//i.test(ua)) browser = "LINE";
+    else if (/Instagram/i.test(ua)) browser = "Instagram";
+    else if (/Twitter|Twitter for/i.test(ua)) browser = "Twitter";
+    else if (/Edg/i.test(ua)) browser = "Edge";
+    else if (/Chrome|CriOS/i.test(ua)) browser = "Chrome";
+    else if (/Safari/i.test(ua)) browser = "Safari";
+    else if (/Firefox|FxiOS/i.test(ua)) browser = "Firefox";
+
+    const isMobile = /Mobi|Android|iPhone|iPod/i.test(ua);
+    const isTablet = /iPad|Tablet/i.test(ua) || (os === "macOS" && navigator.maxTouchPoints > 1);
+    const deviceType = isTablet ? "tablet" : (isMobile ? "mobile" : "desktop");
+
+    return { os, browser, deviceType };
+  } catch (e) {
+    return { os: "unknown", browser: "unknown", deviceType: "unknown" };
+  }
+}
+
+// 3. Rich Context Enrichment
+function getAnalyticsContext() {
+  try {
+    const env = detectEnvironment();
+    const theme = document.documentElement.getAttribute("data-theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const orientation = (window.screen && window.screen.orientation && window.screen.orientation.type)
+      ? (window.screen.orientation.type.includes("portrait") ? "portrait" : "landscape")
+      : (window.innerHeight >= window.innerWidth ? "portrait" : "landscape");
+    const net = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    let role = "anonymous";
+    if (currentUser) {
+      role = (currentUser.email && currentUser.email.endsWith("@gl.pen-kanagawa.ed.jp")) ? "student" : "guest";
+    }
+
+    return {
+      session_id: getOrCreateSessionId(),
+      device_type: env.deviceType,
+      device_os: env.os,
+      browser_name: env.browser,
+      is_in_app: detectInAppBrowser(),
+      screen_res: `${window.screen ? window.screen.width : 0}x${window.screen ? window.screen.height : 0}`,
+      viewport_res: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
+      orientation: orientation,
+      theme_mode: theme,
+      user_role: role,
+      net_effective_type: net?.effectiveType || "unknown",
+      net_save_data: net?.saveData ? true : false,
+      user_lang: navigator.language || "ja",
+      page_path: window.location.pathname || "",
+    };
+  } catch (e) {
+    return {};
+  }
+}
+
+// 4. Enhanced logEvent wrapper (Replaces raw Firebase logEvent)
+function logEvent(analyticsInstance, eventName, customParams = {}) {
+  try {
+    const context = getAnalyticsContext();
+    const merged = { ...context, ...customParams };
+    firebaseLogEvent(analyticsInstance || analytics, eventName, merged);
+  } catch (e) {
+    console.warn("[Analytics] Track failed:", e);
+  }
+}
+
+// 5. Automatic Click Tracker (data-track delegation)
+document.addEventListener("click", (event) => {
+  try {
+    const target = event.target.closest("[data-track]");
+    if (!target) return;
+
+    const eventName = target.getAttribute("data-track");
+    const params = {};
+    for (const attr of target.attributes) {
+      if (attr.name.startsWith("data-track-")) {
+        const paramName = attr.name.replace("data-track-", "").replace(/-/g, "_");
+        params[paramName] = attr.value;
+      }
+    }
+
+    logEvent(analytics, eventName, params);
+  } catch (e) {
+    console.warn("[Analytics] Click tracker error:", e);
+  }
+});
+
+// 6. Automatic Page Active Engagement Tracker (Dwell Time)
+let activeStartTime = Date.now();
+let totalActiveDwellSec = 0;
+let isPageActive = !document.hidden;
+
+function recordActiveTime() {
+  if (isPageActive) {
+    const now = Date.now();
+    totalActiveDwellSec += Math.round((now - activeStartTime) / 1000);
+    activeStartTime = now;
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  try {
+    if (document.hidden) {
+      recordActiveTime();
+      isPageActive = false;
+      if (totalActiveDwellSec > 0) {
+        logEvent(analytics, "page_engagement", {
+          dwell_seconds: totalActiveDwellSec,
+          is_exit: false
+        });
+      }
+    } else {
+      activeStartTime = Date.now();
+      isPageActive = true;
+    }
+  } catch (e) {}
+});
+
+window.addEventListener("pagehide", () => {
+  try {
+    recordActiveTime();
+    if (totalActiveDwellSec > 0) {
+      logEvent(analytics, "page_engagement", {
+        dwell_seconds: totalActiveDwellSec,
+        is_exit: true
+      });
+    }
+  } catch (e) {}
+});
+
+// 7. Automatic Scroll Depth Tracker (25%, 50%, 75%, 90%)
+const scrollMilestonesReached = new Set();
+let scrollThrottleTimeout = null;
+
+window.addEventListener("scroll", () => {
+  if (scrollThrottleTimeout) return;
+  scrollThrottleTimeout = setTimeout(() => {
+    scrollThrottleTimeout = null;
+    try {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 50) return;
+      const scrollPercent = Math.round((scrollTop / docHeight) * 100);
+
+      [25, 50, 75, 90].forEach((milestone) => {
+        if (scrollPercent >= milestone && !scrollMilestonesReached.has(milestone)) {
+          scrollMilestonesReached.add(milestone);
+          logEvent(analytics, "scroll_milestone", {
+            milestone_percent: milestone
+          });
+        }
+      });
+    } catch (e) {}
+  }, 300);
+}, { passive: true });
+
+// 8. Automatic Network Status Tracker
+window.addEventListener("online", () => {
+  logEvent(analytics, "network_status_change", { status: "online" });
+});
+window.addEventListener("offline", () => {
+  logEvent(analytics, "network_status_change", { status: "offline" });
+});
+
+// 9. Automatic Text Copy Tracker
+document.addEventListener("copy", () => {
+  try {
+    const selected = window.getSelection() ? window.getSelection().toString() : "";
+    if (selected && selected.trim().length > 0) {
+      logEvent(analytics, "text_copy", {
+        char_count: selected.length,
+        snippet: selected.slice(0, 30)
+      });
+    }
+  } catch (e) {}
 });
 
 // Export everything needed

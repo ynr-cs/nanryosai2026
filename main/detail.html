@@ -764,7 +764,7 @@
     <script src="data/data.js"></script>
 
     <script type="module">
-      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser } from "./auth.js";
+      import { db, getFavorites, toggleFavorite, getCurrentUser, watchUser, analytics, logEvent } from "./auth.js";
       import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
       // Define current page for the shell
@@ -908,6 +908,15 @@
                 }
             });
         }
+
+        // GA4: 企画詳細閲覧イベント
+        logEvent(analytics, "view_project_detail", {
+          project_id: project.id,
+          project_name: project.name || "",
+          group_name: project.groupName || "",
+          category: project.contentType || "unknown",
+          use_mobile_order: project.useMobileOrder === true
+        });
 
         // Render the page
         renderDetail(project);

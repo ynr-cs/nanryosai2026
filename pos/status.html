@@ -708,6 +708,41 @@
       const orderId = params.get("orderId");
       const errorMsg = params.get("error");
 
+      // --- Big Data Tracking State ---
+      let manualSyncCount = 0;
+      let visibilitySwitchCount = 0;
+      let lastStatusChangeTime = Date.now();
+      let orderCreatedAtMillis = null;
+      let readyForPickupTimestamp = null;
+      let cachedBatteryInfo = null;
+
+      if (typeof navigator !== "undefined" && navigator.getBattery) {
+        navigator.getBattery().then(battery => {
+          cachedBatteryInfo = {
+            level: Math.round(battery.level * 100),
+            charging: battery.charging
+          };
+        }).catch(() => {});
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        visibilitySwitchCount++;
+        const isVisible = !document.hidden;
+        const now = Date.now();
+        const eventParams = {
+          order_id: orderId || "",
+          current_status: (typeof lastRecordedStatus !== "undefined" && lastRecordedStatus) ? lastRecordedStatus : "unknown",
+          visibility_state: isVisible ? "visible" : "hidden",
+          switch_count: visibilitySwitchCount
+        };
+
+        if (isVisible && typeof lastRecordedStatus !== "undefined" && lastRecordedStatus === "ready_for_pickup" && readyForPickupTimestamp) {
+          eventParams.ready_to_view_latency_sec = Math.round((now - readyForPickupTimestamp) / 1000);
+        }
+
+        logEvent(analytics, "status_screen_visibility_change", eventParams);
+      });
+
       if (errorMsg === "duplicate_order") {
         document.addEventListener("DOMContentLoaded", () => {
           const alertDiv = document.createElement("div");
@@ -934,6 +969,14 @@
         if (manualBtn && !manualBtn.dataset.bound) {
           manualBtn.dataset.bound = "true";
           manualBtn.addEventListener("click", () => {
+            manualSyncCount++;
+            const elapsedTotal = orderCreatedAtMillis ? Math.round((Date.now() - orderCreatedAtMillis) / 1000) : 0;
+            logEvent(analytics, "click_status_manual_sync", {
+              sync_count: manualSyncCount,
+              current_status: lastRecordedStatus || "unknown",
+              elapsed_seconds: elapsedTotal,
+              order_id: orderId || ""
+            });
             syncOrderStatus(true);
           });
         }
@@ -1050,11 +1093,54 @@
 
         const status = data.status;
         if (status && status !== lastRecordedStatus) {
+          const now = Date.now();
+          const prevStatus = lastRecordedStatus;
+          const statusDurationSec = prevStatus ? Math.round((now - lastStatusChangeTime) / 1000) : 0;
+          lastStatusChangeTime = now;
           lastRecordedStatus = status;
-          logEvent(analytics, "order_status_update", {
+
+          if (data.createdAt && typeof data.createdAt.toMillis === "function") {
+            orderCreatedAtMillis = data.createdAt.toMillis();
+          }
+
+          const elapsedTotal = orderCreatedAtMillis ? Math.round((now - orderCreatedAtMillis) / 1000) : 0;
+
+          if (status === "ready_for_pickup") {
+            readyForPickupTimestamp = now;
+          }
+
+          const statusParams = {
             status: status,
+            prev_status: prevStatus || "initial",
             order_id: orderId || "",
-          });
+            store_id: data.storeId || "",
+            item_count: (data.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0),
+            total_price: data.totalPrice || 0,
+            status_duration_sec: statusDurationSec,
+            total_elapsed_sec: elapsedTotal,
+            manual_sync_count: manualSyncCount,
+            visibility_switch_count: visibilitySwitchCount,
+            notification_perm: (typeof Notification !== "undefined") ? Notification.permission : "unsupported"
+          };
+
+          if (cachedBatteryInfo) {
+            statusParams.battery_level = cachedBatteryInfo.level;
+            statusParams.battery_charging = cachedBatteryInfo.charging;
+          }
+
+          logEvent(analytics, "order_status_update", statusParams);
+
+          // 終端ステータス（受取完了、キャンセル、破棄）時の総合ライフサイクルサマリー送信
+          if (["completed", "cancelled", "abandoned"].includes(status)) {
+            logEvent(analytics, "order_lifecycle_complete", {
+              order_id: orderId || "",
+              store_id: data.storeId || "",
+              final_status: status,
+              total_duration_sec: elapsedTotal,
+              manual_sync_count: manualSyncCount,
+              visibility_switch_count: visibilitySwitchCount
+            });
+          }
         }
 
         // SOK假注文 (status = null) の特別処理 — 設計憲法§5.2準拠
@@ -1247,6 +1333,13 @@
         if (btn) {
           btn.style.display = "inline-block";
           btn.onclick = () => {
+            const elapsedTotal = orderCreatedAtMillis ? Math.round((Date.now() - orderCreatedAtMillis) / 1000) : 0;
+            logEvent(analytics, "click_status_store_detail", {
+              store_id: storeId,
+              order_id: orderId || "",
+              current_status: lastRecordedStatus || "unknown",
+              elapsed_seconds: elapsedTotal
+            });
             window.location.href = `../main/detail.html?id=${storeId}`;
           };
         }

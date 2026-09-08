@@ -1,54 +1,63 @@
 # Google Analytics (GA4) イベントトラッキング仕様
 
-**最終更新**: 2026-09-09 (v0.5.284)
+**最終更新**: 2026-09-09 (v0.5.288)
 
 ## 概要
 
-本プロジェクトでは Firebase Analytics (GA4) を使用し、来場者の行動データを収集する。
-初期化は `main/auth.js` で一元管理（Single Source of Truth）。
+本プロジェクトでは Firebase Analytics (GA4) を使用し、来場者の行動データを網羅的に収集・分析する「文化祭DXビッグデータ収集基盤」を構築している。
+初期化および自動メタデータエンリッチメントは `main/auth.js` で一元管理（Single Source of Truth）。
 
 > [!IMPORTANT]
 > `firebaseConfig` には必ず公式の `measurementId: "G-1M5G95EXF0"` が明記されている必要があります。これがないと Firebase Web SDK が GA4 に正常接続できません（v0.5.284にて根本修正完了）。
 
 ## 実装アーキテクチャ
 
-### 1. 共通クリックトラッキング基盤（`main/auth.js`）
+### 1. 全イベント共通 自動メタデータエンリッチメント（`main/auth.js`）
 
-`auth.js` の末尾に **イベント委譲（Event Delegation）** パターンで共通監視リスナーを設置している。
+`auth.js` 内で Firebase の `logEvent` をラップした高機能 `logEvent` をエクスポートしている。
+アプリ内のどのファイルから `logEvent` を呼び出しても、以下の環境・セッションメタデータが**自動的にマージ付加**される。
 
-```javascript
-document.addEventListener("click", (event) => {
-  const target = event.target.closest("[data-track]");
-  if (!target) return;
-  const eventName = target.getAttribute("data-track");
-  const params = {};
-  for (const attr of target.attributes) {
-    if (attr.name.startsWith("data-track-")) {
-      const paramName = attr.name.replace("data-track-", "").replace(/-/g, "_");
-      params[paramName] = attr.value;
-    }
-  }
-  logEvent(analytics, eventName, params);
-});
-```
+| パラメータ | 取得内容・用途 |
+| :--- | :--- |
+| `session_id` | 同一ブラウザ利用での回遊行動を串刺し分析（`sessionStorage` 保持） |
+| `device_type` | `mobile` / `tablet` / `desktop` の自動判別 |
+| `device_os` | `iOS` / `Android` / `Windows` / `macOS` / `Linux` / `other` |
+| `browser_name` | `Chrome` / `Safari` / `Edge` / `Firefox` / `LINE` / `Instagram` / `other` |
+| `is_in_app` | LINEやインスタ等のアプリ内ブラウザ（WebView）か否か |
+| `screen_res` | ディスプレイ解像度（例: `390x844`） |
+| `viewport_res` | 実際のブラウザ表示領域サイズ（例: `390x750`） |
+| `orientation` | 画面の向き（`portrait` / `landscape`） |
+| `theme_mode` | テーマ（`dark` / `light`） |
+| `user_role` | `student`（在校生） / `guest`（一般来場者） / `anonymous`（未ログイン） |
+| `net_effective_type` | 通信回線クラス（`4g` / `3g` / `2g` / `slow-2g` / `unknown`） |
+| `net_save_data` | データセーバーモード有効か否か（`true` / `false`） |
+| `user_lang` | 言語環境（例: `ja`） |
+| `page_path` | 現在のURLパス（例: `/pos/status.html`） |
 
-**使い方（HTML側）:**
-```html
-<button data-track="イベント名">ボタン</button>
-<a data-track="click_project" data-track-project-id="1-1">1-1へ</a>
-```
-HTMLに `data-track` 属性を付けるだけで自動的にGA4に送信される。追加パラメータは `data-track-*` で設定する（ハイフンはアンダースコアに変換される）。
+### 2. 自動エンゲージメント＆行動追跡リスナー（`main/auth.js`）
 
-### 2. 個別イベント送信
+ユーザーがクリックしなくても、ブラウザの行動に応じて自動送信されるビッグデータ：
 
-`logEvent` は `auth.js` からexportされているため、他ファイルで個別のイベント送信も可能。
+- **有効滞在時間 (`page_engagement`)**:
+  - バックグラウンドに回した時間を除外し、実際にタブをアクティブにして画面を見ていた秒数を計測。
+  - タブ非表示時（`visibilitychange: hidden`）およびページ離脱時（`pagehide`）に `{ dwell_seconds, is_exit }` を送信。
+- **スクロール深度 (`scroll_milestone`)**:
+  - ページ縦幅の 25%, 50%, 75%, 90% 到達時に `{ milestone_percent }` を1回ずつ自動送信（企画紹介や規約の精読率）。
+- **通信状態変化 (`network_status_change`)**:
+  - 会場内の電波切断・復帰を検知し `{ status: "online" / "offline" }` を送信。
+- **テキストコピー検知 (`text_copy`)**:
+  - 注文番号やUID等のコピー操作を検知し `{ char_count, snippet }` を送信。
+- **クリック自動委譲 (`data-track`)**:
+  - HTML要素に `data-track="イベント名"` を付与するだけで、`data-track-*` 属性とともに自動送信。
+
+### 3. 個別イベント送信
 
 ```javascript
 import { analytics, logEvent } from "../main/auth.js";
 logEvent(analytics, "purchase", { transaction_id: "...", value: 800, currency: "JPY" });
 ```
 
-## 実装済みイベント一覧（v0.5.284時点 完全網羅）
+## 実装済みイベント一覧（v0.5.288時点 完全網羅）
 
 ### モバイルオーダー・コンバージョンファネル（`pos/mobile-order.html`）
 
@@ -74,17 +83,20 @@ logEvent(analytics, "purchase", { transaction_id: "...", value: 800, currency: "
 
 ### 注文状況・ステータス（`pos/status.html`）
 
-| 操作 | イベント名 | パラメータ |
+| 操作 / トリガー | イベント名 | 主なパラメータ |
 | :--- | :--- | :--- |
-| 手動更新ボタン | `click_status_manual_sync` | - |
-| 店舗詳細リンク | `click_status_store_detail` | - |
-| ログインボタン | `click_status_login` | - |
-| 注文ステータス変更検知 | `order_status_update` | `order_id`, `status` (`pending`, `cooking`, `ready`, `completed`, `cancelled`) |
+| 手動更新ボタン押下 | `click_status_manual_sync` | `sync_count`, `current_status`, `elapsed_seconds`, `order_id` |
+| 店舗詳細リンク押下 | `click_status_store_detail` | `store_id`, `order_id`, `current_status`, `elapsed_seconds` |
+| ログインボタン押下 | `click_status_login` | - |
+| 注文ステータス変更検知 | `order_status_update` | `order_id`, `status`, `prev_status`, `status_duration_sec`, `total_elapsed_sec`, `manual_sync_count`, `visibility_switch_count`, `battery_level`, `notification_perm` |
+| 画面可視性変化（離脱/復帰） | `status_screen_visibility_change` | `order_id`, `current_status`, `visibility_state`, `switch_count`, `ready_to_view_latency_sec` |
+| 注文終了（完了/破棄/取消） | `order_lifecycle_complete` | `order_id`, `store_id`, `final_status`, `total_duration_sec`, `manual_sync_count`, `visibility_switch_count` |
 
 ### 詳細ページ（`main/detail.html`）
 
-| 操作 | イベント名 | パラメータ |
+| 操作 / トリガー | イベント名 | パラメータ |
 | :--- | :--- | :--- |
+| 企画詳細画面閲覧 | `view_project_detail` | `project_id`, `project_name`, `group_name`, `category`, `use_mobile_order` |
 | モバイルオーダー注文ボタン | `click_order_from_detail` | `project_id` |
 | マップ直行リンク | `click_detail_map_direct` | `project_id`, `room_id` |
 | 全体マップリンク | `click_detail_map_general` | - |
@@ -144,7 +156,7 @@ logEvent(analytics, "purchase", { transaction_id: "...", value: 800, currency: "
 
 | イベント名 | 対象 | 送信場所 | パラメータ |
 | :--- | :--- | :--- | :--- |
-| `search_project` | 検索実行時 | `projects-list.html` | `search_keyword` |
+| `search_project` | 検索実行時 | `projects-list.html` | `search_keyword`, `result_count` |
 | `change_sort` | 並び替え変更時 | `projects-list.html` | `sort_type` |
 | `toggle_favorites_filter` | お気に入り表示トグル | `projects-list.html`, `stage-list.html` | `status: "on" / "off"` |
 | `toggle_past_events` | 過去のイベントトグル | `stage-list.html` | `status: "on" / "off"` |
