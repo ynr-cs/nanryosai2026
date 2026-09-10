@@ -172,6 +172,14 @@ Googleフォームで提出された最新回答データ（2026/09/10提出分:
 - **一次情報完全反映済み団体数**: **19団体**（第1弾 11団体 ＋ 第2弾 8団体）
 - **南陵グランプリ部門別集計**: 調理 8件, 販売 9件, 展示 18件, ステージ 12件（全47企画）
 
+### 2年3組（大関メイド始めました!!）公式写真・ギャラリー反映 (2026-09-11)
+- **メイン画像**: 黒板アート（`images/203.webp`）をヒーローヘッダー画像として登録。
+- **ギャラリー画像**:
+  - `images/gallery/203_1.webp`: 黒板アート
+  - `images/gallery/203_2.webp`: 手作りメニュー看板
+- **`contentType`**: `["menu", "gallery"]` に設定し、詳細ページでギャラリータブを展開。
+- **原本保管**: `images/original/203.jpg`, `images/original/gallery/203_1.jpg`, `images/original/gallery/203_2.jpg` に保管。
+
 ## 機能公開フラグ (`IS_MAP_ENABLED`)
 - `window.IS_MAP_ENABLED`: マップ機能（`map.html`）を一般公開するかどうかの本番フラグ。
 - `true` に設定することで、`app-shell.js`（フッター・ドロワーメニュー）、`detail.html`、`projects-list.html`、`stage-list.html` の全マップリンク・バッジが一括で本番有効化される。

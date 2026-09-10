@@ -78,7 +78,7 @@ last_updated: 2026-09-06
       | `posAlertMessage` | string | 店舗スタッフ向けに表示するメッセージ |
       | `updatedAt` | string | ISO 形式の最終更新時刻 |
       | `emergencyStopAt` | string | 緊急停止が実行された時刻（緊急停止時のみ書き込まれる） |
-    - **セキュリティ**: Firestore ルールで `write: if isSuperAdmin()` により `ynrcs1000@gmail.com` のみ書き込み可。URL が漏れても別アカウントからの書き込みはサーバー側で permission-denied になる。
+    - **セキュリティ**: Firestore ルールで `write: if isSuperAdmin()` により、Custom Claims `identity: 'super_admin'` を保持するユーザーのみ書き込み可（V4仕様。トークンに email は保持しない）。URL が漏れても別アカウントからの書き込みはサーバー側で permission-denied になる。
     - **緊急停止の挙動** (v0.3.21〜):
       - `superadmin.html` の「全注文受付を停止する」ボタンを押すと、`system_alerts` の更新と全店舗の `operationStatus: "suspended"` + `isEmergencyStopped: true` + `isAutoSuspended: false` の変更を `writeBatch` で**アトミックに実行**する。旧フィールド `emergencySuspendedAt` は `deleteField()` で同時に削除される。
       - 緊急停止中は、POSからの注文もモバイルオーダーからの注文も、`createOrder` Function が `operationStatus` チェックにより**サーバー側で完全にブロック**される（クライアント側UIによる制御だけに依存しない二重防御）。

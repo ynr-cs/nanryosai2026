@@ -13,6 +13,58 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [1.0.6] superadminのFirestore保存時permission-deniedエラーの根本解消（V4セキュリティルールデプロイおよびトークン強制リフレッシュ） - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: `superadmin.html` でシステムアラート保存時（`setDoc(METADATA_DOC, ...)`）およびBANユーザー一覧のリアルタイム監視（`onSnapshot(banned_users)`）において `FirebaseError: [code=permission-denied]: Missing or insufficient permissions.` が発生していた問題を恒久的に解消するため。
+
+### 修正 (Fixed)
+
+- **FirestoreセキュリティルールのV4仕様デプロイ (`firestore.rules`)**:
+  - **背景/原因**: V4認証移行に伴う個人情報完全非保持（PIIゼロ）設計により、ユーザーの ID トークンから `email` が排除され、管理者権限は Custom Claims の `identity: "super_admin"` に一本化されていた。しかし、Firebase 側にデプロイされていたセキュリティルールが旧仕様（`request.auth.token.email == 'ynrcs1000@gmail.com'`）のまま残留していたため、クライアント側で SuperAdmin 判定が通っても Firestore サーバー上では `isSuperAdmin()` が常に `false` と評価され、`_metadata` の書き込み（`allow write: if isSuperAdmin();`）および `banned_users` コレクションの監視クエリ（`allow read: if ... || isSuperAdmin();`）が拒否されていた。
+  - **解決策**: V4仕様（`request.auth.token.identity == 'super_admin'`）に準拠した最新の `firestore.rules` を Firebase プロジェクト (`nanryosai-2026-a4091`) に正式デプロイし、本番ルールの整合性を回復。
+- **管理画面における認証トークンの強制リフレッシュ対応 (`main/admin/superadmin.html`, `main/admin_sync.html`)**:
+  - **背景/原因**: Auth Guard 内で `getClaims()` を引数なし（`force=false`）で呼び出していたため、セッション継続中やクレーム変更直後にキャッシュされた古いトークンを使い続けるリスクが存在した。
+  - **解決策**: Auth Guard の初期判定時に `getClaims(true)` を呼び出し、最新の Custom Claims を含んだ ID トークンを強制取得するよう改善。
+- **ナレッジベース整合性確保 (`antigravity/firebase_CONTEXT.md`)**:
+  - `_metadata/system_alerts` のセキュリティルール仕様説明を旧メール指定から V4 仕様（`identity: 'super_admin'`）に更新。
+
+### 得られた知見 / 注意点 (Learned / Caveats)
+
+- Firebase セキュリティルールはローカルの `firestore.rules` を編集・検証しただけではサーバー側に反映されず、`firebase deploy --only firestore:rules` による本番反映が不可欠である。認証仕様の変更（V4移行など）を行った際は、Firebase 側にデプロイされている実際のルールをツール等で直接取得・突合し、サーバー側の実行ルールとの乖離を防ぐ運用が極めて重要である。
+
+## [1.0.5] about-us.htmlのDXロードマップ改訂（2027年モバイルオーダー導入）および2年3組（大関メイド）写真・ギャラリー追加 - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ユーザーより「about-us.htmlのモバイルオーダー関連のもじを変えたい。2年目はモバイルオーダーはなしにして来年モバイルオーダーにしようか。んであと2-3の写真をこれ追加。１枚目メインでギャラリーどっちも載せようか」との指示を受け、ロードマップの年度別方針を整合させるとともに、2年3組（大関メイド始めました!!）の公式写真をメインおよびギャラリーへ反映するため。
+
+### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
+
+- **DXロードマップの年度別方針整合 (`main/about-us.html`)**:
+  - **背景/原因**: 2026年度（南陵祭'26 / 2年目）はモバイルオーダーの現場導入を行わず、公式Webサイトの大幅進化（階層別2Dマップ刷新、ステージタイムテーブル検索、個人情報ゼロ設計）に注力している実態に即し、モバイルオーダーの本格導入目標を次年度（2027年 / 南陵祭'27 / 3年目）のロードマップに明確に位置づける必要があった。
+  - **解決策**:
+    - **2026年（今年）**: 「さらに進化したWebサイト・階層別2Dマップの全面導入」の運用中ステータスを維持。
+    - **2027年（来年）**: 計画中タイトルを「モバイルオーダー導入・全校がデジタルでリアルタイムにつながる次世代の文化祭体験へ」に改訂。説明文に「模擬店の待機列解消とさらなる利便性向上を目指したモバイルオーダーシステムの導入を計画中」と明記し、タグに「モバイルオーダー導入」を追加。
+- **2年3組（大関メイド始めました!! / ID: 203）の写真・ギャラリー反映 (`main/data/data.js`, `images/`)**:
+  - **背景/原因**: 2-3の生徒提出写真（黒板アートおよび手作りメニュー看板）を公式Webサイトの詳細画面（`detail.html?project=203`）で来場者に提供するため。
+  - **解決策**:
+    - ユーザーから提供された写真1（黒板アート）をExif回転補正の上、WebP形式でヒーロー画像 `images/203.webp`（63.8 KB）およびギャラリー1 `images/gallery/203_1.webp`（63.8 KB）として生成・配置。
+    - 写真2（メニュー看板）をExif回転補正の上、WebP形式でギャラリー2 `images/gallery/203_2.webp`（86.0 KB）として生成・配置。
+    - 原本を `images/original/203.jpg`, `images/original/gallery/203_1.jpg`, `images/original/gallery/203_2.jpg` に永続保管。
+    - `main/data/data.js` の `id: "203"` において `contentType: ["menu", "gallery"]` とし、`gallery` 配列に2枚のWebP相対パスを登録。
+- **ナレッジベース同期 (`antigravity/main/about_CONTEXT.md`, `antigravity/main/data_CONTEXT.md`)**:
+  - `about-us.html` のロードマップ仕様、および2年3組の画像アセット連携状況を永続化。
+
+### 得られた知見 / 注意点 (Learned / Caveats)
+
+- `detail.html` では `project.gallery` 配列が存在する場合に自動でギャラリータブがレンダリングされる設計になっているが、`contentType` も `["menu", "gallery"]` の配列形式に設定しておくことで、将来的なデータ同期（`admin_sync.html` 等）におけるフィルタリングやバリデーションとも完全な整合性が保たれる。
+
 ## [1.0.4] ボトムシートのtarget誤解決によるタイムテーブルスクロール完全ブロック問題の根本修正 - 2026-09-11
 
 ### メタ情報

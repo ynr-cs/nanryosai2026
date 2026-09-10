@@ -293,9 +293,15 @@ const projectData = [
       "カフェ",
       "メイド喫茶"
     ],
-    "contentType": "menu",
+    "contentType": [
+      "menu",
+      "gallery"
+    ],
     "menu": [],
-    "gallery": []
+    "gallery": [
+      "../images/gallery/203_1.webp",
+      "../images/gallery/203_2.webp"
+    ]
   },
   {
     "id": "204",

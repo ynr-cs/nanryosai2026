@@ -1114,7 +1114,7 @@
           return;
         }
         try {
-          const claims = await getClaims();
+          const claims = await getClaims(true);
           if (!isSuperAdminClaims(claims)) {
             alert("管理者権限（SuperAdmin）がありません。");
             window.location.replace("./index.html");
