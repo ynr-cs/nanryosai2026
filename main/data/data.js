@@ -1,7 +1,7 @@
 /**
  * Nanryosai 2026 Official Data
  * Version: 0.2.1
- * Last Modified: 2026-09-09
+ * Last Modified: 2026-09-11
  * Author: Nanryosai 2026 Project Team
  */
 // =======================================================
@@ -28,18 +28,20 @@ const projectData = [
     "id": "101",
     "loginId": "class101",
     "groupName": "1年1組",
-    "name": "銭安藤",
+    "name": "銭安堂",
     "place": "生徒棟 4F 1-1",
     "floor": 4,
     "roomId": "room_202_3256_4f",
     "category": "shop",
     "votingCategory": "shop",
     "useMobileOrder": false,
-    "catchphrase": "銭天堂モチーフの楽しいお店！",
-    "description": "銭天堂モチーフの楽しいお店！",
+    "catchphrase": "安い美味い早い銭安堂",
+    "description": "安さを重視した昔ながらの駄菓子屋をイメージにして安いのを皆さんに知ってもらうべく名前を銭安堂にしました",
+    "instagram": "lxaf2_",
     "tags": [
       "販売",
-      "駄菓子"
+      "駄菓子",
+      "駄菓子屋"
     ],
     "contentType": "menu",
     "menu": [],
@@ -78,12 +80,14 @@ const projectData = [
     "category": "shop",
     "votingCategory": "shop",
     "useMobileOrder": false,
-    "catchphrase": "オトナなナイトを楽しみな！",
-    "description": "オトナなナイトを楽しみな！ 溶ける前に恋しよう",
+    "catchphrase": "溶ける前に恋しよう",
+    "description": "ホストとキャバ嬢がお客様さまのお悩み等なんでも聞いてくれるよ。\nアイスとジュースを片手に溶ける前に恋してみない？",
+    "instagram": "ynr.1_3",
     "tags": [
       "販売",
       "アイス",
-      "カフェ"
+      "カフェ",
+      "ジュース"
     ],
     "contentType": "menu",
     "menu": [],
@@ -93,19 +97,21 @@ const projectData = [
     "id": "104",
     "loginId": "class104",
     "groupName": "1年4組",
-    "name": "TOY MANIA",
+    "name": "トイストーリーマニア",
     "place": "生徒棟 4F 1-4",
     "floor": 4,
     "roomId": "room_205_3256_4f",
     "category": "exhibit",
     "votingCategory": "exhibit",
     "useMobileOrder": false,
-    "catchphrase": "おもちゃの世界へLet's Go",
-    "description": "おもちゃの世界へLet's Go",
+    "catchphrase": "おもちゃの世界へlet's go",
+    "description": "某遊園地にあるトイストーリーマニアとルールは同じです！動く台車に乗って的を打ってもらいます！目指せ！全制覇",
+    "instagram": "kai102011222",
     "tags": [
       "展示",
       "アトラクション",
-      "ゲーム"
+      "ゲーム",
+      "体験"
     ],
     "contentType": "gallery",
     "menu": [],
@@ -123,11 +129,13 @@ const projectData = [
     "votingCategory": "shop",
     "useMobileOrder": false,
     "catchphrase": "あなたをアリスの世界へご招待",
-    "description": "あなたをアリスの世界へご招待 お客様が小さくなる!?",
+    "description": "男子がメイド服、女子が執事服を着る男装女装カフェです。不思議な国のマジックをお楽しみください。おやつや飲み物の種類は計15種類と豊富です。店内にはカラオケも併設しております。バラエティーに富む当店に、ぜひご来店下さい。",
+    "instagram": "kk0621omu",
     "tags": [
       "販売",
       "カフェ",
-      "スイーツ"
+      "スイーツ",
+      "カラオケ"
     ],
     "contentType": "menu",
     "menu": [],
@@ -160,21 +168,24 @@ const projectData = [
     "id": "107",
     "loginId": "class107",
     "groupName": "1年7組",
-    "name": "PINK★MONSTER",
+    "name": "PINK MONSTER",
     "place": "生徒棟 4F 1-7",
     "floor": 4,
     "roomId": "room_208_3256_4f",
-    "category": "exhibit",
-    "votingCategory": "exhibit",
+    "category": "shop",
+    "votingCategory": "shop",
     "useMobileOrder": false,
-    "catchphrase": "うちらの平成マジチョベリグ★",
-    "description": "うちらの平成マジチョベリグ★",
+    "catchphrase": "ウチらの平成マジチョベリグ",
+    "description": "PINK MONSTERは平成の懐かしさを感じる魅力的なお店です！ピンクを大々的に表現し、チェキなどの平成を感じられるカフェです！",
+    "instagram": "haruma.s0329",
     "tags": [
-      "展示",
-      "フォトスポット",
+      "販売",
+      "カフェ",
+      "チェキ",
+      "平成レトロ",
       "映え"
     ],
-    "contentType": "gallery",
+    "contentType": "menu",
     "menu": [],
     "gallery": []
   },
@@ -212,11 +223,13 @@ const projectData = [
     "votingCategory": "exhibit",
     "useMobileOrder": false,
     "catchphrase": "運命は君の手に",
-    "description": "運命は君の手に",
+    "description": "前園の闇カジノです！ポイントは写真スポットですいちばん可愛いですたぶん他にもいろいろなゲームができますたのしんでください！",
+    "instagram": "si2o_o9",
     "tags": [
       "展示",
       "ゲーム",
-      "カジノ"
+      "カジノ",
+      "フォトスポット"
     ],
     "contentType": "gallery",
     "menu": [],
@@ -529,7 +542,7 @@ const projectData = [
     "id": "game_club",
     "loginId": "game_club",
     "groupName": "ゲーム同好会",
-    "name": "南陵スマブラ王決定戦2026",
+    "name": "スマブラ王決定戦2026",
     "place": "生徒棟 2F 3-2教室 / 体育館",
     "floor": 2,
     "roomId": "room_203_3256",
@@ -537,12 +550,14 @@ const projectData = [
     "votingCategory": "exhibit",
     "useMobileOrder": false,
     "catchphrase": "南陵最強が今年も決まる！",
-    "description": "南陵最強が今年も決まる！",
+    "description": "トーナメント方式で南陵高校の在学生(教員を含む)最強のスマブラプレイヤーを決める大会です。",
+    "instagram": "salmon201213",
     "tags": [
       "展示",
       "ゲーム",
       "体験",
-      "大会"
+      "大会",
+      "スマブラ"
     ],
     "contentType": "gallery",
     "menu": [],
@@ -1042,19 +1057,22 @@ const projectData = [
     "id": "pta",
     "loginId": "pta",
     "groupName": "PTA",
-    "name": "Nanryo Mart",
+    "name": "南陵Mart",
     "place": "生徒棟 2F 3-3教室",
     "floor": 2,
     "roomId": "room_204_3256",
     "category": "shop",
     "votingCategory": "shop",
     "useMobileOrder": false,
-    "catchphrase": "Nanryo Mart",
-    "description": "あなたと、コンビに、Nanryo Mart！",
+    "catchphrase": "あなたとコンビニ南陵マート",
+    "description": "南陵マート、お菓子、飲み物、パンあります。チェキもやってます‼️",
     "tags": [
       "販売",
       "PTA",
-      "ショップ"
+      "パン",
+      "お菓子",
+      "飲み物",
+      "チェキ"
     ],
     "contentType": "menu",
     "menu": [],
