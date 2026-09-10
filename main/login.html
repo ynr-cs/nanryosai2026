@@ -26,7 +26,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     />
     <title>ログイン | 南陵祭'26</title>
-    <meta name="description" content="南陵祭2026 統一ログインページ。Googleアカウントでログインして、お気に入りやモバイルオーダーなどの機能をご利用いただけます。" />
+    <meta name="description" content="南陵祭2026 統一ログインページ。Googleアカウントでログインして、お気に入りなどの機能をご利用いただけます。" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -441,87 +441,9 @@
         <div id="login-content" style="display: none;">
 
           <!-- ============================
-               Screen: Student Check
-               ============================ -->
-          <div id="step-student-check" class="screen animate__animated animate__fadeIn">
-            <div class="login-hero">
-              <p class="brand-label">南陵祭2026</p>
-              <h1>モバイルオーダー</h1>
-              <p class="login-message" style="font-weight: bold; color: var(--text-main);">
-                あなたは南陵高校の在校生ですか？
-              </p>
-            </div>
-            <div class="d-flex flex-column gap-2">
-              <button id="btn-student-yes" class="btn-primary-custom" data-track="click_login_student_yes">
-                はい（在校生）
-              </button>
-              <button id="btn-student-no" class="btn-secondary-custom" data-track="click_login_student_no">
-                いいえ（一般のお客様）
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================
-               Screen: Student Confirm
-               ============================ -->
-          <div id="step-student-confirm" class="screen animate__animated animate__fadeIn">
-            <div class="text-center">
-              <div class="screen-icon-wrap">
-                <i class="bi bi-shield-check text-primary" style="font-size: 1.8rem;"></i>
-              </div>
-              <h3 class="fw-bold" style="color: var(--text-main); font-size: 1.15rem; margin-bottom: 12px;">ログインに関するご注意</h3>
-              <div class="student-card">
-                <p class="mb-2 fw-bold text-center" style="color: var(--text-main); font-size: 0.85rem;">モバイルオーダーの利用には、必ず学校から配布されている以下のメールアドレスでログインしてください。</p>
-                <div class="text-center py-2 mb-2 fw-bold rounded" style="background: rgba(229, 57, 53, 0.1); color: var(--accent-color); border: 2px dashed var(--accent-color); font-size: 0.95rem;">
-                  @gl.pen-kanagawa.ed.jp
-                </div>
-                <ul class="ps-3 mb-0 small" style="color: var(--text-sub); font-size: 0.78rem;">
-                  <li class="mb-1">個人のGmail等では注文できません。</li>
-                  <li>端末に複数のアカウントが登録されている場合は、必ず学校アカウントを選択してください。</li>
-                </ul>
-              </div>
-            </div>
-            <div class="d-flex flex-column gap-2">
-              <button id="btn-confirm-next" class="btn-primary-custom" data-track="click_login_student_confirm_next">
-                理解しました（次へ）
-              </button>
-              <button id="btn-confirm-back" class="btn-secondary-custom" data-track="click_login_student_confirm_back">
-                戻る
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================
-               Screen: Guest Info
-               ============================ -->
-          <div id="step-guest-info" class="screen animate__animated animate__fadeIn">
-            <div class="text-center">
-              <div class="screen-icon-wrap" style="background: transparent;">
-                <i class="bi bi-info-circle text-primary" style="font-size: 2.4rem;"></i>
-              </div>
-              <h3 class="fw-bold" style="color: var(--text-main); font-size: 1.15rem; margin-bottom: 12px;">ご案内</h3>
-              <p class="text-start" style="color: var(--text-sub); font-size: 0.85rem; line-height: 1.5; margin-bottom: 16px;">
-                誠に恐れ入りますが、モバイルオーダーは<strong style="color: var(--accent-color);">在校生限定</strong>の機能となっております。一般のお客様は各店舗の<strong>POSレジ</strong>にて直接ご注文をお願いいたします。
-              </p>
-              <div class="student-card text-start">
-                <strong class="text-primary d-block mb-1" style="font-size: 0.88rem;"><i class="bi bi-lightbulb-fill"></i> ログインしてアプリをもっと楽しむ</strong>
-                <span style="color: var(--text-sub); font-size: 0.8rem; line-height: 1.4; display: block;">ログインしていただくと、「企画のお気に入り登録」など便利な機能がご利用いただけます！よろしければぜひログインして南陵祭をお楽しみください。</span>
-              </div>
-            </div>
-            <div class="d-flex flex-column gap-2 mt-2">
-              <button id="btn-guest-login" class="btn-primary-custom" data-track="click_login_guest_login">
-                <i class="bi bi-google me-2"></i> ログインして他の機能を使う
-              </button>
-              <a href="./index.html" class="btn-secondary-custom" data-track="click_login_guest_back_home">
-                ホームに戻る
-              </a>
-            </div>
-          </div>
-
-          <!-- ============================
                Screen: Login (Google Login)
                ============================ -->
-          <div id="step-login" class="screen animate__animated animate__fadeIn">
+          <div id="step-login" class="screen animate__animated animate__fadeIn active">
             <!-- Hero -->
             <div class="login-hero">
               <p class="brand-label">南陵祭2026</p>
@@ -529,13 +451,6 @@
               <p class="login-message" id="login-message">
                 ログインが必要です
               </p>
-            </div>
-
-            <!-- Student Email Emphasis (mode=student only) -->
-            <div class="email-emphasis-box" id="email-emphasis-box">
-              <span class="email-label">在校生は以下のアカウントでログインしてください</span>
-              @gl.pen-kanagawa.ed.jp
-              <span class="email-note">※ 個人のGmail等ではご利用いただけない機能があります</span>
             </div>
 
             <!-- Google Login Button Container -->
@@ -575,130 +490,9 @@
             </div>
           </div>
 
-          <!-- ============================
-               Screen: Unauthorized (Logged in with wrong domain)
-               ============================ -->
-          <div id="step-unauthorized" class="screen animate__animated animate__fadeIn">
-            <div class="text-center">
-              <div class="screen-icon-wrap" style="background: transparent;">
-                <i class="bi bi-exclamation-circle text-danger" style="font-size: 3.5rem;"></i>
-              </div>
-              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">モバイルオーダー対象外のアカウントです</h3>
-              <p class="fs-6 text-start" style="color: var(--text-sub); line-height: 1.6; margin-bottom: 16px;">
-                モバイルオーダーは、<strong style="color: var(--accent-color); font-size: 1.05em;">在校生アカウント（@gl.pen-kanagawa.ed.jp）</strong>のみ利用可能です。
-              </p>
-              <div class="student-card mb-3 text-center" style="background: rgba(0,0,0,0.02);">
-                <span style="font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 4px;">アカウント区分:</span>
-                <strong style="color: var(--text-main); font-size: 1.1rem;">一般・ゲスト</strong>
-              </div>
-              <p class="small text-start" style="color: var(--text-sub); line-height: 1.5;">
-                お気に入り登録などの機能は引き続きご利用いただけます。<br>
-                ご注文は各店舗の<strong>POSレジ（セルフオーダー）</strong>をご利用ください。
-              </p>
-            </div>
-            <div class="d-flex flex-column gap-2 mt-2">
-              <button id="btn-switch-account" class="btn-primary-custom" data-track="click_login_switch_account">
-                別のアカウントに切り替える
-              </button>
-              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;" data-track="click_login_unauthorized_back_home">
-                ホームに戻る
-              </a>
-            </div>
-          </div>
-
-          <!-- ============================
-               Screen: Guest Welcome
-               ============================ -->
-          <div id="step-guest-welcome" class="screen animate__animated animate__fadeIn">
-            <div class="text-center">
-              <div class="screen-icon-wrap">
-                <i class="bi bi-person-check text-primary" style="font-size: 2.5rem;"></i>
-              </div>
-              <h3 class="fw-bold" style="color: var(--text-main); margin-bottom: 16px;">ログインありがとうございます！</h3>
-              <p class="small" style="line-height: 1.5; color: var(--text-sub); margin-bottom: 24px;">
-                アカウント区分：<strong style="color: var(--text-main);">一般アカウント</strong><br><br>
-                モバイルオーダーは在校生限定の機能ですが、ログインしたあなたなら以下の機能をお楽しみいただけます！
-              </p>
-              <div class="student-card text-start">
-                <div class="d-flex align-items-center mb-2">
-                  <i class="bi bi-star-fill text-warning me-2"></i>
-                  <span class="fw-bold" style="color: var(--text-main);">お気に入り登録</span>
-                </div>
-                <p class="small mb-0" style="color: var(--text-sub);">気になる企画をお気に入り登録して、自分だけのマイリストを作れます。</p>
-              </div>
-            </div>
-            <div class="d-flex flex-column gap-2 mt-4">
-              <a href="./index.html" class="btn btn-outline-secondary py-3 fw-bold rounded-pill d-block text-center text-decoration-none" style="border-width: 2px;" data-track="click_login_welcome_back_home">
-                ホームに戻る
-              </a>
-            </div>
-          </div>
-
         </div> <!-- /#login-content -->
       </div>
     </main>
-
-    <!-- ============================
-         SOK Mode (mode=sok)
-         ============================ -->
-    <div id="sok-login-app" style="display:none; flex-direction:column; max-width:480px; margin:0 auto; padding-bottom:60px;">
-      <!-- Header -->
-      <header class="sok-app-header">
-        <a href="#" class="app-logo">南陵祭'26</a>
-      </header>
-      
-      <!-- ステップ進行バー -->
-      <nav id="stepper" aria-label="注文手順の進行状況">
-        <div class="stepper-item done" data-step="1">
-          <div class="stepper-circle"><span class="num">1</span></div>
-          <div class="stepper-label">内容確認</div>
-        </div>
-        <div class="stepper-bar filled" data-bar="1"></div>
-        <div class="stepper-item current" data-step="2">
-          <div class="stepper-circle"><span class="num">2</span></div>
-          <div class="stepper-label">ログイン</div>
-        </div>
-        <div class="stepper-bar" data-bar="2"></div>
-        <div class="stepper-item" data-step="3">
-          <div class="stepper-circle"><span class="num">3</span></div>
-          <div class="stepper-label">規約同意</div>
-        </div>
-        <div class="stepper-bar" data-bar="3"></div>
-        <div class="stepper-item" data-step="4">
-          <div class="stepper-circle"><span class="num">4</span></div>
-          <div class="stepper-label">注文確定</div>
-        </div>
-      </nav>
-
-      <!-- パネル -->
-      <main id="panels" style="display: block;">
-        <section class="panel active" id="panel-2">
-          <div class="step-card">
-            <div class="step-card-header">
-              <div class="step-num">2</div>
-              <div class="step-title">Googleでログイン</div>
-            </div>
-            
-            <div style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px;">
-              お呼び出しに使うためログインが必要です。<br>
-              <strong>どのGoogleアカウントでもOKです。</strong>
-            </div>
-
-            <!-- Google Login Button Container (SOK Style) -->
-            <div id="sok-google-login-btn-container" style="display:flex; justify-content:center; min-height:44px; margin-bottom:12px;"></div>
-
-            <div class="hint-box" style="margin-top: 20px;">
-              <i class="bi bi-info-circle-fill"></i>
-              うまくログインできない場合は、Safari または Chrome ブラウザをご利用ください。LINE等のアプリ内ブラウザでは動作しない場合があります。
-            </div>
-            
-            <button id="btn-sok-cancel" class="btn-sub btn-cancel-order mt-2" style="color: var(--danger);" data-track="click_login_sok_cancel">
-              <i class="bi bi-x-circle"></i> 注文をやめる
-            </button>
-          </div>
-        </section>
-      </main>
-    </div>
 
     <!-- Login Processing Full-screen Overlay -->
     <div id="login-processing-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:99999; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center; padding:20px;">
@@ -718,45 +512,18 @@
     <script type="module">
       import {
         watchUser,
-        logout,
         renderGoogleLoginButton,
-        getClaims,
-        isEffectiveStudent,
-        analytics,
-        logEvent,
-        functions
       } from "./auth.js";
-      import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       /* ==============================
          1. State Management
          ============================== */
-      let isStudentFlow = false;
-      let currentScreen = null;
-
       function showScreen(screenId) {
-        if (mode === "sok") {
-          document.querySelector(".login-page").style.display = "none";
-          document.getElementById("sok-login-app").style.display = "flex";
-          return;
-        }
         document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
         const target = document.getElementById(screenId);
         if (target) {
           target.classList.add("active");
-          currentScreen = screenId;
         }
-
-        // 一般来場者フローの場合は在校生赤枠警告を非表示にする
-        const emailBox = document.getElementById("email-emphasis-box");
-        if (emailBox) {
-          if (mode === "student" && isStudentFlow) {
-            emailBox.style.display = "block";
-          } else {
-            emailBox.style.display = "none";
-          }
-        }
-
         document.getElementById("login-loader").style.display = "none";
         document.getElementById("login-content").style.display = "block";
       }
@@ -766,7 +533,6 @@
          ============================== */
       const params = new URLSearchParams(location.search);
       const reason = params.get("reason");
-      const mode = params.get("mode");
       const rawRedirect = params.get("redirect");
 
       /* ==============================
@@ -814,8 +580,6 @@
       const messageEl = document.getElementById("login-message");
       const messages = {
         favorite: "お気に入り機能を使用するには<br>ログインが必要です",
-        "mobile-order":
-          "モバイルオーダーを利用するには<br>ログインが必要です",
         account: "マイページを使用するには<br>ログインが必要です",
       };
 
@@ -826,21 +590,6 @@
       /* ==============================
          5. UI Initial Setup & GIS Buttons
          ============================== */
-      if (mode === "sok") {
-        document.body.setAttribute("data-sok", "true");
-        const hideStyle = document.createElement("style");
-        hideStyle.innerHTML = ".app-header, .app-bottom-nav, .app-footer { display: none !important; }";
-        document.head.appendChild(hideStyle);
-        const sokCss = document.createElement("link");
-        sokCss.rel = "stylesheet";
-        sokCss.href = "../pos/sok.css";
-        document.head.appendChild(sokCss);
-      } else if (mode === "student") {
-        document.getElementById("email-emphasis-box").style.display = "block";
-      } else {
-        document.getElementById("email-emphasis-box").style.display = "none";
-      }
-
       function showLoginOverlay() {
         const overlay = document.getElementById("login-processing-overlay");
         if (overlay) overlay.style.display = "flex";
@@ -852,40 +601,21 @@
       }
 
       function mountGisButtons() {
-        if (mode === "sok") {
-          const sokContainer = document.getElementById("sok-google-login-btn-container");
-          if (sokContainer && !sokContainer.hasChildNodes()) {
-            renderGoogleLoginButton(
-              sokContainer,
-              () => {
-                window.location.replace(redirectUrl);
-              },
-              (err) => {
-                console.error("[Auth] SOK GIS render error:", err);
-                hideLoginOverlay();
-              },
-              () => {
-                showLoginOverlay();
-              }
-            );
-          }
-        } else {
-          const normalContainer = document.getElementById("google-login-btn-container");
-          if (normalContainer && !normalContainer.hasChildNodes()) {
-            renderGoogleLoginButton(
-              normalContainer,
-              async ({ user, identity }) => {
-                handlePostLogin(user, identity);
-              },
-              (err) => {
-                console.error("[Auth] GIS render error:", err);
-                hideLoginOverlay();
-              },
-              () => {
-                showLoginOverlay();
-              }
-            );
-          }
+        const normalContainer = document.getElementById("google-login-btn-container");
+        if (normalContainer && !normalContainer.hasChildNodes()) {
+          renderGoogleLoginButton(
+            normalContainer,
+            async ({ user, identity }) => {
+              handlePostLogin(user, identity);
+            },
+            (err) => {
+              console.error("[Auth] GIS render error:", err);
+              hideLoginOverlay();
+            },
+            () => {
+              showLoginOverlay();
+            }
+          );
         }
       }
 
@@ -898,115 +628,22 @@
         });
       }
 
-      let isSwitchingAccount = false;
-
       /* ==============================
          6. Auth State Watcher
          ============================== */
       watchUser(async (user) => {
         if (user) {
-          // 既ログイン
-          if (mode === "sok") {
-            window.location.replace(redirectUrl);
-          } else if (mode === "student") {
-            const claims = await getClaims();
-            if (isEffectiveStudent(claims)) {
-              window.location.replace(redirectUrl);
-            } else {
-              if (!isSwitchingAccount) {
-                showScreen("step-unauthorized");
-              }
-            }
-          } else {
-            window.location.replace(redirectUrl);
-          }
+          window.location.replace(redirectUrl);
         } else {
-          // 未ログイン: 初期画面を表示
-          if (mode === "sok") {
-            showScreen("sok-login-app");
-          } else if (mode === "student") {
-            showScreen("step-student-check");
-          } else {
-            showScreen("step-login");
-          }
+          showScreen("step-login");
         }
       });
 
       /* ==============================
-         7. Screen Navigation Buttons
-         ============================== */
-      document.getElementById("btn-student-yes").addEventListener("click", () => {
-        isStudentFlow = true;
-        showScreen("step-student-confirm");
-      });
-
-      document.getElementById("btn-student-no").addEventListener("click", () => {
-        isStudentFlow = false;
-        showScreen("step-guest-info");
-      });
-
-      document.getElementById("btn-confirm-next").addEventListener("click", () => {
-        showScreen("step-login");
-      });
-
-      document.getElementById("btn-confirm-back").addEventListener("click", () => {
-        showScreen("step-student-check");
-      });
-
-      document.getElementById("btn-guest-login").addEventListener("click", () => {
-        logEvent(analytics, "click_login", { method: "Guest" });
-        showScreen("step-login");
-      });
-
-      document.getElementById("btn-switch-account").addEventListener("click", () => {
-        // 勝手にログアウトせず、別のアカウントでのログイン画面へ直接遷移
-        isSwitchingAccount = true;
-        isStudentFlow = true;
-        showScreen("step-login");
-      });
-
-      /* ==============================
-         8. Post Login Flow Handler
+         7. Post Login Flow Handler
          ============================== */
       async function handlePostLogin(user, identity) {
-        isSwitchingAccount = false;
-        if (mode === "student") {
-          const isStudent = identity === "student" || identity === "super_admin";
-          if (isStudentFlow) {
-            if (isStudent) {
-              window.location.replace(redirectUrl);
-            } else {
-              hideLoginOverlay();
-              showScreen("step-unauthorized");
-            }
-          } else {
-            hideLoginOverlay();
-            showScreen("step-guest-welcome");
-          }
-        } else {
-          window.location.replace(redirectUrl);
-        }
-      }
-
-      // SOKキャンセルボタン処理
-      const btnSokCancel = document.getElementById("btn-sok-cancel");
-      if (btnSokCancel) {
-        btnSokCancel.addEventListener("click", async () => {
-          if (!confirm("注文をやめますか？\n（ホーム画面に戻ります）")) return;
-          const match = redirectUrl.match(/[?&]orderId=([^&]+)/);
-          if (match && match[1]) {
-            const orderId = match[1];
-            btnSokCancel.disabled = true;
-            btnSokCancel.innerHTML = `<span class="spinner" style="display:inline-block; width:16px; height:16px; border-width:2px; vertical-align:-2px; margin-right:8px;"></span> キャンセル中...`;
-            try {
-              const cancelFn = httpsCallable(functions, "cancelSokOrder");
-              await cancelFn({ orderId });
-            } catch (e) {
-              console.warn("Cancel SOK Order Error:", e);
-            }
-          }
-          location.href = "./index.html";
-        });
+        window.location.replace(redirectUrl);
       }
     </script>
   </body>

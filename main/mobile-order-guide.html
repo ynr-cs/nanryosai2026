@@ -1,739 +1,133 @@
-<!--
-  Nanryosai 2026
-  Version: 0.5.196
-  Last Modified: 2026-09-05
-  Author: Nanryosai 2026 Project Team
-  
-  オーダーシステム ご利用ガイド＆安心安全の仕組み
-  （一般来場者向けSOKキオスク & 在校生向けモバイルオーダー）
--->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>モバイルオーダー休止のお知らせ | 南陵祭2026</title>
     <script>
-      (function () {
+      (function() {
         try {
-          var theme = localStorage.getItem("app-theme");
-          if (theme === "dark")
-            document.documentElement.setAttribute("data-theme", "dark");
-          else if (theme === "light")
-            document.documentElement.setAttribute("data-theme", "light");
+          var theme = localStorage.getItem('app-theme');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
         } catch (e) {}
       })();
     </script>
-    <!-- Prevent Dark Mode Flicker (FOUC) -->
     <style>
-      html {
-        background-color: #f0f2f5;
+      html { background-color: #f0f2f5; }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) { background-color: #0f172a; }
+      }
+      html[data-theme="dark"] { background-color: #0f172a; }
+      html[data-theme="light"] { background-color: #f0f2f5; }
+      :root {
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-sub: #64748b;
+        --border-color: #e2e8f0;
+      }
+      [data-theme="dark"] {
+        --bg-color: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-sub: #94a3b8;
+        --border-color: #334155;
       }
       @media (prefers-color-scheme: dark) {
-        html:not([data-theme="light"]) {
-          background-color: #0f172a;
+        :root:not([data-theme="light"]) {
+          --bg-color: #0f172a;
+          --card-bg: #1e293b;
+          --text-main: #f8fafc;
+          --text-sub: #94a3b8;
+          --border-color: #334155;
         }
       }
-      html[data-theme="dark"] {
-        background-color: #0f172a;
-      }
-      html[data-theme="light"] {
-        background-color: #f0f2f5;
-      }
-    </style>
-    <script>
-      (function () {
-        const savedTheme = localStorage.getItem("app-theme") || "auto";
-        if (savedTheme === "dark") {
-          document.documentElement.setAttribute("data-theme", "dark");
-        } else if (savedTheme === "light") {
-          document.documentElement.setAttribute("data-theme", "light");
-        }
-      })();
-    </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>オーダーシステム ご利用ガイド＆安心安全の仕組み | 南陵祭'26</title>
-    <!-- Core Style (Shell) -->
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-    <style>
-      .guide-wrapper {
-        padding: 0 20px 80px;
-        max-width: 920px;
-        margin: 0 auto;
-        color: var(--text-main);
-        line-height: 1.7;
-      }
-
-      .page-header {
-        padding: 40px 20px 20px;
-        text-align: center;
-      }
-
-      .page-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(var(--primary-rgb, 229, 57, 53), 0.1);
-        color: var(--accent-color, #e53935);
-        padding: 4px 14px;
-        border-radius: 9999px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-
-      .page-title {
-        font-size: 2.1rem;
-        font-weight: 900;
-        margin: 0 0 10px;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: fadeInDown 0.8s ease-out;
-        letter-spacing: -0.02em;
-      }
-
-      .page-subtitle {
-        color: var(--text-sub);
-        font-size: 1.05rem;
-        max-width: 650px;
-        margin: 0 auto;
-      }
-
-      .guide-content {
-        background: var(--card-bg);
-        padding: 32px;
-        border-radius: 20px;
-        box-shadow: 0 4px 16px var(--card-shadow);
-        margin-bottom: 30px;
-      }
-
-      .guide-content h2 {
-        font-size: 1.45rem;
-        font-weight: 800;
-        margin-top: 36px;
-        margin-bottom: 18px;
-        color: var(--primary-color);
-        border-bottom: 2px solid var(--border-color);
-        padding-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .guide-content h2:first-child {
-        margin-top: 0;
-      }
-
-      .guide-content h3 {
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin-top: 24px;
-        margin-bottom: 12px;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .guide-content p {
-        margin-bottom: 16px;
-        color: var(--text-sub);
-      }
-
-      .guide-content strong {
-        color: var(--text-main);
-      }
-
-      /* Navigation Index Cards */
-      .index-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 16px;
-        margin: 24px 0 32px;
-      }
-
-      .index-card {
-        background: var(--bg-color);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
+      body {
+        margin: 0;
         padding: 20px;
-        text-decoration: none;
-        color: var(--text-main);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      .index-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px var(--card-shadow);
-        border-color: var(--accent-color, #e53935);
-      }
-
-      .index-card-title {
-        font-size: 1.1rem;
-        font-weight: 800;
+        min-height: 100vh;
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
+        justify-content: center;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        box-sizing: border-box;
       }
-
-      .index-card-desc {
-        font-size: 0.88rem;
-        color: var(--text-sub);
-        margin: 0;
-      }
-
-      /* Step Card Styling */
-      .step-container {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        margin: 20px 0;
-      }
-
-      .step-item {
-        background: var(--bg-color);
+      .notice-card {
+        max-width: 480px;
+        width: 100%;
+        background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 20px 22px;
-        position: relative;
+        border-radius: 20px;
+        padding: 36px 24px;
+        text-align: center;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
       }
-
-      .step-badge {
+      .icon-box {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 0.8rem;
-        font-weight: 800;
-        background: var(--primary-gradient);
-        color: #ffffff;
-        margin-bottom: 10px;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 20px;
       }
-
-      .step-title {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: var(--text-main);
-        margin-bottom: 8px;
-      }
-
-      /* Safety Callout Box */
-      .safety-box {
-        background: rgba(16, 185, 129, 0.08);
-        border-left: 4px solid #10b981;
-        border-radius: 8px;
-        padding: 14px 16px;
-        margin-top: 12px;
-        font-size: 0.92rem;
-      }
-
-      .safety-box-title {
-        font-weight: 800;
-        color: #10b981;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 4px;
-      }
-
-      .safety-box p {
-        margin: 0;
-        color: var(--text-sub);
-      }
-
-      /* Highlight Box */
-      .feature-box {
-        background: rgba(56, 189, 248, 0.08);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 14px;
-        padding: 18px;
-        margin: 18px 0;
-      }
-
-      .feature-box-title {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #0284c7;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-      [data-theme="dark"] .feature-box-title {
-        color: #38bdf8;
-      }
-
-      .feature-box p {
-        margin: 0;
-        font-size: 0.93rem;
-      }
-
-      /* Comparison Table */
-      .custom-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        margin: 20px 0;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-        font-size: 0.92rem;
-      }
-
-      .custom-table th {
-        background: var(--bg-color);
-        color: var(--text-main);
+      .notice-title {
+        font-size: 1.25rem;
         font-weight: 700;
-        padding: 12px 16px;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
       }
-
-      .custom-table td {
-        padding: 12px 16px;
-        color: var(--text-sub);
-        border-bottom: 1px solid var(--border-color);
-        vertical-align: top;
-      }
-
-      .custom-table tr:last-child td {
-        border-bottom: none;
-      }
-
-      /* FAQ Accordion */
-      .faq-item {
-        border-bottom: 1px solid var(--border-color);
-        padding: 16px 0;
-      }
-
-      .faq-item:last-child {
-        border-bottom: none;
-      }
-
-      .faq-question {
-        font-weight: 800;
-        font-size: 1.05rem;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-
-      .faq-answer {
-        color: var(--text-sub);
+      .notice-desc {
         font-size: 0.95rem;
-        margin: 0;
-        padding-left: 28px;
+        line-height: 1.65;
+        color: var(--text-sub);
+        margin-bottom: 28px;
       }
-
-      @keyframes fadeInDown {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+      .btn-home {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        background-color: #2563eb;
+        color: #ffffff;
+        text-decoration: none;
+        transition: background-color 0.15s ease, transform 0.1s ease;
       }
-
-      @media (max-width: 768px) {
-        .page-title {
-          font-size: 1.7rem;
-        }
-        .guide-content {
-          padding: 22px 18px;
-        }
-        .guide-content h2 {
-          font-size: 1.3rem;
-        }
-        .index-grid {
-          grid-template-columns: 1fr;
-        }
-        .custom-table {
-          display: block;
-          overflow-x: auto;
-        }
+      .btn-home:hover {
+        background-color: #1d4ed8;
+        color: #ffffff;
+      }
+      .btn-home:active {
+        transform: scale(0.98);
       }
     </style>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   </head>
   <body>
-    <main>
-      <div class="page-header">
-        <div class="page-badge">
-          <i class="bi bi-shield-check"></i> 公式システムガイド
-        </div>
-        <h1 class="page-title">オーダーシステム ご利用ガイド</h1>
-        <p class="page-subtitle">
-          南陵祭'26を並ばずに快適に楽しむための2つの注文システムと、生徒・来場者の皆様を守る安心安全の仕組み
-        </p>
+    <div class="notice-card">
+      <div class="icon-box">
+        <i class="bi bi-info-circle-fill"></i>
       </div>
-
-      <div class="guide-wrapper">
-        <div class="guide-content">
-          <p>
-            南陵祭2026では、模擬店の混雑や長蛇の待機列を解消し、来場される皆様や生徒の皆さんが展示・ステージを最大限に楽しめるよう、独自のオーダーシステムを導入しています。
-          </p>
-          <p>
-            本システムは<strong>「一般来場者の皆様向け（セルフオーダーキオスク）」</strong>と<strong>「在校生の皆さん向け（モバイルオーダー）」</strong>の2つの利用窓口があり、学校祭の現場（電波の混雑や端末スリープ）を想定した高い信頼性と、個人情報を一切保持しない厳格なセキュリティ設計を備えています。
-          </p>
-
-          <!-- 2026年度 先行試験運用のアナウンス -->
-          <div style="background: rgba(124, 58, 237, 0.08); border: 1.5px solid rgba(124, 58, 237, 0.35); border-radius: 16px; padding: 18px 20px; margin: 24px 0 32px;">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05rem; color: #7c3aed; margin-bottom: 8px;">
-              <i class="bi bi-info-circle-fill"></i> 2026年度の先行試験運用について
-            </div>
-            <p style="margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
-              今年度は、確実なシステム安定稼働と現場オペレーションの安全検証のため、校内公募で熱意あるご要望をいただいた<strong>3年1組「アキコのひとくちカステラ」限定での試験運用</strong>となります（全店舗一斉導入ではございません）。<br>
-              <strong>在校生はスマホからの事前注文</strong>、<strong>一般来場者の皆様は3-1店頭の注文端末（セルフオーダーキオスク）</strong>にてぜひ新しい注文スタイルをご体験ください！
-            </p>
-          </div>
-
-          <!-- Quick Navigation -->
-          <div class="index-grid">
-            <a href="#visitors" class="index-card">
-              <div>
-                <div class="index-card-title">
-                  <i class="bi bi-shop" style="color: #f59e0b"></i> 一般来場者の皆様
-                </div>
-                <p class="index-card-desc">
-                  店頭iPadで選んでスマホで確定。並ばずに受け取れるキオスクの仕組み。
-                </p>
-              </div>
-              <span style="font-size: 0.85rem; font-weight: 700; color: #f59e0b; margin-top: 12px;">
-                利用手順と安心設計を見る <i class="bi bi-chevron-right"></i>
-              </span>
-            </a>
-
-            <a href="#students" class="index-card">
-              <div>
-                <div class="index-card-title">
-                  <i class="bi bi-phone" style="color: #3b82f6"></i> 在校生の皆さん
-                </div>
-                <p class="index-card-desc">
-                  教室や部室からスマホで事前注文。出来立てをサッと受け取る仕組み。
-                </p>
-              </div>
-              <span style="font-size: 0.85rem; font-weight: 700; color: #3b82f6; margin-top: 12px;">
-                利用手順と安心設計を見る <i class="bi bi-chevron-right"></i>
-              </span>
-            </a>
-
-            <a href="#security" class="index-card">
-              <div>
-                <div class="index-card-title">
-                  <i class="bi bi-shield-lock" style="color: #10b981"></i> 共通の安心・安全設計
-                </div>
-                <p class="index-card-desc">
-                  個人情報ゼロ設計、電波切れ・スリープ自動リカバリ、不正防止の裏側。
-                </p>
-              </div>
-              <span style="font-size: 0.85rem; font-weight: 700; color: #10b981; margin-top: 12px;">
-                安全性の仕組みを見る <i class="bi bi-chevron-right"></i>
-              </span>
-            </a>
-          </div>
-
-          <!-- Section 1: Visitors (SOK) -->
-          <h2 id="visitors">
-            <i class="bi bi-shop" style="color: #f59e0b"></i> 第1部：一般来場者向け（セルフオーダーキオスク）
-          </h2>
-          <p>
-            一般来場者の皆様は、対象店舗（3年1組「アキコのひとくちカステラ」）の店頭に設置されているiPad端末（セルフオーダーキオスク）と、ご自身のスマートフォンを組み合わせて、キャッシュレス感覚でスムーズにご注文いただけます。専用アプリのインストールは不要です。
-          </p>
-
-          <div class="step-container">
-            <div class="step-item">
-              <span class="step-badge">ステップ 1</span>
-              <div class="step-title">店頭のiPadでメニューとトッピングを選ぶ</div>
-              <p>
-                模擬店の前に設置されているiPadの大画面で、写真を見ながら商品を選びます。トッピングの「追加」や「抜き（からし抜き、マヨネーズ抜き等）」も画面上で指定できます。
-                選び終えて「注文を確認する」を押すと、画面にあなた専用の<strong>「仮注文QRコード」</strong>が表示されます。
-              </p>
-              <div class="safety-box">
-                <div class="safety-box-title">
-                  <i class="bi bi-shield-check"></i> 安全の仕組み：自動リセット保護
-                </div>
-                <p>
-                  QRコードが表示されてから20秒で確認画面、さらに10秒間操作がない場合は自動的にトップ画面へリセットされます。注文途中で離脱された場合でも、後から来た他人に勝手に操作される心配はありません。
-                </p>
-              </div>
-            </div>
-
-            <div class="step-item">
-              <span class="step-badge">ステップ 2</span>
-              <div class="step-title">ご自身のスマホでQRコードを読み取る</div>
-              <p>
-                お持ちのスマートフォンの標準カメラ等でiPad画面のQRコードを読み取ります。
-                スマホのブラウザが開き、先ほどiPadで選んだ商品と合計金額がそのまま手元のスマホ画面に表示されます。
-              </p>
-              <div class="safety-box">
-                <div class="safety-box-title">
-                  <i class="bi bi-shield-check"></i> 安心の仕組み：未ログイン確認設計
-                </div>
-                <p>
-                  QRコードを読み取った直後は、ログイン前であっても注文内容（商品・数量・トッピング）をしっかり確認できます。「自分の選んだ商品と合っているか」を手元で確認した上で次のステップへ進めます。
-                </p>
-              </div>
-            </div>
-
-            <div class="step-item">
-              <span class="step-badge">ステップ 3</span>
-              <div class="step-title">Googleアカウントでかんたんログイン</div>
-              <p>
-                画面の「この内容でOK」をタップし、お持ちのGoogleアカウントでログインします。
-                学校関係者用のアカウントは不要で、一般的なGoogleアカウントでどなたでもご利用いただけます。
-              </p>
-              <div class="safety-box">
-                <div class="safety-box-title">
-                  <i class="bi bi-shield-check"></i> 安全の仕組み：二重読み取り・なりすまし防止
-                </div>
-                <p>
-                  ログインが完了した瞬間に、サーバー側の厳格なトランザクション処理によって「この注文QRコードはログインしたあなただけのもの」として即座に所有権が紐付けられます（クレーム処理）。万が一他人が同じQRコードを後から読み取っても、注文を横取りされることはありません。
-                </p>
-              </div>
-            </div>
-
-            <div class="step-item">
-              <span class="step-badge">ステップ 4</span>
-              <div class="step-title">注文確定と受付番号の発行</div>
-              <p>
-                利用規約を確認して「注文を確定する」を押すと、あなた専用の<strong>「受付番号（7000番台など）」</strong>が発行されます。
-                同時に厨房の調理モニターに注文が届き、調理がスタートします。あとは注文状況画面を見ながら完成をお待ちください。
-              </p>
-              <div class="safety-box">
-                <div class="safety-box-title">
-                  <i class="bi bi-shield-check"></i> 安全の仕組み：放置QRの自動失効タイマー
-                </div>
-                <p>
-                  店頭のiPadでQRコードが発行されてから5分以上スマホ側で確定されなかった仮注文は、サーバー（Scheduled Function）により自動的に失効・消去されます。放置された伝票が後から不正に確定されるトラブルを防止しています。
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Students (Mobile Order) -->
-          <h2 id="students">
-            <i class="bi bi-phone" style="color: #3b82f6"></i> 第2部：在校生向け（モバイルオーダー）
-          </h2>
-          <p>
-            南陵高校の生徒の皆さんは、教室や部室、校内の休憩所などからスマートフォンを使って、対象店舗（3年1組「アキコのひとくちカステラ」）のメニューを直接事前注文できます。
-          </p>
-
-          <div class="feature-box">
-            <div class="feature-box-title">
-              <i class="bi bi-lightning-charge-fill"></i> 在校生モバイルオーダーの特長
-            </div>
-            <p>
-              生徒専用アカウント（学校Googleドメイン）でログインしていれば、校内のどこからでも模擬店のメニュー一覧を閲覧・注文できます。出来上がりのタイミングに合わせて受取カウンターへ向かうだけで受け取りが完了します。
-            </p>
-          </div>
-
-          <div class="step-container">
-            <div class="step-item">
-              <div class="step-title">1. 片手で快適に操作できるスマホ最適化レイアウト</div>
-              <p>
-                スマートフォンの画面サイズを無理やり縮小する旧来の方式を廃止し、最新のCSSフレックスレイアウトを採用。
-                iPhoneのダイナミックアイランドやノッチ、下部のホームバーに重要なボタンが重ならないよう安全余白（セーフエリア）が確保されており、移動中でも片手で誤操作なく注文できます。
-              </p>
-            </div>
-
-            <div class="step-item">
-              <div class="step-title">2. 重複注文の自動防止（アクティブ注文検知）</div>
-              <p>
-                「注文が完了したか心配で、もう一度注文ボタンを押してしまった」という二重購入事故を防ぐため、システムがすでに調理中・準備中の注文がないかを常に自動監視しています。
-                進行中の注文がある場合は自動的に「現在の注文状況画面」へと案内され、不要な重複注文をシステムが未然に防止します。
-              </p>
-            </div>
-
-            <div class="step-item">
-              <div class="step-title">3. 注文直前のリアルタイム営業・在庫確認</div>
-              <p>
-                メニューを選んでいる途中で店舗が売り切れたり、調理の都合で一時休止になった場合でも、注文確定ボタンを押した瞬間に店舗の最新ステータスを自動で再検証します。
-                注文したのに商品が受け取れないといったトラブルを水際で確実に防止します。
-              </p>
-            </div>
-
-            <div class="step-item">
-              <div class="step-title">4. サクサク動くカートと厳格なサーバー確定処理</div>
-              <p>
-                カートへの追加やトッピングの変更は端末のメモリ内で行われるため、校内の電波が混雑していても通信待ちによる引っかかりがなく、軽快に操作できます。
-                注文確定時はGoogle Cloud上の安全なサーバーが在庫チェックと連続受付番号の発番を一括で行うため、金額の改ざんや売り切れ商品の重複販売が起きません。
-              </p>
-            </div>
-          </div>
-
-          <!-- Section 3: Universal Security & Reliability -->
-          <h2 id="security">
-            <i class="bi bi-shield-lock" style="color: #10b981"></i> 第3部：共通の安心・安全設計
-          </h2>
-          <p>
-            一般来場者向け・在校生向けを問わず、南陵祭2026オーダーシステムは「安心して使えること」「文化祭当日の過酷な環境でも止まらないこと」を最優先に開発されています。
-          </p>
-
-          <h3><i class="bi bi-incognito" style="color: #10b981"></i> 1. 個人情報ゼロの設計（Zero PII）</h3>
-          <p>
-            当システムでは、Googleログインを利用しますが、学校側のサーバーやデータベース、アクセスログには、利用者の<strong>氏名、メールアドレス、Googleプロフィール画像等の個人情報を一切保存・保持いたしません</strong>。
-          </p>
-          <div class="safety-box">
-            <div class="safety-box-title">
-              <i class="bi bi-shield-check"></i> 不可逆暗号ハッシュによる完全匿名化
-            </div>
-            <p>
-              ログイン時に発行されるトークンから、不可逆な暗号化ハッシュ（HMAC-SHA256）によって「ランダムな英数字の内部識別ID」のみを生成して注文と紐付けています。
-              万が一外部から不正アクセスを受けた場合でも、個人を特定できるデータそのものが存在しないため、個人情報流出のリスクは原理的にゼロです。
-            </p>
-          </div>
-          <p style="margin-top: 12px;">
-            また、アカウント設定画面からいつでもアカウントの削除（退会）を行うことができ、退会時は登録されたニックネームや通知設定などの内部レコードが直ちに完全に消去されます。
-          </p>
-
-          <h3><i class="bi bi-wifi-off" style="color: #3b82f6"></i> 2. 電波切れ・画面スリープでも安心な多層防御同期リカバリ</h3>
-          <p>
-            文化祭当日の校内は、数千人の来場者による電波の混雑や、スマホをポケットにしまって画面がスリープする状況が頻繁に起こります。注文状況画面（<code>status.html</code>）では、以下の<strong>多層防御同期リカバリ機構</strong>により、注文状況を見失うことがありません。
-          </p>
-
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th style="width: 32%;">発生するトラブル</th>
-                <th>システムの自動リカバリの仕組み</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>スマホをポケットに入れてスリープにした</strong></td>
-                <td>
-                  <strong>画面復帰検知（visibilitychange / focus）</strong><br>
-                  スマホを取り出して画面を点灯させた瞬間に、即座にサーバーから最新の調理・呼出状況を再取得して表示を更新します。
-                </td>
-              </tr>
-              <tr>
-                <td><strong>校内の電波が途切れてオフラインになった</strong></td>
-                <td>
-                  <strong>回線復旧自動再接続（online）</strong><br>
-                  電波が回復した瞬間に自動でリアルタイム通信を再開し、最新のステータスに同期します。
-                </td>
-              </tr>
-              <tr>
-                <td><strong>バックグラウンドで長時間の待機</strong></td>
-                <td>
-                  <strong>15秒セーフティ・ポーリング</strong><br>
-                  調理中から呼出中の間は、万が一の通信遮断に備えて15秒間隔でバックアップ確認を常時実行します。
-                </td>
-              </tr>
-              <tr>
-                <td><strong>手動で今すぐ確認したい</strong></td>
-                <td>
-                  <strong>画面上部の手動「更新」ボタン</strong><br>
-                  ワンタップで即座にサーバーへ問い合わせを行い、最新データを受信できます。
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3><i class="bi bi-tv" style="color: #f59e0b"></i> 3. リアルタイム呼出モニターと5分タイマー</h3>
-          <p>
-            注文の進行状況は、画面上でリアルタイムに切り替わります：
-          </p>
-          <ul style="color: var(--text-sub); margin-bottom: 16px;">
-            <li><strong style="color: #f59e0b">調理中</strong>：注文が厨房に届き、調理を行っている状態</li>
-            <li><strong style="color: #3b82f6">準備中</strong>：調理が完了し、包装や受渡口への配膳を行っている状態</li>
-            <li><strong style="color: #10b981">お呼出（完成）</strong>：受取カウンターでお渡しできる状態（呼出番号が点灯）</li>
-          </ul>
-          <p>
-            各模擬店の受取カウンター上部には大型の<strong>呼出モニター</strong>が設置されており、お呼出状態になるとあなたの受付番号が大きく表示されます。
-            出来立ての一番美味しい状態でお受け取りいただくため、呼出後は画面に<strong>5分間のカウントダウンタイマー</strong>が表示されますので、お早めにカウンターへお越しください。
-          </p>
-
-          <h3><i class="bi bi-robot" style="color: #e53935"></i> 4. 不正アクセス・買い占めプログラムの排除</h3>
-          <p>
-            Googleの最新セキュリティ技術<strong>「Firebase App Check (reCAPTCHA Enterprise)」</strong>を採用しています。
-            正規のWebブラウザ以外からの自動プログラム（Bot）による買い占めや不正な通信リクエストを通信レイヤーで遮断し、データベースへの直接書き込みもセキュリティルールにより完全に禁止しています。
-          </p>
-
-          <!-- FAQ Section -->
-          <h2><i class="bi bi-question-circle" style="color: var(--primary-color)"></i> よくあるご質問 (FAQ)</h2>
-
-          <div class="faq-item">
-            <div class="faq-question">
-              <i class="bi bi-q-circle-fill text-primary"></i> アプリの事前ダウンロードやインストールは必要ですか？
-            </div>
-            <p class="faq-answer">
-              <strong>いいえ、一切不要です。</strong> iPhoneのSafariやAndroidのChromeなど、普段お使いの標準WebブラウザでQRコードを読み取るだけですぐにご利用いただけます。
-            </p>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">
-              <i class="bi bi-q-circle-fill text-primary"></i> LINEやInstagramのカメラでQRコードを読み取っても使えますか？
-            </div>
-            <p class="faq-answer">
-              アプリ内ブラウザ（LINE/Instagram等）で開いた場合でも動作しますが、Googleログインの仕様上、標準ブラウザ（SafariやChrome）への切り替え案内が表示される場合があります。画面の案内に従って「外部ブラウザで開く」を選択してください。
-            </p>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">
-              <i class="bi bi-q-circle-fill text-primary"></i> 注文後にスマホの電池が切れてしまった場合はどうすればいいですか？
-            </div>
-            <p class="faq-answer">
-              注文確定時に画面に表示された<strong>「受付番号（7000番台など）」</strong>を店舗スタッフにお伝えいただければ、店頭の管理画面で確認のうえ商品をお渡しできます。番号をお手元にお控えいただくことをおすすめします。
-            </p>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">
-              <i class="bi bi-q-circle-fill text-primary"></i> 自分のメールアドレスや本名が学校側に伝わることはありますか？
-            </div>
-            <p class="faq-answer">
-              <strong>一切伝わりません。</strong> 当システムは個人情報をデータベースに一切保存しない「ゼロ・ナレッジ設計」を採用しています。学校側や開発チームが閲覧できるのは暗号化されたランダムな英数字の内部IDのみです。
-            </p>
-          </div>
-
-          <!-- Contact / Feedback -->
-          <h2><i class="bi bi-envelope-heart" style="color: var(--primary-color)"></i> お問い合わせ・ご意見</h2>
-          <p>
-            システムの操作でお困りの際や、動作に不具合を発見された場合は、下記の公式フォームよりご連絡ください。
-          </p>
-          <div style="margin-top: 20px;">
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSf_QdSMyrFXiZ28U50DlPoK0umuMXnkFDGzu8gWKDY8KUKqRg/viewform?usp=header"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 12px 24px;
-                background: var(--primary-gradient);
-                color: white;
-                border-radius: 12px;
-                font-weight: 700;
-                text-decoration: none;
-                box-shadow: 0 4px 12px var(--shadow-color);
-                transition: transform 0.2s, opacity 0.2s;
-              "
-            >
-              <i class="bi bi-chat-dots-fill"></i> お問い合わせ・不具合報告フォームへ
-              <i class="bi bi-box-arrow-up-right" style="font-size: 0.8rem; margin-left: 4px;"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- App Shell Logic (Header, Navigation, Theme) -->
-    <script type="module" src="app-shell.js"></script>
+      <h1 class="notice-title">モバイルオーダー休止のお知らせ</h1>
+      <p class="notice-desc">
+        今年度のモバイルオーダー先行運用は見送りとなりました。<br />
+        恐れ入りますが、各模擬店の店頭にて直接ご注文・ご購入をお願いいたします。
+      </p>
+      <a href="index.html" class="btn-home">
+        <i class="bi bi-house-door-fill"></i> トップページへ戻る
+      </a>
+    </div>
   </body>
 </html>

@@ -128,9 +128,6 @@
           box-shadow 0.3s ease;
         cursor: default;
       }
-      .stat-card[id="card-order-count"] {
-        cursor: pointer;
-      }
       .stat-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.12);
@@ -840,30 +837,6 @@
           </div>
         </div>
 
-        <!-- Order History Section -->
-        <div class="account-section" id="order-history-section" style="margin-top: 10px">
-          <h3 class="section-title section-closed" id="order-history-toggle" data-track="click_account_accordion" data-track-section="order_history">
-            <span style="display: flex; align-items: center">
-              📦 注文履歴
-              <span id="order-count-badge" class="header-count-badge">-</span>
-            </span>
-            <i class="bi bi-chevron-down toggle-icon"></i>
-          </h3>
-          <div class="collapsible-content">
-            <div id="order-list">
-              <!-- Orders will be injected here -->
-              <div
-                class="loading-skeleton"
-                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
-              ></div>
-              <div
-                class="loading-skeleton"
-                style="height: 56px; border-radius: 12px; margin-bottom: 8px"
-              ></div>
-            </div>
-          </div>
-        </div>
-
         <!-- Settings Section -->
         <div class="account-section" style="margin-top: 14px; margin-bottom: 24px">
           <h3 class="section-title" style="cursor: default">⚙️ 設定</h3>
@@ -875,15 +848,6 @@
               padding: 6px 16px;
             "
           >
-            <div class="menu-item" style="justify-content: space-between">
-              <div style="display: flex; align-items: center">
-                <i class="bi bi-bell"></i> 呼び出し通知
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="notification-toggle" data-track="toggle_notification" />
-                <span class="slider"></span>
-              </label>
-            </div>
             <div class="menu-item" onclick="window.location.href = 'terms.html'" data-track="click_account_menu" data-track-target="terms">
               <i class="bi bi-file-text"></i> 利用規約
             </div>
@@ -917,7 +881,7 @@
           </div>
           <h4 class="delete-modal-title">アカウントを削除しますか？</h4>
           <p class="delete-modal-desc">
-            お気に入りや注文履歴など、すべてのデータが完全に削除されます。<br>
+            お気に入りや登録データなど、すべてのデータが完全に削除されます。<br>
             <strong>この操作は取り消せません。</strong>
           </p>
           <div id="delete-modal-error" class="alert alert-danger py-2 px-3 small text-start mb-3" style="display:none; font-size:0.8rem; border-radius:10px;"></div>
@@ -962,132 +926,23 @@
         functions
       } from "./auth.js";
       import {
-        collection,
-        query,
-        where,
-        getCountFromServer,
-        getDocs,
         getDoc,
         setDoc,
-        orderBy,
-        limit,
         doc,
-        arrayUnion,
       } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-      import {
-        getMessaging,
-        getToken,
-      } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
       import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
       const logoutBtn = document.getElementById("btn-logout");
-      const orderHistorySection = document.getElementById("order-history-section");
-      const orderList = document.getElementById("order-list");
-      const orderHistoryToggle = document.getElementById("order-history-toggle");
       const favoritesToggle = document.getElementById("favorites-toggle");
 
-      // Generalized Toggle Logic
-      [orderHistoryToggle, favoritesToggle].forEach((toggle) => {
-        if (toggle) {
-          toggle.addEventListener("click", () => {
-            toggle.classList.toggle("section-closed");
-          });
-        }
-      });
-
-      // Notification Logic
-      const notificationToggle = document.getElementById("notification-toggle");
-      let messaging = null;
-      try {
-        messaging = getMessaging(app);
-      } catch (e) {
-        console.warn("[Account] Messaging not available:", e);
-      }
-      const VAPID_KEY =
-        "BI-HfOk34KQVIoJK_8KnKplz3l31I9VLWOJKF7mHBARF-XmgVjpRSyVoSfSnoVZDS7orz-OO8yq-S32STZU30Po";
-
-      // Check permission and Device support on load
-      const isIOSorMac =
-        /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-        /Macintosh/i.test(navigator.userAgent);
-
-      if (isIOSorMac || !messaging) {
-        notificationToggle.disabled = true;
-        notificationToggle.parentElement.parentElement.title =
-          "この端末は通知に対応していません";
-        const label = notificationToggle.parentElement.previousElementSibling;
-        if (label)
-          label.innerHTML +=
-            ' <span style="font-size:0.75rem; color:var(--status-unpaid);">(非対応)</span>';
-      } else if (Notification.permission === "granted") {
-        notificationToggle.checked = true;
-      }
-
-      notificationToggle.addEventListener("change", async (e) => {
-        const user = window.CURRENT_USER_OBJ;
-        if (!user) {
-          alert("ログインが必要です");
-          e.target.checked = false;
-          return;
-        }
-
-        if (e.target.checked) {
-          try {
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-              await saveToken(user);
-            } else {
-              alert("通知権限が拒否されました");
-              e.target.checked = false;
-            }
-          } catch (err) {
-            console.error("Notification Error:", err);
-            alert("エラーが発生しました: " + err.message);
-            e.target.checked = false;
-          }
-        } else {
-          alert(
-            "通知をオフにしました（完全に無効化するにはブラウザの設定も変更してください）",
-          );
-        }
-      });
-
-      async function saveToken(user) {
-        try {
-          const registration = await navigator.serviceWorker.register(
-            "./firebase-messaging-sw.js",
-          );
-          const swReg = await navigator.serviceWorker.ready;
-
-          const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: swReg,
-          });
-
-          if (token) {
-            await setDoc(
-              doc(db, "users", user.uid),
-              {
-                fcmTokens: arrayUnion(token),
-                notificationEnabled: true,
-              },
-              { merge: true },
-            );
-          } else {
-            console.warn("No registration token available.");
-            alert("トークンの取得に失敗しました");
-            notificationToggle.checked = false;
-          }
-        } catch (error) {
-          console.error("An error occurred while retrieving token. ", error);
-          alert("通知設定のエラー: " + error.message);
-          notificationToggle.checked = false;
-        }
+      if (favoritesToggle) {
+        favoritesToggle.addEventListener("click", () => {
+          favoritesToggle.classList.toggle("section-closed");
+        });
       }
 
       // Store user globally for access in event listeners
       window.CURRENT_USER_OBJ = null;
-      let storesCache = {};
 
       // UI Update Logic
       function handleUserUpdate(user) {
@@ -1100,8 +955,6 @@
           document.body.classList.add("auth-ready");
 
           renderProfile(user);
-          fetchOrderCount(user.uid);
-          fetchOrderHistory(user.uid);
           fetchFavoritesList(user.uid);
         } else {
           const redirectTarget = encodeURIComponent("./account.html");
@@ -1278,19 +1131,7 @@
         }
       }
 
-      async function fetchOrderCount(uid) {
-        try {
-          const q = query(collection(db, "orders"), where("userId", "==", uid));
-          const snapshot = await getCountFromServer(q);
-          const count = snapshot.data().count;
-          const badge = document.getElementById("order-count-badge");
-          if (badge) badge.textContent = count;
-          const statEl = document.getElementById("stat-orders");
-          if (statEl) statEl.textContent = count;
-        } catch (e) {
-          console.error("Order Count Error:", e);
-        }
-      }
+
 
       async function fetchFavoritesList(uid) {
         const list = document.getElementById("favorites-list");
@@ -1376,109 +1217,7 @@
         }
       }
 
-      async function fetchOrderHistory(uid) {
-        const list = document.getElementById("order-list");
-        if (!list) return;
 
-        try {
-          const q = query(
-            collection(db, "orders"),
-            where("userId", "==", uid),
-            orderBy("createdAt", "desc"),
-            limit(10),
-          );
-
-          const snap = await getDocs(q);
-          list.innerHTML = "";
-
-          if (snap.empty) {
-            list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-sub);">注文履歴がありません</div>`;
-            return;
-          }
-
-          for (const d of snap.docs) {
-            const data = d.data();
-            const orderId = d.id;
-            const date = data.createdAt
-              ? data.createdAt
-                  .toDate()
-                  .toLocaleString("ja-JP", {
-                    month: "numeric",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-              : "---";
-            const total = data.totalPrice;
-            const statusText = translateStatus(data.status);
-            const statusColor = getStatusColor(data.status);
-
-            let storeName = "読み込み中...";
-            if (storesCache[data.storeId]) {
-              storeName = storesCache[data.storeId];
-            }
-
-            const el = document.createElement("div");
-            el.className = "order-card";
-            el.setAttribute("data-track", "click_account_order_history_item");
-            el.setAttribute("data-track-order-id", orderId);
-            el.onclick = () => {
-              window.location.href = `../pos/status.html?orderId=${orderId}`;
-            };
-            el.style.cursor = "pointer";
-
-            const itemNames = (data.items || [])
-              .map((i) => `${i.name} x${i.quantity}`)
-              .join("、");
-
-            el.innerHTML = `
-                <div class="order-icon">
-                    <i class="bi bi-receipt" style="color: var(--primary-color)"></i>
-                </div>
-                <div class="order-info">
-                    <div class="order-info-top">
-                        <span class="store-name" id="store-name-${orderId}">${storeName}</span>
-                        <span class="order-date">${date}</span>
-                    </div>
-                    <div class="order-items">${itemNames}</div>
-                    <div class="order-info-bottom">
-                        <span class="order-price">¥${total}</span>
-                        <span class="status-badge" style="background: ${statusColor}; color: white;">${statusText}</span>
-                    </div>
-                </div>
-            `;
-            list.appendChild(el);
-
-            if (!storesCache[data.storeId]) {
-              fetchStoreName(data.storeId, `store-name-${orderId}`);
-            }
-          }
-        } catch (e) {
-          console.error("History Error:", e);
-          list.innerHTML = `<div style="color:red; text-align:center;">読み込みエラー</div>`;
-        }
-      }
-
-      async function fetchStoreName(storeId, elementId) {
-        if (storesCache[storeId]) {
-          const el = document.getElementById(elementId);
-          if (el) el.textContent = storesCache[storeId];
-          return;
-        }
-        try {
-          const snap = await getDoc(doc(db, "stores", storeId));
-          if (snap.exists()) {
-            const name = snap.data().name;
-            storesCache[storeId] = name;
-            const el = document.getElementById(elementId);
-            if (el) el.textContent = name;
-          } else {
-            storesCache[storeId] = "不明な店舗";
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-      }
 
       // Logout Logic
       if (logoutBtn) {
@@ -1574,26 +1313,6 @@
             }
           }
         });
-      }
-
-      function translateStatus(s) {
-        if (s === "cooking") return "調理中";
-        if (s === "ready_to_serve") return "準備中";
-        if (s === "ready_for_pickup") return "呼出中";
-        if (s === "completed") return "受取完了";
-        if (s === "cancelled") return "キャンセル";
-        if (s === "abandoned") return "期限切れ";
-        return "調理中";
-      }
-
-      function getStatusColor(s) {
-        if (s === "cooking") return "#f59e0b";
-        if (s === "ready_to_serve") return "#3b82f6";
-        if (s === "ready_for_pickup") return "#10b981";
-        if (s === "completed") return "#10b981";
-        if (s === "cancelled") return "#ef4444";
-        if (s === "abandoned") return "#9ca3af";
-        return "#f59e0b";
       }
     </script>
   </body>

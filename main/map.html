@@ -1613,6 +1613,8 @@
       max-width: 600px;
       margin: 0 auto;
       height: 88vh;
+      height: 88dvh;
+      max-height: 88dvh;
       background: var(--glass-bg);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -1669,8 +1671,8 @@
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
-      /* 固定ナビバー（高70px + bottom:20px〜34px）を余裕をもってクリアするパディング（約128px〜138px）を確保 */
-      padding: 0 16px calc(104px + env(safe-area-inset-bottom, 24px)) 16px;
+      /* 固定ナビバー（高70px）および端末セーフエリアを余裕をもってクリアする下部パディング（約116px〜130px）を確保 */
+      padding: 0 16px calc(112px + env(safe-area-inset-bottom, 24px)) 16px;
       touch-action: pan-y;
       box-sizing: border-box;
     }
@@ -2025,6 +2027,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      padding-bottom: 24px;
     }
 
     .timeline-section-heading {
@@ -2848,10 +2851,13 @@
 
         getSnapPoints() {
           const vh = window.innerHeight;
+          const sheetHeight = (this.sheet && this.sheet.offsetHeight > 0) ? this.sheet.offsetHeight : (vh * 0.88);
+          // PEEK時の可視高さ（画面高の約42%または最低280px、最大でもsheetHeightの55%）
+          const peekHeight = Math.min(sheetHeight * 0.55, Math.max(280, vh * 0.42));
           return {
-            [this.STATES.COLLAPSED]: vh,
-            [this.STATES.PEEK]: vh * (1 - 0.42),
-            [this.STATES.EXPANDED]: vh * (1 - 0.88)
+            [this.STATES.COLLAPSED]: sheetHeight + 40,
+            [this.STATES.PEEK]: Math.max(0, sheetHeight - peekHeight),
+            [this.STATES.EXPANDED]: 0
           };
         }
 
@@ -2874,7 +2880,7 @@
             }
           });
 
-          // 2. コンテンツエリアでの引き下げドラッグ処理（expanded状態で最上部にあるとき、下スワイプでシート引き下げ開始）
+          // 2. コンテンツエリアでの引き下げ・展開ドラッグ処理
           if (this.content) {
             this.content.addEventListener('touchstart', (e) => this.onContentTouchStart(e), { passive: true });
             this.content.addEventListener('touchmove', (e) => this.onContentTouchMove(e), { passive: false });
@@ -2911,12 +2917,21 @@
             return;
           }
 
-          if (this.isContentDragCandidate) {
-            const pageY = e.touches[0].pageY;
-            const pageX = e.touches[0].pageX;
-            const deltaY = pageY - this.contentTouchStartY;
-            const deltaX = pageX - this.contentTouchStartX;
+          const pageY = e.touches[0].pageY;
+          const pageX = e.touches[0].pageX;
+          const deltaY = pageY - this.contentTouchStartY;
+          const deltaX = pageX - this.contentTouchStartX;
 
+          // PEEK 状態のときにコンテンツ上で上にスワイプ（スクロール開始）したら、即座に EXPANDED にスムーズ展開！
+          if (this.currentState === this.STATES.PEEK) {
+            if (deltaY < -10 && Math.abs(deltaY) > Math.abs(deltaX)) {
+              this.snapTo(this.STATES.EXPANDED);
+              this.isContentDragCandidate = false;
+              return;
+            }
+          }
+
+          if (this.isContentDragCandidate) {
             // 下向きスワイプ（deltaY > 6）かつ縦方向の移動が横方向より大きく、最上部にある場合
             if (deltaY > 6 && Math.abs(deltaY) > Math.abs(deltaX) && (!this.content || this.content.scrollTop <= 0)) {
               if (e.cancelable) e.preventDefault();
@@ -2959,11 +2974,18 @@
           let newTranslateY = this.startTranslateY + deltaY;
           const snapPoints = this.getSnapPoints();
 
-          // 上限ラバーバンド
+          // 上限ラバーバンド（EXPANDED = 0 より上に引っ張られた時）
           const minSnap = snapPoints[this.STATES.EXPANDED];
           if (newTranslateY < minSnap) {
             const overshoot = minSnap - newTranslateY;
             newTranslateY = minSnap - Math.pow(overshoot, 0.75);
+          }
+
+          // 下限ラバーバンド（COLLAPSED より下に引っ張られた時）
+          const maxSnap = snapPoints[this.STATES.COLLAPSED];
+          if (newTranslateY > maxSnap) {
+            const overshoot = newTranslateY - maxSnap;
+            newTranslateY = maxSnap + Math.pow(overshoot, 0.75);
           }
 
           this.currentTranslateY = newTranslateY;
@@ -4102,7 +4124,12 @@
         renderBottomSheetContent(targetPin);
 
         if (openSheet && bottomSheet) {
-          bottomSheet.snapTo('peek');
+          const venueEvents = getVenueStageEvents(targetPin);
+          if (venueEvents && venueEvents.length > 0) {
+            bottomSheet.snapTo(bottomSheet.STATES.EXPANDED);
+          } else {
+            bottomSheet.snapTo(bottomSheet.STATES.PEEK);
+          }
         }
 
         // Refresh pin and in-room-badge active classes

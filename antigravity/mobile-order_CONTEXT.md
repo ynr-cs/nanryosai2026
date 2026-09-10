@@ -233,4 +233,62 @@ window.location.href = `status.html?orderId=${result.data.orderId}`;
    - 「商品の準備ができたらプッシュ通知でお知らせします」というコンテキストが自然に伝わり、通知許可率の向上とスムーズなオンボーディングを実現。
    - 通知許可またはスキップ後、即座に店舗一覧（`showScreen("step-stores")`）へ遷移。すでに許可・拒否済みの場合やiOSの場合は通知画面を自動スキップして店舗一覧へ直行。
 
+---
 
+## 11. 2026年度モバイルオーダー先行運用の完全休止と復元手順 (v0.5.296)
+
+### 11.1 休止の決定と背景
+2026年度南陵祭において、モバイルオーダー（在校生向けスマホ事前注文）および店頭セルフオーダーキオスク（SOK）の先行運用は見送りとなりました。
+Webサイト全体を一般来場者・生徒向けの案内情報（企画検索、ステージタイムテーブル、2Dマップ等）に特化させ、生徒や来場者の混乱を完全に防止するため、関連機能の完全非表示化・休止案内カードの配置・文言パージを実施しました。
+
+### 11.2 Gitバックアップブランチ（完全凍結）
+休止直前の完全な実装コードおよび動作可能な全ファイルは、以下のGitブランチにバックアップ・凍結されています：
+- **ブランチ名**: `backup/mobile-order-complete`
+- **内容**: `pos/mobile-order.html`, `pos/status.html`, `pos/sok-to.html`, `pos/sok.html`, `main/mobile-order-guide.html`, `functions/` の注文関連Cloud Functions, `main/app-shell.js` のアクティブ注文監視やスマートナビ、`main/index.html` のプロモセクション等、休止前の全コード。
+
+### 11.3 実施された非表示化・休止・文言パージ一覧
+1. **データ層 (`main/data/data.js`)**:
+   - 3年1組（`301`）の `useMobileOrder: false` 化、および `tags` から `["モバイルオーダー", "事前注文OK"]` を削除。
+   - コンピュータ科学部（`cs`）の企画名を「南陵祭'26 公式Webサイト」に変更し、キャッチコピー・詳細文からモバイルオーダー記述を削除。
+   - `main/detail.html`, `main/map.html`, `main/projects-list.html` は `project.useMobileOrder === true` のみオーダーボタンを生成する設計のため、データ変更により自動的に全ボタンが完全非表示化。
+2. **ナビゲーション & シェル (`main/app-shell.js`)**:
+   - ボトムナビゲーション中央（3番目のタブ）を「オーダー」から「マップ（`map.html`）」に差し替え。
+   - スマートナビゲーション（アクティブ注文時のボタン自動昇格）、Firestore注文監視リスナー、未受取バッジを削除。
+   - サイドメニュー（アコーディオン）の「モバイルオーダー」ボタンを「利用規約（`terms.html`）」に差し替え。
+   - フッターのオーダー関連リンク（モバイルオーダーガイド、利用規約のオーダー関連）を整理。
+3. **トップページ (`main/index.html`)**:
+   - モバイルオーダープロモセクション（`<section class="mobile-order-promo">`）を完全削除。
+4. **アカウント画面 (`main/account.html`)**:
+   - 注文履歴アコーディオン、注文数スタッツカード、FCMプッシュ通知トグル、退会モーダルの注文履歴文言を削除。
+   - `fetchOrderCount`, `fetchOrderHistory`, `fetchStoreName`, `translateStatus`, `getStatusColor` 等の注文関連関数を完全削除。
+5. **認証画面 (`main/login.html`)**:
+   - meta説明文および `messages["mobile-order"]` を削除。
+   - 在校生限定認証分岐（`mode=student`）やSOKキオスク認証分岐（`mode=sok`）を排除し、通常のGoogleログイン画面に一本化。
+6. **規約 & ポリシー (`main/terms.html`, `main/privacy.html`)**:
+   - 呼出後5分での自動廃棄条項、注文・決済条項、転売・買い占め条項を削除し、一般的なWebサイト利用規約へ改定。
+   - プライバシーポリシーからモバイルオーダー・注文履歴の収集・利用文言を削除・一般化。
+7. **直接アクセス遮断（休止案内カード設置）**:
+   - `pos/mobile-order.html`, `pos/status.html`, `pos/sok-to.html`, `pos/sok.html`, `main/mobile-order-guide.html` を休止案内カード（「今年度のモバイルオーダー先行運用は見送りとなりました。恐れ入りますが模擬店店頭にて直接ご注文をお願いいたします」＋ホームへ戻るボタン）に差し替え。
+8. **残存文言パージ**:
+   - `main/data/campus_map_data.json` & `campus_map_data.base.json`: 3-1テント説明文から「（モバイルオーダー受取所）」を削除。
+   - `main/data/updates.js`: `updatesList` から `mobile-order-vision` エントリを削除。
+   - `main/about-us.html`: 体験紹介、DXロードマップ（2026年・2027年）、チーム紹介文からモバイルオーダー記述をWebサイト・2Dマップ中心へ改訂。
+   - `404.html`: おすすめリンクの「モバイルオーダー」を「ステージ発表（`stage-list.html`）」へ差し替え。
+
+### 11.4 将来の復元・再開手順
+将来的にモバイルオーダー運用を再開する場合は、以下の手順で復元を実施する：
+
+1. **画面ファイルの復元**:
+   ```bash
+   git checkout backup/mobile-order-complete -- pos/mobile-order.html pos/status.html pos/sok-to.html pos/sok.html main/mobile-order-guide.html
+   ```
+2. **データ定義の再開 (`main/data/data.js`)**:
+   - 導入対象団体の `useMobileOrder: true` に設定し、タグ `["モバイルオーダー", "事前注文OK"]` を付与。
+3. **AppShell & ナビゲーションの復元 (`main/app-shell.js`)**:
+   - `backup/mobile-order-complete` の `main/app-shell.js` を参照し、ボトムナビ中央への「オーダー」配置、スマートナビ、バッジ監視を復元。
+4. **トップページ・プロモセクションの復元 (`main/index.html`)**:
+   - `backup/mobile-order-complete` の `main/index.html` より `<section class="mobile-order-promo">` を再配置。
+5. **アカウント・ログイン画面の復元 (`main/account.html`, `main/login.html`)**:
+   - 注文履歴アコーディオン、FCM通知設定、`mode=student` 分岐を再有効化。
+6. **利用規約・プライバシーポリシーの改定 (`main/terms.html`, `main/privacy.html`)**:
+   - 注文受取・キャンセル・アレルゲン免責等の条項を復元。

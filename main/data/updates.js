@@ -6,12 +6,6 @@ export const updatesList = [
     badge: "ENGINEERING"
   },
   {
-    id: "mobile-order-vision",
-    title: "全校の飲食店舗運営を、スマホひとつで。",
-    file: "mobile-order-vision.md",
-    badge: "FEATURE"
-  },
-  {
     id: "make-nanryo-great-again",
     title: "Make Nanryo Great Again",
     file: "make-nanryo-great-again.md",

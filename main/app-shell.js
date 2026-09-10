@@ -13,12 +13,6 @@
 // Import Auth Logic
 import { watchUser, db, getCurrentUser } from "./auth.js";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  limit,
-  orderBy,
   onSnapshot,
   doc
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -33,12 +27,10 @@ const AppShell = {
     "account.html",
     "detail.html",
     "index.html",
-    "mobile-order-guide.html",
     "privacy.html",
     "projects-list.html",
     "stage-list.html",
     "terms.html",
-    "status.html", // pos/status.html
     "updates.html",
   ],
 
@@ -58,167 +50,12 @@ const AppShell = {
     this.highlightActiveTab();
     this.initAuth();
     this.initTheme(); // Initialize manual theme override
-    this.initGlobalOrderWatcher(); // 注文ステータスのグローバル監視
     this.initGlobalAlert();
   },
 
   initGlobalOrderWatcher: function() {
-    // status.html では表示不要
-    if (window.location.pathname.includes("status.html")) return;
-
-    // Inject styles for premium badge
-    if (!document.getElementById("global-order-badge-style")) {
-      const style = document.createElement("style");
-      style.id = "global-order-badge-style";
-      style.textContent = `
-        .header-order-badge {
-          display: flex;
-          align-items: center;
-          background: var(--card-bg, #ffffff);
-          border-radius: 20px;
-          padding: 4px 6px 4px 12px;
-          text-decoration: none;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          border: 1px solid var(--border-color, rgba(0,0,0,0.05));
-          transition: transform 0.2s, box-shadow 0.2s;
-          gap: 6px;
-        }
-        [data-theme="dark"] .header-order-badge {
-          background: #1e293b;
-          border-color: #334155;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-        .header-order-badge:active {
-          transform: scale(0.95);
-        }
-        .header-order-badge .badge-num {
-          font-weight: 800;
-          font-size: 0.8rem;
-          color: var(--text-main, #2d3436);
-          letter-spacing: 0.5px;
-        }
-        .header-order-badge .badge-status {
-          font-weight: 800;
-          font-size: 0.7rem;
-          padding: 3px 8px;
-          border-radius: 12px;
-        }
-        .header-order-badge.cooking .badge-status {
-          background: #fffbeb;
-          color: #d97706;
-        }
-        [data-theme="dark"] .header-order-badge.cooking .badge-status {
-          background: rgba(217, 119, 6, 0.2);
-          color: #fcd34d;
-        }
-        .header-order-badge.ready .badge-status {
-          background: #fef2f2;
-          color: #ef4444;
-          animation: pulse-badge 1.5s infinite;
-        }
-        [data-theme="dark"] .header-order-badge.ready .badge-status {
-          background: rgba(239, 68, 68, 0.2);
-          color: #fca5a5;
-        }
-        @keyframes pulse-badge {
-          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    watchUser((user) => {
-      if (user) {
-        // Query active orders
-        const q = query(
-          collection(db, "orders"),
-          where("userId", "==", user.uid),
-          where("status", "in", ["cooking", "ready_to_serve", "ready_for_pickup"]),
-          limit(1)
-        );
-
-        onSnapshot(q, (snap) => {
-          const container = document.getElementById("header-order-status-container");
-          if (!container) return;
-
-          // 既存のタイマーをクリア
-          if (window.globalOrderCountdownInterval) {
-            clearInterval(window.globalOrderCountdownInterval);
-            window.globalOrderCountdownInterval = null;
-          }
-
-          if (!snap.empty) {
-            const docSnap = snap.docs[0];
-            const data = docSnap.data();
-            const orderId = docSnap.id;
-            const status = data.status;
-
-            let badgeHtml = "";
-            const statusPath = window.location.pathname.includes("/pos/")
-              ? `status.html?orderId=${orderId}`
-              : `../pos/status.html?orderId=${orderId}`;
-
-            const receiptNum = data.receiptNumber ? `No.${data.receiptNumber}` : "注文";
-
-            if (status === "cooking") {
-              badgeHtml = `
-                <a href="${statusPath}" class="header-order-badge cooking">
-                  <span class="badge-num">${receiptNum}</span>
-                  <span class="badge-status"><i class="bi bi-fire me-1"></i>調理中</span>
-                </a>
-              `;
-              container.innerHTML = badgeHtml;
-            } else if (status === "ready_to_serve") {
-              badgeHtml = `
-                <a href="${statusPath}" class="header-order-badge" style="background:#e0f2fe; border-color:#bae6fd;">
-                  <span class="badge-num" style="color:#0369a1;">${receiptNum}</span>
-                  <span class="badge-status" style="background:#bae6fd; color:#0369a1;"><i class="bi bi-box-seam me-1"></i>まもなくお呼出</span>
-                </a>
-              `;
-              container.innerHTML = badgeHtml;
-            } else if (status === "ready_for_pickup") {
-              badgeHtml = `
-                <a href="${statusPath}" class="header-order-badge ready">
-                  <span class="badge-num">${receiptNum}</span>
-                  <span class="badge-status" id="header-badge-status-text"><i class="bi bi-megaphone-fill me-1"></i>お呼出中</span>
-                </a>
-              `;
-              container.innerHTML = badgeHtml;
-
-              const readyForPickupAt = data.readyForPickupAt;
-              if (readyForPickupAt) {
-                 const deadline = readyForPickupAt.toMillis() + 5 * 60 * 1000;
-                 const updateTimer = () => {
-                    const timerEl = document.getElementById("header-badge-status-text");
-                    if (!timerEl) return;
-                    const now = Date.now();
-                    const diff = deadline - now;
-                    if (diff <= 0) {
-                       timerEl.innerHTML = `<i class="bi bi-megaphone-fill me-1"></i>期限切れ`;
-                       clearInterval(window.globalOrderCountdownInterval);
-                       return;
-                    }
-                    const m = Math.floor(diff / 60000);
-                    const s = Math.floor((diff % 60000) / 1000);
-                    timerEl.innerHTML = `<i class="bi bi-megaphone-fill me-1"></i>お呼出中 ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                 };
-                 updateTimer();
-                 window.globalOrderCountdownInterval = setInterval(updateTimer, 1000);
-              }
-            }
-          } else {
-            container.innerHTML = "";
-          }
-        }, (error) => {
-          console.error("Global order watcher error:", error);
-        });
-      } else {
-        const container = document.getElementById("header-order-status-container");
-        if (container) container.innerHTML = "";
-      }
-    });
+    // モバイルオーダー休止に伴い停止中
+    return;
   },
 
   initGlobalAlert: function () {
@@ -344,12 +181,11 @@ const AppShell = {
                     <span class="nav-label">企画</span>
                 </a>
                 
-                <a href="${this.resolvePath("mobile-order.html")}" class="nav-item core-button" data-page="order" data-track="click_nav_order">
+                <a href="${this.resolvePath("map.html")}" class="nav-item core-button" data-page="map" data-track="click_nav_map">
                     <div class="icon-circle" style="position: relative;">
-                        <i class="bi bi-bag-check-fill" style="font-size: 1.5rem;"></i>
-                        <span id="order-nav-badge" class="nav-notification-badge" style="display: none;"></span>
+                        <i class="bi bi-map-fill" style="font-size: 1.5rem;"></i>
                     </div>
-                    <span class="nav-label" style="font-weight: 900; color: var(--primary-color)">オーダー</span>
+                    <span class="nav-label" style="font-weight: 900; color: var(--primary-color)">マップ</span>
                 </a>
 
                 <a href="${this.resolvePath("stage-list.html")}" class="nav-item" data-page="stage" data-track="click_nav_stage">
@@ -367,73 +203,6 @@ const AppShell = {
             </nav>
         `;
     document.body.insertAdjacentHTML("beforeend", navHtml);
-
-    // Smart Navigation for Order Tab
-    const orderBtn = document.querySelector('.nav-item[data-page="order"]');
-    if (orderBtn) {
-      orderBtn.addEventListener("click", async (e) => {
-        const user = getCurrentUser();
-        // Only intercept if user is logged in
-        if (!user) return;
-
-        e.preventDefault();
-        const targetHref = orderBtn.getAttribute("href");
-
-        // Show simple feedback (optional, but good for async)
-        const originalIcon = orderBtn.querySelector(".icon-circle").innerHTML;
-        orderBtn.querySelector(".icon-circle").innerHTML =
-          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="color:var(--primary-color)"></span>';
-
-        try {
-          const completedStatuses = [
-            "completed",
-            "cancelled",
-            "abandoned",
-          ];
-
-          // Query latest 5 orders to check for active ones
-          // Uses same potential index as account.html
-          const q = query(
-            collection(db, "orders"),
-            where("userId", "==", user.uid),
-            orderBy("createdAt", "desc"),
-            limit(5),
-          );
-
-          const snap = await getDocs(q);
-          let activeOrder = null;
-
-          for (const doc of snap.docs) {
-            const data = doc.data();
-            // SOK仮注文 (status === null) はアクティブと見なさない
-            if (data.status !== null && !completedStatuses.includes(data.status)) {
-              activeOrder = doc.id;
-              break;
-            }
-          }
-
-          if (activeOrder) {
-            const inPos = window.location.pathname.includes("/pos/");
-            const statusPath = inPos
-              ? `status.html?orderId=${activeOrder}&error=duplicate_order`
-              : `../pos/status.html?orderId=${activeOrder}&error=duplicate_order`;
-            window.location.href = statusPath;
-          } else {
-            window.location.href = targetHref;
-          }
-        } catch (err) {
-          console.error("Smart Nav Error:", err);
-          window.location.href = targetHref; // Fallback
-        } finally {
-          // Restore icon if navigation doesn't happen immediately (or if we stay on page)
-          setTimeout(() => {
-            if (orderBtn.querySelector(".icon-circle")) {
-              orderBtn.querySelector(".icon-circle").innerHTML = originalIcon;
-            }
-          }, 2000); // 2s timeout just in case
-        }
-      });
-    }
 
     // Smart Navigation for Account Tab
     const accountBtn = document.querySelector('.nav-item[data-page="account"]');
@@ -473,7 +242,7 @@ const AppShell = {
               <li><a href="${this.resolvePath("access.html")}" data-track="click_footer_link" data-track-target="access">アクセス</a></li>
               <li><a href="${this.resolvePath("projects-list.html")}" data-track="click_footer_link" data-track-target="projects">企画一覧</a></li>
               <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_footer_link" data-track-target="stage">ステージ発表</a></li>
-              ${(typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true)
+              ${(typeof window.IS_MAP_ENABLED === "undefined" || window.IS_MAP_ENABLED !== false)
                 ? `<li><a href="${this.resolvePath("map.html")}" data-track="click_footer_link" data-track-target="map">校内マップ</a></li>`
                 : `<li><a href="javascript:void(0)" onclick="AppShell.showToast('校内マップは現在準備中です');" style="opacity: 0.65;" data-track="click_footer_link" data-track-target="map">校内マップ <span style="font-size:0.7rem;background:#fef3c7;color:#d97706;padding:1px 6px;border-radius:4px;">準備中</span></a></li>`
               }
@@ -484,8 +253,6 @@ const AppShell = {
             <div class="footer-sitemap-heading">サービス</div>
             <ul class="footer-sitemap-list">
               <li><a href="${this.resolvePath("account.html")}" data-track="click_footer_link" data-track-target="account">アカウント設定</a></li>
-              <li><a href="${this.resolvePath("mobile-order-guide.html")}" data-track="click_footer_link" data-track-target="mop_guide">モバイルオーダーガイド</a></li>
-              <li><a href="${this.resolvePath("mobile-order.html")}" data-track="click_footer_link" data-track-target="mop">モバイルオーダー</a></li>
             </ul>
           </div>
 
@@ -691,7 +458,7 @@ const AppShell = {
                             <li><a href="${this.resolvePath("stage-list.html")}" data-track="click_menu_link" data-track-target="stage">
                                 <span style="font-size: 1.15rem; margin-right: 10px;">🎤</span> ステージ発表
                             </a></li>
-                            ${(typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true)
+                            ${(typeof window.IS_MAP_ENABLED === "undefined" || window.IS_MAP_ENABLED !== false)
                               ? `<li><a href="${this.resolvePath("map.html")}" data-track="click_menu_link" data-track-target="map">
                                   <span style="font-size: 1.15rem; margin-right: 10px;">🗺️</span> 校内マップ
                                  </a></li>`
@@ -723,9 +490,9 @@ const AppShell = {
                                         <span>人気投票</span>
                                         <i class="bi bi-box-arrow-up-right ext-icon"></i>
                                     </a>
-                                    <a href="${this.resolvePath("mobile-order.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="order">
-                                        <i class="bi bi-bag-check-fill" style="color:var(--primary-color);"></i>
-                                        <span>オーダー</span>
+                                    <a href="${this.resolvePath("terms.html")}" class="menu-quick-btn" data-track="click_menu_link" data-track-target="terms">
+                                        <i class="bi bi-file-text-fill" style="color:var(--primary-color);"></i>
+                                        <span>利用規約</span>
                                     </a>
                                     <a href="${surveyForm}" target="_blank" rel="noopener" class="menu-quick-btn ext-link" data-track="click_menu_link" data-track-target="survey">
                                         <i class="bi bi-chat-heart-fill" style="color:#ec4899;"></i>
@@ -840,9 +607,9 @@ const AppShell = {
       const path = window.location.pathname;
       if (path.includes("index")) currentPage = "home";
       else if (path.includes("projects")) currentPage = "projects";
+      else if (path.includes("map")) currentPage = "map";
       else if (path.includes("stage")) currentPage = "stage";
       else if (path.includes("account")) currentPage = "account";
-      else if (path.includes("mobile-order")) currentPage = "order";
     }
 
     if (currentPage) {
@@ -856,58 +623,10 @@ const AppShell = {
   },
 
   initAuth: function () {
-    // Watch for auth changes and check active orders
+    // Watch for auth changes
     watchUser((user) => {
-      if (user) {
-        // Check for active orders after auth is confirmed
-        this.checkActiveOrder(user);
-      } else {
-        // Hide badge if logged out
-        const badge = document.getElementById("order-nav-badge");
-        if (badge) badge.style.display = "none";
-      }
+      // User state watcher
     });
-  },
-
-  checkActiveOrder: async function (user) {
-    const badge = document.getElementById("order-nav-badge");
-    if (!badge) return;
-
-    try {
-      const completedStatuses = [
-        "completed",
-        "cancelled",
-        "abandoned",
-      ];
-
-      const q = query(
-        collection(db, "orders"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc"),
-        limit(5), // Check last 5 just in case
-      );
-
-      const snap = await getDocs(q);
-      let hasActive = false;
-
-      for (const doc of snap.docs) {
-        const data = doc.data();
-        // SOK仮注文 (status === null) はアクティブと見なさない
-        if (data.status !== null && !completedStatuses.includes(data.status)) {
-          hasActive = true;
-          break;
-        }
-      }
-
-      if (hasActive) {
-        badge.style.display = "block";
-        badge.classList.add("animate__animated", "animate__bounceIn");
-      } else {
-        badge.style.display = "none";
-      }
-    } catch (e) {
-      console.error("Badge Check Error:", e);
-    }
   },
 
   showToast: function (message, isError = false) {
