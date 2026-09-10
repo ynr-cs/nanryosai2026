@@ -580,15 +580,17 @@ const AppShell = {
       const versionEl = document.getElementById("app-version-display");
       if (!versionEl) return;
 
+      // 1. キャッシュがあれば初期表示（体感0ms）
       const cachedVersion = sessionStorage.getItem("app_version");
       if (cachedVersion) {
         versionEl.textContent = `v${cachedVersion}`;
         versionEl.style.display = "block";
-        return;
       }
 
-      // Fetch lightweight version.json from root directory
-      const response = await fetch(this.resolvePath("../version.json"));
+      // 2. キャッシュバスター付きで常に最新のversion.jsonを取得・同期
+      const response = await fetch(this.resolvePath(`../version.json?t=${Date.now()}`), {
+        cache: "no-store"
+      });
       if (!response.ok) return;
       const data = await response.json();
       if (data && data.version) {
