@@ -1644,6 +1644,7 @@
       display: flex;
       flex-direction: column;
       pointer-events: auto;
+      overflow: hidden !important;
     }
 
     /* 折りたたみ時はポインターイベントを完全に遮断し、背後の地図ドラッグ・操作を100%透過 */
@@ -1685,15 +1686,18 @@
     .sheet-content,
     #sheetContent,
     #bottomSheetContent {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-      /* 固定ナビバー（高70px）および端末セーフエリアを余裕をもってクリアする下部パディング（約140px〜164px）を確保 */
-      padding: 0 16px calc(140px + env(safe-area-inset-bottom, 24px)) 16px;
-      touch-action: pan-y;
-      box-sizing: border-box;
+      flex: 1 1 auto;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      height: 100% !important;
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior-y: contain !important;
+      /* 最下部カード・ボタンが端末ジェスチャーバーや操作エリアに隠れないよう十分な余白を確保 */
+      padding: 0 16px calc(220px + env(safe-area-inset-bottom, 32px)) 16px !important;
+      touch-action: pan-y !important;
+      box-sizing: border-box !important;
     }
 
     /* ボトムナビゲーションバー（ボトムシート連動スライド退避） */
@@ -2046,7 +2050,8 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding-bottom: calc(48px + env(safe-area-inset-bottom, 24px));
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 24px)) !important;
+      box-sizing: border-box !important;
     }
 
     .timeline-section-heading {
@@ -2122,6 +2127,7 @@
       position: relative;
       padding-left: 16px;
       margin-top: 2px;
+      padding-bottom: 40px !important;
     }
 
     /* タイムラインの縦線 */
@@ -2141,6 +2147,7 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+      touch-action: pan-y !important;
     }
 
     /* タイムラインのドット */
@@ -2191,6 +2198,7 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      touch-action: pan-y !important;
       transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
@@ -2889,11 +2897,6 @@
           this.startTime = 0;
           this.isDragging = false;
 
-          // コンテンツエリア最上部からの引き下げ検知用
-          this.contentTouchStartY = 0;
-          this.contentTouchStartX = 0;
-          this.isContentDragCandidate = false;
-
           // 動的登録・解除用のバインド関数
           this._boundOnMove = this.onMove.bind(this);
           this._boundOnEnd = this.onEnd.bind(this);
@@ -2933,73 +2936,15 @@
             }
           });
 
-          // 2. コンテンツエリアでの引き下げ・展開ドラッグ処理
-          if (this.content) {
-            this.content.addEventListener('touchstart', (e) => this.onContentTouchStart(e), { passive: true });
-            this.content.addEventListener('touchmove', (e) => this.onContentTouchMove(e), { passive: false });
-            this.content.addEventListener('touchend', (e) => this.onContentTouchEnd(e), { passive: true });
-            this.content.addEventListener('touchcancel', (e) => this.onContentTouchEnd(e), { passive: true });
-          }
+          // 2. コンテンツエリアはブラウザのネイティブスクロール（GPU合成）に100%解放
+          // ※コンテンツエリアでtouchmove({passive:false})を監視するとAndroid Chrome等で
+          // スクロールが完全にロック・スタックする原因となるため、ドラッグはハンドルバーのみに限定。
 
           // Window Resize
           window.addEventListener('resize', () => this.handleResize());
           window.addEventListener('orientationchange', () => {
             setTimeout(() => this.handleResize(), 150);
           });
-        }
-
-        onContentTouchStart(e) {
-          if (!e.touches || e.touches.length !== 1) return;
-          this.contentTouchStartY = e.touches[0].pageY;
-          this.contentTouchStartX = e.touches[0].pageX;
-
-          // expanded 状態かつコンテンツ最上部（scrollTop <= 0）の場合のみ引き下げドラッグの候補とする
-          if (this.currentState === this.STATES.EXPANDED && (!this.content || this.content.scrollTop <= 0)) {
-            this.isContentDragCandidate = true;
-          } else {
-            this.isContentDragCandidate = false;
-          }
-        }
-
-        onContentTouchMove(e) {
-          if (!e.touches || e.touches.length !== 1) return;
-
-          // すでにシートドラッグ中の場合、ネイティブスクロールを抑止
-          if (this.isDragging) {
-            if (e.cancelable) e.preventDefault();
-            return;
-          }
-
-          const pageY = e.touches[0].pageY;
-          const pageX = e.touches[0].pageX;
-          const deltaY = pageY - this.contentTouchStartY;
-          const deltaX = pageX - this.contentTouchStartX;
-
-          // PEEK 状態のときにコンテンツ上で上にスワイプ（スクロール開始）したら、即座に EXPANDED にスムーズ展開！
-          if (this.currentState === this.STATES.PEEK) {
-            if (deltaY < -10 && Math.abs(deltaY) > Math.abs(deltaX)) {
-              this.snapTo(this.STATES.EXPANDED);
-              this.isContentDragCandidate = false;
-              return;
-            }
-          }
-
-          if (this.isContentDragCandidate) {
-            // 下向きスワイプ（deltaY > 12）かつ縦方向の移動が横方向より大きく、コンテンツ最上部（scrollTop <= 0）にある場合のみ
-            if (deltaY > 12 && Math.abs(deltaY) > Math.abs(deltaX) && (!this.content || this.content.scrollTop <= 0)) {
-              if (e.cancelable) e.preventDefault();
-              this.isContentDragCandidate = false;
-              // シート全体の引き下げドラッグを開始
-              this.onStart(e);
-            } else if (deltaY < -4 || Math.abs(deltaX) > Math.abs(deltaY) || (this.content && this.content.scrollTop > 0)) {
-              // 上向きスクロール中、横スワイプ、またはスクロール中（scrollTop > 0）は即座に候補除外してスクロールを最優先
-              this.isContentDragCandidate = false;
-            }
-          }
-        }
-
-        onContentTouchEnd(e) {
-          this.isContentDragCandidate = false;
         }
 
         onStart(e) {

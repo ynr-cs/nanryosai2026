@@ -847,5 +847,21 @@ const IS_MAP_ENABLED = false;
   2. **タイムテーブル下部スクロール性の完全確保 (`main/map.html`, `main/stage-list.html`)**:
      - **原因**: `map.html` のボトムシート内タイムテーブル（体育館全17公演等）において下部余白が不足し、末尾カードやボタンが端末下端・ナビバーと重なっていた。また、タッチスクロール時にシート引き下げ判定と競合してスクロールが途中で止まる問題があった。
      - **対策**: `.bottom-sheet-content` の下部パディングを `calc(140px + env(safe-area-inset-bottom, 24px))`、`.stage-timeline-wrapper` の下部パディングを `calc(48px + env(safe-area-inset-bottom, 24px))` に拡大。`BottomSheetController.prototype.onContentTouchMove` においてコンテンツがスクロール中（`scrollTop > 0`）はシート引き下げ判定をスキップし、縦スクロールを最優先化。
-     - **ステージ一覧 (`main/stage-list.html`) の最適化**: `.timeline-list-container` の下部マージンを `calc(var(--bottom-nav-height, 70px) + var(--safe-area-bottom, 20px) + 80px)` に拡張し、固定ボトムナビおよび投票FABボタンによる最下部カードの遮蔽を完全解消。ガントチャート `.gantt-content` に `touch-action: pan-x pan-y;` を設定し、横スクロールコンテナ上での縦スクロールスタックを解消。
+      - **ステージ一覧 (`main/stage-list.html`) の最適化**: `.timeline-list-container` の下部マージンを `calc(var(--bottom-nav-height, 70px) + var(--safe-area-bottom, 20px) + 80px)` に拡張し、固定ボトムナビおよび投票FABボタンによる最下部カードの遮蔽を完全解消。ガントチャート `.gantt-content` に `touch-action: pan-x pan-y;` を設定し、横スクロールコンテナ上での縦スクロールスタックを解消。
 
+### 15.20 ボトムシート内タイムテーブルスクロール不能の完全解消 (v1.0.3)
+- **背景/問題**:
+  - Android Chrome等のスマホ実機で体育館タイムテーブルを開いた際、Day 1の4件目途中で画面下端に突き当たり、指で上へスワイプしてもスクロールが一切動かない（見切れる）重大事象が発生。
+- **原因**:
+  1. **Flexbox仕様によるスクロールコンテナの崩壊 (CSS)**:
+     - 親要素 `.bottom-sheet` に `overflow: hidden` がなく、子要素 `.bottom-sheet-content`（`flex: 1`）に `min-height: 0` が欠落していたため、Flexbox column 仕様によりコンテナ全高が画面外に突き抜けてスクロール領域の算出が狂っていた。
+  2. **タッチイベント（`touchmove`）の競合 (JavaScript)**:
+     - `BottomSheetController` 内で `this.content.addEventListener('touchmove', ...)` が `{ passive: false }` でバインドされており、ユーザーのスクロールスワイプ時の微小なブレでシート全体の引き下げドラッグが誤検知され、氷点下の `e.preventDefault()` でネイティブスクロールが完全にフリーズしていた。
+- **恒久対策**:
+  1. **CSS改善 (`main/map.html`)**:
+     - `.bottom-sheet` に `overflow: hidden !important;` を付与。
+     - `.bottom-sheet-content` に `min-height: 0 !important; max-height: 100% !important; height: 100% !important; overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important; overscroll-behavior-y: contain !important; padding-bottom: calc(220px + env(safe-area-inset-bottom, 32px)) !important;` を設定。
+     - `.stage-timeline-wrapper` に `padding-bottom: calc(80px + env(safe-area-inset-bottom, 24px)) !important;`、`.stage-timeline-list` に `padding-bottom: 40px !important;`、カードに `touch-action: pan-y !important;` を設定。
+  2. **JavaScript改善 (`main/map.html`)**:
+     - コンテンツ領域（`#sheetContent`）から `touchmove` フックを完全撤廃し、ブラウザのネイティブスクロール（Compositor）に100%解放。
+     - シートのドラッグ開閉操作はハンドルバー（`#sheetHandle`）に限定し、タイムライン閲覧中の誤作動・スクロールロックを完全根絶。

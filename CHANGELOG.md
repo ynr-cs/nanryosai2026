@@ -13,6 +13,33 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [1.0.3] マップボトムシート内タイムテーブルスクロール不能の完全解消 - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: ユーザーより「このタイムテーブルが下までスクロールしないの！見切れてる」との緊急指摘を受け、Android Chrome等のスマートフォン実機において体育館タイムテーブル（全5公演/12公演）の途中でスクロールが完全に固まり最下部まで到達できない事象を恒久的に解消するため。
+
+### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
+
+- **Flexbox仕様に基づくスクロールコンテナ境界の完全確立 (`main/map.html`)**:
+  - **背景/原因**: 親要素 `.bottom-sheet`（Flexbox column）に `overflow: hidden` が欠落し、子要素 `.bottom-sheet-content`（`flex: 1`）に `min-height: 0` が欠落していたため、内部コンテンツの全高に合わせてコンテナが画面外へ突き抜け、ブラウザがスクロール領域を喪失していた。
+  - **解決策**: `.bottom-sheet` に `overflow: hidden !important;` を付与。`.bottom-sheet-content` に `min-height: 0 !important; max-height: 100% !important; height: 100% !important; overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important; overscroll-behavior-y: contain !important;` を指定し、確実にスクロール可能領域を固定。
+- **コンテンツ領域のタッチイベント競合を全廃し、GPUネイティブスクロールに100%解放 (`main/map.html`)**:
+  - **背景/原因**: `BottomSheetController` 内で `this.content.addEventListener('touchmove', ...)` が `{ passive: false }` で監視されており、ユーザーが上スワイプでスクロールしようとした際の微小な指の揺れでシート引き下げドラッグが誤検知され、`e.preventDefault()` でネイティブスクロールが完全にロック（フリーズ）していた。
+  - **解決策**: コンテンツ領域から `touchmove` フックおよび誤作動判定ロジックを完全撤廃。シートのドラッグ開閉はハンドルバー（`#sheetHandle`）に限定し、コンテンツエリアはブラウザの超高速GPUスクロールスレッド（Compositor）に100%委ねる設計に抜本改善。
+- **下部セーフエリア・余白の余裕ある拡張 (`main/map.html`)**:
+  - `.bottom-sheet-content` の下部パディングを `calc(220px + env(safe-area-inset-bottom, 32px))` に大幅拡張。
+  - `.stage-timeline-wrapper` に `padding-bottom: calc(80px + env(safe-area-inset-bottom, 24px))`、`.stage-timeline-list` に `padding-bottom: 40px` を追加。
+  - 各公演カードおよび詳細リンクに `touch-action: pan-y !important;` を明示し、端末下端のジェスチャーナビゲーションバーに一切遮られず、最下部の公演カードおよび「企画の詳細を見る」ボタンが確実にタップできるUIを確立。
+- **ナレッジベース同期 (`antigravity/map-2d_CONTEXT.md`)**:
+  - セクション 15.20 を追加し、Flexbox column スクロール崩壊防止とボトムシート内ネイティブスクロール保護の設計規範を永続化。
+
+### 得られた知見 / 注意点 (Learned / Caveats)
+
+- モバイル向けボトムシートにおいて、コンテンツ内部で `touchmove` イベントを `{ passive: false }` で監視してシート引き下げを行う実装は、Android Chrome 等の実機において高確率でネイティブスクロールと競合し、スクロール不能（完全ロック）を招く致命的なアンチパターンである。シートのドラッグは専用のハンドルバー領域に限定し、コンテンツ領域は `min-height: 0` と `overflow-y: scroll` を用いた純粋なネイティブスクロールに徹することが鉄則である。
+
 ## [1.0.2] キャッシュレス決済ブランド一覧の掲載とPayPay利用制限の明記・サポートブース表記の削除 - 2026-09-11
 
 ### メタ情報
