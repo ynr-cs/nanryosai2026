@@ -2,7 +2,7 @@
 title: 🗺️ 南陵祭2026 2Dキャンパスマップシステム (V3) 試作開発・設計・検証 完全マスターレコード (Master Development & Research Record)
 tags: [map, 2d, context, leaflet, v3, zero-db, prototype, architecture, e2e-tests, multi-agent-audit]
 status: in-progress (試作・検証段階)
-last_updated: 2026-08-18
+last_updated: 2026-09-11
 ---
 
 # 南陵祭2026 2Dキャンパスマップシステム (V3) 試作開発・設計・検証 完全マスターレコード
@@ -25,6 +25,8 @@ last_updated: 2026-08-18
 7. [第7章: 全エージェント開発セッション・敵対的レビュー・試行錯誤の全記録](#第7章-全エージェント開発セッション敵対的レビュー試行錯誤の全記録)
 8. [第8章: E2Eテストスイート完全仕様 & 検証記録 (全262テスト)](#第8章-e2eテストスイート完全仕様--検証記録-全262テスト)
 9. [第9章: 今後の改善課題・直すべき点・ロードマップ (To-Do & Future Improvements)](#第9章-今後の改善課題直すべき点ロードマップ-to-do--future-improvements)
+10. [第10章: 来場アクセスルート案内システム仕様 & 幾何判定メカニズム (v0.5.270)](#第10章-来場アクセスルート案内システム仕様--幾何判定メカニズム-v05270)
+11. [第11章: Leafletドラッグパン操作のクラッシュ防止とPane pointer-events階層設計 (v0.5.303)](#第11章-leafletドラッグパン操作のクラッシュ防止とpane-pointer-events階層設計-v05303)
 
 ---
 
@@ -394,3 +396,21 @@ function calculatePolygonCentroid(coords) {
 - **動的生成**: モーダル内のボタンは `campusData.accessRoutes` から動的生成され、ルートの増減や編集が即時反映される。
 - **視認性最適化**: 外側ケーシング（白/濃紺、太さ8）と内側コア（各ルート固有色、太さ5）の二重ライン構造を採用し、航空写真上およびダークモード下でも道路形状が極めて明瞭に浮き上がるようレンダリング。
 
+---
+
+## 第11章: Leafletドラッグパン操作のクラッシュ防止とPane pointer-events階層設計 (v0.5.303)
+
+### 11.1 Leaflet 1.9.4 の `_onMove` 未定義例外とセーフティパッチ
+- **問題の発生機構**:
+  Leaflet の `Draggable._onMove` では、ドラッグ初回移動時に `addClass(this._lastTarget, 'leaflet-drag-target')` を実行する。
+  Leaflet 内部の `L.DomUtil.getClass`（`el.className.baseVal === undefined ? el.className : el.className.baseVal`）は、対象要素の `className` プロパティが存在しないノード（一部の SVGElement や属性未設定の特殊ノード）がターゲットになった際、`Cannot read properties of undefined (reading 'baseVal')` 例外をスローしてプロセスが中断する。
+  これにより後続の `this._newPos` 計算やマップ座標更新（`map.panTo` / `setPosition`）が一切呼ばれず、ドラッグが完全にフリーズしていた。
+- **解決策（セーフティパッチ）**:
+  Leaflet CDN 読み込み直後に `L.DomUtil.getClass` および `L.DomUtil.setClass` を拡張。
+  `el.className === undefined` の場合は `el.getAttribute('class')` へ安全にフォールバックし、絶対に例外で中断しない堅牢なフェイルセーフを注入。
+
+### 11.2 多重ペイン構造における pointer-events の適正化
+- **問題**:
+  `.leaflet-marker-pane { pointer-events: auto !important; }` を適用すると、全画面を占有するマーカーペイン DIV がすべてのドラッグ・クリックを吸い上げてしまい、背景タイルやマップコンテナへのドラッグイベント伝播が壊れる。
+- **解決策**:
+  Pane DIV 自体（`.leaflet-marker-pane`）は `pointer-events: none` の透過状態を維持し、対話性が必要なマーカー実体（`.leaflet-marker-icon`, `.custom-map-pin-container`, `.custom-map-pin`）および教室ポリゴン（`.leaflet-interactive`）のみを明示的に `pointer-events: auto` とすることで、スムーズなドラッグ移動とピン・部屋タップの両立を実現。

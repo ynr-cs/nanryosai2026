@@ -140,7 +140,7 @@
 
     /* クリック・タップを受け付ける対話要素のみ明示的に auto */
     .leaflet-interactive,
-    .leaflet-marker-pane,
+    .leaflet-marker-icon,
     .custom-map-pin-container,
     .custom-map-pin,
     .leaflet-popup-pane,
@@ -2589,6 +2589,40 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+
+  <!-- Leaflet 1.9.4 Robustness Safety Patch (Prevent undefined className crash on Drag) -->
+  <script>
+    (function () {
+      if (window.L && L.DomUtil) {
+        L.DomUtil.getClass = function (el) {
+          if (!el) return '';
+          if (el.correspondingElement) {
+            el = el.correspondingElement;
+          }
+          if (el.className === undefined) {
+            return (el.getAttribute ? el.getAttribute('class') : '') || '';
+          }
+          return el.className.baseVal === undefined ? (el.className || '') : (el.className.baseVal || '');
+        };
+
+        L.DomUtil.setClass = function (el, name) {
+          if (!el) return;
+          if (el.correspondingElement) {
+            el = el.correspondingElement;
+          }
+          if (el.className === undefined) {
+            if (el.setAttribute) el.setAttribute('class', name);
+            return;
+          }
+          if (el.className.baseVal === undefined) {
+            el.className = name;
+          } else {
+            el.className.baseVal = name;
+          }
+        };
+      }
+    })();
+  </script>
 
   <!-- Load Static Project Data (Zero-DB Principle) -->
   <script src="data/data.js"></script>
