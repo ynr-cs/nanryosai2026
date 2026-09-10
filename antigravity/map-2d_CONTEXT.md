@@ -835,3 +835,17 @@ const IS_MAP_ENABLED = false;
      - `onContentTouchMove`: 通常教室等のカードで `peek` 状態にある際、コンテンツ上で上にスワイプ（スクロール開始）すると即座に `expanded` へ滑らかに自動展開するインタラクションを実装。
 - **得られた知見**:
   モバイル向けボトムシートにおいて `position: fixed; bottom: 0;` を採用する場合、最大展開時の `translateY` は必ず `0` でなければならず、上端からのオフセット計算を混在させるとシート下部が画面外に潜り込んでスクロール不能に陥る。固定配置とCSS変形（`translateY`）の原点座標系を厳密に一致させることが絶対原則である。
+
+### 15.19 マップのドラッグ移動不能およびタイムテーブルスクロール不能の完全解消 (v1.0.1)
+- **背景/ユーザー要望**:
+  - ユーザーより「マップがドラッグ&ドロップで移動できなかったり、あとはタイムテーブルが下までスクロールできない問題があるから、それを修正してほしい」との指示に対応。
+- **技術的原因と解決策**:
+  1. **マップのドラッグ移動不能の解消 (`main/map.html`)**:
+     - **原因**: PCブラウザ等で地図上のタイル画像（`<img>`）やSVG要素、マーカーピンをマウスでドラッグしようとした際、ブラウザ標準の HTML5 ネイティブドラッグ（`dragstart`）が発動し、進入禁止マークやゴースト画像が発生して Leaflet のマップパン操作が中断されていた。
+     - **対策**: `#map, #map img, #map svg, #map a, .leaflet-container img, .leaflet-tile` に対し `-webkit-user-drag: none !important; user-drag: none !important;` を指定。さらにマップコンテナおよび `window` にてマップ領域内の `dragstart` イベントを `preventDefault()` で遮断。
+     - **ボトムシート非表示時の透過**: `.bottom-sheet[data-state="collapsed"]` に `pointer-events: none !important;` を付与し、非展開時に画面下部での地図ドラッグ・操作を 100% 透過。
+  2. **タイムテーブル下部スクロール性の完全確保 (`main/map.html`, `main/stage-list.html`)**:
+     - **原因**: `map.html` のボトムシート内タイムテーブル（体育館全17公演等）において下部余白が不足し、末尾カードやボタンが端末下端・ナビバーと重なっていた。また、タッチスクロール時にシート引き下げ判定と競合してスクロールが途中で止まる問題があった。
+     - **対策**: `.bottom-sheet-content` の下部パディングを `calc(140px + env(safe-area-inset-bottom, 24px))`、`.stage-timeline-wrapper` の下部パディングを `calc(48px + env(safe-area-inset-bottom, 24px))` に拡大。`BottomSheetController.prototype.onContentTouchMove` においてコンテンツがスクロール中（`scrollTop > 0`）はシート引き下げ判定をスキップし、縦スクロールを最優先化。
+     - **ステージ一覧 (`main/stage-list.html`) の最適化**: `.timeline-list-container` の下部マージンを `calc(var(--bottom-nav-height, 70px) + var(--safe-area-bottom, 20px) + 80px)` に拡張し、固定ボトムナビおよび投票FABボタンによる最下部カードの遮蔽を完全解消。ガントチャート `.gantt-content` に `touch-action: pan-x pan-y;` を設定し、横スクロールコンテナ上での縦スクロールスタックを解消。
+

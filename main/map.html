@@ -118,10 +118,24 @@
       background-color: transparent;
       cursor: grab;
       touch-action: none;
+      -webkit-user-drag: none;
+      user-drag: none;
     }
 
     #map:active {
       cursor: grabbing;
+    }
+
+    /* マップ内画像・SVG・リンクのHTML5ネイティブドラッグを完全抑止（地図パン操作優先） */
+    #map img,
+    #map svg,
+    #map a,
+    .leaflet-container img,
+    .leaflet-tile {
+      -webkit-user-drag: none !important;
+      user-drag: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
     }
 
     /* 各カスタムペイン div および SVG コンテナはドラッグイベントを透過させる */
@@ -1632,6 +1646,11 @@
       pointer-events: auto;
     }
 
+    /* 折りたたみ時はポインターイベントを完全に遮断し、背後の地図ドラッグ・操作を100%透過 */
+    .bottom-sheet[data-state="collapsed"] {
+      pointer-events: none !important;
+    }
+
     .bottom-sheet.dragging {
       transition: none;
     }
@@ -1671,8 +1690,8 @@
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
-      /* 固定ナビバー（高70px）および端末セーフエリアを余裕をもってクリアする下部パディング（約116px〜130px）を確保 */
-      padding: 0 16px calc(112px + env(safe-area-inset-bottom, 24px)) 16px;
+      /* 固定ナビバー（高70px）および端末セーフエリアを余裕をもってクリアする下部パディング（約140px〜164px）を確保 */
+      padding: 0 16px calc(140px + env(safe-area-inset-bottom, 24px)) 16px;
       touch-action: pan-y;
       box-sizing: border-box;
     }
@@ -2027,7 +2046,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding-bottom: 24px;
+      padding-bottom: calc(48px + env(safe-area-inset-bottom, 24px));
     }
 
     .timeline-section-heading {
@@ -2966,14 +2985,14 @@
           }
 
           if (this.isContentDragCandidate) {
-            // 下向きスワイプ（deltaY > 6）かつ縦方向の移動が横方向より大きく、最上部にある場合
-            if (deltaY > 6 && Math.abs(deltaY) > Math.abs(deltaX) && (!this.content || this.content.scrollTop <= 0)) {
+            // 下向きスワイプ（deltaY > 12）かつ縦方向の移動が横方向より大きく、コンテンツ最上部（scrollTop <= 0）にある場合のみ
+            if (deltaY > 12 && Math.abs(deltaY) > Math.abs(deltaX) && (!this.content || this.content.scrollTop <= 0)) {
               if (e.cancelable) e.preventDefault();
               this.isContentDragCandidate = false;
               // シート全体の引き下げドラッグを開始
               this.onStart(e);
-            } else if (deltaY < -6 || Math.abs(deltaX) > Math.abs(deltaY)) {
-              // 上向き（コンテンツスクロール）または横スワイプの場合は候補から除外
+            } else if (deltaY < -4 || Math.abs(deltaX) > Math.abs(deltaY) || (this.content && this.content.scrollTop > 0)) {
+              // 上向きスクロール中、横スワイプ、またはスクロール中（scrollTop > 0）は即座に候補除外してスクロールを最優先
               this.isContentDragCandidate = false;
             }
           }
@@ -3326,6 +3345,17 @@
             bottomSheet.snapTo(bottomSheet.STATES.COLLAPSED);
           }
           unhighlightActivePolygon();
+        });
+
+        // ブラウザネイティブのHTML5ドラッグ＆ドロップ（画像・要素ゴースト）を完全抑止しマップパン操作を保証
+        const mapContainerEl = map.getContainer();
+        if (mapContainerEl) {
+          mapContainerEl.addEventListener('dragstart', (e) => e.preventDefault());
+        }
+        window.addEventListener('dragstart', (e) => {
+          if (e.target && (e.target.closest('#map') || e.target.closest('.leaflet-container'))) {
+            e.preventDefault();
+          }
         });
       }
 
