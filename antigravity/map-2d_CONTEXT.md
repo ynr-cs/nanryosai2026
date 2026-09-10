@@ -865,3 +865,14 @@ const IS_MAP_ENABLED = false;
   2. **JavaScript改善 (`main/map.html`)**:
      - コンテンツ領域（`#sheetContent`）から `touchmove` フックを完全撤廃し、ブラウザのネイティブスクロール（Compositor）に100%解放。
      - シートのドラッグ開閉操作はハンドルバー（`#sheetHandle`）に限定し、タイムライン閲覧中の誤作動・スクロールロックを完全根絶。
+
+### 15.21 BottomSheetController の `target` 誤解決による touchmove ブロック問題の根本修正 (v1.0.4)
+- **背景/問題**: v1.0.3でコンテンツエリアの `touchmove` ハンドラーを全廃したにも関わらず、依然としてタイムテーブルのスクロールがブロックされ続けた。ユーザーからは「ステージ情報の下から上がってくるやつと競合してる」と指摘。
+- **根本原因（`initEvents()` の `target` 解決バグ）**:
+  - `this.handle = document.getElementById('sheetHandle')` は `.bottom-sheet-handle-bar` 要素そのものである。
+  - しかしコードが `this.handle.parentElement`（= `#bottomSheet` シート全体）を `dragHandle` として使用していたため、`touchstart` リスナーがシート全体に登録されていた。
+  - コンテンツエリア（タイムテーブル）に触れるだけで `onStart` が発火し、`window.addEventListener('touchmove', ..., { passive: false })` が追加された。その後のスワイプが全て `e.preventDefault()` でブロックされてスクロール不能になった。
+- **恒久対策 (`main/map.html`)**:
+  1. `initEvents()` 内の `target` 解決を `this.handle`（ハンドルバーそのもの）に修正し、シート全体への登録を廃止。
+  2. `onStart()` の冒頭に防衛的ガード追加：コンテンツエリア内を発生源とするタッチは早期リターンして `window.touchmove` を登録しない。
+- **重要な教訓**: `#sheetHandle` という ID は `.bottom-sheet-handle-bar` 要素（ハンドルバーのコンテナ）に付与されており、`.parentElement` を取ってはいけない。将来コードを触る際は必ずHTMLのDOM構造を確認すること。
