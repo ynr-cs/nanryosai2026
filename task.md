@@ -39,4 +39,16 @@
 - [x] projects-list.html のフィルターボタンを「調理」「販売」「展示」の3大ジャンルへ是正・連動復旧 <!-- id: 17 -->
 - [x] 自動検証テスト（調理8件・販売8件・展示19件・メニュー2件・捏造文0件）全項目PASS <!-- id: 18 -->
 - [x] CHANGELOG.md (v0.5.294) 更新 <!-- id: 19 -->
+# タスク: 設計図/sandbox 配下へのフォールバック仕様書（Typst）策定
 
+- [x] 仕様・スコープのヒアリング（/grill-me） <!-- id: 20 -->
+- [x] 実装計画の作成 (`implementation_plan.md`) <!-- id: 21 -->
+- [x] Typst仕様書ドラフトの作成 (`設計図/sandbox/emergency_stop_guide.typ`) <!-- id: 22 -->
+- [x] ドキュメント内容の精査と検証（PDF/PNGコンパイル・1ページ完結確認） <!-- id: 23 -->
+- [x] 知識の永続化 (`antigravity/` への同期) および CHANGELOG.md 更新 <!-- id: 24 -->
+
+# タスク: モバイルオーダー店舗運用概略図（Typstペラ1）策定
+
+- [x] 概略図ドラフトの作成 (`設計図/sandbox/mobile_order_overview.typ`) <!-- id: 25 -->
+- [x] Typstコンパイル・PDF/PNG検証（A4・1ページ完結） <!-- id: 26 -->
+- [x] 知識の永続化 & CHANGELOG.md更新 <!-- id: 27 -->
