@@ -2919,8 +2919,9 @@
 
         initEvents() {
           // 1. ハンドルバー領域でのドラッグ開始
-          const dragHandle = this.handle ? this.handle.parentElement : this.sheet.querySelector('.bottom-sheet-handle-bar');
-          const target = dragHandle || this.handle || this.sheet;
+          // ※ this.handle = #sheetHandle = .bottom-sheet-handle-bar 要素そのもの
+          // ※ .parentElement を取ると #bottomSheet（シート全体）になってしまうため絶対に取らない
+          const target = this.handle || this.sheet.querySelector('.bottom-sheet-handle-bar') || this.sheet;
 
           target.addEventListener('touchstart', (e) => this.onStart(e), { passive: true });
           target.addEventListener('mousedown', (e) => this.onStart(e));
@@ -2948,6 +2949,8 @@
         }
 
         onStart(e) {
+          // 防衛的ガード: タッチ発生元がコンテンツエリア内であれば無視してスクロールを優先
+          if (e.target && this.content && this.content.contains(e.target)) return;
           const pageY = e.touches ? e.touches[0].pageY : e.pageY;
           this.isDragging = true;
           this.startY = pageY;

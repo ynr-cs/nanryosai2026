@@ -13,6 +13,22 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [1.0.4] ボトムシートのtarget誤解決によるタイムテーブルスクロール完全ブロック問題の根本修正 - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: v1.0.3でコンテンツエリアのtouchmoveハンドラーを全廃したにも関わらず、依然としてタイムテーブルのスクロールがブロックされる問題が継続。ユーザーより「ステージ情報の下から上がってくるやつと競合してる」と指摘。コード解析の結果、`BottomSheetController.initEvents()` における `target` 要素の解決ロジックにバグがあり、ハンドルバー（`.bottom-sheet-handle-bar`）ではなくシート全体（`#bottomSheet`）に `touchstart` が登録されていたことが根本原因として確定。これにより、コンテンツエリアのタップだけで `onStart` が発火し `window.touchmove` に `{passive:false}` のハンドラーが登録されてスクロールが殺されていた。
+
+### 修正 (Fixed)
+
+- **`BottomSheetController.initEvents()` の `target` 解決ロジックを修正 (`main/map.html`)**:
+  - **背景/原因**: `this.handle = #sheetHandle = .bottom-sheet-handle-bar` 要素そのものなのに、`this.handle.parentElement`（= `#bottomSheet`、シート全体）を `dragHandle` として取得していた。これにより `touchstart` がシート全体に登録され、コンテンツエリアのタッチでも `onStart` が発火、`window.touchmove` に `e.preventDefault()` を呼ぶハンドラーが追加されてスクロールが完全にブロックされていた。
+  - **解決策**: `dragHandle = this.handle.parentElement` を廃止し、`target = this.handle`（ハンドルバーのみ）に変更。
+- **`onStart` に防衛的ガードを追加 (`main/map.html`)**:
+  - コンテンツエリア（`#sheetContent`）内を発生源とするタッチイベントは早期リターンして無視するガードを追加。将来的な `target` の誤解決に対する二重の安全網として機能する。
+
 ## [1.0.3] マップボトムシート内タイムテーブルスクロール不能の完全解消 - 2026-09-11
 
 ### メタ情報
