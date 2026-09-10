@@ -69,3 +69,12 @@
   - `updateStoreStatusesDOM()` および `updateFavoritesDOM()` により、営業バッジとお気に入り星マークのみを差分パッチ。
   - カード画像要素（`<img>`）が再生成されず維持されるため、初期表示後の noimage 点滅（フリッカー）を100%根絶。
 
+### (8) HEIC自動変換・ギャラリー階層対応・サイト全体WebP優先化（v0.5.298）
+- **iPhone HEIC/HEIF 自動変換 (`scripts/process-assets.js`)**:
+  - `heic-convert` をパイプラインに統合。生徒やPTAから提出された iPhone 撮影の `.heic` / `.heif` ファイルを自動検知し、WebP品質85で直接最適化出力。
+- **ギャラリー・商品画像の階層再帰変換**:
+  - `images/original/` 配下のサブディレクトリ（`gallery/`, `items/` 等）を自動検知して `images/gallery/`, `images/items/` に同一階層で WebP 生成。
+- **全画面でのWebP優先フォールバック (`index.html`, `account.html`)**:
+  - 従来 `.png` 決め打ちだったトップページお気に入り・企画ハイライトおよびマイページ（`account.html`）を `.webp` 最優先読み込み（エラー時 `.png` → `noimage.png`）に統一。
+
+

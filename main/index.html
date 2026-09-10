@@ -1511,7 +1511,7 @@
                     
                     // projectDataに対応があればそのIDでリンク、なくてもstageDataのIDでdetail.htmlが表示可能
                     let linkId = item.id;
-                    let imgSrc = `../images/${item.id}.png`;
+                    let imgId = item.id;
                     const projects = window.projectData || [];
                     const matchedProject = projects.find(p => 
                         p.id === item.id ||
@@ -1519,8 +1519,11 @@
                     );
                     if (matchedProject) {
                         linkId = matchedProject.id;
-                        imgSrc = `../images/${matchedProject.id}.png`;
+                        imgId = matchedProject.id;
                     }
+                    
+                    const webpSrc = `../images/${imgId}.webp`;
+                    const pngSrc = `../images/${imgId}.png`;
                     
                     const trackEventName = containerId.includes('stage') ? 'click_stage_highlight' : 'click_project_highlight';
                     const catchphrase = item.catchphrase || (matchedProject ? matchedProject.catchphrase : '') || '';
@@ -1528,7 +1531,7 @@
 
                     return `
                     <a href="detail.html?id=${linkId}" class="highlight-card" data-track="${trackEventName}" data-track-id="${linkId}">
-                        <img src="${imgSrc}" class="highlight-card-img" onerror="this.onerror=null;this.src='../images/noimage.png'">
+                        <img src="${webpSrc}" class="highlight-card-img" loading="lazy" onerror="if(this.src.endsWith('.webp')){this.src='${pngSrc}';}else if(this.src!=='../images/noimage.png'){this.src='../images/noimage.png';}">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
                             <h3 class="highlight-project-name">${item.name}</h3>

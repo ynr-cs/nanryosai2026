@@ -2,7 +2,7 @@
 title: data.js コンテキストドキュメント
 tags: [main, context, data]
 status: active
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 ---
 
 # data.js コンテキストドキュメント
@@ -15,6 +15,7 @@ last_updated: 2026-09-09
 - 開発時および初期表示時のデータソースとして機能します。
 - `admin_sync.html` を介して Firestore に同期されますが、同期ロジックには厳格なフィルタリングが存在します。
 - 2026-09-09 に公式パンフレット（全10ページ）およびGoogleフォーム提出データ（一次情報）に基づいて全面更生・新旧刷新が完了しました。
+- 2026-09-11 にGoogleフォーム経由で提出された各団体の公式写真アセット（メイン画像・ギャラリー画像・商品画像）の連携パイプラインが稼働し、第1弾として8団体の画像が本番反映されました。
 
 ## データ構造: `projectData`
 
@@ -38,9 +39,9 @@ last_updated: 2026-09-09
 | `description` | string | 企画紹介文（生徒執筆公式PR文）。 | `...` |
 | `instagram`   | string | **[NEW]** 公式/代表者InstagramアカウントID。 | `@_aoi_m__`, `chikara_0809` |
 | `allergyInfo` | string | **[NEW]** 調理・食品企画のアレルギー成分表示。 | `卵、はちみつ、小麦粉、牛乳` |
-| `contentType` | string | 企画の種類。`menu` (販売あり) または `gallery` (展示・発表)。 | `menu`, `gallery` |
-| `menu`        | array | 販売メニューの配列。未確定店舗は空配列 `[]` で保護。 | `[{ name: "...", price: "..." }]` |
-| `gallery`     | array | 写真ギャラリー配列。 | `[]` |
+| `contentType` | string/array | 企画の種類。`menu`, `gallery` または両方 `["menu", "gallery"]`。 | `menu`, `gallery`, `["menu", "gallery"]` |
+| `menu`        | array | 販売メニューの配列。商品画像 `imageUrl` を含む。 | `[{ name: "...", imageUrl: "../images/items/..." }]` |
+| `gallery`     | array | 写真ギャラリー配列。`detail.html` のギャラリータブに展開される相対パス。 | `["../images/gallery/101_1.webp", ...]` |
 
 ### 設計方針 (単一詳細ページ & stageData SSOT)
 - **タイムスロット単位の定義**: 各エントリは特定の場所・時間帯の出演枠を表します（`id`: 例 `keion_gym_d1`, `drama_204_d1`, `chorus_d2`, `game_club_after`）。

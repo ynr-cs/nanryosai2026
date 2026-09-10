@@ -15,39 +15,57 @@ if (!fs.existsSync(ORIGINAL_IMG_DIR)) {
   console.log(`[process-assets] Created: ${ORIGINAL_IMG_DIR}`);
 }
 
-async function convertImages() {
-  const supportedExts = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"]);
-  if (!fs.existsSync(ORIGINAL_IMG_DIR)) return 0;
-  const files = fs.readdirSync(ORIGINAL_IMG_DIR);
+async function convertDir(srcDir, destDir) {
+  const supportedExts = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".heic", ".heif"]);
+  if (!fs.existsSync(srcDir)) return 0;
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  const files = fs.readdirSync(srcDir);
   let convertedCount = 0;
 
   for (const file of files) {
+    const srcPath = path.join(srcDir, file);
+    const stat = fs.statSync(srcPath);
+
+    if (stat.isDirectory()) {
+      convertedCount += await convertDir(srcPath, path.join(destDir, file));
+      continue;
+    }
+
     const ext = path.extname(file).toLowerCase();
     if (!supportedExts.has(ext)) continue;
 
     const baseName = path.basename(file, ext);
-    const srcPath = path.join(ORIGINAL_IMG_DIR, file);
-    const destPath = path.join(OUTPUT_IMG_DIR, `${baseName}.webp`);
+    const destPath = path.join(destDir, `${baseName}.webp`);
 
     try {
-      const srcStat = fs.statSync(srcPath);
       if (fs.existsSync(destPath)) {
         const destStat = fs.statSync(destPath);
-        // 元画像より出力WebPの更新日時が新しい場合はスキップ
-        if (destStat.mtimeMs >= srcStat.mtimeMs) {
+        if (destStat.mtimeMs >= stat.mtimeMs) {
           continue;
         }
       }
 
       console.log(`[process-assets] Converting: ${file} -> ${baseName}.webp (original resolution/ratio preserved)...`);
-      await sharp(srcPath)
+      
+      let inputBuffer;
+      if (ext === ".heic" || ext === ".heif") {
+        const heicConvert = require("heic-convert");
+        const rawBuf = fs.readFileSync(srcPath);
+        inputBuffer = await heicConvert({ buffer: rawBuf, format: "JPEG", quality: 0.95 });
+      } else {
+        inputBuffer = srcPath;
+      }
+
+      await sharp(inputBuffer)
         .webp({ quality: 85, effort: 4 })
         .toFile(destPath);
 
       const destStat = fs.statSync(destPath);
-      const reduction = (((srcStat.size - destStat.size) / srcStat.size) * 100).toFixed(1);
+      const reduction = (((stat.size - destStat.size) / stat.size) * 100).toFixed(1);
       console.log(
-        `[process-assets] Done: ${baseName}.webp (${(destStat.size / 1024).toFixed(1)} KB, -${reduction}%)`
+        `[process-assets] Done: ${destPath} (${(destStat.size / 1024).toFixed(1)} KB, -${reduction}%)`
       );
       convertedCount++;
     } catch (err) {
@@ -56,6 +74,10 @@ async function convertImages() {
   }
 
   return convertedCount;
+}
+
+async function convertImages() {
+  return await convertDir(ORIGINAL_IMG_DIR, OUTPUT_IMG_DIR);
 }
 
 function updateVersionJson() {
