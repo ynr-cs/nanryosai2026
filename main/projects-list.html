@@ -1203,7 +1203,7 @@
               return `
                     <div class="project-card fade-up" data-project-id="${project.id}">
                         <div class="card-image">
-                            <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="if(this.src!=='../images/noimage.png'){this.onerror=null;this.src='../images/noimage.png';}">
+                            <img src="${imgSrc}" alt="${project.name}" loading="lazy" onerror="this.onerror=null;this.src='../images/noimage.png';">
                         </div>
                         <div class="card-content">
                             <span class="card-group-name">${groupName}</span>

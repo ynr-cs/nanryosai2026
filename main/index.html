@@ -1531,7 +1531,7 @@
 
                     return `
                     <a href="detail.html?id=${linkId}" class="highlight-card" data-track="${trackEventName}" data-track-id="${linkId}">
-                        <img src="${webpSrc}" class="highlight-card-img" loading="lazy" onerror="if(this.src.endsWith('.webp')){this.src='${pngSrc}';}else if(this.src!=='../images/noimage.png'){this.src='../images/noimage.png';}">
+                        <img src="${webpSrc}" class="highlight-card-img" loading="lazy" onerror="this.onerror=null;this.src='../images/noimage.png';">
                         <div class="highlight-card-content">
                             <span class="highlight-group-name">${groupName}</span>
                             <h3 class="highlight-project-name">${item.name}</h3>

@@ -1183,7 +1183,7 @@
              
              el.innerHTML = `
                  <div style="width: 50px; height: 50px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--item-fill); border: 1px solid var(--border-color);">
-                      <img src="${webpSrc}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="if(this.src.endsWith('.webp')){this.src='${pngSrc}';}else if(this.src!=='../images/noimage.png'){this.src='../images/noimage.png';}">
+                      <img src="${webpSrc}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='../images/noimage.png';">
                  </div>
                  <div class="order-info" onclick="window.location.href='detail.html?id=${favId}'" style="padding: 2px 0;" data-track="click_account_favorite_item" data-track-id="${favId}">
                      <div class="order-info-top" style="margin-bottom: 4px;">

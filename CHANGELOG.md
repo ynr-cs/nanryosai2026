@@ -13,6 +13,49 @@
 - **メジャー (Major / x)**: ユーザーがすべてのファイルを精査し、「南陵祭本番で稼働できる」と判断した時のみ更新。
 - **マイナー (Minor / y)**: ユーザーとAIの試行錯誤を経て、ユーザーが「完了・一区切り」を宣言・承認した時のみ更新。
 
+## [0.5.301] カード画像読み込みエラー時のnoimage.pngフォールバック確実化と無限ループ防止 - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: 企画一覧（`main/projects-list.html`）、トップページ（`main/index.html`）、およびマイページ（`main/account.html`）において、画像未登録の企画カード（またはステージ企画カード）で `noimage.png` が表示されず画像が消える・壊れる問題を解消するため。
+
+### 修正 (Fixed)
+
+- **全画面でのカード画像 onerror ハンドラの最適化 (`main/projects-list.html`, `main/index.html`, `main/account.html`)**:
+  - `this.onerror = null; this.src = '../images/noimage.png';` のシンプルかつ確実なワンショットフォールバックに統一。
+  - 存在しないPNGへの二重リクエストによる不要な404エラー、および絶対URLと相対URLの文字列比較不一致による無限onerror発火の危険性を完全根絶。
+
+### 得られた知見 / 注意点 (Learned / Caveats)
+
+- **インライン onerror の罠**: `this.src !== '../images/noimage.png'` という判定は、ブラウザが `this.src` を完全な絶対URL（`http://.../images/...`）として返すため常に true と判定され、無限ループを引き起こす原因となる。フォールバック時は必ず `this.onerror = null` を直ちにセットして一度きりの安全な切り替えを行う必要がある。
+
+## [0.5.300] Leafletドラッグ時クラッシュ例外の防御・多重ペインpointer-events適正化によるマップ移動機能の完全復旧 - 2026-09-11
+
+### メタ情報
+
+- **AIモデル**: Gemini
+- **筆者**: AI
+- **変更理由**: マップ画面（`main/map.html`）において、マウスドラッグおよびスマホのタッチスワイプで地図をスクロール・パン移動できない致命的な不具合を解消するため。ヘッドレスブラウザ（Edge CDP経由）でのDOMイベント追跡により特定した、Leaflet 1.9.4 の `_onMove` 内における未捕捉例外（`TypeError: Cannot read properties of undefined (reading 'baseVal')`）の防御パッチを導入し、さらに全画面を覆っていた透明なマーカーペインの `pointer-events: auto` を解除して、地図のパン移動と教室ポリゴン・ピンの対話性を完全両立させた。
+
+### 修正 (Fixed) / 追加 (Added) / 変更 (Changed)
+
+- **Leaflet 1.9.4 未定義例外セーフティパッチの注入 (`main/map.html`)**:
+  - **背景/原因**: Leaflet 1.9.4 の `Draggable._onMove` でドラッグ開始時に `addClass(this._lastTarget, 'leaflet-drag-target')` が実行される。このとき `L.DomUtil.getClass`（`el.className.baseVal === undefined ? el.className : el.className.baseVal`）において、対象ノード（SVGノード等）の `className` が未定義の場合、`baseVal` アクセスで `TypeError` が発生し、後続の座標計算や `setPosition` が完全に停止してドラッグ不能となっていた。
+  - **解決策**: Leaflet CDN 読み込み直後に `L.DomUtil.getClass` および `L.DomUtil.setClass` を拡張。`el` や `el.className` が未定義の場合でもフォールバックとして `getAttribute('class')` を参照し、絶対に例外をスローしない堅牢な防御パッチを適用。
+- **多重ペイン CSS の `pointer-events` 適正化 (`main/map.html`)**:
+  - **背景/原因**: `.leaflet-marker-pane { pointer-events: auto !important; }` が設定されていたため、マップ全域を覆う巨大な透明 `div` がすべてのドラッグ・クリックイベントを吸い上げてしまい、下層の地図コンテナへの正規のパン操作を阻害していた。
+  - **解決策**: `.leaflet-marker-pane` への指定を削除し、実際のマーカーピン要素（`.leaflet-marker-icon`, `.custom-map-pin-container`, `.custom-map-pin`）および対話可能ポリゴン（`.leaflet-interactive`）のみを `pointer-events: auto !important` に限定。
+- **実ブラウザ CDP E2E 検証の実施 (`tests/test_drag_verify.js`, `tests/test_click_verify.js`)**:
+  - ヘッドレス Edge を用いた自動シミュレーションにより、ドラッグ操作時のマップ中心座標移動（`deltaLat: 0.000657, deltaLng: 0.000804`）と例外ゼロ（0件）を確認。
+  - 教室ポリゴンの物理クリックによるボトムシート展開（`expanded` 状態遷移）も正常動作を確認。
+
+### 得られた知見 / 注意点 (Learned / Caveats)
+
+- **LeafletとSVGノードのクラス操作**: Leaflet 1.9.4 は一部の SVG 要素（SVGElement）で `className` が `SVGAnimatedString` ではなく `undefined` や非標準オブジェクトになる環境において例外を起こしやすい。特に `Draggable` は `e.target` に対して無条件に `addClass` を試みるため、グローバルパッチで `L.DomUtil.getClass` / `setClass` を安全にしておくことが最善の防御策となる。
+- **Pane と Marker のイベント階層設計**: Leaflet のペイン構造において、全画面を占有する Pane DIV 自体に `pointer-events: auto` を与えると下層のパン操作が完全に死ぬ。対話性が必要なのは Pane 自体ではなく「その中に配置された個別の Marker DOM 要素（`.leaflet-marker-icon`）」である。
+
 ## [0.5.299] 団体公式写真アセット第1弾（8団体）の完全WebP化・ギャラリー&商品メニュー連携・全画面WebP優先フォールバック実装 - 2026-09-11
 
 ### メタ情報
