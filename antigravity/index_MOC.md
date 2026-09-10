@@ -19,6 +19,7 @@ last_updated: 2026-03-19
 - [[security_CONTEXT]]: セキュリティ監査結果 & 脆弱性防護ガイドライン (2026-09-09)
 - [[data_sync_CONTEXT]]: キャッシュ戦略、オフライン対応、データ同期機構
 - [[design_CONTEXT]]: デザインシステム、共通CSS、UIガイドライン
+- [[v1.0.0_RELEASE_CONTEXT]]: v1.0.0 メジャーリリース（本番稼働版）仕様
 - [[migration_CONTEXT]]: v0.1.0への移行や仕様変更のガイド
 - [[AI_CONTEXT]]: AIエージェントの基本振る舞いやルール
 - [[obsidian_GUIDE]]: Obsidian 使用ガイド（本最適化の基準）
