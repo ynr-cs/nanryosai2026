@@ -133,28 +133,28 @@ last_updated: 2026-09-11
 | `keion` | 軽音楽部 | NANRYO FES | `room_gym_main` | 体育館・視聴覚室 | stage | - |
 | `game_club` | ゲーム同好会 | 南陵スマブラ王決定戦2026 | `room_203_3256` | 生徒棟 2F 3-2教室 | exhibit | - |
 | `chorus` | コーラス部 | コーラス部発表会!! | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
-| `sado` | 茶道部 | 抹茶ファースト | `special_room_188905` | 管理棟 2F 作法室 | shop | - |
+| `sado` | 茶道部 | 抹茶ファースト | `special_room_188905` | 生徒棟 2F | shop | - |
 | `fukushi` | 社会福祉部 | 手話パフォーマンス | `room_gym_main` | 体育館ステージ | stage | - |
 | `brass` | 吹奏楽部 | 吹奏楽部 演奏会 | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
-| `science` | 生物部 | ミクロの生き物の世界 | `special_room_818121_3f` | 特別棟 3F 生物室 | exhibit | - |
+| `science` | 生物部 | ミクロの生き物の世界 | `special_room_818121_3f` | 生徒棟 3F | exhibit | - |
 | `soukyoku` | 箏曲部 | 筝曲部発表会 | `room_gym_main` | 体育館ステージ | stage | - |
 | `dance` | モダンダンス部 | 超 cool sexy beautiful our TIME❢ | `room_gym_main` | 体育館ステージ | stage | - |
-| `bijutsu` | 美術部 | 美術部展示 | `special_room_337807_3f` | 特別棟 3F 美術室 | exhibit | - |
-| `bungei` | 文芸同好会 | ブンゲー！知恵袋 | `special_room_203688` | 管理棟 2F 被服室 | exhibit | - |
+| `bijutsu` | 美術部 | 美術部展示 | `special_room_337807_3f` | 生徒棟 3F | exhibit | - |
+| `bungei` | 文芸同好会 | ブンゲー！知恵袋 | `special_room_203688` | 生徒棟 2F | exhibit | - |
 | `homemaking` | ホームメイキング部 | 手作りお菓子の販売 | `piloti_1f` | 1F ピロティ (外) | shop | - |
-| `manga` | 漫画研究部 | 描かない漫研へようこそ！ | `special_room_203688` | 管理棟 2F 被服室 | exhibit | - |
+| `manga` | 漫画研究部 | 描かない漫研へようこそ！ | `special_room_203688` | 生徒棟 2F | exhibit | - |
 | `seitokai` | 生徒会執行部 | 南陵探偵俱楽部 | `room_202_3256` | 昇降口・生徒棟 2F 3-1 | exhibit | - |
 | `cs` | コンピューター科学部 | Webサイト＆モバイルオーダー | `spot_info_entrance` | 総合案内所 | exhibit | - |
-| `bousai` | 防災委員 | 高めよう防災意識 | `spot_corridor_2f` | 生徒棟 2F 渡り廊下 | exhibit | - |
+| `bousai` | 防災委員 | 高めよう防災意識 | - | ー | exhibit | - |
 | `shodo` | 書道科 | 書道展２０２６ | `special_room_337807` | 管理棟 2F 書道室 | exhibit | - |
-| `bijutsuka` | 美術科 | 美術科 授業制作作品展示 | `special_room_337807_3f` | 特別棟 3F 美術室 | exhibit | - |
+| `bijutsuka` | 美術科 | 美術科 授業制作作品展示 | `special_room_337807_3f` | 生徒棟 2F | exhibit | - |
 | `unison` | The Unison. | 師弟のピアノパフォーマンス⁉ | `special_room_337807_4f` | 特別棟 4F 音楽室 | stage | - |
 | `onebeat` | Onebeat | Onebeat～dance performance～ | `room_gym_main` | 体育館ステージ | stage | - |
 | `saitama` | さいたま・いばらき・千葉 | 千葉の下っぱ | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
 | `dance_3y` | ☆神seven☆ | 床と友達～向き合った３年間～ | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
 | `band_3y` | ちーむにこにこ | 3年バンド演奏 | `room_gym_main` | 体育館ステージ (後夜祭) | stage | - |
 | `pta` | PTA | Nanryo Mart | `room_204_3256` | 生徒棟 2F 3-3教室 | shop | - |
-| `senkyo` | 選挙コーナー | 選挙の投票体験 | `spot_corridor_2f` | 生徒棟 2F 渡り廊下 | exhibit | - |
+| `senkyo` | 選挙コーナー | 選挙の投票体験 | - | ー | exhibit | - |
 | `megumi` | めぐみ | 拉致被害者 横田めぐみさんに関する展示 | `room_205_3256` | 生徒棟 2F 3-4教室 | exhibit | - |
 
 ### 3.3 生徒棟の階層別構造（1Fピロティ構造 & 5F天空の図書館）

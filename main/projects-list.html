@@ -1198,7 +1198,6 @@
               const detailUrl = project.linkUrl ? project.linkUrl : `detail.html?id=${project.id}`;
               const isFavorite = userFavorites.includes(project.id);
               const favBtnClass = isFavorite ? "btn-favorite-star active" : "btn-favorite-star";
-              const isMapEnabled = (typeof IS_MAP_ENABLED !== "undefined" && IS_MAP_ENABLED === true) || (typeof window.IS_MAP_ENABLED !== "undefined" && window.IS_MAP_ENABLED === true);
 
               return `
                     <div class="project-card fade-up" data-project-id="${project.id}">
@@ -1210,15 +1209,9 @@
                             <a href="${detailUrl}" class="card-project-title" data-track="click_project" data-track-project-id="${project.id}">${project.name}</a>
                             <div class="card-status-badge-container">${statusBadge}</div>
                             ${catchphraseHTML}
-                            ${(isMapEnabled && project.roomId && project.roomId !== 'null') ? `
-                            <a href="map.html?project=${encodeURIComponent(project.id)}&room=${encodeURIComponent(project.roomId)}" class="card-place map-link" title="校内マップで場所を見る" onclick="event.stopPropagation();" data-track="click_project_card_map" data-track-project-id="${project.id}">
-                                <i class="bi bi-geo-alt-fill"></i> ${place}
-                            </a>
-                            ` : `
                             <div class="card-place">
                                 <i class="bi bi-geo-alt-fill"></i> ${place}
                             </div>
-                            `}
                             <div class="card-tags">${tagsHTML}</div>
                         </div>
                         <div class="card-button-wrapper">
