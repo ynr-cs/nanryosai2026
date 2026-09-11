@@ -1338,11 +1338,11 @@ const stageData = [
   {
     id: "keion_av_d2",
     day: 2,
-    time: "10:00 - 15:00",
+    time: "11:00 - 14:00",
     groupName: "軽音楽部",
     name: "NANRYO FES (視聴覚)",
     place: "視聴覚室",
-    description: "管理棟3階 視聴覚室にて一日中熱いライブをお届け！",
+    description: "管理棟3階 視聴覚室にて熱いライブをお届け！",
     tags: ["Day2", "音楽", "バンド"],
   },
 

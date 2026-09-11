@@ -1,29 +1,17 @@
-# タスク: 管理棟3階への「視聴覚室（軽音楽部 NANRYO FES）」マップ配置と連携実装
+# タスク: マップ（map.html）の2日目（Day 2）自動対応
 
 - [x] 現状調査と仕様確認 <!-- id: 0 -->
-  - [x] 管理棟の3Fフロア・ポリゴン構造および渡り廊下の接続位置の確認
-  - [x] `campus_map_data.json` / `campus_map_data.base.json` のスキーマと現状確認
-  - [x] `main/map.html` における部屋ポリゴン・インルームバッジ・ステージタイムライン連携ロジックの確認
-  - [x] `main/data/data.js` および `main/stage-list.html` の視聴覚室リンク導線の確認
-- [x] 実装計画書の作成とユーザー確認 <!-- id: 1 -->
+  - [x] `main/map.html` の `generateStageTimelineHtml` の初期タブ判定確認
+- [x] 実装計画の作成と承認 <!-- id: 1 -->
   - [x] `implementation_plan.md` の作成
-  - [x] ユーザー承認の取得（外形ポリゴン使用方針の合意）
-- [x] マップデータへの視聴覚室追加 <!-- id: 2 -->
-  - [x] `main/data/campus_map_data.json` の 3F `rooms` に `room_admin_301_av` を追加
-  - [x] `main/data/campus_map_data.base.json` にも同様に反映
-- [x] マップシステムおよびUI連携の更新 <!-- id: 3 -->
-  - [x] `main/map.html` の `buildJoinedPinsModel` で `room.linkedProjectIds`（`keion`）のバインド対応
-  - [x] 3F表示時の管理棟看板バッジ重複抑止（`currentFloor !== '3'`）
-  - [x] 視聴覚室ラベルの「管理棟 3F 視聴覚室」統一
-  - [x] 視聴覚室インルームバッジの専用スタイリング（ギターアイコン `fa-guitar` & 特大サイズ）
-- [x] ステージリスト・マスターデータの表記統一 <!-- id: 4 -->
-  - [x] `main/stage-list.html` に視聴覚室（`room_admin_301_av`）へのマップダイレクトリンク追加
-  - [x] `main/data/data.js` の軽音楽部・視聴覚室公演の表記統一（管理棟 3F 視聴覚室）
-- [x] 動作確認・検証 <!-- id: 5 -->
-  - [x] テストスクリプト（`scratch/test_av_room.js`）による全項目 100% PASS 確認
-  - [x] 3F視聴覚室のピン生成、軽音企画結合、Day1・Day2タイムテーブル抽出、リンク導線の正常動作検証
-- [x] 知識の永続化と変更履歴の記録 <!-- id: 6 -->
-  - [x] `antigravity/map-2d_CONTEXT.md` への仕様永続化
-  - [x] `antigravity/main/data_CONTEXT.md` への仕様永続化
-  - [x] `CHANGELOG.md` の更新（v1.0.11）
-  - [x] `version.json` の更新（1.0.11）
+  - [x] ユーザーによる承認完了（map.html に絞って実装）
+- [x] 実装 <!-- id: 2 -->
+  - [x] `main/map.html`: 日付判定（本日が9/12以降ならDAY 2をデフォルト）＆URLパラメータ対応
+- [x] 動作確認・検証 <!-- id: 3 -->
+  - [x] 体育館・音楽室・視聴覚室および個別企画（軽音楽部）を開いた際に DAY 2 が自動選択されることの検証（100% PASS）
+  - [x] URLパラメータ `?day=1` を渡した場合は DAY 1 が開くことの検証（100% PASS）
+  - [x] 既存の `scratch/test_av_room.js` も全項目 100% PASS
+- [x] 知識の永続化と変更履歴の記録 <!-- id: 4 -->
+  - [x] `antigravity/map-2d_CONTEXT.md` への仕様永続化（15.24 追記）
+  - [x] `CHANGELOG.md` の更新（v1.0.14）
+  - [x] `version.json` の更新（1.0.14）

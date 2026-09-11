@@ -4308,6 +4308,34 @@
         }).join('');
       }
 
+      // 2026年南陵祭の日程
+      const FESTIVAL_DATES = {
+        1: new Date(2026, 8, 11), // 9/11 (月は0-indexed: 8=9月)
+        2: new Date(2026, 8, 12), // 9/12
+      };
+
+      function getActiveFestivalDay() {
+        // 1. URLパラメータ ?day=1 / ?day=2 があれば最優先
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const pDay = parseInt(urlParams.get('day'), 10);
+          if (pDay === 1 || pDay === 2) return pDay;
+        } catch (e) {}
+
+        // 2. 本日の日付判定（9/12以降ならDAY 2、それ以前ならDAY 1）
+        const now = new Date();
+        const todayDateOnly = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const day2Date = FESTIVAL_DATES[2];
+        if (day2Date && todayDateOnly.getTime() >= day2Date.getTime()) {
+          return 2;
+        }
+        return 1;
+      }
+
       function generateStageTimelineHtml(events, options = {}) {
         const {
           showHeader = false,
@@ -4319,7 +4347,17 @@
 
         const day1Events = events.filter(s => s.day == 1);
         const day2Events = events.filter(s => s.day == 2);
-        const defaultDay = day1Events.length > 0 ? 1 : (day2Events.length > 0 ? 2 : 1);
+
+        // 開催日連動の初期タブ決定（本日がDAY 2ならDAY 2を優先）
+        const activeDay = getActiveFestivalDay();
+        let defaultDay = 1;
+        if (activeDay === 2 && day2Events.length > 0) {
+          defaultDay = 2;
+        } else if (activeDay === 1 && day1Events.length > 0) {
+          defaultDay = 1;
+        } else {
+          defaultDay = day2Events.length > 0 ? 2 : (day1Events.length > 0 ? 1 : 1);
+        }
 
         const headerHtml = showHeader ? `
           <div class="project-sheet-header" style="margin-bottom: 8px;">
