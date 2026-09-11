@@ -1544,19 +1544,6 @@
       ],
       "icon": "fa-camera",
       "description": "写真部 Moment -瞬- 展示ギャラリー"
-    },
-    {
-      "id": "spot_trash_courtyard",
-      "name": "中庭 集中エコステーション",
-      "category": "facility",
-      "floor": 1,
-      "buildingId": "outdoor_994289",
-      "latlng": [
-        35.3859,
-        139.58588
-      ],
-      "icon": "fa-trash-can",
-      "description": "中庭模擬店エリア 集中分別ゴミステーション（燃えるゴミ・プラ・缶・ペットボトル）"
     }
   ],
   "accessRoutes": [
@@ -5834,6 +5821,65 @@
           "color": "#7c5cff",
           "strokeColor": "#5e35b1",
           "linkedProjectIds": []
+        },
+        {
+          "id": "room_admin_301_av",
+          "roomId": "room_admin_301_av",
+          "name": "視聴覚室",
+          "category": "stage",
+          "floor": 3,
+          "buildingId": "管理棟",
+          "polygon": [
+            [
+              35.386038,
+              139.585523
+            ],
+            [
+              35.386032,
+              139.585838
+            ],
+            [
+              35.385855,
+              139.585834
+            ],
+            [
+              35.385864,
+              139.585512
+            ]
+          ],
+          "coordinates": [
+            [
+              35.386038,
+              139.585523
+            ],
+            [
+              35.386032,
+              139.585838
+            ],
+            [
+              35.385855,
+              139.585834
+            ],
+            [
+              35.385864,
+              139.585512
+            ]
+          ],
+          "pinCoord": [
+            35.385947,
+            139.585677
+          ],
+          "style": {
+            "fillColor": "#eab308",
+            "fillOpacity": 0.55,
+            "strokeColor": "#ca8a04",
+            "weight": 2
+          },
+          "color": "#eab308",
+          "strokeColor": "#ca8a04",
+          "linkedProjectIds": [
+            "keion"
+          ]
         }
       ],
       "corridors": [

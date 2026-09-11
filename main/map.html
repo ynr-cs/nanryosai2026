@@ -496,21 +496,27 @@
       letter-spacing: -0.1px;
     }
 
-    /* 音楽室ステージ (.is-music-room / special_room_337807_4f): 特別棟4Fの大型音楽室に合わせてさらに拡大 */
+    /* 音楽室・視聴覚室ステージ (.is-music-room, .is-av-room / special_room_337807_4f, room_admin_301_av): 大型特別教室に合わせて拡大 */
     .in-room-badge.is-music-room,
-    .in-room-badge[data-room-id="special_room_337807_4f"] {
+    .in-room-badge.is-av-room,
+    .in-room-badge[data-room-id="special_room_337807_4f"],
+    .in-room-badge[data-room-id="room_admin_301_av"] {
       padding: 5px 12px;
       border-radius: 16px;
       border-color: rgba(239, 68, 68, 0.45);
     }
     .in-room-badge.is-music-room .badge-icon,
-    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-icon {
+    .in-room-badge.is-av-room .badge-icon,
+    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-icon,
+    .in-room-badge[data-room-id="room_admin_301_av"] .badge-icon {
       width: 24px;
       height: 24px;
       font-size: 12px;
     }
     .in-room-badge.is-music-room .badge-text,
-    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-text {
+    .in-room-badge.is-av-room .badge-text,
+    .in-room-badge[data-room-id="special_room_337807_4f"] .badge-text,
+    .in-room-badge[data-room-id="room_admin_301_av"] .badge-text {
       font-size: 13.5px;
       font-weight: 800;
       max-width: 170px;
@@ -3120,7 +3126,17 @@
             // Classrooms & Special Rooms
             if (floorData.rooms) {
               floorData.rooms.forEach(room => {
-                const linkedProjects = projectsByRoom.get(room.roomId) || [];
+                const linkedProjects = (projectsByRoom.get(room.roomId) || []).slice();
+                // room.linkedProjectIds（例: 軽音楽部 keion）が指定されている場合は追加でバインド
+                if (Array.isArray(room.linkedProjectIds) && room.linkedProjectIds.length > 0) {
+                  room.linkedProjectIds.forEach(pId => {
+                    const found = validProjects.find(p => p.id === pId);
+                    if (found && !linkedProjects.some(p => p.id === pId)) {
+                      linkedProjects.push(found);
+                    }
+                  });
+                }
+
                 // Only generate map pins for rooms hosting active festival projects!
                 // Empty classrooms, prep rooms, and staff rooms remain interactive as vector polygons (sheet opens on tap)
                 // without cluttering the map with redundant pins.
@@ -3525,9 +3541,9 @@
           });
         }
 
-        // (6) 管理棟: シンプルに「管理棟」と表示
+        // (6) 管理棟: シンプルに「管理棟」と表示（3Fは視聴覚室バッジと重なるため除外）
         const adminBldg = campusData.buildings && campusData.buildings.find(b => b.id === '管理棟' || b.name === '管理棟');
-        if (adminBldg) {
+        if (adminBldg && currentFloor !== '3') {
           badges.push({
             id: 'landmark_admin',
             coords: calcPolygonCentroid(adminBldg.polygon || adminBldg.coordinates),
@@ -3939,8 +3955,9 @@
               });
 
               // Centroid In-Room Badge (Floor plan badge centered directly inside the classroom rectangle)
-              const centroid = (isLibrary && room.pinCoord) ? room.pinCoord : calculatePolygonCentroid(room.polygon || room.coordinates);
+              const centroid = room.pinCoord || calculatePolygonCentroid(room.polygon || room.coordinates);
               const isMusicRoom = room.roomId === 'special_room_337807_4f' || (room.name && room.name.includes('音楽室')) || (pinModel && pinModel.name && pinModel.name.includes('音楽室'));
+              const isAvRoom = room.roomId === 'room_admin_301_av' || (room.name && room.name.includes('視聴覚')) || (pinModel && pinModel.name && pinModel.name.includes('視聴覚'));
               const projectTitle = isLibrary
                 ? (room.name || '天空の図書館')
                 : (pinModel.projects.length === 1
@@ -3950,13 +3967,15 @@
               const staggerClass = (roomIdx % 2 === 0) ? 'stagger-top' : 'stagger-bottom';
               const badgeClass = isLibrary
                 ? `in-room-badge is-library cat-facility ${staggerClass} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}`
-                : `in-room-badge cat-${escapeHtml(cat)} ${isMusicRoom ? 'is-music-room' : ''} ${staggerClass} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}`;
+                : `in-room-badge cat-${escapeHtml(cat)} ${isMusicRoom ? 'is-music-room' : ''} ${isAvRoom ? 'is-av-room' : ''} ${staggerClass} ${activeSelectedRoomId === room.roomId ? 'is-active' : ''}`;
+
+              const displayIcon = isAvRoom ? 'fa-guitar' : iconClass;
 
               const badgeIcon = L.divIcon({
                 className: 'in-room-badge-container',
                 html: `
                   <div class="${badgeClass}" data-room-id="${escapeHtml(room.roomId)}">
-                    <span class="badge-icon"><i class="fas ${escapeHtml(iconClass)}"></i></span>
+                    <span class="badge-icon"><i class="fas ${escapeHtml(displayIcon)}"></i></span>
                     <span class="badge-text">${escapeHtml(projectTitle)}</span>
                     ${(pinModel && pinModel.hasMobileOrder) ? '<span class="badge-order-bolt" title="モバイルオーダー対応"><i class="fas fa-bolt"></i></span>' : ''}
                   </div>
@@ -4232,8 +4251,8 @@
         if (rId === 'special_room_337807_4f' || pName.includes('音楽室') || projPlace.includes('音楽室')) {
           return '特別棟 4F 音楽室';
         }
-        if (pName.includes('視聴覚') || projPlace.includes('視聴覚') || rId.includes('av')) {
-          return '特別棟 3F 視聴覚室';
+        if (pName.includes('視聴覚') || projPlace.includes('視聴覚') || rId.includes('av') || rId === 'room_admin_301_av') {
+          return '管理棟 3F 視聴覚室';
         }
         if (projPlace) return projPlace;
         if (pinModel) {

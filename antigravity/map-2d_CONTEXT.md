@@ -876,3 +876,33 @@ const IS_MAP_ENABLED = false;
   1. `initEvents()` 内の `target` 解決を `this.handle`（ハンドルバーそのもの）に修正し、シート全体への登録を廃止。
   2. `onStart()` の冒頭に防衛的ガード追加：コンテンツエリア内を発生源とするタッチは早期リターンして `window.touchmove` を登録しない。
 - **重要な教訓**: `#sheetHandle` という ID は `.bottom-sheet-handle-bar` 要素（ハンドルバーのコンテナ）に付与されており、`.parentElement` を取ってはいけない。将来コードを触る際は必ずHTMLのDOM構造を確認すること。
+
+### 15.22 管理棟3F「視聴覚室」マップ区画追加および軽音楽部（NANRYO FES）ステージ連携 (v1.0.11)
+- **背景/ユーザー要望**:
+  - ユーザーより「3回の管理棟に視聴覚室を 軽音だよそれ 大至急作ってくれ」との要請を受け、これまでマップデータ未配置だった管理棟3階に「視聴覚室」を正式配備。
+- **実装詳細**:
+  1. **マップマスターデータ (`campus_map_data.json` / `campus_map_data.base.json`)**:
+     - 3Fフロアに `room_admin_301_av`（視聴覚室）を追加。
+     - 座標は管理棟の外枠ポリゴン（渡り廊下 `overpass_3f_student_admin` の接続先）をそのまま使用。
+     - カテゴリ: `stage`（ステージ・公演）、スタイル: `#eab308`（黄色/ゴールド）、`linkedProjectIds: ["keion"]`。
+  2. **クライアント結合モデルの拡張 (`main/map.html`)**:
+     - `buildJoinedPinsModel`: `room.linkedProjectIds` を検出し、`validProjects` から合致する企画（軽音楽部）を `linkedProjects` に動的結合。体育館（`room_gym_main`）と視聴覚室の両拠点にピン・発光ポリゴンが正しく同時配置される仕組みを確立。
+     - `renderLandmarkBadges`: 3F表示時は管理棟の建物看板バッジ（`landmark_admin`）の描画を抑止（`currentFloor !== '3'`）し、室内バッジ「視聴覚室」との重なりを防止。
+     - `getVenueStageLabel`: 視聴覚室のラベルを「管理棟 3F 視聴覚室」に統一。
+     - CSS: `.in-room-badge.is-av-room, .in-room-badge[data-room-id="room_admin_301_av"]` を音楽室と同等の特大サイズにし、ギターアイコン（`fa-guitar`）を動的適用。
+  3. **ステージ一覧連携 (`main/stage-list.html`)**:
+     - タイムテーブル内の視聴覚室公演から `map.html?room=room_admin_301_av` への直接ジャンプリンクを追加。タップで3Fへ切り替わり、視聴覚室がズーム・選択される導線を完成。
+  4. **表記統一 (`main/data/data.js`)**:
+     - 軽音楽部およびステージタイムテーブルにおける会場表記を「管理棟 3F 視聴覚室」に完全統一。
+- **得られた知見**:
+  `projectData` 側で単一の `roomId`（体育館など）しか持たない複数会場利用の団体であっても、`campus_map_data.json` 側の `room.linkedProjectIds` でプロジェクトIDを指定することにより、データ構造を壊すことなくセカンダリ会場（視聴覚室等）にも完璧に企画・ピン・タイムテーブルをバインドできる柔軟な拡張設計を実現した。
+
+### 15.23 中庭エコステーション（ごみステーション）スポットピンの削除 (v1.0.12)
+- **背景/ユーザー要望**:
+  - ユーザーより「ついでにごみステーションけしてくれなんであるねん」との指示に対応。
+  - 来場者・生徒向けマップにおいて不要な「中庭 集中エコステーション（`spot_trash_courtyard`）」のピンが表示されていたため、マップ表示のノイズを低減し本来の企画・施設案内を見やすくするために完全撤去。
+- **実装詳細**:
+  - `campus_map_data.json` および `campus_map_data.base.json` の `spots` 配列から `id: "spot_trash_courtyard"` を削除。
+- **得られた知見**:
+  マップ上のスポット（`spots`）は来場者の動線や関心のある企画・主要施設に絞り込むことで、マーカーの密集を防ぎ視認性を最大化できる。
+

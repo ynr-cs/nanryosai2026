@@ -1,24 +1,29 @@
-# タスク: 南陵高校公式リンクの削除および非公式・免責事項の明記
+# タスク: 管理棟3階への「視聴覚室（軽音楽部 NANRYO FES）」マップ配置と連携実装
 
-- [x] 現状の調査と学校公式リンクの特定 <!-- id: 0 -->
-  - [x] プロジェクト全体の外部リンク走査（`pen-kanagawa.ed.jp` 等）
-  - [x] 学校公式へのリンク箇所を全件特定（`index.html`, `about.html`）
-  - [x] フッター（`app-shell.js`）および各画面の「公式」表記箇所の特定
+- [x] 現状調査と仕様確認 <!-- id: 0 -->
+  - [x] 管理棟の3Fフロア・ポリゴン構造および渡り廊下の接続位置の確認
+  - [x] `campus_map_data.json` / `campus_map_data.base.json` のスキーマと現状確認
+  - [x] `main/map.html` における部屋ポリゴン・インルームバッジ・ステージタイムライン連携ロジックの確認
+  - [x] `main/data/data.js` および `main/stage-list.html` の視聴覚室リンク導線の確認
 - [x] 実装計画書の作成とユーザー確認 <!-- id: 1 -->
-  - [x] 対象ファイル・削除リンク・文言案をまとめた `implementation_plan.md` 作成
-  - [x] ユーザー承認受領（`lastyear` は対象外と確認）
-- [x] 学校公式リンクの削除 <!-- id: 2 -->
-  - [x] `main/index.html` からの公式HPリンクおよび学校案内PDF削除
-  - [x] `main/about.html` からの公式HPリンクおよび学校案内PDF削除
-- [x] 非公式・免責事項文言の追加 <!-- id: 3 -->
-  - [x] `main/app-shell.js`（共通フッター）への免責事項追加・「公式」表記削除
-  - [x] `main/index.html` への免責事項インフォメーションボックス追加
-  - [x] `main/about.html` への免責事項セクション追加
-  - [x] `main/about-us.html` の「公式Webサイト」表記見直し
-- [x] 表示確認・動作検証 <!-- id: 4 -->
-  - [x] リンク走査スクリプトにより `pen-kanagawa` リンクが 0 件になったことを確認
-  - [x] 各画面のレイアウト・構文整合性の確認
-- [x] 知識の永続化と変更履歴の記録 <!-- id: 5 -->
-  - [x] `antigravity/main/about_CONTEXT.md` の同期
-  - [x] `CHANGELOG.md` の更新 (v1.0.7)
-  - [x] `version.json` の更新 (1.0.7)
+  - [x] `implementation_plan.md` の作成
+  - [x] ユーザー承認の取得（外形ポリゴン使用方針の合意）
+- [x] マップデータへの視聴覚室追加 <!-- id: 2 -->
+  - [x] `main/data/campus_map_data.json` の 3F `rooms` に `room_admin_301_av` を追加
+  - [x] `main/data/campus_map_data.base.json` にも同様に反映
+- [x] マップシステムおよびUI連携の更新 <!-- id: 3 -->
+  - [x] `main/map.html` の `buildJoinedPinsModel` で `room.linkedProjectIds`（`keion`）のバインド対応
+  - [x] 3F表示時の管理棟看板バッジ重複抑止（`currentFloor !== '3'`）
+  - [x] 視聴覚室ラベルの「管理棟 3F 視聴覚室」統一
+  - [x] 視聴覚室インルームバッジの専用スタイリング（ギターアイコン `fa-guitar` & 特大サイズ）
+- [x] ステージリスト・マスターデータの表記統一 <!-- id: 4 -->
+  - [x] `main/stage-list.html` に視聴覚室（`room_admin_301_av`）へのマップダイレクトリンク追加
+  - [x] `main/data/data.js` の軽音楽部・視聴覚室公演の表記統一（管理棟 3F 視聴覚室）
+- [x] 動作確認・検証 <!-- id: 5 -->
+  - [x] テストスクリプト（`scratch/test_av_room.js`）による全項目 100% PASS 確認
+  - [x] 3F視聴覚室のピン生成、軽音企画結合、Day1・Day2タイムテーブル抽出、リンク導線の正常動作検証
+- [x] 知識の永続化と変更履歴の記録 <!-- id: 6 -->
+  - [x] `antigravity/map-2d_CONTEXT.md` への仕様永続化
+  - [x] `antigravity/main/data_CONTEXT.md` への仕様永続化
+  - [x] `CHANGELOG.md` の更新（v1.0.11）
+  - [x] `version.json` の更新（1.0.11）

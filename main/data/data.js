@@ -572,7 +572,7 @@ const projectData = [
     "loginId": "keion",
     "groupName": "軽音楽部",
     "name": "NANRYO FES",
-    "place": "体育館・特別棟 3F 視聴覚室",
+    "place": "体育館・管理棟 3F 視聴覚室",
     "floor": 1,
     "roomId": "room_gym_main",
     "category": "stage",
@@ -1245,7 +1245,7 @@ const stageData = [
     groupName: "軽音楽部",
     name: "NANRYO FES (視聴覚)",
     place: "視聴覚室",
-    description: "特別棟3階 視聴覚室にて部員バンドが熱いライブをお届け！",
+    description: "管理棟3階 視聴覚室にて部員バンドが熱いライブをお届け！",
     tags: ["Day1", "音楽", "バンド"],
   },
 
@@ -1342,7 +1342,7 @@ const stageData = [
     groupName: "軽音楽部",
     name: "NANRYO FES (視聴覚)",
     place: "視聴覚室",
-    description: "特別棟3階 視聴覚室にて一日中熱いライブをお届け！",
+    description: "管理棟3階 視聴覚室にて一日中熱いライブをお届け！",
     tags: ["Day2", "音楽", "バンド"],
   },
 

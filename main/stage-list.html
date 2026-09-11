@@ -902,6 +902,8 @@
                 stageMapUrl = 'map.html?room=room_gym_main';
               } else if (event.place && event.place.includes('音楽室')) {
                 stageMapUrl = 'map.html?room=special_room_337807_4f';
+              } else if (event.place && event.place.includes('視聴覚')) {
+                stageMapUrl = 'map.html?room=room_admin_301_av';
               }
 
               const placeHTML = (isMapEnabled && stageMapUrl) 
