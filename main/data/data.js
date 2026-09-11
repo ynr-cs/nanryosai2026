@@ -1241,7 +1241,7 @@ const stageData = [
   {
     id: "keion_av_d1",
     day: 1,
-    time: "10:45 - 15:00",
+    time: "11:00 - 15:00",
     groupName: "軽音楽部",
     name: "NANRYO FES (視聴覚)",
     place: "視聴覚室",

@@ -59,6 +59,13 @@ const AppShell = {
   },
 
   initGlobalAlert: function () {
+    // map.html / map3d.html ではマップ表示およびUI操作部の被りを防ぐため緊急アラートを表示しない
+    const path = window.location.pathname;
+    const filename = path.split("/").pop() || "";
+    if (filename === "map.html" || filename === "map3d.html") {
+      return;
+    }
+
     onSnapshot(doc(db, "_metadata", "system_alerts"), (snap) => {
       const existingAlert = document.getElementById("main-global-alert");
       if (existingAlert) {
