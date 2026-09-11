@@ -1,19 +1,24 @@
-# タスク: superadmin保存時のpermission-deniedエラー修正
+# タスク: 南陵高校公式リンクの削除および非公式・免責事項の明記
 
-- [x] 現状の調査と根本原因の特定 <!-- id: 0 -->
-  - Firebaseにデプロイされている古いセキュリティルール（email依存）とV4認証（email非保持・identityクレーム方式）の不一致を特定
-- [x] 実装計画の作成とユーザー確認 <!-- id: 1 -->
-  - implementation_plan.md の作成
-  - ユーザーへの承認要請 (承認完了)
-- [x] Firestore セキュリティルールのデプロイ <!-- id: 2 -->
-  - 最新の `firestore.rules` を Firebase にデプロイ (デプロイ成功・サーバー反映確認済み)
-- [x] 管理画面のフロントエンド堅牢化 <!-- id: 3 -->
-  - `main/admin/superadmin.html` での ID トークン強制リフレッシュ対応 (`getClaims(true)`)
-  - `main/admin_sync.html` での ID トークン強制リフレッシュ対応 (`getClaims(true)`)
-- [x] 動作確認・検証 <!-- id: 4 -->
-  - セキュリティルールのデプロイ検証 (Firebase サーバー上のルール取得突合により `isSuperAdmin()` 更新を確認)
-  - クライアント側ロジックの動作確認
+- [x] 現状の調査と学校公式リンクの特定 <!-- id: 0 -->
+  - [x] プロジェクト全体の外部リンク走査（`pen-kanagawa.ed.jp` 等）
+  - [x] 学校公式へのリンク箇所を全件特定（`index.html`, `about.html`）
+  - [x] フッター（`app-shell.js`）および各画面の「公式」表記箇所の特定
+- [x] 実装計画書の作成とユーザー確認 <!-- id: 1 -->
+  - [x] 対象ファイル・削除リンク・文言案をまとめた `implementation_plan.md` 作成
+  - [x] ユーザー承認受領（`lastyear` は対象外と確認）
+- [x] 学校公式リンクの削除 <!-- id: 2 -->
+  - [x] `main/index.html` からの公式HPリンクおよび学校案内PDF削除
+  - [x] `main/about.html` からの公式HPリンクおよび学校案内PDF削除
+- [x] 非公式・免責事項文言の追加 <!-- id: 3 -->
+  - [x] `main/app-shell.js`（共通フッター）への免責事項追加・「公式」表記削除
+  - [x] `main/index.html` への免責事項インフォメーションボックス追加
+  - [x] `main/about.html` への免責事項セクション追加
+  - [x] `main/about-us.html` の「公式Webサイト」表記見直し
+- [x] 表示確認・動作検証 <!-- id: 4 -->
+  - [x] リンク走査スクリプトにより `pen-kanagawa` リンクが 0 件になったことを確認
+  - [x] 各画面のレイアウト・構文整合性の確認
 - [x] 知識の永続化と変更履歴の記録 <!-- id: 5 -->
-  - `antigravity/firebase_CONTEXT.md` の更新
-  - `CHANGELOG.md` のパッチバージョン更新 (v1.0.6)
-  - `version.json` の更新 (1.0.6)
+  - [x] `antigravity/main/about_CONTEXT.md` の同期
+  - [x] `CHANGELOG.md` の更新 (v1.0.7)
+  - [x] `version.json` の更新 (1.0.7)

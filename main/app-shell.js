@@ -322,11 +322,15 @@ const AppShell = {
           <span class="footer-biglogo" id="footer-biglogo">南陵祭'<span class="glow-26" id="footer-glow26">26</span></span>
         </div>
 
-        <!-- コピーライト -->
+        <!-- コピーライト＆免責事項 -->
         <div class="footer-bottom">
+          <div class="footer-disclaimer" style="font-size: 0.72rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px; padding: 10px 14px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
+            <strong style="color: var(--text-main); display: block; margin-bottom: 3px;"><i class="bi bi-info-circle me-1"></i>非公式・免責事項について</strong>
+            本Webサイトは、横浜南陵高校 コンピュータ科学部（YNR-CS）の生徒が自主的な部活動・技術研究の一環として制作・運営している非公式Webサイトです。神奈川県立横浜南陵高等学校および文化祭実行委員会の公式Webサイトではありません。掲載情報の正確性・完全性には細心の注意を払っておりますが、制作者および学校は本サイトの利用により生じる一切の損害やトラブルについて責任を負いかねます。
+          </div>
           <span class="footer-bottom-left">
             © 2026 コンピュータ科学部<br>
-            <span style="font-size:0.65rem; opacity:0.6;">横浜南陵高等学校 南陵祭2026 公式Webサイト</span>
+            <span style="font-size:0.65rem; opacity:0.6;">横浜南陵高等学校 南陵祭2026 （コンピュータ科学部 制作・運営）</span>
           </span>
         </div>
 
