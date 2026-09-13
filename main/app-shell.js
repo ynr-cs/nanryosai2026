@@ -41,7 +41,32 @@ const AppShell = {
     return this.FOOTER_WHITELIST.includes(filename);
   },
 
+  checkClosedRedirect: function () {
+    const path = window.location.pathname;
+    const filename = path.split("/").pop() || "";
+
+    // closed.html 自体はリダイレクトしない
+    if (filename === "closed.html") return false;
+
+    // 管理画面系（admin/配下、admin_sync.html）は除外
+    if (path.includes("/admin/") || filename === "admin_sync.html") return false;
+
+    // クエリパラメータに bypass が指定されている場合は除外（テスト・開発用）
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("bypass")) return false;
+
+    // それ以外（来場者向け全ページ・トップページ等）は closed.html へ自動転送
+    const target = this.resolvePath("closed.html");
+    window.location.replace(target);
+    return true;
+  },
+
   init: function () {
+    // 文化祭終了に伴う全頁リダイレクト判定
+    if (this.checkClosedRedirect()) {
+      return;
+    }
+
     this.injectStyles();
     this.injectHeader();
     this.injectBottomNav();

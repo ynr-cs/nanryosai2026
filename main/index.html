@@ -15,6 +15,14 @@
           else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
         } catch (e) {}
       })();
+      (function() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (!params.has('bypass')) {
+            window.location.replace('closed.html');
+          }
+        } catch (e) {}
+      })();
     </script>
     <!-- Prevent Dark Mode Flicker (FOUC) -->
     <style>
@@ -1075,6 +1083,12 @@
                     ご来場<br class="sp-only">ありがとうございました
                 </div>
                 <span class="status-badge-sub">本年度の南陵祭は終了しました</span>
+                <div style="margin-top: 20px;">
+                    <a href="closed.html" style="display: inline-flex; align-items: center; gap: 8px; background: var(--primary-gradient); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; text-decoration: none; box-shadow: 0 4px 14px rgba(106, 17, 203, 0.3);">
+                        <span>終了のお知らせ・アンケートはこちら</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </section>
 
